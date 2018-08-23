@@ -79,7 +79,9 @@ bool Graphics::TryInitialize(const string& title, unsigned int width, unsigned i
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 8 * sizeof(float), indices, GL_STATIC_DRAW);
 
-	shader = Shader::LoadShader("res/shaders/Default.shader");
+	shader = Shader::ImportShader("res/shaders/Default.shader");
+
+	shader->UseProgram();
 
 	cout << "--OpenGL Context Initialized--" << endl;
 
@@ -102,15 +104,14 @@ bool Graphics::Update()
 
 	float time = glfwGetTime();
 
-	shader->SetVector4(hashColor, color);
-	shader->SetVector2(hashRes, res);
-	shader->SetFloat(hashTime, time);
+	shader->SetVector4(hashColor,	color);
+	shader->SetVector2(hashRes,		res);
+	shader->SetFloat(hashTime,		time);
 
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 	glfwSwapBuffers(window);
 	glfwPollEvents();
-
 	return true;
 }
 

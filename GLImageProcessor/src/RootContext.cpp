@@ -12,11 +12,8 @@ int main(void)
 	if (!graphics.TryInitialize("GL Context", 512, 512))
 		exit(EXIT_FAILURE);
 
-	while (graphics.Update())
-	{
-	}
+	while (graphics.Update()){}
 
 	graphics.OnExit();
-
 	exit(EXIT_SUCCESS);
 }

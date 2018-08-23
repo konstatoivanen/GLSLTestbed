@@ -7,14 +7,14 @@
 #include "Shader.h"
 
 #pragma region Local
-hash<string>		hashStringToId;
-map<int, Shader*>	shaderCollection;
+hash<string>	  hashStringToId;
+map<int, Shader*> shaderCollection;
 
 enum class ShaderType
 {
-	None = -1,
-	Vertex = 0, 
-	Fragment = 1
+	None	 = -1,
+	Vertex	 =  0, 
+	Fragment =  1
 };
 
 static tuple<string, string, string, vector<string>> ParseShader(const string& filepath)
@@ -57,6 +57,11 @@ static tuple<string, string, string, vector<string>> ParseShader(const string& f
 			uniforms.push_back(line.substr(17));
 			continue;
 		}
+
+		if (type == ShaderType::None)
+		{
+			continue;
+		}
 			
 		composite[(int)type] << line << '\n';
 	}
@@ -66,7 +71,7 @@ static tuple<string, string, string, vector<string>> ParseShader(const string& f
 
 static unsigned int CompileShader(unsigned int type, const string& source)
 {
-	unsigned int id = glCreateShader(type);
+	auto id = glCreateShader(type);
 	const char* src = source.c_str();
 
 	glShaderSource(id, 1, &src, nullptr);
@@ -82,13 +87,12 @@ static unsigned int CompileShader(unsigned int type, const string& source)
 		char* msg = (char*)alloca(length * sizeof(char));
 
 		glGetShaderInfoLog(id, length, &length, msg);
-		cout << "SHADER COMPILATION FAILURE!" << (type == GL_VERTEX_SHADER ? "VERTEX" : "FRAGMENT") << msg << endl;
+		cout << "SHADER COMPILATION FAILURE! IN " << (type == GL_VERTEX_SHADER ? "VERTEX: " : "FRAGMENT: ") << msg << endl;
 	}
 
 	return id;
 }
 #pragma endregion
-
 
 #pragma region Public Methods
 Shader::Shader(const unsigned int& sprogramId, const vector<string>& uniforms)
@@ -99,46 +103,19 @@ Shader::Shader(const unsigned int& sprogramId, const vector<string>& uniforms)
 
 	for (int i = 0; i < size; i++)
 	{
-		auto uniform	= uniforms.at(i);
-		auto hashId		= HashId(uniform);
-		uniformLocations[hashId] = glGetUniformLocation(programId, uniform.c_str());
+		auto uniform		= uniforms.at(i);
+		auto hashId			= HashId(uniform);
+		variableMap[hashId] = glGetUniformLocation(programId, uniform.c_str());
 	}
 }
 
-int Shader::HashId(const string& name)
+Shader* Shader::ImportShader(const string& filepath)
 {
-	return hashStringToId(name);
-}
+	auto source  = ParseShader(filepath);
+	auto program = glCreateProgram();
 
-void Shader::SetVector4(int hashId, vec4 value)
-{
-	int location = uniformLocations[hashId];
-	glUniform4f(location, value[0], value[1], value[2], value[3]);
-}
-void Shader::SetVector3(int hashId, vec3 value)
-{
-	int location = uniformLocations[hashId];
-	glUniform3f(location, value[0], value[1], value[2]);
-}
-void Shader::SetVector2(int hashId, vec2 value)
-{
-	int location = uniformLocations[hashId];
-	glUniform2f(location, value[0], value[1]);
-}
-void Shader::SetFloat(int hashId, float value)
-{
-	int location = uniformLocations[hashId];
-	glUniform1f(location, value);
-}
-
-Shader* Shader::LoadShader(const string& filepath)
-{
-	auto source = ParseShader(filepath);
-
-	unsigned int program = glCreateProgram();
-
-	unsigned int vs = CompileShader(GL_VERTEX_SHADER,   get<0>(source));
-	unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, get<1>(source));
+	auto vs	= CompileShader(GL_VERTEX_SHADER,   get<0>(source));
+	auto fs	= CompileShader(GL_FRAGMENT_SHADER, get<1>(source));
 
 	glAttachShader(program, vs);
 	glAttachShader(program, fs);
@@ -148,11 +125,10 @@ Shader* Shader::LoadShader(const string& filepath)
 
 	glDeleteShader(vs);
 	glDeleteShader(fs);
-	glUseProgram(program);
 
-	auto name		= get<2>(source);
-	auto hashId		= HashId(name);
-	auto newShader	= new Shader(program, get<3>(source));
+	auto name	   = get<2>(source);
+	auto hashId	   = HashId(name);
+	auto newShader = new Shader(program, get<3>(source));
 
 	shaderCollection[hashId] = newShader;
 
@@ -160,15 +136,48 @@ Shader* Shader::LoadShader(const string& filepath)
 
 	return newShader;
 }
-
-void Shader::ReleaseAll()
+Shader* Shader::Find(const string& name)
+{
+	auto hashId = HashId(name);
+	return shaderCollection[hashId];
+}
+Shader* Shader::Find(const int& hashId)
+{
+	return shaderCollection[hashId];
+}
+void	Shader::ReleaseAll()
 {
 	for (auto const& i : shaderCollection)
 	{
-		glDeleteProgram(i.second->GetProgramId());
+		glDeleteProgram(i.second->programId);
 		delete i.second;
 	}
 
 	shaderCollection.clear();
+}
+
+int  Shader::HashId(const string& name)
+{
+	return hashStringToId(name);
+}
+void Shader::SetVector4(const int& hashId, vec4 value)
+{
+	int vloc = variableMap[hashId];
+	glUniform4f(vloc, value[0], value[1], value[2], value[3]);
+}
+void Shader::SetVector3(const int& hashId, vec3 value)
+{
+	int vloc = variableMap[hashId];
+	glUniform3f(vloc, value[0], value[1], value[2]);
+}
+void Shader::SetVector2(const int& hashId, vec2 value)
+{
+	int vloc = variableMap[hashId];
+	glUniform2f(vloc, value[0], value[1]);
+}
+void Shader::SetFloat(const int& hashId, float value)
+{
+	int vloc = variableMap[hashId];
+	glUniform1f(vloc, value);
 }
 #pragma endregion
