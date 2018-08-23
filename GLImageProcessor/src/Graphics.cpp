@@ -1,13 +1,14 @@
-#include "Graphics.h"
-#include "Shader.h"
 #include <Windows.h>
 #include <fstream>
 #include <sstream>
-#include "linmath.h"
+#include "Graphics.h"
+#include "Shader.h"
 
-unsigned int shader;
-int location;
-float r;
+Shader* shader;
+
+const auto hashColor = Shader::HashId("_Color");
+const auto hashRes   = Shader::HashId("_Resolution");
+const auto hashTime  = Shader::HashId("_Time");
 
 Graphics::Graphics()
 {
@@ -80,10 +81,6 @@ bool Graphics::TryInitialize(const string& title, unsigned int width, unsigned i
 
 	shader = Shader::LoadShader("res/shaders/Default.shader");
 
-	glUseProgram(shader);
-
-	location = glGetUniformLocation(shader, "_Color");
-
 	cout << "--OpenGL Context Initialized--" << endl;
 
 	return true;
@@ -100,10 +97,15 @@ bool Graphics::Update()
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	r += 0.01f;
-	r = fmod(r, 1.0f);
+	vec4 color	= { 1.0f, 0.0f, 0.0f, 1.0f};
+	vec2 res	= {width, height};
 
-	glUniform4f(location, r, 0.0f, 0.0f, 1.0f);
+	float time = glfwGetTime();
+
+	shader->SetVector4(hashColor, color);
+	shader->SetVector2(hashRes, res);
+	shader->SetFloat(hashTime, time);
+
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 	glfwSwapBuffers(window);
@@ -114,6 +116,6 @@ bool Graphics::Update()
 
 void Graphics::OnExit()
 {
-	glDeleteProgram(shader);
+	Shader::ReleaseAll();
 	Terminate();
 }
