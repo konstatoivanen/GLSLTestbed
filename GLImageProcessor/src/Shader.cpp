@@ -28,16 +28,15 @@ static tuple<string, string, string> ParseShader(const string& filepath)
 		return {"","",""};
 	}
 
-	string		 name;
 	string		 line;
-	stringstream composite[2];
+	stringstream composite[3];
 	auto		 type = ShaderType::None;
 
 	while (getline(file, line))
 	{
 		if (line.find("#pragma name ") != string::npos)
 		{
-			name = line.substr(13);
+			composite[2] << line.substr(13);
 			continue;
 		}
 
@@ -56,7 +55,7 @@ static tuple<string, string, string> ParseShader(const string& filepath)
 		composite[(int)type] << line << '\n';
 	}
 
-	return make_tuple(composite[0].str(), composite[1].str(), name);
+	return make_tuple(composite[0].str(), composite[1].str(), composite[2].str());
 }
 
 static unsigned int CompileShader(unsigned int type, const string& source)
