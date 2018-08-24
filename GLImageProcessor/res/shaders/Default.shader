@@ -41,9 +41,8 @@ void main()
 	uv.x += 0.5;
 
 	float cd = length(uv - 0.5) - _Time * 0.05;
-	float c = step((cd * 16) - floor(cd * 16), 0.5);
-
-	float h = cd - floor(cd);
+	float c = step( mod(cd * 16.0, 1.0), 0.5);
+	float h = mod(cd, 1.0);
 
 	vec3 col = hsv2rgb(vec3(h, 1, 1));
 
