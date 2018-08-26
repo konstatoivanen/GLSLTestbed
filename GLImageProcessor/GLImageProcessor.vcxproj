@@ -128,6 +128,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\Delegate.h" />
+    <ClInclude Include="include\Dispatcher.h" />
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\Graphics.h" />
     <ClInclude Include="include\GLFW\glfw3.h" />
@@ -136,7 +138,7 @@
     <ClInclude Include="include\GL\glew.h" />
     <ClInclude Include="include\GL\glxew.h" />
     <ClInclude Include="include\GL\wglew.h" />
-    <ClInclude Include="src\linmath.h" />
+    <ClInclude Include="include\linmath.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\glew32.lib" />
@@ -146,7 +148,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="libs\glfw3.dll" />
-    <None Include="res\shaders\Default.shader" />
+    <None Include="res\shaders\HueTerraceMultisampled.shader" />
+    <None Include="res\shaders\HueTerraceSimple.shader" />
+    <None Include="res\shaders\ShaderToyImport.shader" />
     <None Include="x64\Debug\GLImageProcessor.tlog\CL.command.1.tlog" />
     <None Include="x64\Debug\GLImageProcessor.tlog\GLImageProcessor.lastbuildstate" />
     <None Include="x64\Debug\GLImageProcessor.tlog\unsuccessfulbuild" />
@@ -159,6 +163,8 @@
     <ClCompile Include="src\RootContext.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="res\Config.txt" />
+    <Text Include="res\Shaders.txt" />
     <Text Include="x64\Debug\GLImageProcessor.Build.CppClean.log" />
     <Text Include="x64\Debug\GLImageProcessor.log" />
   </ItemGroup>

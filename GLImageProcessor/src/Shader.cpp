@@ -1,14 +1,15 @@
 #include <tuple>
-#include <fstream>
-#include <sstream>
 #include <string>
 #include <functional>
 #include "Graphics.h"
 #include "Shader.h"
 
 #pragma region Local
+//Using hash to generate ids from strings can cause collisions but for now this is an easy solution.
 hash<string>	  hashStringToId;
 map<int, Shader*> shaderCollection;
+
+typedef tuple<string, string, string, vector<string>> ParsedShader;
 
 enum class ShaderType
 {
@@ -17,7 +18,14 @@ enum class ShaderType
 	Fragment =  1
 };
 
-static tuple<string, string, string, vector<string>> ParseShader(const string& filepath)
+/// <summary>
+/// Parses shader into:
+/// Vertex program
+/// Fragment program
+/// Name
+/// Uniform variable names
+/// </summary>
+static ParsedShader ParseShader(const string& filepath)
 {
 	ifstream file(filepath);
 
@@ -25,6 +33,7 @@ static tuple<string, string, string, vector<string>> ParseShader(const string& f
 
 	if (file.fail())
 	{
+		cout << "Failed to open shader file at: " << filepath << endl;
 		return {"","","", uniforms};
 	}
 
@@ -68,7 +77,10 @@ static tuple<string, string, string, vector<string>> ParseShader(const string& f
 
 	return make_tuple(composite[0].str(), composite[1].str(), composite[2].str(), uniforms);
 }
-
+/// <summary>
+/// Submits a raw shader string for OpenGL to compile 
+/// and returns the resultant program id.
+/// </summary>
 static unsigned int CompileShader(unsigned int type, const string& source)
 {
 	auto id = glCreateShader(type);
@@ -92,30 +104,16 @@ static unsigned int CompileShader(unsigned int type, const string& source)
 
 	return id;
 }
-#pragma endregion
-
-#pragma region Public Methods
-Shader::Shader(const unsigned int& sprogramId, const vector<string>& uniforms)
+/// <summary>
+/// Compiles and creates shader in the OpenGL contex
+/// and returns the resultant programId
+/// </summary>
+static unsigned int CreateShaderProgram(const string& vert, const string& frag)
 {
-	this->programId = sprogramId;
-	
-	auto size = uniforms.size();
-
-	for (int i = 0; i < size; i++)
-	{
-		auto uniform		= uniforms.at(i);
-		auto hashId			= HashId(uniform);
-		variableMap[hashId] = glGetUniformLocation(programId, uniform.c_str());
-	}
-}
-
-Shader* Shader::ImportShader(const string& filepath)
-{
-	auto source  = ParseShader(filepath);
 	auto program = glCreateProgram();
 
-	auto vs	= CompileShader(GL_VERTEX_SHADER,   get<0>(source));
-	auto fs	= CompileShader(GL_FRAGMENT_SHADER, get<1>(source));
+	auto vs = CompileShader(GL_VERTEX_SHADER, vert);
+	auto fs = CompileShader(GL_FRAGMENT_SHADER, frag);
 
 	glAttachShader(program, vs);
 	glAttachShader(program, fs);
@@ -126,26 +124,52 @@ Shader* Shader::ImportShader(const string& filepath)
 	glDeleteShader(vs);
 	glDeleteShader(fs);
 
-	auto name	   = get<2>(source);
-	auto hashId	   = HashId(name);
-	auto newShader = new Shader(program, get<3>(source));
+	return program;
+}
+#pragma endregion
 
+#pragma region Public Methods
+Shader::Shader(const unsigned int& programId, const vector<string>& uniforms, const string filepath)
+{
+	this->programId			= programId;
+	this->cachedFilepath	= filepath;
+	this->MapVariables(uniforms);
+}
+
+Shader*		Shader::Import(const string& filepath)
+{
+	auto source  = ParseShader(filepath);
+	auto name	 = get<2>(source);
+	auto hashId	 = HashId(name);
+
+	if (shaderCollection.count(hashId) > 0)
+	{
+		cout << "Shader is already imported: " << name << endl;
+		return shaderCollection[hashId];
+	}
+
+	cout << (name.empty()? "Shader does not include a name definition: " + filepath : "Imported shader: " + name) << endl;
+
+	auto program			 = CreateShaderProgram(get<0>(source), get<1>(source));
+	auto newShader			 = new Shader(program, get<3>(source), filepath);
 	shaderCollection[hashId] = newShader;
-
-	cout << (name.empty()? "Shader Not Found At: " + filepath : "Compiled Shader: " + name) << endl;
 
 	return newShader;
 }
-Shader* Shader::Find(const string& name)
+void		Shader::ImportMultiple(const string& filepath)
 {
-	auto hashId = HashId(name);
-	return shaderCollection[hashId];
+	ifstream file(filepath);
+
+	if (file.fail())
+	{
+		cout << "Failed to open shader list file at: " << filepath << endl;
+		return;
+	}
+
+	string line;
+	while (getline(file, line)) Shader::Import(line);
 }
-Shader* Shader::Find(const int& hashId)
-{
-	return shaderCollection[hashId];
-}
-void	Shader::ReleaseAll()
+void		Shader::ReleaseAll()
 {
 	for (auto const& i : shaderCollection)
 	{
@@ -155,7 +179,56 @@ void	Shader::ReleaseAll()
 
 	shaderCollection.clear();
 }
+Shader*		Shader::Find(const string& name)
+{
+	auto hashId = HashId(name);
+	return shaderCollection[hashId];
+}
+Shader*		Shader::Find(const int& hashId)
+{
+	return shaderCollection[hashId];
+}
+vector<int> Shader::GetAllNameHashIds()
+{
+	vector<int> ret;
 
+	for (auto const& i : shaderCollection)
+		ret.push_back(i.first);
+
+	return ret;
+}
+
+void Shader::MapVariables(const vector<string>& uniforms)
+{
+	variableMap.clear();
+	auto size = uniforms.size();
+	for (int i = 0; i < size; ++i)
+	{
+		auto uniform		= uniforms.at(i);
+		auto hashId			= HashId(uniform);
+		variableMap[hashId] = glGetUniformLocation(programId, uniform.c_str());
+	}
+}
+void Shader::Reimport()
+{
+	GLint currentProgram;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
+
+	bool inUse = currentProgram == programId;
+
+	glDeleteProgram(programId);
+
+	auto source = ParseShader(cachedFilepath);
+	auto name	= get<2>(source);
+	auto hashId = HashId(name);
+
+	cout << (name.empty() ? "Shader does not include a name definition: " + cachedFilepath : "Reimported shader: " + name) << endl;
+
+	programId = CreateShaderProgram(get<0>(source), get<1>(source));
+	MapVariables(get<3>(source));
+
+	if (inUse) UseProgram();
+}
 int  Shader::HashId(const string& name)
 {
 	return hashStringToId(name);

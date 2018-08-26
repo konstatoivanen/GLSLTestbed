@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\linmath.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\GLFW\glfw3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -42,6 +39,15 @@
     <ClInclude Include="src\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Delegate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Dispatcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\linmath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\glew32.lib" />
@@ -51,12 +57,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="libs\glfw3.dll" />
-    <None Include="res\shaders\Default.shader" />
     <None Include="x64\Debug\vc141.idb" />
     <None Include="x64\Debug\vc141.pdb" />
     <None Include="x64\Debug\GLImageProcessor.tlog\CL.command.1.tlog" />
     <None Include="x64\Debug\GLImageProcessor.tlog\GLImageProcessor.lastbuildstate" />
     <None Include="x64\Debug\GLImageProcessor.tlog\unsuccessfulbuild" />
+    <None Include="res\shaders\ShaderToyImport.shader" />
+    <None Include="res\shaders\HueTerraceMultisampled.shader" />
+    <None Include="res\shaders\HueTerraceSimple.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\RootContext.cpp">
@@ -72,5 +80,7 @@
   <ItemGroup>
     <Text Include="x64\Debug\GLImageProcessor.log" />
     <Text Include="x64\Debug\GLImageProcessor.Build.CppClean.log" />
+    <Text Include="res\Config.txt" />
+    <Text Include="res\Shaders.txt" />
   </ItemGroup>
 </Project>
