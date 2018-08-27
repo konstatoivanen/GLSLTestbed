@@ -1,6 +1,9 @@
 #include <Windows.h>
 #include "Graphics.h"
-#include "Shader.h"
+
+using namespace std;
+
+vector<shared_ptr<InputReceiver>>  Graphics::inputReceivers;
 
 /// <summary>
 /// Initializes the vertex streams required for drawing a fullscreen quad
@@ -11,8 +14,8 @@ static void InitializeFullScreenQuad()
 	{
 		-1.0f, -1.0f,
 		-1.0f,  1.0f,
-		1.0f,  1.0f,
-		1.0f, -1.0f,
+		 1.0f,  1.0f,
+		 1.0f, -1.0f,
 	};
 
 	unsigned int indices[] =
@@ -38,18 +41,29 @@ static void InitializeFullScreenQuad()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 8 * sizeof(float), indices, GL_STATIC_DRAW);
 }
+
+///<summary>
+/// Logs OpenGL errors that might happen
+///</summary>
 static void GLErrorCallback(int, const char* err_str)
 {
 	std::cout << "GLFW ERROR! : " << err_str << endl;
 }
-
-Graphics::Graphics()
+///<summary>
+/// Forwards input received from glfw
+///</summary>
+void Graphics::GLInputCallback(GLFWwindow*, int key, int scancode, int action, int mods)
 {
+	for (auto& i : inputReceivers) i->OnInput(key, scancode, action, mods);
+}	
 
+void Graphics::RegisterShaderModifier(const shared_ptr<ShaderModifier>& renderable)
+{
+	shaderModifiers.push_back(renderable);
 }
-Graphics::~Graphics()
+void Graphics::RegisterInputReceiver(const shared_ptr<InputReceiver>& inputReceiver)
 {
-
+	inputReceivers.push_back(inputReceiver);
 }
 
 void Graphics::Terminate()
@@ -57,7 +71,8 @@ void Graphics::Terminate()
 	if(window) glfwDestroyWindow(window);
 	glfwTerminate();
 
-	beforeDrawCallBacks.clear();
+	shaderModifiers.clear();
+	inputReceivers.clear();
 
 	cout << "OpenGL Context Terminated" << endl;
 }
@@ -88,6 +103,7 @@ bool Graphics::TryInitialize(const string& title, unsigned int width, unsigned i
 	}
 
 	glfwSetErrorCallback(GLErrorCallback);
+	glfwSetKeyCallback(window, GLInputCallback);
 
 	InitializeFullScreenQuad();
 
@@ -106,15 +122,11 @@ bool Graphics::TryDraw()
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	beforeDrawCallBacks(width, height);
+	for (auto& i : shaderModifiers) i->OnDraw(width, height);
 
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 	glfwSwapBuffers(window);
+	glfwPollEvents();
 	return true;
-}
-void Graphics::OnExit()
-{
-	Shader::ReleaseAll();
-	Terminate();
 }

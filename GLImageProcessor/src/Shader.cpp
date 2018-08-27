@@ -4,10 +4,12 @@
 #include "Graphics.h"
 #include "Shader.h"
 
+using namespace std;
+
 #pragma region Local
 //Using hash to generate ids from strings can cause collisions but for now this is an easy solution.
-hash<string>	  hashStringToId;
-map<int, Shader*> shaderCollection;
+static hash<string>	     hashStringToId;
+static map<int, Shader*> shaderCollection;
 
 typedef tuple<string, string, string, vector<string>> ParsedShader;
 
@@ -129,7 +131,7 @@ static unsigned int CreateShaderProgram(const string& vert, const string& frag)
 #pragma endregion
 
 #pragma region Public Methods
-Shader::Shader(const unsigned int& programId, const vector<string>& uniforms, const string filepath)
+Shader::Shader(unsigned int programId, const vector<string>& uniforms, const string filepath)
 {
 	this->programId			= programId;
 	this->cachedFilepath	= filepath;
@@ -184,7 +186,7 @@ Shader*		Shader::Find(const string& name)
 	auto hashId = HashId(name);
 	return shaderCollection[hashId];
 }
-Shader*		Shader::Find(const int& hashId)
+Shader*		Shader::Find(const int hashId)
 {
 	return shaderCollection[hashId];
 }
@@ -211,9 +213,8 @@ void Shader::MapVariables(const vector<string>& uniforms)
 }
 void Shader::Reimport()
 {
-	GLint currentProgram;
+    GLint currentProgram;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
-
 	bool inUse = currentProgram == programId;
 
 	glDeleteProgram(programId);
@@ -233,22 +234,22 @@ int  Shader::HashId(const string& name)
 {
 	return hashStringToId(name);
 }
-void Shader::SetVector4(const int& hashId, vec4 value)
+void Shader::SetVector4(int hashId, vec4 value)
 {
 	int vloc = variableMap[hashId];
 	glUniform4f(vloc, value[0], value[1], value[2], value[3]);
 }
-void Shader::SetVector3(const int& hashId, vec3 value)
+void Shader::SetVector3(int hashId, vec3 value)
 {
 	int vloc = variableMap[hashId];
 	glUniform3f(vloc, value[0], value[1], value[2]);
 }
-void Shader::SetVector2(const int& hashId, vec2 value)
+void Shader::SetVector2(int hashId, vec2 value)
 {
 	int vloc = variableMap[hashId];
 	glUniform2f(vloc, value[0], value[1]);
 }
-void Shader::SetFloat(const int& hashId, float value)
+void Shader::SetFloat(int hashId, float value)
 {
 	int vloc = variableMap[hashId];
 	glUniform1f(vloc, value);

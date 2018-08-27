@@ -128,8 +128,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\Delegate.h" />
-    <ClInclude Include="include\Dispatcher.h" />
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\Graphics.h" />
     <ClInclude Include="include\GLFW\glfw3.h" />

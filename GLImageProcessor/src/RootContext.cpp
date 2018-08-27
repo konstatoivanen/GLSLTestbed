@@ -5,138 +5,178 @@
 
 using namespace std;
 
-#pragma region Local variables
-Graphics	 graphics;
+Graphics graphics;
 
-Shader*		 currentShader;
-vector<int>  shaderHashIds;
-unsigned int currentShaderIndex;
+void Exit();
 
-float shaderPreviousTime;
-float shaderScaledTime;
-float shaderTimeScale;
-
-const auto hashRes	= Shader::HashId("_Resolution");
-const auto hashTime	= Shader::HashId("_Time");
-#pragma endregion
-
-#pragma region Config Loading
-/// <summary>
-/// Helper struct for loading config data.
-/// </summary>
 struct Config
 {
 	bool	showConsole;
 	int		width;
 	int		height;
 	float	timescale;
+
+	/// <summary>
+	/// Helper method for checking wether a string has a correct value for a bool type.
+	/// </summary>
+	static bool TryFindValidValueBool(const string& line, bool &value)
+	{
+		auto isFalse = line.find("false") != string::npos;
+		auto isTrue = line.find("true") != string::npos;
+
+		if (!isFalse && !isTrue)
+		{
+			cout << "Invalid value definition on line: " << line << endl;
+			return false;
+		}
+
+		value = isTrue;
+		return true;
+	}
+
+	Config(const string& filepath)
+	{
+		ifstream file(filepath);
+
+		if (file.fail())
+		{
+			cout << "Failed to open config file at: " << filepath << endl;
+			return;
+		}
+
+		string line;
+
+		while (getline(file, line))
+		{
+			if (line.find("#showconsole ") != string::npos)
+			{
+				TryFindValidValueBool(line, showConsole);
+				continue;
+			}
+
+			if (line.find("#width ") != string::npos)
+			{
+				width = stoi(line.substr(7));
+				continue;
+			}
+
+			if (line.find("#height ") != string::npos)
+			{
+				height = stoi(line.substr(8));
+				continue;
+			}
+
+			if (line.find("#timescale ") != string::npos)
+			{
+				timescale = stof(line.substr(11));
+				continue;
+			}
+		}
+	}
 };
 
-/// <summary>
-/// Helper method for checking wether a string has a correct value for a bool type.
-/// </summary>
-static bool TryFindValidValueBool(const string& line, bool &value)
+class ShaderEngine : public ShaderModifier, public InputReceiver
 {
-	auto isFalse = line.find("false") != string::npos;
-	auto isTrue  = line.find("true") != string::npos;
-
-	if (!isFalse && !isTrue)
-	{
-		cout << "Invalid value definition on line: " << line << endl;
-		return false;
-	}
-
-	value = isTrue;
-	return true;
-}
-
-/// <summary>
-/// Loads a simple config file that should have values for console visibility and shader paths.
-/// </summary>
-Config LoadConfig(const string& filepath)
-{
-	ifstream file(filepath);
-
-	if (file.fail())
-	{
-		cout << "Failed to open config file at: " << filepath << endl;
-		return { true, 512, 512, 1.0f };
-	}
-
-	Config ret;
-	string line;
-
-	while (getline(file, line))
-	{
-		if (line.find("#showconsole ") != string::npos)
+	public:
+		virtual ~ShaderEngine()
 		{
-			TryFindValidValueBool(line, ret.showConsole);
-			continue;
+
+		}
+		/// <summary>
+		/// Sets shader values for our current in use shader.
+		/// </summary>
+		virtual void OnDraw(int width, int height)
+		{
+			CalculateTime();
+			vec2 res = { width, height };
+			currentShader->SetVector2(hashRes, res);
+			currentShader->SetFloat(hashTime, scaledTime);
+		}
+		/// <summary>
+		/// GLFW Input callback
+		/// </summary>
+		virtual void OnInput(int key, int scancode, int action, int mods)
+		{
+			if (action != GLFW_PRESS)
+				return;
+
+			switch (key)
+			{
+				case GLFW_KEY_ESCAPE: Exit();							return;
+				case GLFW_KEY_R:	  currentShader->Reimport();		return;
+				case GLFW_KEY_Q:	  ShiftToNextShader();				return;
+				case GLFW_KEY_W:	  SetTimeScale(timeScale + 0.2f);	return;
+				case GLFW_KEY_E:	  SetTimeScale(timeScale - 0.2f);	return;
+				default: return;
+			}
+		}
+		///<summary>
+		///Initialize engine with timescale.
+		///Also loads namehashids and sets the initial shader.
+		///</summary>
+		void Initialize(float timescale)
+		{
+			SetTimeScale(timescale);
+
+			shaderHashIds = Shader::GetAllNameHashIds();
+			currentShaderIndex = 0;
+
+			currentShader = Shader::Find(shaderHashIds.at(currentShaderIndex));
+			currentShader->UseProgram();
 		}
 
-		if (line.find("#width ") != string::npos)
+	private:
+		void SetTimeScale(float scale)
 		{
-			ret.width = stoi(line.substr(7));
-			continue;
+			timeScale = scale;
+			cout << "Shader Timescale is: " << scale << endl;
+		}
+		void ShiftToNextShader()
+		{
+			currentShader = Shader::Find(shaderHashIds.at(currentShaderIndex));
+			currentShader->UseProgram();
+			currentShaderIndex = (currentShaderIndex + 1) % (shaderHashIds.size());
+		}
+		void CalculateTime()
+		{
+			float currentTime	= glfwGetTime();
+			float deltaTime		= currentTime - previousTime;
+			previousTime		= currentTime;
+			scaledTime		   += deltaTime * timeScale;
 		}
 
-		if (line.find("#height ") != string::npos)
-		{
-			ret.height = stoi(line.substr(8));
-			continue;
-		}
+		const int hashRes  = Shader::HashId("_Resolution");
+		const int hashTime = Shader::HashId("_Time");
 
-		if (line.find("#timescale ") != string::npos)
-		{
-			ret.timescale = stof(line.substr(11));
-			continue;
-		}
-	}
+		float previousTime;
+		float scaledTime;
+		float timeScale;
 
-	return ret;
-}
-#pragma endregion
+		Shader*		 currentShader;
+		vector<int>  shaderHashIds;
+		unsigned int currentShaderIndex;
+};
 
-#pragma region Local Methods
-/// <summary>
-/// Finds the next shader by namehashId and sets it to be used in upcoming drawcalls.
-/// </summary>
-void ShiftToNextShader()
+int main(void)
 {
-	currentShader = Shader::Find(shaderHashIds.at(currentShaderIndex));
-	currentShader->UseProgram();
-	currentShaderIndex = (currentShaderIndex + 1) % (shaderHashIds.size());
-}
+	auto config = Config("res/Config.txt");
 
-/// <summary>
-/// Sets the timescale used for shaders.
-/// </summary>
-void SetShaderTimeScale(float scale)
-{
-	shaderTimeScale = scale;
-	cout << "Shader Timescale is: " << scale << endl;
-}
+	::ShowWindow(::GetConsoleWindow(), config.showConsole ? SW_SHOW : SW_HIDE);
 
-/// <summary>
-/// Calculates deltatime based on current timescale.
-/// </summary>
-void CalculateShaderTime()
-{
-	float currentTime	= glfwGetTime();
-	float deltaTime		= currentTime - shaderPreviousTime;
-	shaderPreviousTime	= currentTime;
-	shaderScaledTime   += deltaTime * shaderTimeScale;
-}
+	if (!graphics.TryInitialize("GL Context", config.width, config.height))
+		exit(EXIT_FAILURE);
 
-/// <summary>
-/// Sets shader values for our current in use shader.
-/// </summary>
-void OnDraw(const int& width, const int& height)
-{
-	CalculateShaderTime();
-	vec2 res = { width, height };
-	currentShader->SetVector2(hashRes, res);
-	currentShader->SetFloat(hashTime, shaderScaledTime);
+	Shader::ImportMultiple("res/Shaders.txt");
+
+	auto shaderEngine = make_shared<ShaderEngine>(); 
+	shaderEngine->Initialize(config.timescale);
+
+	graphics.RegisterInputReceiver(shaderEngine);
+	graphics.RegisterShaderModifier(shaderEngine);
+
+	while (graphics.TryDraw()) {}
+
+	Exit();
 }
 
 /// <summary>
@@ -144,53 +184,7 @@ void OnDraw(const int& width, const int& height)
 /// </summary>
 void Exit()
 {
-	graphics.OnExit();
+	graphics.Terminate();
+	Shader::ReleaseAll();
 	exit(EXIT_SUCCESS);
-}
-
-/// <summary>
-/// GLFW Input callback
-/// </summary>
-void OnInput(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-	if (action != GLFW_PRESS)
-		return;
-
-	switch (key)
-	{
-		case GLFW_KEY_ESCAPE: Exit();										return;
-		case GLFW_KEY_R:	  currentShader->Reimport();					return;
-		case GLFW_KEY_Q:	  ShiftToNextShader();							return;
-		case GLFW_KEY_W:	  SetShaderTimeScale(shaderTimeScale + 0.2f);	return;
-		case GLFW_KEY_E:	  SetShaderTimeScale(shaderTimeScale - 0.2f);	return;
-		default: return;
-	}
-}
-#pragma endregion
-
-int main(void)
-{
-	graphics = Graphics();
-
-	auto config = LoadConfig("res/Config.txt");
-
-	::ShowWindow(::GetConsoleWindow(), config.showConsole ? SW_SHOW : SW_HIDE);
-
-	if (!graphics.TryInitialize("GL Context", config.width, config.height))
-		exit(EXIT_FAILURE);
-
-	glfwSetKeyCallback(graphics.window, OnInput);
-	graphics.beforeDrawCallBacks.add<&OnDraw>();
-
-	Shader::ImportMultiple("res/Shaders.txt");
-	shaderHashIds = Shader::GetAllNameHashIds();
-	ShiftToNextShader();
-	SetShaderTimeScale(config.timescale);
-
-	while (graphics.TryDraw())
-	{
-		glfwPollEvents();
-	}
-
-	Exit();
 }
