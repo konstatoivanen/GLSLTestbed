@@ -69,8 +69,15 @@ class Shader
 		void Reimport();
 
 	private:
+		///</summary>
+		/// Private constructor for a shader object.
+		/// Should only be used in import method.
+		///</summary>
 		Shader(unsigned int sprogramId, const std::vector<std::string>& uniforms, std::string filepath);
 
+		///<summary>
+		/// Caches locations for uniform variables in the shader program.
+		///</summary>
 		void MapVariables(const std::vector<std::string>& uniforms);
 
 		/// <summary>

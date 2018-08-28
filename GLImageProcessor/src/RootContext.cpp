@@ -7,6 +7,8 @@ using namespace std;
 
 Graphics graphics;
 
+///forward declare exit for it to be used in shader engine.
+///@TODO pass graphics by reference since global variables are dirty.
 void Exit();
 
 struct Config
@@ -34,6 +36,9 @@ struct Config
 		return true;
 	}
 
+	///<summary>
+	/// load values from file and construct config struct
+	///</summary>
 	Config(const string& filepath)
 	{
 		ifstream file(filepath);
@@ -75,6 +80,11 @@ struct Config
 	}
 };
 
+///<summary>
+/// An engine that supplies time and resolution for current shaders
+/// and performs actions based on glfw input.
+/// Q: next shader, W: timescale -= 0.2, E: timescale += 0.2, R: reload current shader, Escape: Exit application.
+///</summary>
 class ShaderEngine : public ShaderModifier, public InputReceiver
 {
 	public:
@@ -126,17 +136,27 @@ class ShaderEngine : public ShaderModifier, public InputReceiver
 		}
 
 	private:
+		///<summary>
+		/// Set current shader timescale and display the new value in the console.
+		///</summary>
 		void SetTimeScale(float scale)
 		{
 			timeScale = scale;
 			cout << "Shader Timescale is: " << scale << endl;
 		}
+		///<summary>
+		/// Selects the next shader by using a namehashID from shaderHasIds list.
+		///</summary>
 		void ShiftToNextShader()
 		{
 			currentShader = Shader::Find(shaderHashIds.at(currentShaderIndex));
 			currentShader->UseProgram();
 			currentShaderIndex = (currentShaderIndex + 1) % (shaderHashIds.size());
 		}
+		///<summary>
+		/// Calculates new shader time.
+		/// To avoid offset in the shadertime value, timescale needs to be applied to deltatime.
+		///</summary>
 		void CalculateTime()
 		{
 			float currentTime	= glfwGetTime();

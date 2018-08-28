@@ -10,12 +10,18 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+///<summary>
+/// Interface for receiving before draw callbacks
+///</summary>
 class ShaderModifier
 {
 	public: virtual void OnDraw(int width, int height) = 0;
 			virtual ~ShaderModifier() {};
 };
 
+///<summary>
+/// Interface for receiving glfw input callbacks
+///</summary>
 class InputReceiver
 {
 	public: virtual void OnInput(int key, int scancode, int action, int mods) = 0;
@@ -51,9 +57,19 @@ class Graphics
 		 void RegisterInputReceiver(const std::shared_ptr<InputReceiver>& inputReceiver);
 
 	private:
+		 ///<summary>
+		 /// Base method for forwarding glfw input events to inputReceivers.
+		 /// This needs to be static because GLFW is a C style api and as such can't take in member pointers.
+		 ///</summary>
 		 static void GLInputCallback(GLFWwindow*, int key, int scancode, int action, int mods);
 
+		 ///<summary>
+		 /// Pointer to current GLFW window
+		 ///</summary>
 		 GLFWwindow* window;
+
+		 /// Using smartpointers here to make termination easier 
+		 /// since the same object might be included in both shaderModifiers and inputReceivers
 		 std::vector<std::shared_ptr<ShaderModifier>>		shaderModifiers;
 		 static std::vector<std::shared_ptr<InputReceiver>> inputReceivers;
 };

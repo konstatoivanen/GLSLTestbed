@@ -8,11 +8,20 @@ using namespace std;
 
 #pragma region Local
 //Using hash to generate ids from strings can cause collisions but for now this is an easy solution.
+//Using global variables is also frowned upon
+//but in an application this small it is an easy way to avoid having multiple instances of variables.
 static hash<string>	     hashStringToId;
 static map<int, Shader*> shaderCollection;
 
+///<summary>
+/// a tuple definition for returning the parsed shader.
+/// @TODO why not use a struct instead?
+///</summary>
 typedef tuple<string, string, string, vector<string>> ParsedShader;
 
+///<summary>
+/// An enum for defining the shader type currently being processed.
+///</summary>
 enum class ShaderType
 {
 	None	 = -1,

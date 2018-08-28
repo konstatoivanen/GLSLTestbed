@@ -3,6 +3,7 @@
 
 using namespace std;
 
+/// Implement the static inputReceivers list
 vector<shared_ptr<InputReceiver>>  Graphics::inputReceivers;
 
 /// <summary>
@@ -49,9 +50,6 @@ static void GLErrorCallback(int, const char* err_str)
 {
 	std::cout << "GLFW ERROR! : " << err_str << endl;
 }
-///<summary>
-/// Forwards input received from glfw
-///</summary>
 void Graphics::GLInputCallback(GLFWwindow*, int key, int scancode, int action, int mods)
 {
 	for (auto& i : inputReceivers) i->OnInput(key, scancode, action, mods);
