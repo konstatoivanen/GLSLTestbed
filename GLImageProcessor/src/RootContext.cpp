@@ -5,11 +5,8 @@
 
 using namespace std;
 
-Graphics graphics;
-
-///forward declare exit for it to be used in shader engine.
-///@TODO pass graphics by reference since global variables are dirty.
-void Exit();
+///forward declare exit so it can be called by shader engine.
+void Exit(Graphics* graphics);
 
 struct Config
 {
@@ -112,7 +109,7 @@ class ShaderEngine : public ShaderModifier, public InputReceiver
 
 			switch (key)
 			{
-				case GLFW_KEY_ESCAPE: Exit();							return;
+				case GLFW_KEY_ESCAPE: Exit(graphics);					return;
 				case GLFW_KEY_R:	  currentShader->Reimport();		return;
 				case GLFW_KEY_Q:	  ShiftToNextShader();				return;
 				case GLFW_KEY_W:	  SetTimeScale(timeScale + 0.2f);	return;
@@ -124,8 +121,10 @@ class ShaderEngine : public ShaderModifier, public InputReceiver
 		///Initialize engine with timescale.
 		///Also loads namehashids and sets the initial shader.
 		///</summary>
-		void Initialize(float timescale)
+		void Initialize(float timescale, Graphics* graphics)
 		{
+			this->graphics = graphics;
+
 			SetTimeScale(timescale);
 
 			shaderHashIds = Shader::GetAllNameHashIds();
@@ -172,6 +171,7 @@ class ShaderEngine : public ShaderModifier, public InputReceiver
 		float scaledTime;
 		float timeScale;
 
+		Graphics*	 graphics;
 		Shader*		 currentShader;
 		vector<int>  shaderHashIds;
 		unsigned int currentShaderIndex;
@@ -179,6 +179,8 @@ class ShaderEngine : public ShaderModifier, public InputReceiver
 
 int main(void)
 {
+	Graphics graphics;
+
 	auto config = Config("res/Config.txt");
 
 	::ShowWindow(::GetConsoleWindow(), config.showConsole ? SW_SHOW : SW_HIDE);
@@ -189,22 +191,22 @@ int main(void)
 	Shader::ImportMultiple("res/Shaders.txt");
 
 	auto shaderEngine = make_shared<ShaderEngine>(); 
-	shaderEngine->Initialize(config.timescale);
+	shaderEngine->Initialize(config.timescale, &graphics);
 
 	graphics.RegisterInputReceiver(shaderEngine);
 	graphics.RegisterShaderModifier(shaderEngine);
 
 	while (graphics.TryDraw()) {}
 
-	Exit();
+	Exit(&graphics);
 }
 
 /// <summary>
 /// Exits application.
 /// </summary>
-void Exit()
+void Exit(Graphics* graphics)
 {
-	graphics.Terminate();
+	graphics->Terminate();
 	Shader::ReleaseAll();
 	exit(EXIT_SUCCESS);
 }
