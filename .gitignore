@@ -1,6 +1,11 @@
 # Prerequisites
 *.d
 
+# Logs
+*.tlog
+*.log
+*.lastbuildstate
+
 # Compiled Object files
 *.slo
 *.lo

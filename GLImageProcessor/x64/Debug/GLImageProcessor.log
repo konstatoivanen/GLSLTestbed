@@ -1,9 +1,0 @@
-﻿  Graphics.cpp
-  RootContext.cpp
-g:\the p-mar project\github\opengltestbed\glimageprocessor\src\rootcontext.cpp(100): warning C4838: conversion from 'int' to 'float' requires a narrowing conversion
-g:\the p-mar project\github\opengltestbed\glimageprocessor\src\rootcontext.cpp(100): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-g:\the p-mar project\github\opengltestbed\glimageprocessor\src\rootcontext.cpp(163): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-  Shader.cpp
-g:\the p-mar project\github\opengltestbed\glimageprocessor\src\shader.cpp(244): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
-  Generating Code...
-  GLImageProcessor.vcxproj -> G:\The P-mar Project\GitHub\OpenGLTestBed\x64\Debug\GLImageProcessor.exe
