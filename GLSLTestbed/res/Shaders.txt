@@ -1,3 +1,6 @@
-res/shaders/HueTerraceMultisampled.shader
-res/shaders/HueTerraceSimple.shader
-res/shaders/ShaderToyImport.shader
+res/shaders/SH_VS_HueTerraceMultisampled.shader
+res/shaders/SH_VS_HueTerraceSimple.shader
+res/shaders/SH_VS_ShaderToyImport.shader
+res/shaders/SH_VS_Internal_Blit.shader
+res/shaders/SH_WS_Default_Unlit.shader
+res/shaders/SH_VS_IBLBackground.shader

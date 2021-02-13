@@ -1,4 +1,30 @@
-#showconsole true
-#width 1024
-#height 576
-#timescale 0.1
+#enable_console 1
+#enable_vsync 1
+#enable_verbose 0
+#enable_profiler 0
+#enable_orthographic 0
+	
+#window_width 1024
+#window_height 576
+	
+#camera_move_speed 5.0
+#camera_field_o_fview 75.0
+#camera_orthographic_size 10.0
+#camera_clip_near 0.1
+#camera_clip_far 200.0
+	
+#time_scale 0.1
+
+#input_shader_next 82
+#input_shader_reimport 84
+#input_shader_list_uniforms 73
+#input_timescale_increase 89
+#input_timescale_decrease 85
+#input_exit 256
+
+#input_move_forward 87
+#input_move_backward 83
+#input_move_left 65
+#input_move_right 68
+#input_move_up 81
+#input_move_down 69
