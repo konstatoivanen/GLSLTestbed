@@ -22,6 +22,7 @@
 #define CG_TYPE_INT3 10
 #define CG_TYPE_INT4 11
 #define CG_TYPE_TEXTURE 12
+#define CG_TYPE_CONSTANT_BUFFER 13
 
 #define CG_TYPE_SIZE_FLOAT 4
 #define CG_TYPE_SIZE_FLOAT2 8		// 4 * 2
@@ -35,6 +36,7 @@
 #define CG_TYPE_SIZE_INT3 12		// 4 * 3
 #define CG_TYPE_SIZE_INT4 16		// 4 * 4
 #define CG_TYPE_SIZE_TEXTURE 4
+#define CG_TYPE_SIZE_CONSTANT_BUFFER 4
 
 #define CG_TYPE_COMPONENTS_FLOAT 1
 #define CG_TYPE_COMPONENTS_FLOAT2 2
@@ -48,7 +50,11 @@
 #define CG_TYPE_COMPONENTS_INT3 3
 #define CG_TYPE_COMPONENTS_INT4 4
 #define CG_TYPE_COMPONENTS_TEXTURE 1
+#define CG_TYPE_COMPONENTS_CONSTANT_BUFFER 1
 
+typedef uint16_t ushort;
+typedef uint32_t uint;
+typedef uint64_t ulong;
 
 typedef glm::vec2 float2;
 typedef glm::vec3 float3;
@@ -147,9 +153,9 @@ const float CG_FLAOT_RAD2DEG = 57.29578F;
 class CGType
 {
     public:
-        static uint32_t Size(uint32_t type);
-        static uint32_t Components(uint32_t type);
-        static uint32_t BaseType(uint32_t type);
+        static ushort Size(ushort type);
+        static ushort Components(ushort type);
+        static ushort BaseType(ushort type);
 };
 
 namespace CGMath

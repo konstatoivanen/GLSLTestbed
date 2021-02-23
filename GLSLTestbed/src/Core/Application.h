@@ -1,7 +1,7 @@
 #pragma once
 #include "PrecompiledHeader.h"
 #include "Rendering/Graphics.h"
-#include "Rendering/Shader.h"
+#include "Rendering/Objects/Shader.h"
 #include "Core/Time.h"
 #include "Core/Input.h"
 #include "Core/ApplicationConfig.h"
@@ -18,7 +18,7 @@ class Application
 	
 		static Application& Get() { return *s_Instance; }
 		static Time& GetTime() { return Get().m_time; }
-		static ShaderCollection& GetShaderCollection() { return Get().m_shaderCollection; }
+		static AssetDatabase& GetAssetDatabase() { return Get().m_assetDatabase; }
 		static ApplicationConfig& GetConfig() { return Get().m_applicationConfig; }
 		static Input& GetInput() { return Get().m_input; }
 		static const Window& GetWindow() { return *(Get().m_window); }
@@ -33,7 +33,7 @@ class Application
 		Scope<Window> m_window;
 		GraphicsContext m_graphicsContext;
 		ApplicationConfig m_applicationConfig;
-		ShaderCollection m_shaderCollection;
+		AssetDatabase m_assetDatabase;
 		Input m_input;
 		Time m_time;
 

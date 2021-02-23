@@ -15,11 +15,12 @@ class HashCache
         static uint32_t pk_ProjectionParams;
         static uint32_t pk_ScreenParams;
         static uint32_t pk_ZBufferParams;
-        static uint32_t pk_MATRIX_OBJECT_TO_WORLD;
-        static uint32_t pk_MATRIX_WORLD_TO_OBJECT;
+        static uint32_t pk_MATRIX_M;
+        static uint32_t pk_MATRIX_I_M;
         static uint32_t pk_MATRIX_V;
         static uint32_t pk_MATRIX_P;
         static uint32_t pk_MATRIX_VP;
+        static uint32_t pk_MATRIX_I_VP;
         static uint32_t pk_SHA[3];
         static uint32_t pk_SHB[3];
         static uint32_t pk_SHC;

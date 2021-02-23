@@ -1,6 +1,5 @@
 #pragma name Default
 
-#pragma variable _Color
 #pragma variable _Resolution
 #pragma variable _Time
 

@@ -9,6 +9,7 @@ namespace StringUtilities
 	std::string ReadFileName(const std::string& filepath);
 	std::string ReadFileRecursiveInclude(const std::string& filepath, bool isRecursive);
 	std::string ExtractTokens(const char* token, std::string& source, bool includeToken);
+	size_t ExtractToken(size_t offset, const char* token, std::string& source, std::string& output, bool includeToken);
 	size_t FirstIndexOf(const char* str, char c);
 	size_t LastIndexOf(const char* str, char c);
 };

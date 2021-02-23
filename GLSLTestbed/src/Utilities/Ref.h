@@ -24,3 +24,6 @@ constexpr bool IsEqualRef(const Ref<T>& a, const Ref<T>& b)
 {
 	return a == b || (a && b && *a == *b);
 }
+
+template<typename T>
+using Weak = std::weak_ptr<T>;

@@ -1,6 +1,6 @@
 #include "PrecompiledHeader.h"
-#include "StringUtilities.h"
-#include "Utilities\Log.h"
+#include "Utilities/StringUtilities.h"
+#include "Utilities/Log.h"
 
 namespace StringUtilities
 {
@@ -134,6 +134,34 @@ namespace StringUtilities
 		return firstToken;
 	}
 
+	size_t ExtractToken(size_t offset, const char* token, std::string& source, std::string& ouput, bool includeToken)
+	{
+		auto pos = source.find(token, offset);
+
+		if (pos == std::string::npos)
+		{
+			return std::string::npos;
+		}
+
+		auto eol = source.find_first_of("\r\n", pos);
+		auto sol = source.find_first_not_of("\r\n", eol);
+		PK_CORE_ASSERT(eol != std::string::npos, "Syntax error");
+		PK_CORE_ASSERT(sol != std::string::npos, "Syntax error");
+
+		if (includeToken)
+		{
+			ouput = source.substr(pos, sol - pos);
+		}
+		else
+		{
+			auto spos = pos + strlen(token);
+			ouput = source.substr(spos, eol - spos);
+		}
+
+		source.erase(pos, sol - pos);
+		return pos;
+	}
+
 	size_t FirstIndexOf(const char* str, char c)
 	{
 		auto l = strlen(str);
@@ -153,7 +181,7 @@ namespace StringUtilities
 	{
 		auto l = strlen(str);
 
-		for (int i = l - 1; i >= 0; --i)
+		for (int i = (int)l - 1; i >= 0; --i)
 		{
 			if (str[i] == c)
 			{

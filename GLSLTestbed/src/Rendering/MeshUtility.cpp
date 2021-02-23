@@ -1,5 +1,5 @@
 #include "PrecompiledHeader.h"
-#include "Rendering\MeshUtility.h"
+#include "Rendering/MeshUtility.h"
 
 namespace MeshUtilities
 {

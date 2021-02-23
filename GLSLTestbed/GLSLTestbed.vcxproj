@@ -430,24 +430,28 @@
     <ClInclude Include="include\glm\vec4.hpp" />
     <ClInclude Include="include\glm\vector_relational.hpp" />
     <ClInclude Include="include\hlslmath.h" />
+    <ClInclude Include="src\Rendering\Structs\BufferLayout.h" />
+    <ClInclude Include="src\Rendering\Structs\PropertyBlock.h" />
+    <ClInclude Include="src\Core\AssetDataBase.h" />
+    <ClInclude Include="src\Core\Sequencer.h" />
     <ClInclude Include="src\Rendering\LightingUtility.h" />
-    <ClInclude Include="src\Rendering\GraphicsContext.h" />
+    <ClInclude Include="src\Rendering\Structs\GraphicsContext.h" />
     <ClInclude Include="src\Rendering\MeshUtility.h" />
     <ClInclude Include="src\HLSLMath.h" />
-    <ClInclude Include="src\Rendering\GraphicsObject.h" />
-    <ClInclude Include="src\Rendering\RenderTexture.h" />
-    <ClInclude Include="src\Rendering\ShaderPropertyBlock.h" />
-    <ClInclude Include="src\Rendering\Mesh.h" />
+    <ClInclude Include="src\Rendering\Objects\GraphicsObject.h" />
+    <ClInclude Include="src\Rendering\Objects\RenderTexture.h" />
+    <ClInclude Include="src\Rendering\Structs\ShaderPropertyBlock.h" />
+    <ClInclude Include="src\Rendering\Objects\Mesh.h" />
     <ClInclude Include="src\Core\ApplicationConfig.h" />
     <ClInclude Include="src\Core\Application.h" />
-    <ClInclude Include="src\Rendering\Buffer.h" />
+    <ClInclude Include="src\Rendering\Objects\Buffer.h" />
     <ClInclude Include="src\Core\Input.h" />
     <ClInclude Include="src\Utilities\HashCache.h" />
     <ClInclude Include="src\Rendering\ShaderPropertyIds.h" />
     <ClInclude Include="src\Utilities\Log.h" />
     <ClInclude Include="src\PrecompiledHeader.h" />
     <ClInclude Include="src\Utilities\Ref.h" />
-    <ClInclude Include="src\Rendering\Shader.h" />
+    <ClInclude Include="src\Rendering\Objects\Shader.h" />
     <ClInclude Include="src\Rendering\Graphics.h" />
     <ClInclude Include="include\GLFW\glfw3.h" />
     <ClInclude Include="include\GLFW\glfw3native.h" />
@@ -457,9 +461,9 @@
     <ClInclude Include="include\GL\wglew.h" />
     <ClInclude Include="src\Utilities\StringHashID.h" />
     <ClInclude Include="src\Core\Time.h" />
-    <ClInclude Include="src\Rendering\Texture2D.h" />
+    <ClInclude Include="src\Rendering\Objects\Texture2D.h" />
     <ClInclude Include="include\stb_image\stb_image.h" />
-    <ClInclude Include="src\Rendering\Texture.h" />
+    <ClInclude Include="src\Rendering\Objects\Texture.h" />
     <ClInclude Include="src\Core\Window.h" />
     <ClInclude Include="src\Utilities\StringUtilities.h" />
   </ItemGroup>
@@ -624,27 +628,28 @@
   <ItemGroup>
     <ClCompile Include="include\glm\detail\glm.cpp" />
     <ClCompile Include="include\hlslmath.cpp" />
+    <ClCompile Include="src\Rendering\Structs\PropertyBlock.cpp" />
     <ClCompile Include="src\Rendering\LightingUtility.cpp" />
     <ClCompile Include="src\Rendering\MeshUtility.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\Rendering\RenderTexture.cpp" />
-    <ClCompile Include="src\Rendering\ShaderPropertyBlock.cpp" />
-    <ClCompile Include="src\Rendering\Mesh.cpp" />
+    <ClCompile Include="src\Rendering\Objects\RenderTexture.cpp" />
+    <ClCompile Include="src\Rendering\Structs\ShaderPropertyBlock.cpp" />
+    <ClCompile Include="src\Rendering\Objects\Mesh.cpp" />
     <ClCompile Include="src\Core\ApplicationConfig.cpp" />
-    <ClCompile Include="src\Rendering\Buffer.cpp" />
+    <ClCompile Include="src\Rendering\Objects\Buffer.cpp" />
     <ClCompile Include="src\Core\Input.cpp" />
-    <ClCompile Include="src\Rendering\Texture.cpp" />
+    <ClCompile Include="src\Rendering\Objects\Texture.cpp" />
     <ClCompile Include="src\Utilities\HashCache.cpp" />
     <ClCompile Include="src\PrecompiledHeader.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Shader.cpp" />
+    <ClCompile Include="src\Rendering\Objects\Shader.cpp" />
     <ClCompile Include="src\Rendering\Graphics.cpp" />
     <ClCompile Include="src\Core\Application.cpp" />
     <ClCompile Include="src\Utilities\StringHashID.cpp" />
     <ClCompile Include="src\Core\Time.cpp" />
-    <ClCompile Include="src\Rendering\Texture2D.cpp" />
+    <ClCompile Include="src\Rendering\Objects\Texture2D.cpp" />
     <ClCompile Include="include\stb_image\stb_image.cpp" />
     <ClCompile Include="src\Core\Window.cpp" />
     <ClCompile Include="src\Utilities\StringUtilities.cpp" />
@@ -674,10 +679,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\checkerboard.png" />
-    <Image Include="res\T_OEM_01.png" />
-    <Image Include="res\T_OEM_02.png" />
-    <Image Include="res\T_OEM_03.png" />
+    <Image Include="res\textures\checkerboard.png" />
+    <Image Include="res\textures\T_OEM_01.png" />
+    <Image Include="res\textures\T_OEM_02.png" />
+    <Image Include="res\textures\T_OEM_03.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

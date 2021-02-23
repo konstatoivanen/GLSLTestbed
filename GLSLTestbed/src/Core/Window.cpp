@@ -35,11 +35,11 @@ Window::Window(const WindowProperties& props)
 	if (!m_window)
 	{
 		PK_CORE_ERROR("Failed To Create Window");
-		return;
 	}
 
 	glfwSetWindowUserPointer(m_window, this);
-	glfwMakeContextCurrent(m_window);
+	SetActive();
+
 	glfwSetWindowSizeCallback(m_window, [](GLFWwindow* nativeWindow, int width, int height)
 	{
 		auto window = GetWindowPtr(nativeWindow);
@@ -83,3 +83,5 @@ void Window::SetVSync(bool enabled)
 	glfwSwapInterval(enabled ? 1 : 0);
 	m_properties.vsync = enabled;
 }
+
+void Window::SetActive() { glfwMakeContextCurrent(m_window); }

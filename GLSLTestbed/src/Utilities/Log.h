@@ -35,18 +35,29 @@ namespace PK_Debug
         printf("\n");
     }
 
+    template<typename T, typename... Args>
+    void PKLogOverwrite(int color, const T* message, const Args&...args)
+    {
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute(hConsole, color);
+        printf(message, args...);
+        printf("\r");
+    }
+
     template<typename T, typename ... Args>
-    void PKError(int color, const T* message, const Args&...args)
+    std::exception PKException(int color, const T* message, const Args&...args)
     {
         HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
         SetConsoleTextAttribute(hConsole, color);
         printf(message, args...);
         printf("\n");
-        throw std::exception(message);
+        return std::exception(message);
     }
 }
 
-#define PK_CORE_LOG_HEADER(...) PK_Debug::PKLog(CONS_COLOR_HEAD, __VA_ARGS__);
-#define PK_CORE_LOG(...) PK_Debug::PKLog(CONS_COLOR_PARA, __VA_ARGS__);
-#define PK_CORE_ERROR(...) PK_Debug::PKError(CONS_COLOR_ERROR, __VA_ARGS__);
+#define PK_CORE_LOG_HEADER(...) PK_Debug::PKLog(CONS_COLOR_HEAD, __VA_ARGS__)
+#define PK_CORE_LOG(...) PK_Debug::PKLog(CONS_COLOR_PARA, __VA_ARGS__)
+#define PK_CORE_LOG_OVERWRITE(...) PK_Debug::PKLogOverwrite(CONS_COLOR_PARA, __VA_ARGS__)
+#define PK_CORE_EXCEPTION(...) PK_Debug::PKException(CONS_COLOR_ERROR, __VA_ARGS__)
+#define PK_CORE_ERROR(...) throw PK_CORE_EXCEPTION(__VA_ARGS__)
 #define PK_CORE_ASSERT(value, ...) { if(!(value)) { PK_CORE_ERROR(__VA_ARGS__); } }

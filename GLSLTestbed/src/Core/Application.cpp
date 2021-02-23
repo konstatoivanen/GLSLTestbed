@@ -4,7 +4,7 @@
 #include "Utilities/StringHashID.h"
 #include "Utilities/Log.h"
 #include "Utilities/HashCache.h"
-#include "Rendering/Texture2D.h"
+#include "Rendering/Objects/Texture2D.h"
 #include "Rendering/MeshUtility.h"
 #include "Rendering/LightingUtility.h"
 #include <math.h>
@@ -16,9 +16,7 @@ class ShaderEngine
 	public:
 		ShaderEngine()
 		{
-			shaderHashIds = Application::GetShaderCollection().GetAllShaderHashIds();
-			currentShaderIndex = 0;
-			currentShader = Application::GetShaderCollection().Find(shaderHashIds.at(currentShaderIndex));
+			auto& assetDatabase = Application::GetAssetDatabase();
 
 			auto desc = RenderTextureDescriptor();
 
@@ -32,32 +30,28 @@ class ShaderEngine
 			desc.wrapmodey = GL_CLAMP_TO_EDGE;
 			desc.dimension = GL_TEXTURE_2D;
 
-			cubeMesh = MeshUtilities::GetBox({ 0.5f, 0.5f, 0.5f }, { 0.5f, 0.5f, 0.5f});
-			cubeShader = Application::GetShaderCollection().Find("SH_WS_Default_Unlit");
-			iblShader = Application::GetShaderCollection().Find("SH_VS_IBLBackground");
-
 			renderTarget = CreateRef<RenderTexture>(desc);
+			cubeMesh = MeshUtilities::GetBox(CG_FLOAT3_ZERO, { 0.5f, 0.5f, 0.5f});
+			cubeShader = assetDatabase.Find<Shader>("SH_WS_Default_Unlit");
+			iblShader = assetDatabase.Find<Shader>("SH_VS_IBLBackground");
 
 			fieldOfView = 60;
 			position = { 0, 0, -2 };
 			rotation = { 0, 0, 0 };
 
-			reflectionMaps[0] = CreateRef<Texture2D>("res/T_OEM_01.png");
-			reflectionMaps[1] = CreateRef<Texture2D>("res/T_OEM_02.png");
-			reflectionMaps[2] = CreateRef<Texture2D>("res/T_OEM_03.png");
+			reflectionMaps[0] = assetDatabase.Find<Texture2D>("T_OEM_01");
+			reflectionMaps[1] = assetDatabase.Find<Texture2D>("T_OEM_02");
+			reflectionMaps[2] = assetDatabase.Find<Texture2D>("T_OEM_03");
+
+			reflectionMaps[0].lock()->SetWrapMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+			reflectionMaps[1].lock()->SetWrapMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+			reflectionMaps[2].lock()->SetWrapMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 		}
 
 		~ShaderEngine()
 		{
-			iblShader = nullptr;
-			reflectionMaps[0] = nullptr;
-			reflectionMaps[1] = nullptr;
-			reflectionMaps[2] = nullptr;
-			currentShader = nullptr;
 			renderTarget = nullptr;
 			cubeMesh = nullptr;
-			cubeShader = nullptr;
-			shaderHashIds.clear();
 		}
 
 		virtual void Update()
@@ -70,48 +64,26 @@ class ShaderEngine
 				return;
 			}
 
-			/*
-			if (Input::GetKeyDown(Application::GetConfig().input_shader_list_uniforms))
-			{
-				currentShader->ListUniforms();
-			}
-
-			if (Input::GetKeyDown(Application::GetConfig().input_shader_reimport))
-			{
-				Application::GetShaderCollection().Reimport(currentShader);
-				PK_CORE_LOG("Reimported shader: %s", currentShader->GetName().c_str());
-			}
-
-			if (Input::GetKeyDown(Application::GetConfig().input_shader_next))
-			{
-				currentShader = Application::GetShaderCollection().Find(shaderHashIds.at(currentShaderIndex));
-				PK_CORE_LOG(currentShader->GetName().c_str());
-				currentShaderIndex = (currentShaderIndex + 1u) % shaderHashIds.size();
-			}
-
-			if (Input::GetKeyDown(Application::GetConfig().input_timescale_increase))
-			{
-				Application::GetTime().SetTimeScale(Application::GetTime().GetTimeScale() + 0.2f);
-				PK_CORE_LOG("Timescale is: %f", Application::GetTime().GetTimeScale());
-			}
-
-			if (Input::GetKeyDown(Application::GetConfig().input_timescale_decrease))
-			{
-				Application::GetTime().SetTimeScale(Application::GetTime().GetTimeScale() - 0.2f);
-				PK_CORE_LOG("Timescale is: %f", Application::GetTime().GetTimeScale());
-			}
-			*/
-
 			if (input.GetKeyDown(GLFW_KEY_T))
 			{
-				iblShader->ListUniforms();
+				iblShader.lock()->ListProperties();
 			}
 
 			if (input.GetKeyDown(GLFW_KEY_R))
 			{
-				Application::GetShaderCollection().Reimport(iblShader);
-				PK_CORE_LOG("Reimported shader: %s", iblShader->GetName().c_str());
+				Application::GetAssetDatabase().Reload<Shader>(cubeShader.lock()->GetAssetID());
+				PK_CORE_LOG("Reimported shader: %s", cubeShader.lock()->GetFileName().c_str());
 			}
+
+			if (input.GetKey(GLFW_KEY_C))
+			{
+				Application::GetTime().Reset();
+			}
+
+			Application::GetTime().LogFrameRate();
+
+			Graphics::SetGlobalKeyword(StringHashID::StringToID("Test3"), input.GetKey(GLFW_KEY_G));
+			Graphics::SetGlobalKeyword(StringHashID::StringToID("Test6"), input.GetKey(GLFW_KEY_F));
 
 			auto deltaTime = Application::GetTime().GetDeltaTime();
 
@@ -144,21 +116,11 @@ class ShaderEngine
 
 			Graphics::SetViewProjectionMatrices(view, proj);
 
-			GraphicsID atlases[] =
-			{
-				reflectionMaps[0]->GetGraphicsID(),
-				reflectionMaps[1]->GetGraphicsID(),
-				reflectionMaps[2]->GetGraphicsID()
-			};
+			LightingUtility::SetOEMTextures(&reflectionMaps[0], 3, 1);
+			Graphics::Blit(iblShader.lock());
 
-			LightingUtility::SetOEMTextures(atlases, 3, 1);
-			Graphics::SetGlobalFloat4x4(StringHashID::StringToID("_IBLRotationMatrix"), glm::toMat4(qrot) * glm::scale(float3(Application::GetWindow().GetAspect(), 1, 2.0f)));
-			Graphics::Blit(iblShader);
-
-			Graphics::DrawMesh(cubeMesh, cubeShader, CG_FLOAT4X4_IDENTITY);
-			Graphics::DrawMesh(cubeMesh, cubeShader, CGMath::GetMatrixTRS({ 0.5f, 0.5f, 0.5f }, CG_QUATERNION_IDENTITY, CG_FLOAT3_ONE));
-
-			Graphics::SetRenderTarget(nullptr);
+			Graphics::DrawMesh(cubeMesh, cubeShader.lock(), CG_FLOAT4X4_IDENTITY);
+			Graphics::DrawMesh(cubeMesh, cubeShader.lock(), CGMath::GetMatrixTRS({ 0.5f, 0.5f, 0.5f }, CG_QUATERNION_IDENTITY, CG_FLOAT3_ONE));
 		}
 
 	private:
@@ -166,15 +128,11 @@ class ShaderEngine
 		float3 rotation;
 		float fieldOfView;
 
-		Ref<Texture2D> reflectionMaps[3];
-
+		Weak<Shader> cubeShader;
+		Weak<Shader> iblShader;
 		Ref<Mesh> cubeMesh;
-		Ref<Shader> cubeShader;
-		Ref<Shader> iblShader;
 		Ref<RenderTexture> renderTarget;
-		Ref<Shader> currentShader;
-		std::vector<uint32_t> shaderHashIds;
-		uint32_t currentShaderIndex = 0;
+		Weak<Texture2D> reflectionMaps[3];
 };
 
 // Move somewhere approrpriate
@@ -197,22 +155,27 @@ Application::Application(const std::string& name) : m_applicationConfig("res/Con
 	::ShowWindow(::GetConsoleWindow(), m_applicationConfig.enable_console ? SW_SHOW : SW_HIDE);
 	HashCache::Intitialize();
 	Graphics::Initialize();
+	
 	m_time.Reset();
 	m_time.SetTimeScale(m_applicationConfig.time_scale);
-	m_window = CreateScope<Window>(WindowProperties(name));
+	
+	m_window = CreateScope<Window>(WindowProperties(name, m_applicationConfig.window_width, m_applicationConfig.window_height, m_applicationConfig.enable_vsync));
 	m_window->OnKeyInput = PK_BIND_FUNCTION(m_input.OnKeyInput);
 	m_window->OnScrollInput = PK_BIND_FUNCTION(m_input.OnScrollInput);
 	m_window->OnMouseButtonInput = PK_BIND_FUNCTION(m_input.OnMouseButtonInput);
 	m_window->OnClose = PK_BIND_FUNCTION(Application::Close);
-	m_shaderCollection.ImportCollection("res/Shaders.txt");
+	
+	m_assetDatabase.LoadDirectory<Shader>("res/shaders/", ".shader");
+	m_assetDatabase.LoadDirectory<Texture2D>("res/textures/", ".png");
+
 	m_graphicsContext.BlitQuad = MeshUtilities::GetQuad2D({ -1.0f,-1.0f }, { 1.0f, 1.0f });
-	m_graphicsContext.BlitShader = Application::GetShaderCollection().Find("SH_VS_Internal_Blit");
+	m_graphicsContext.BlitShader = m_assetDatabase.Find<Shader>("SH_VS_Internal_Blit");
 }
 
 Application::~Application()
 {
 	m_window = nullptr;
-	m_shaderCollection.Release();
+	m_assetDatabase.Unload();
 	Graphics::Terminate();
 }
 
@@ -229,10 +192,14 @@ void Application::Run()
 
 		m_time.UpdateTime();
 		m_input.PollInput();
-		Graphics::StartFrame(&m_graphicsContext);
+		Graphics::OpenContext(&m_graphicsContext);
 		SetShaderGlobals();
+
+		Graphics::StartWindow();
 		shaderEngine->Update();
-		Graphics::EndFrame(m_window->GetNativeWindow());
+		Graphics::EndWindow();
+	
+		Graphics::CloseContext();
 	}
 }
 

@@ -1,25 +1,29 @@
 #pragma once
 #include "PrecompiledHeader.h"
+#include "Utilities/Ref.h"
+#include "Utilities/HashCache.h"
+#include "Rendering/Objects/Mesh.h"
+#include "Rendering/Objects/Shader.h"
+#include "Rendering/Objects/RenderTexture.h"
+#include "Rendering/Structs/GraphicsContext.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <hlslmath.h>
-#include "Utilities/Ref.h"
-#include "Utilities/HashCache.h"
-#include "Rendering/Mesh.h"
-#include "Rendering/Shader.h"
-#include "Rendering/RenderTexture.h"
-#include "Rendering\GraphicsContext.h"
 
 namespace Graphics
 {
 	void Initialize();
 	void Terminate();
 
-	void StartFrame(GraphicsContext* context);
-	void EndFrame(GLFWwindow* window);
-	int2 GetActiveResolution(GLFWwindow* window);
+	void OpenContext(GraphicsContext* context);
+	void CloseContext();
+
+	void StartWindow();
+	void EndWindow();
+
+	int2 GetWindowResolution(GLFWwindow* window);
 	Ref<RenderTexture>& GetActiveRenderTarget();
 	Ref<RenderTexture> GetBackBuffer();
 	int GetActiveShaderProgramId();
@@ -37,6 +41,7 @@ namespace Graphics
 	void SetGlobalInt3(uint32_t hashId, const int3* values, uint32_t count = 1);
 	void SetGlobalInt4(uint32_t hashId, const int4* values, uint32_t count = 1); 
 	void SetGlobalTexture(uint32_t hashId, const GraphicsID* textureIds, uint32_t count = 1);
+	void SetGlobalConstantBuffer(uint32_t hashId, const GraphicsID* bufferIds, uint32_t count = 1);
 
 	void SetGlobalFloat(uint32_t hashId, float value);
 	void SetGlobalFloat2(uint32_t hashId, const float2& value);
@@ -50,6 +55,8 @@ namespace Graphics
 	void SetGlobalInt3(uint32_t hashId, const int3& value);
 	void SetGlobalInt4(uint32_t hashId, const int4& value);
 	void SetGlobalTexture(uint32_t hashId, GraphicsID textureId);
+	void SetGlobalConstantBuffer(uint32_t hashId, GraphicsID bufferId);
+	void SetGlobalKeyword(uint32_t hashId, bool value);
 
 	void Clear(const float4& color, float depth, GLuint clearFlags);
 	void SetViewPort(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
@@ -59,6 +66,8 @@ namespace Graphics
 	void SetRenderBuffer(const Ref<RenderBuffer>& renderBuffer, GLenum attachment);
 	void SetPass(const Ref<Shader>& shader, uint32_t pass = 0);
 	void SetMesh(const Ref<Mesh>& mesh);
+	void SetVertexBuffer(const Ref<VertexBuffer>& buffer);
+	void SetIndexBuffer(const Ref<IndexBuffer>& buffer);
 
 	void Blit(const Ref<Shader>& shader);
 	void Blit(const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock);

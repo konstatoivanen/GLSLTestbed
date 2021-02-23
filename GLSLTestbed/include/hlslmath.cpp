@@ -1,7 +1,7 @@
 #include "PrecompiledHeader.h"
 #include "hlslmath.h"
 
-uint32_t CGType::Size(uint32_t type)
+ushort CGType::Size(ushort type)
 {
 	switch (type)
 	{
@@ -17,12 +17,13 @@ uint32_t CGType::Size(uint32_t type)
 		case CG_TYPE_INT3: return CG_TYPE_SIZE_INT3;
 		case CG_TYPE_INT4: return CG_TYPE_SIZE_INT4;
 		case CG_TYPE_TEXTURE: return CG_TYPE_SIZE_TEXTURE;
+		case CG_TYPE_CONSTANT_BUFFER: return CG_TYPE_SIZE_CONSTANT_BUFFER;
 	}
 
 	return CG_TYPE_ERROR;
 }
 
-uint32_t CGType::Components(uint32_t type)
+ushort CGType::Components(ushort type)
 {
 	switch (type)
 	{
@@ -38,12 +39,13 @@ uint32_t CGType::Components(uint32_t type)
 		case CG_TYPE_INT3: return CG_TYPE_COMPONENTS_INT3;
 		case CG_TYPE_INT4: return CG_TYPE_COMPONENTS_INT4;
 		case CG_TYPE_TEXTURE: return CG_TYPE_COMPONENTS_TEXTURE;
+		case CG_TYPE_CONSTANT_BUFFER: return CG_TYPE_COMPONENTS_CONSTANT_BUFFER;
 	}
 
 	return CG_TYPE_ERROR;
 }
 
-uint32_t CGType::BaseType(uint32_t type)
+ushort CGType::BaseType(ushort type)
 {
 	switch (type)
 	{
@@ -59,6 +61,7 @@ uint32_t CGType::BaseType(uint32_t type)
 		case CG_TYPE_INT3: return GL_INT;
 		case CG_TYPE_INT4: return GL_INT;
 		case CG_TYPE_TEXTURE: return GL_INT;
+		case CG_TYPE_CONSTANT_BUFFER: return GL_INT;
 	}
 
 	return CG_TYPE_ERROR;

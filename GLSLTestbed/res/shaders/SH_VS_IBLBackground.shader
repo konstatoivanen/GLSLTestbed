@@ -3,7 +3,7 @@
 #include Lighting.glsl
 
 #pragma PROGRAM_VERTEX
-uniform float4x4 _IBLRotationMatrix;
+uniform float4x4 pk_MATRIX_I_VP;
 
 layout(location = 0) in float4 in_POSITION0;
 out float3 vs_TEXCOORD0;
@@ -11,7 +11,7 @@ out float3 vs_TEXCOORD0;
 void main()
 {
 	gl_Position = in_POSITION0;
-	vs_TEXCOORD0 = mul(_IBLRotationMatrix, float4(in_POSITION0.xy, 1.0f, 0.0f)).xyz;
+	vs_TEXCOORD0 = mul(pk_MATRIX_I_VP, float4(in_POSITION0.xy, 1.0f, 1.0f)).xyz;
 };
 
 #pragma PROGRAM_FRAGMENT

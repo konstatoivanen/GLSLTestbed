@@ -27,6 +27,7 @@ class Window
 		bool IsMinimized() const { return m_minimized; }
 		bool IsVSync() const { return m_properties.vsync; }
 		void SetVSync(bool enabled);
+		void SetActive();
 		GLFWwindow* GetNativeWindow() const { return m_window; }
 	
 	public:

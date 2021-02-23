@@ -38,8 +38,8 @@ class Input
 	public:
 		std::unordered_map<int, InputState> m_inputStateCurrent;
 		std::unordered_map<int, InputState> m_inputStatePrevious;
-		float2 m_mousePrev;
-		float2 m_mouseDelta;
-		float2 m_mouseScrollRaw;
-		float2 m_mouseScroll;
+		float2 m_mousePrev = CG_FLOAT2_ZERO;
+		float2 m_mouseDelta = CG_FLOAT2_ZERO;
+		float2 m_mouseScrollRaw = CG_FLOAT2_ZERO;
+		float2 m_mouseScroll = CG_FLOAT2_ZERO;
 };

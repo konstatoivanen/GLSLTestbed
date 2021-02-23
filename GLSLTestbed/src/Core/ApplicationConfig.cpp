@@ -1,6 +1,6 @@
 #include "PrecompiledHeader.h"
 #include "Utilities/Log.h"
-#include "Utilities\StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 #include "Core/ApplicationConfig.h"
 #include <GLFW\glfw3.h>
 

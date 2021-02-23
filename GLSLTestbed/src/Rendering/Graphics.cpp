@@ -14,10 +14,12 @@ namespace Graphics
 		return m_currentContext;
 	}
 
+	#define CURRENT_WINDOW glfwGetCurrentContext()
+	#define GLOBAL_KEYWORDS GetCurrentContext()->ShaderProperties.GetKeywords()
 	#define GLOBAL_PROPERTIES GetCurrentContext()->ShaderProperties
 	#define ACTIVE_RENDERTARGET GetCurrentContext()->ActiveRenderTarget
 	#define BLIT_QUAD GetCurrentContext()->BlitQuad
-	#define BLIT_SHADER GetCurrentContext()->BlitShader
+	#define BLIT_SHADER GetCurrentContext()->BlitShader.lock()
 
 	static inline void glToggle(GLenum cap, bool value)
 	{
@@ -32,7 +34,7 @@ namespace Graphics
 	}
 	
 	static void GLErrorCallback(int error, const char* description) { PK_CORE_ERROR("GLFW Error (%i) : %s", error, description); }
-	
+
 
 	void Initialize()
 	{
@@ -51,22 +53,22 @@ namespace Graphics
 		PK_CORE_LOG_HEADER("GLFW Terminated");
 	}
 	
-	
-	void StartFrame(GraphicsContext* context)
+
+	void OpenContext(GraphicsContext* context) { m_currentContext = context; }
+
+	void CloseContext() { m_currentContext = nullptr; }
+
+
+	void StartWindow()
 	{
-		m_currentContext = context;
 		SetRenderTarget(nullptr);
 		Clear(CG_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 	
-	void EndFrame(GLFWwindow* window)
-	{
-		glfwSwapBuffers(window);
-		m_currentContext = nullptr;
-	}
+	void EndWindow() { glfwSwapBuffers(CURRENT_WINDOW); }
 	
 	
-	int2 GetActiveResolution(GLFWwindow* window)
+	int2 GetWindowResolution(GLFWwindow* window)
 	{
 		int width, height;
 		glfwGetFramebufferSize(window, &width, &height);
@@ -97,6 +99,7 @@ namespace Graphics
 	void SetGlobalInt3(uint32_t hashId, const int3* values, uint32_t count) { GLOBAL_PROPERTIES.SetInt3(hashId, values, count); }
 	void SetGlobalInt4(uint32_t hashId, const int4* values, uint32_t count) { GLOBAL_PROPERTIES.SetInt4(hashId, values, count); }
 	void SetGlobalTexture(uint32_t hashId, const GraphicsID* textureIds, uint32_t count) { GLOBAL_PROPERTIES.SetTexture(hashId, textureIds, count); }
+	void SetGlobalConstantBuffer(uint32_t hashId, const GraphicsID* bufferIds, uint32_t count) { GLOBAL_PROPERTIES.SetConstantBuffer(hashId, bufferIds, count); }
 	
 	void SetGlobalFloat(uint32_t hashId, float value) { GLOBAL_PROPERTIES.SetFloat(hashId, value); }
 	void SetGlobalFloat2(uint32_t hashId, const float2& value) { GLOBAL_PROPERTIES.SetFloat2(hashId, value); }
@@ -110,6 +113,8 @@ namespace Graphics
 	void SetGlobalInt3(uint32_t hashId, const int3& value) { GLOBAL_PROPERTIES.SetInt3(hashId, value); }
 	void SetGlobalInt4(uint32_t hashId, const int4& value) { GLOBAL_PROPERTIES.SetInt4(hashId, value); }
 	void SetGlobalTexture(uint32_t hashId, GraphicsID textureId) { GLOBAL_PROPERTIES.SetTexture(hashId, textureId); }
+	void SetGlobalConstantBuffer(uint32_t hashId, GraphicsID bufferId) { GLOBAL_PROPERTIES.SetConstantBuffer(hashId, bufferId); }
+	void SetGlobalKeyword(uint32_t hashId, bool value) { GLOBAL_PROPERTIES.SetKeyword(hashId, value); }
 
 	void Clear(const float4& color, float depth, GLuint clearFlags)
 	{
@@ -131,19 +136,21 @@ namespace Graphics
 		auto n = projection[3][2] / (projection[2][2] - 1.0f);
 		auto f = projection[3][2] / (projection[2][2] + 1.0f);
 		auto a = projection[1][1] / projection[0][0];
+		auto vp = projection * view;
 	
 		SetGlobalFloat4(HashCache::pk_ProjectionParams, { -1.0f, n, f, 1.0f / f });
 		SetGlobalFloat4(HashCache::pk_ZBufferParams, { (1.0f - f) / n, f / n, a / f, 1.0f / f });
 		SetGlobalFloat3(HashCache::pk_WorldSpaceCameraPos, view[3]);
 		SetGlobalFloat4x4(HashCache::pk_MATRIX_V, view);
 		SetGlobalFloat4x4(HashCache::pk_MATRIX_P, projection);
-		SetGlobalFloat4x4(HashCache::pk_MATRIX_VP, projection * view);
+		SetGlobalFloat4x4(HashCache::pk_MATRIX_VP, vp);
+		SetGlobalFloat4x4(HashCache::pk_MATRIX_I_VP, glm::inverse(vp));
 	}
 	
 	void SetModelMatrix(const float4x4& matrix)
 	{
-		SetGlobalFloat4x4(HashCache::pk_MATRIX_OBJECT_TO_WORLD, matrix);
-		SetGlobalFloat4x4(HashCache::pk_MATRIX_WORLD_TO_OBJECT, glm::inverse(matrix));
+		SetGlobalFloat4x4(HashCache::pk_MATRIX_M, matrix);
+		SetGlobalFloat4x4(HashCache::pk_MATRIX_I_M, glm::inverse(matrix));
 	}
 	
 	void SetRenderTarget(const Ref<RenderTexture>& renderTexture)
@@ -158,7 +165,7 @@ namespace Graphics
 	
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		ACTIVE_RENDERTARGET = nullptr;
-		auto resolution = GetActiveResolution(glfwGetCurrentContext());
+		auto resolution = GetWindowResolution(CURRENT_WINDOW);
 		SetViewPort(0, 0, resolution.x, resolution.y);
 	}
 	
@@ -169,7 +176,7 @@ namespace Graphics
 	
 	void SetPass(const Ref<Shader>& shader, uint32_t pass)
 	{
-		glUseProgram(shader != nullptr ? shader->GetGraphicsID() : 0);
+		glUseProgram(shader != nullptr ? shader->GetActiveVariant()->GetGraphicsID() : 0);
 	
 		auto& parameters = shader->GetStateParameters();
 	
@@ -187,6 +194,16 @@ namespace Graphics
 	void SetMesh(const Ref<Mesh>& mesh)
 	{
 		glBindVertexArray(mesh != nullptr ? mesh->GetGraphicsID() : 0);
+	}
+
+	void SetVertexBuffer(const Ref<VertexBuffer>& buffer)
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, buffer == nullptr ? 0 : buffer->GetGraphicsID());
+	}
+
+	void SetIndexBuffer(const Ref<IndexBuffer>& buffer)
+	{
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer == nullptr ? 0 : buffer->GetGraphicsID());
 	}
 	
 	
@@ -243,6 +260,8 @@ namespace Graphics
 	
 	void DrawMesh(const Ref<Mesh>& mesh, const Ref<Shader>& shader)
 	{
+		shader->ResetKeywords();
+		shader->SetKeywords(GLOBAL_KEYWORDS);
 		SetPass(shader);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		DrawMesh(mesh);
@@ -250,6 +269,8 @@ namespace Graphics
 	
 	void DrawMesh(const Ref<Mesh>& mesh, const Ref<Shader>& shader, const float4x4& matrix)
 	{
+		shader->ResetKeywords();
+		shader->SetKeywords(GLOBAL_KEYWORDS);
 		SetPass(shader);
 		SetModelMatrix(matrix);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
@@ -258,6 +279,9 @@ namespace Graphics
 	
 	void DrawMesh(const Ref<Mesh>& mesh, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock)
 	{
+		shader->ResetKeywords();
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		shader->SetKeywords(propertyBlock.GetKeywords());
 		SetPass(shader);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		shader->SetPropertyBlock(propertyBlock);
@@ -266,6 +290,9 @@ namespace Graphics
 	
 	void DrawMesh(const Ref<Mesh>& mesh, const Ref<Shader>& shader, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock)
 	{
+		shader->ResetKeywords();
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		shader->SetKeywords(propertyBlock.GetKeywords());
 		SetPass(shader);
 		SetModelMatrix(matrix);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);

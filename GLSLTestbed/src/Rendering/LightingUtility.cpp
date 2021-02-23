@@ -14,4 +14,17 @@ namespace LightingUtility
         Graphics::SetGlobalFloat(HashCache::pk_SceneOEM_RVS, &OEMRoughnessLevels[0], 3);
         Graphics::SetGlobalFloat4(HashCache::pk_SceneOEM_ST, { 0, 0, 1, 1 });
     }
+
+    void SetOEMTextures(const Weak<Texture2D>* atlases, uint32_t count, int probeSize)
+    {
+        auto buf = alloca(sizeof(GraphicsID) * count);
+        auto ids = reinterpret_cast<GraphicsID*>(buf);
+
+        for (uint32_t i = 0; i < count; ++i)
+        {
+            ids[i] = atlases[i].lock()->GetGraphicsID();
+        }
+        
+        SetOEMTextures(ids, count, probeSize);
+    }
 }

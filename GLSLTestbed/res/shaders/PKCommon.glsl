@@ -31,15 +31,17 @@ uniform float4 pk_ScreenParams;
 uniform float4 pk_ZBufferParams;
 
 // Current model matrix.
-uniform float4x4 pk_MATRIX_OBJECT_TO_WORLD;
+uniform float4x4 pk_MATRIX_M;
 // Current inverse model matrix.
-uniform float4x4 pk_MATRIX_WORLD_TO_OBJECT;
+uniform float4x4 pk_MATRIX_I_M;
 // Current view matrix.
 uniform float4x4 pk_MATRIX_V;
 // Current projection matrix.
 uniform float4x4 pk_MATRIX_P;
 // Current view * projection matrix.
 uniform float4x4 pk_MATRIX_VP;
+// Current inverse view * projection matrix.
+uniform float4x4 pk_MATRIX_I_VP;
 
 // SH lighting environment
 uniform float4 pk_SHAr;
@@ -65,7 +67,7 @@ float4 ViewToClipPos( in float3 pos)
 // Tranforms position from object to camera space
 float3 ObjectToViewPos( in float3 pos)
 {
-    return mul(pk_MATRIX_V, mul(pk_MATRIX_OBJECT_TO_WORLD, float4(pos, 1.0))).xyz;
+    return mul(pk_MATRIX_V, mul(pk_MATRIX_M, float4(pos, 1.0))).xyz;
 }
 
 float3 ObjectToViewPos(float4 pos) // overload for float4; avoids "implicit truncation" warning for existing shaders
@@ -82,13 +84,13 @@ float3 WorldToViewPos( in float3 pos)
 // Transforms direction from object to world space
 float3 ObjectToWorldDir( in float3 dir)
 {
-    return normalize(mul(float3x3(pk_MATRIX_OBJECT_TO_WORLD), dir));
+    return normalize(mul(float3x3(pk_MATRIX_M), dir));
 }
 
 // Transforms direction from world to object space
 float3 WorldToObjectDir( in float3 dir)
 {
-    return normalize(mul(float3x3(pk_MATRIX_WORLD_TO_OBJECT), dir));
+    return normalize(mul(float3x3(pk_MATRIX_I_M), dir));
 }
 
 // Transforms normal from object to world space
@@ -98,19 +100,14 @@ float3 ObjectToWorldNormal( in float3 norm)
     return ObjectToWorldDir(norm);
 #else
     // mul(IT_M, norm) => mul(norm, I_M) => {dot(norm, I_M.col0), dot(norm, I_M.col1), dot(norm, I_M.col2)}
-    return normalize(mul(norm, float3x3(pk_MATRIX_WORLD_TO_OBJECT)));
+    return normalize(mul(norm, float3x3(pk_MATRIX_I_M)));
 #endif
 }
 
 // Tranforms position from object to homogenous space
 float4 ObjectToClipPos( in float3 pos)
 {
-#if defined(STEREO_CUBEMAP_RENDER_ON)
-    return ObjectToClipPosODS(pos);
-#else
-    // More efficient than computing M*VP matrix product
-    return mul(pk_MATRIX_VP, mul(pk_MATRIX_OBJECT_TO_WORLD, float4(pos, 1.0)));
-#endif
+    return mul(pk_MATRIX_VP, mul(pk_MATRIX_M, float4(pos, 1.0)));
 }
 
 // overload for float4; avoids "implicit truncation" warning for existing shaders

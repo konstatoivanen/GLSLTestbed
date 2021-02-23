@@ -1,5 +1,5 @@
 #pragma once
-#include "Rendering\Mesh.h"
+#include "Rendering/Objects/Mesh.h"
 #include <hlslmath.h>
 
 namespace MeshUtilities
