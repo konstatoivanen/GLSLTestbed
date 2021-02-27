@@ -1,90 +1,136 @@
 #pragma once
+#include "PrecompiledHeader.h"
+#include "Utilities/Ref.h"
 
-/*
-using System.Collections.Generic;
-
-namespace Framework.ECS
+namespace PKECS
 {
-    public interface IStep
+    class IBaseStep
     {
-    }
+        protected: virtual ~IBaseStep() = 0 {};
+    };
 
-    public interface IStep<T> : IStep
+    class IEngine : public std::enable_shared_from_this<IEngine>
     {
-        void Step(ref T token, int condition);
-    }
+        protected: virtual ~IEngine() = 0 {};
+    };
 
-    public interface ISimpleStep<T> : IStep
+    struct DefaultToken {};
+
+    template <typename T>
+    class IStep : public IBaseStep
     {
-        void Step(ref T token);
-    }
+        protected: virtual ~IStep() = 0 {};
+        public: virtual void Step(T& token) = 0;
+    };
 
-    public interface ISequencer
+    template <typename T>
+    class IConditionalStep : public IBaseStep
     {
-        void Next<T>(IEngine engine, ref T param, int condition = 0);
-    }
+        protected: virtual ~IConditionalStep() = 0 {};
+        public: virtual void Step(T& token, int condition) = 0;
+    };
 
-    public class To : Dictionary<int, IStep[]>
+    class ISimpleStep : public IStep<DefaultToken>
     {
-        private readonly List<IStep> commonSteps = new List<IStep>();
+        protected:
+            virtual ~ISimpleStep() = 0 {};
+        public:
+            virtual void Step() = 0;
+            void Step(DefaultToken& token) { Step(); }
+    };
 
-        public IEnumerable<IStep> CommonSteps => commonSteps;
+    typedef Ref<IBaseStep> RStep;
+    typedef Ref<IEngine> REngine;
+    typedef std::unordered_map<int, std::vector<RStep>> BranchSteps;
 
-        public void Add(IStep engine)
+    class To
+    {
+        public:
+            To(std::initializer_list<BranchSteps::value_type> branchSteps);
+            To(std::initializer_list<RStep> commonSteps);
+            To(std::initializer_list<BranchSteps::value_type> branchSteps, std::initializer_list<RStep> commonSteps);
+            To(std::initializer_list<RStep> commonSteps, std::initializer_list<BranchSteps::value_type> steps);
+
+            std::vector<RStep>* GetSteps(int condition);
+            std::vector<RStep>* GetCommonSteps() { return &m_commonSteps; }
+ 
+        private:
+            BranchSteps m_branchSteps;
+            std::vector<RStep> m_commonSteps;
+    };
+
+    typedef std::unordered_map<REngine, To> Steps;
+
+    class Sequencer
+    {
+        class EnginesRoot : public IEngine
         {
-            commonSteps.Add(engine);
-        }
+        };
 
-        public void Add(IStep[] engines)
-        {
-            commonSteps.AddRange(engines);
-        }
+        public:
+            Sequencer();
+            ~Sequencer();
 
-        public void Add(int condition, IStep engine)
-        {
-            Add(condition, new[] { engine });
-        }
-    }
+            void SetSteps(std::initializer_list<Steps::value_type> steps);
+            REngine& GetRoot() { return m_rootEngine; }
 
-    public class Steps : Dictionary<IEngine, To>
-    {
-    }
+            template<typename T>
+            void ExecuteCommand(T& token, int condition) { Next<T>(m_rootEngine, token, condition); }
 
-    public class Sequencer : ISequencer
-    {
-        private Steps steps;
-
-        public void SetSequence(Steps steps)
-        {
-            this.steps = steps;
-        }
-
-        public void Next<T>(IEngine engine, ref T param, int condition)
-        {
-            To targets;
-            if (!steps.TryGetValue(engine, out targets))
+            void ExecuteCommand(int condition) 
             {
-                return;
+                auto token = DefaultToken();
+                ExecuteCommand(token, condition);
             }
 
-            IStep[] branchSteps;
-            if (steps[engine].TryGetValue(condition, out branchSteps))
+            template<typename T>
+            void Next(REngine engine, T& token, int condition)
             {
-                InvokeSteps(ref param, condition, branchSteps);
+                if (m_steps.count(engine) < 1)
+                {
+                    return;
+                }
+
+                auto& to = m_steps.at(engine);
+
+                std::vector<RStep>* branchSteps = to.GetSteps(condition);
+
+                if (branchSteps != nullptr)
+                {
+                    InvokeSteps(token, condition, *branchSteps);
+                }
+
+                InvokeSteps(token, condition, *to.GetCommonSteps());
             }
 
-            InvokeSteps(ref param, condition, targets.CommonSteps);
-        }
-
-        private static void InvokeSteps<T>(ref T param, int condition, IEnumerable<IStep> branchSteps)
-        {
-            foreach (var step in branchSteps)
+            void Release()
             {
-                (step as IStep<T>)?.Step(ref param, condition);
-                (step as ISimpleStep<T>)?.Step(ref param);
+                m_rootEngine = nullptr;
+                m_steps.clear();
             }
-        }
-    }
+
+        private:
+            template<typename T>
+            void InvokeSteps(T& token, int condition, std::vector<RStep>& branchSteps)
+            {
+                for (auto& i : branchSteps)
+                {
+                    auto step = std::dynamic_pointer_cast<IConditionalStep<T>>(i);
+                    auto simpleStep = std::dynamic_pointer_cast<IStep<T>>(i);
+
+                    if (step)
+                    {
+                        step->Step(token, condition);
+                    }
+
+                    if (simpleStep)
+                    {
+                        simpleStep->Step(token);
+                    }
+                }
+            }
+
+            REngine m_rootEngine;
+            Steps m_steps;
+    };
 }
-
-*/

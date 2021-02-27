@@ -4,6 +4,7 @@
 #include "Utilities/StringUtilities.h"
 #include "Utilities/Ref.h"
 #include "Utilities/Log.h"
+#include "Core/ServiceRegister.h"
 #include <filesystem>
 
 typedef uint32_t AssetID;
@@ -13,6 +14,8 @@ class Asset
     friend class AssetDatabase;
 
     public:
+        virtual ~Asset() = default;
+
         AssetID GetAssetID() const { return m_assetId; }
 
         const std::string& GetFileName() const { return StringHashID::IDToString(m_assetId); }
@@ -22,7 +25,7 @@ class Asset
         bool operator==(const Asset& other) const { return m_assetId == ((Asset&)other).m_assetId; }
 
     private:
-        AssetID m_assetId;
+        AssetID m_assetId = 0;
 };
 
 namespace AssetImporters
@@ -31,7 +34,7 @@ namespace AssetImporters
     void Import(const std::string& filepath, Ref<T>& asset);
 };
 
-class AssetDatabase
+class AssetDatabase : public IService
 {
     private:
         template<typename T>

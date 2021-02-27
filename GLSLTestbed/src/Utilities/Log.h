@@ -1,5 +1,6 @@
 #pragma once
 #include "PrecompiledHeader.h"
+#include <conio.h>
 
 namespace PK_Debug
 {
@@ -51,6 +52,7 @@ namespace PK_Debug
         SetConsoleTextAttribute(hConsole, color);
         printf(message, args...);
         printf("\n");
+        _getch();
         return std::exception(message);
     }
 }

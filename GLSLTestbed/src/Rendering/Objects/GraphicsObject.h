@@ -6,6 +6,8 @@ typedef uint32_t GraphicsID;
 class GraphicsObject
 {
     public:
+        virtual ~GraphicsObject() = default;
+
         GraphicsID GetGraphicsID() const { return m_graphicsId; }
         bool IsValid() const { return m_graphicsId != 0; }
 

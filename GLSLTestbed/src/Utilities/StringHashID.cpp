@@ -1,20 +1,22 @@
 #include "PrecompiledHeader.h"
 #include "Utilities/StringHashID.h"
 
-uint32_t StringHashID::id_counter;
-std::unordered_map<std::string, uint32_t> StringHashID::string_id_map;
-std::unordered_map<uint32_t, std::string> StringHashID::id_string_map;
+StringHashID::Cache* StringHashID::m_staticCache;
+
+#define STR_TO_ID m_staticCache->string_id_map
+#define ID_TO_STR m_staticCache->id_string_map
+#define ID_COUNTER m_staticCache->id_counter
 
 uint32_t StringHashID::StringToID(const std::string& str)
 {
-    if (string_id_map.count(str) > 0)
+    if (STR_TO_ID.count(str) > 0)
     {
-        return string_id_map.at(str);
+        return STR_TO_ID.at(str);
     }
 
-    string_id_map[str] = ++id_counter;
-    id_string_map[id_counter] = str;
-    return id_counter;
+    STR_TO_ID[str] = ++ID_COUNTER;
+    ID_TO_STR[ID_COUNTER] = str;
+    return ID_COUNTER;
 }
 
 uint32_t StringHashID::StringToID(const char* str)
@@ -24,10 +26,10 @@ uint32_t StringHashID::StringToID(const char* str)
 
 const std::string& StringHashID::IDToString(uint32_t id)
 {
-    if (id > id_counter)
+    if (id > ID_COUNTER)
     {
         throw std::invalid_argument("Trying to get a string using an invalid id: " + std::to_string(id));
     }
 
-    return id_string_map[id];
+    return ID_TO_STR[id];
 }

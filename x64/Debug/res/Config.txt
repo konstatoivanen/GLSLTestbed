@@ -1,4 +1,0 @@
-#showconsole true
-#width 1024
-#height 576
-#timescale 1.0

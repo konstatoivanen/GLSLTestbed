@@ -11,12 +11,23 @@
 
 Application* Application::s_Instance = nullptr;
 
-class ShaderEngine
+enum class UpdateStep
+{
+	OpenFrame,
+	UpdateInput,
+	UpdateEngines,
+	PreRender,
+	Render,
+	PostRender,
+	CloseFrame,
+};
+
+class ShaderEngine : public PKECS::ISimpleStep
 {
 	public:
 		ShaderEngine()
 		{
-			auto& assetDatabase = Application::GetAssetDatabase();
+			auto assetDatabase = Application::GetService<AssetDatabase>();
 
 			auto desc = RenderTextureDescriptor();
 
@@ -32,16 +43,16 @@ class ShaderEngine
 
 			renderTarget = CreateRef<RenderTexture>(desc);
 			cubeMesh = MeshUtilities::GetBox(CG_FLOAT3_ZERO, { 0.5f, 0.5f, 0.5f});
-			cubeShader = assetDatabase.Find<Shader>("SH_WS_Default_Unlit");
-			iblShader = assetDatabase.Find<Shader>("SH_VS_IBLBackground");
+			cubeShader = assetDatabase->Find<Shader>("SH_WS_Default_Unlit");
+			iblShader = assetDatabase->Find<Shader>("SH_VS_IBLBackground");
 
 			fieldOfView = 60;
 			position = { 0, 0, -2 };
 			rotation = { 0, 0, 0 };
 
-			reflectionMaps[0] = assetDatabase.Find<Texture2D>("T_OEM_01");
-			reflectionMaps[1] = assetDatabase.Find<Texture2D>("T_OEM_02");
-			reflectionMaps[2] = assetDatabase.Find<Texture2D>("T_OEM_03");
+			reflectionMaps[0] = assetDatabase->Find<Texture2D>("T_OEM_01");
+			reflectionMaps[1] = assetDatabase->Find<Texture2D>("T_OEM_02");
+			reflectionMaps[2] = assetDatabase->Find<Texture2D>("T_OEM_03");
 
 			reflectionMaps[0].lock()->SetWrapMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 			reflectionMaps[1].lock()->SetWrapMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
@@ -54,51 +65,53 @@ class ShaderEngine
 			cubeMesh = nullptr;
 		}
 
-		virtual void Update()
+		void Step() override
 		{
-			auto& input = Application::GetInput();
+			auto input = Application::GetService<Input>();
+			auto assetDataBase = Application::GetService<AssetDatabase>();
+			auto time = Application::GetService<Time>();
 
-			if (input.GetKeyDown(Application::GetConfig().input_exit))
+			if (input->GetKeyDown(KeyCode::ESCAPE))
 			{
 				Application::Get().Close();
 				return;
 			}
 
-			if (input.GetKeyDown(GLFW_KEY_T))
+			if (input->GetKeyDown(KeyCode::T))
 			{
 				iblShader.lock()->ListProperties();
 			}
 
-			if (input.GetKeyDown(GLFW_KEY_R))
+			if (input->GetKeyDown(KeyCode::R))
 			{
-				Application::GetAssetDatabase().Reload<Shader>(cubeShader.lock()->GetAssetID());
+				assetDataBase->Reload<Shader>(cubeShader.lock()->GetAssetID());
 				PK_CORE_LOG("Reimported shader: %s", cubeShader.lock()->GetFileName().c_str());
 			}
 
-			if (input.GetKey(GLFW_KEY_C))
+			if (input->GetKey(KeyCode::C))
 			{
-				Application::GetTime().Reset();
+				time->Reset();
 			}
 
-			Application::GetTime().LogFrameRate();
+			time->LogFrameRate();
 
-			Graphics::SetGlobalKeyword(StringHashID::StringToID("Test3"), input.GetKey(GLFW_KEY_G));
-			Graphics::SetGlobalKeyword(StringHashID::StringToID("Test6"), input.GetKey(GLFW_KEY_F));
+			Graphics::SetGlobalKeyword(StringHashID::StringToID("Test3"), input->GetKey(KeyCode::G));
+			Graphics::SetGlobalKeyword(StringHashID::StringToID("Test6"), input->GetKey(KeyCode::F));
 
-			auto deltaTime = Application::GetTime().GetDeltaTime();
+			auto deltaTime = time->GetDeltaTime();
 
-			if (input.GetKey(GLFW_MOUSE_BUTTON_1))
+			if (input->GetKey(KeyCode::MOUSE1))
 			{
-				rotation.x -= input.GetMouseDeltaY() * deltaTime * 2.5f;
-				rotation.y -= input.GetMouseDeltaX() * deltaTime * 2.5f;
+				rotation.x -= input->GetMouseDeltaY() * deltaTime * 2.5f;
+				rotation.y -= input->GetMouseDeltaX() * deltaTime * 2.5f;
 			}
 
-			auto speed = input.GetKey(GLFW_KEY_LEFT_SHIFT) ? 40.0f : 10.0f;
-			auto offset = input.GetAxis3D(GLFW_KEY_Q, GLFW_KEY_E, GLFW_KEY_W, GLFW_KEY_S, GLFW_KEY_D, GLFW_KEY_A) * deltaTime * speed;
+			auto speed = input->GetKey(KeyCode::LEFT_SHIFT) ? 40.0f : 10.0f;
+			auto offset = input->GetAxis3D(KeyCode::Q, KeyCode::E, KeyCode::W, KeyCode::S, KeyCode::D, KeyCode::A) * deltaTime * speed;
 			
-			auto fdelta = input.GetMouseScrollY() * deltaTime * 1000.0f;
+			auto fdelta = input->GetMouseScrollY() * deltaTime * 1000.0f;
 
-			if (input.GetKey(GLFW_KEY_LEFT_SHIFT))
+			if (input->GetKey(KeyCode::LEFT_SHIFT))
 			{
 				auto fov0 = fieldOfView;
 				auto fov1 = fieldOfView - fdelta;
@@ -135,54 +148,85 @@ class ShaderEngine
 		Weak<Texture2D> reflectionMaps[3];
 };
 
-// Move somewhere approrpriate
+// Move somewhere appropriate
 static void SetShaderGlobals()
 {
-	auto time = Application::GetTime().GetTime();
-	auto deltatime = Application::GetTime().GetDeltaTime();
-	auto smoothdeltatime = Application::GetTime().GetSmoothDeltaTime();
+	auto timeService = Application::GetService<Time>();
+	auto time = timeService->GetTime();
+	auto deltatime = timeService->GetDeltaTime();
+	auto smoothdeltatime = timeService->GetSmoothDeltaTime();
 	Graphics::SetGlobalFloat4(HashCache::pk_Time, { time / 20, time, time * 2, time * 3 });
 	Graphics::SetGlobalFloat4(HashCache::pk_SinTime, { sinf(time / 8), sinf(time / 4), sinf(time / 2), sinf(time) });
 	Graphics::SetGlobalFloat4(HashCache::pk_CosTime, { cosf(time / 8), cosf(time / 4), cosf(time / 2), cosf(time) });
 	Graphics::SetGlobalFloat4(HashCache::pk_DeltaTime, { deltatime, 1.0f / deltatime, smoothdeltatime, 1.0f / smoothdeltatime });
 }
 
-Application::Application(const std::string& name) : m_applicationConfig("res/Config.txt")
+Application::Application(const std::string& name)
 {
 	PK_CORE_ASSERT(!s_Instance, "Application already exists!");
 	s_Instance = this;
 
-	::ShowWindow(::GetConsoleWindow(), m_applicationConfig.enable_console ? SW_SHOW : SW_HIDE);
+	auto config = ApplicationConfig("res/Config.txt");
+
+	::ShowWindow(::GetConsoleWindow(), config.enable_console ? SW_SHOW : SW_HIDE);
+
+	m_services = CreateScope<ServiceRegister>();
+
+	StringHashID::SetCache(&m_hashCache);
 	HashCache::Intitialize();
 	Graphics::Initialize();
 	
-	m_time.Reset();
-	m_time.SetTimeScale(m_applicationConfig.time_scale);
+	auto time = m_services->CreateService<Time>();
+	auto assetDatabase = m_services->CreateService<AssetDatabase>();
+	auto input = m_services->CreateService<Input>();
+
+	time->Reset();
+	time->SetTimeScale(config.time_scale);
 	
-	m_window = CreateScope<Window>(WindowProperties(name, m_applicationConfig.window_width, m_applicationConfig.window_height, m_applicationConfig.enable_vsync));
-	m_window->OnKeyInput = PK_BIND_FUNCTION(m_input.OnKeyInput);
-	m_window->OnScrollInput = PK_BIND_FUNCTION(m_input.OnScrollInput);
-	m_window->OnMouseButtonInput = PK_BIND_FUNCTION(m_input.OnMouseButtonInput);
+	m_window = CreateScope<Window>(WindowProperties(name, config.window_width, config.window_height, config.enable_vsync));
+	m_window->OnKeyInput = PK_BIND_MEMBER_FUNCTION(input, OnKeyInput);
+	m_window->OnScrollInput = PK_BIND_MEMBER_FUNCTION(input, OnScrollInput);
+	m_window->OnMouseButtonInput = PK_BIND_MEMBER_FUNCTION(input, OnMouseButtonInput);
 	m_window->OnClose = PK_BIND_FUNCTION(Application::Close);
 	
-	m_assetDatabase.LoadDirectory<Shader>("res/shaders/", ".shader");
-	m_assetDatabase.LoadDirectory<Texture2D>("res/textures/", ".png");
+	assetDatabase->LoadDirectory<Shader>("res/shaders/", ".shader");
+	assetDatabase->LoadDirectory<Texture2D>("res/textures/", ".png");
 
 	m_graphicsContext.BlitQuad = MeshUtilities::GetQuad2D({ -1.0f,-1.0f }, { 1.0f, 1.0f });
-	m_graphicsContext.BlitShader = m_assetDatabase.Find<Shader>("SH_VS_Internal_Blit");
+	m_graphicsContext.BlitShader = assetDatabase->Find<Shader>("SH_VS_Internal_Blit");
+
+	auto shaderEngine = CreateRef<ShaderEngine>();
+
+	m_sequencer.SetSteps(
+		{
+			{
+				m_sequencer.GetRoot(),
+				PKECS::To(
+				{
+					{ (int)UpdateStep::OpenFrame, { time }},
+					{ (int)UpdateStep::UpdateInput, { input } },
+					//{ (int)UpdateStep::UpdateEngines, { engine }},
+					//{ (int)UpdateStep::PreRender, { engine }},
+					{ (int)UpdateStep::Render, { shaderEngine }},
+					//{ (int)UpdateStep::PostRender, { engine }},
+					//{ (int)UpdateStep::CloseFrame, { engine }},
+				})
+			}
+		}
+	);
 }
 
 Application::~Application()
 {
 	m_window = nullptr;
-	m_assetDatabase.Unload();
+	m_sequencer.Release();
+	GetService<AssetDatabase>()->Unload();
 	Graphics::Terminate();
+	m_services->Clear();
 }
 
 void Application::Run()
 {
-	auto shaderEngine = CreateRef<ShaderEngine>();
-
 	while (m_window->IsAlive() && m_Running)
 	{
 		if (m_window->IsMinimized())
@@ -190,13 +234,13 @@ void Application::Run()
 			continue;
 		}
 
-		m_time.UpdateTime();
-		m_input.PollInput();
+		m_sequencer.ExecuteCommand((int)UpdateStep::OpenFrame);
+		m_sequencer.ExecuteCommand((int)UpdateStep::UpdateInput);
 		Graphics::OpenContext(&m_graphicsContext);
 		SetShaderGlobals();
 
 		Graphics::StartWindow();
-		shaderEngine->Update();
+		m_sequencer.ExecuteCommand((int)UpdateStep::Render);
 		Graphics::EndWindow();
 	
 		Graphics::CloseContext();

@@ -47,7 +47,7 @@ GLenum Texture::GetFormatChannels(GLenum format)
         case GL_R16:
         case GL_R16F:
         case GL_R32F:
-            return GL_R;
+            return GL_RED;
         case GL_RG8:
         case GL_RG16:
         case GL_RG16F:
@@ -70,7 +70,7 @@ GLenum Texture::GetFormatChannels(GLenum format)
         case GL_RGBA32F:
             return GL_RGBA;
         case GL_DEPTH24_STENCIL8:
-            return GL_DEPTH;
+            return GL_DEPTH_STENCIL;
     }
 
     PK_CORE_ERROR("UNSUPPORTED TEXTURE FORMAT");
@@ -116,7 +116,7 @@ uint8_t Texture::GetChannelCount(GLenum channels)
 {
     switch (channels)
     {
-        case GL_R: return 1;
+        case GL_RED: return 1;
         case GL_RG: return 2;
         case GL_RGB: return 3;
         case GL_RGBA: return 4;

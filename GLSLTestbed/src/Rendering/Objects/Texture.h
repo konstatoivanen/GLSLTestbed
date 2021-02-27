@@ -1,6 +1,6 @@
 #pragma once
 #include "Rendering/Objects/GraphicsObject.h"
-#include <GL\glew.h>
+#include <glad/glad.h>
 
 struct TextureDescriptor
 {
@@ -18,6 +18,7 @@ class Texture : public GraphicsObject
 {
     public:
         Texture(const TextureDescriptor& descriptor);
+        virtual ~Texture() = default;
 
         TextureDescriptor GetDescriptor() const { return m_descriptor; }
         uint32_t GetWidth() const { return m_descriptor.width; }

@@ -21,7 +21,12 @@ void Time::Reset()
     m_second = 0;
 }
 
-void Time::UpdateTime()
+void Time::LogFrameRate()
+{
+    PK_CORE_LOG_OVERWRITE("FPS: %4.1i, FIXED: %i, MIN: %i, MAX: %i, AVG: %i     ", m_framerate, m_framerateFixed, m_framerateMin, m_framerateMax, m_framerateAvg);
+}
+
+void Time::Step()
 {
     auto currentSeconds = GetClockSeconds();
 
@@ -60,9 +65,4 @@ void Time::UpdateTime()
     }
 
     m_framerateAvg = (uint64_t)(m_frameIndex / m_unscaledTime);
-}
-
-void Time::LogFrameRate()
-{
-    PK_CORE_LOG_OVERWRITE("FPS: %4.1i, FIXED: %i, MIN: %i, MAX: %i, AVG: %i     ", m_framerate, m_framerateFixed, m_framerateMin, m_framerateMax, m_framerateAvg);
 }

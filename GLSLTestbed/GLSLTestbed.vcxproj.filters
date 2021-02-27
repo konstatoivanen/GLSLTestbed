@@ -21,18 +21,6 @@
     <ClInclude Include="include\GLFW\glfw3native.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\GL\eglew.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\GL\glew.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\GL\glxew.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\GL\wglew.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\PrecompiledHeader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -972,10 +960,17 @@
     <ClInclude Include="src\Rendering\Structs\GraphicsContext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\GLAD\glad.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GLAD\khrplatform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\ServiceRegister.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="libs\glew32.lib" />
-    <Library Include="libs\glew32s.lib" />
     <Library Include="libs\glfw3.lib" />
     <Library Include="libs\glfw3dll.lib" />
   </ItemGroup>
@@ -1478,12 +1473,17 @@
     <ClCompile Include="src\Rendering\Structs\ShaderPropertyBlock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="include\GLAD\glad.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\Sequencer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="x64\Debug\GLImageProcessor.log" />
     <Text Include="x64\Debug\GLImageProcessor.Build.CppClean.log" />
     <Text Include="res\Config.txt" />
-    <Text Include="res\Shaders.txt" />
     <Text Include="res\shaders\MathUtilities.glsl" />
     <Text Include="res\shaders\SH_WS_Default_Unlit.shader" />
   </ItemGroup>

@@ -564,6 +564,7 @@ namespace ShaderCompiler
 		program = glCreateProgram();
 	
 		PK_CORE_ASSERT(shaderSources.size() <= 2, "We only support 2 shaders for now");
+		PK_CORE_ASSERT(shaderSources.size() > 0, "No shader sources supplied for %s", filename.c_str());
 	
 		std::array<GLenum, 2> glShaderIDs;
 		int glShaderIDIndex = 0;
@@ -606,11 +607,12 @@ namespace ShaderCompiler
 		// Note the different functions here: glGetProgram* instead of glGetShader*.
 		GLint isLinked = 0;
 		glGetProgramiv(program, GL_LINK_STATUS, (int*)&isLinked);
+
 		if (isLinked == GL_FALSE)
 		{
 			GLint maxLength = 0;
 			glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
-	
+
 			// The maxLength includes the NULL character
 			std::vector<GLchar> infoLog(maxLength);
 			glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
@@ -623,7 +625,7 @@ namespace ShaderCompiler
 				glDeleteShader(id);
 			}
 	
-			PK_CORE_ERROR("Shader link failure! \n %s", infoLog.data());
+			PK_CORE_ERROR("Shader link failure! \n%s \n%s", filename.c_str(), infoLog.data());
 		}
 	
 		for (auto id : glShaderIDs)

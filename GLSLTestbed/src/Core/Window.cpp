@@ -61,10 +61,8 @@ Window::Window(const WindowProperties& props)
 	glfwSetCursorPosCallback(m_window, [](GLFWwindow* nativeWindow, double xPos, double yPos) {SafeInvokeFunction(GetWindowPtr(nativeWindow)->OnCursorInput, xPos, yPos); });
 	SetVSync(props.vsync);
 
-	if (glewInit() != GLEW_OK)
-	{
-		PK_CORE_ASSERT(false, "Failed To Initialize GLEW");
-	}
+	int gladstatus = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+	PK_CORE_ASSERT(gladstatus, "Failed To Initialize GLAD");
 
 	m_alive = true;
 }

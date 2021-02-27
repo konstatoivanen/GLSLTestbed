@@ -20,6 +20,8 @@ class PropertyBlock
 		PropertyBlock(const BufferLayout& layout);
 		PropertyBlock(const BufferLayout& layout, uint elementStride);
 
+		virtual ~PropertyBlock() = default;
+
 		void SetFloat(uint hashId, const float* values, uint count = 1) { SetValue(hashId, CG_TYPE_FLOAT, values, count); }
 		void SetFloat2(uint hashId, const float2* values, uint count = 1) { SetValue(hashId, CG_TYPE_FLOAT2, values, count); }
 		void SetFloat3(uint hashId, const float3* values, uint count = 1) { SetValue(hashId, CG_TYPE_FLOAT3, values, count); }

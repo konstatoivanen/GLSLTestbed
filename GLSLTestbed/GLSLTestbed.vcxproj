@@ -97,14 +97,14 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)\GLSLTestbed\src;$(SolutionDir)\GLSLTestbed\include\glm;$(SolutionDir)\GLSLTestbed\include\stb_image;$(SolutionDir)\GLSLTestbed\include;SDK Path\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>GLEW_STATIC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>PrecompiledHeader.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)\GLSLTestbed\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glew32s.lib;opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -134,7 +134,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)\GLSLTestbed\src;$(SolutionDir)\GLSLTestbed\include\glm;$(SolutionDir)\GLSLTestbed\include\stb_image;$(SolutionDir)\GLSLTestbed\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>GLEW_STATIC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>PrecompiledHeader.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -143,10 +143,12 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(SolutionDir)\GLSLTestbed\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glew32s.lib;opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\GLAD\glad.h" />
+    <ClInclude Include="include\GLAD\khrplatform.h" />
     <ClInclude Include="include\glm\common.hpp" />
     <ClInclude Include="include\glm\detail\compute_common.hpp" />
     <ClInclude Include="include\glm\detail\compute_vector_relational.hpp" />
@@ -430,6 +432,7 @@
     <ClInclude Include="include\glm\vec4.hpp" />
     <ClInclude Include="include\glm\vector_relational.hpp" />
     <ClInclude Include="include\hlslmath.h" />
+    <ClInclude Include="src\Core\ServiceRegister.h" />
     <ClInclude Include="src\Rendering\Structs\BufferLayout.h" />
     <ClInclude Include="src\Rendering\Structs\PropertyBlock.h" />
     <ClInclude Include="src\Core\AssetDataBase.h" />
@@ -455,10 +458,6 @@
     <ClInclude Include="src\Rendering\Graphics.h" />
     <ClInclude Include="include\GLFW\glfw3.h" />
     <ClInclude Include="include\GLFW\glfw3native.h" />
-    <ClInclude Include="include\GL\eglew.h" />
-    <ClInclude Include="include\GL\glew.h" />
-    <ClInclude Include="include\GL\glxew.h" />
-    <ClInclude Include="include\GL\wglew.h" />
     <ClInclude Include="src\Utilities\StringHashID.h" />
     <ClInclude Include="src\Core\Time.h" />
     <ClInclude Include="src\Rendering\Objects\Texture2D.h" />
@@ -468,8 +467,6 @@
     <ClInclude Include="src\Utilities\StringUtilities.h" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="libs\glew32.lib" />
-    <Library Include="libs\glew32s.lib" />
     <Library Include="libs\glfw3.lib" />
     <Library Include="libs\glfw3dll.lib" />
   </ItemGroup>
@@ -611,14 +608,30 @@
     <None Include="include\glm\gtx\vector_query.inl" />
     <None Include="include\glm\gtx\wrap.inl" />
     <None Include="libs\glfw3.dll" />
-    <None Include="res\shaders\BlitCommon.glsl" />
-    <None Include="res\shaders\Lighting.glsl" />
-    <None Include="res\shaders\SH_VS_HueTerraceMultisampled.shader" />
-    <None Include="res\shaders\SH_VS_HueTerraceSimple.shader" />
-    <None Include="res\shaders\SH_VS_IBLBackground.shader" />
-    <None Include="res\shaders\SH_VS_Internal_Blit.shader" />
-    <None Include="res\shaders\SH_VS_ShaderToyImport.shader" />
-    <None Include="res\shaders\Test.glsl" />
+    <None Include="res\shaders\BlitCommon.glsl">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+    <None Include="res\shaders\Lighting.glsl">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+    <None Include="res\shaders\SH_VS_HueTerraceMultisampled.shader">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+    <None Include="res\shaders\SH_VS_HueTerraceSimple.shader">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+    <None Include="res\shaders\SH_VS_IBLBackground.shader">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+    <None Include="res\shaders\SH_VS_Internal_Blit.shader">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+    <None Include="res\shaders\SH_VS_ShaderToyImport.shader">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+    <None Include="res\shaders\Test.glsl">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
     <None Include="x64\Debug\GLImageProcessor.tlog\CL.command.1.tlog" />
     <None Include="x64\Debug\GLImageProcessor.tlog\GLImageProcessor.lastbuildstate" />
     <None Include="x64\Debug\GLImageProcessor.tlog\unsuccessfulbuild" />
@@ -626,8 +639,15 @@
     <None Include="x64\Debug\vc141.pdb" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="include\GLAD\glad.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="include\glm\detail\glm.cpp" />
     <ClCompile Include="include\hlslmath.cpp" />
+    <ClCompile Include="src\Core\Sequencer.cpp" />
     <ClCompile Include="src\Rendering\Structs\PropertyBlock.cpp" />
     <ClCompile Include="src\Rendering\LightingUtility.cpp" />
     <ClCompile Include="src\Rendering\MeshUtility.cpp" />
@@ -650,15 +670,25 @@
     <ClCompile Include="src\Utilities\StringHashID.cpp" />
     <ClCompile Include="src\Core\Time.cpp" />
     <ClCompile Include="src\Rendering\Objects\Texture2D.cpp" />
-    <ClCompile Include="include\stb_image\stb_image.cpp" />
+    <ClCompile Include="include\stb_image\stb_image.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="src\Core\Window.cpp" />
     <ClCompile Include="src\Utilities\StringUtilities.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="res\Config.txt" />
-    <Text Include="res\Shaders.txt" />
-    <Text Include="res\shaders\SH_WS_Default_Unlit.shader" />
-    <Text Include="res\shaders\MathUtilities.glsl" />
+    <Text Include="res\Config.txt">
+      <DeploymentContent>true</DeploymentContent>
+    </Text>
+    <Text Include="res\shaders\SH_WS_Default_Unlit.shader">
+      <DeploymentContent>true</DeploymentContent>
+    </Text>
+    <Text Include="res\shaders\MathUtilities.glsl">
+      <DeploymentContent>true</DeploymentContent>
+    </Text>
     <Text Include="x64\Debug\GLImageProcessor.Build.CppClean.log" />
     <Text Include="x64\Debug\GLImageProcessor.log" />
   </ItemGroup>
@@ -669,6 +699,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <FileType>Document</FileType>
+      <DeploymentContent>true</DeploymentContent>
     </None>
     <None Include="res\shaders\HLSLSupport.glsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -676,13 +707,22 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <FileType>Document</FileType>
+      <DeploymentContent>true</DeploymentContent>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\textures\checkerboard.png" />
-    <Image Include="res\textures\T_OEM_01.png" />
-    <Image Include="res\textures\T_OEM_02.png" />
-    <Image Include="res\textures\T_OEM_03.png" />
+    <Image Include="res\textures\checkerboard.png">
+      <DeploymentContent>true</DeploymentContent>
+    </Image>
+    <Image Include="res\textures\T_OEM_01.png">
+      <DeploymentContent>true</DeploymentContent>
+    </Image>
+    <Image Include="res\textures\T_OEM_02.png">
+      <DeploymentContent>true</DeploymentContent>
+    </Image>
+    <Image Include="res\textures\T_OEM_03.png">
+      <DeploymentContent>true</DeploymentContent>
+    </Image>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

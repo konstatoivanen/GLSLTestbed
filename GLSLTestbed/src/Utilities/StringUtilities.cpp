@@ -68,13 +68,10 @@ namespace StringUtilities
 		auto includeToken = "#include ";
 		auto includeTokenLength = strlen(includeToken);
 	
-		std::ifstream file(filepath);
+		std::ifstream file(filepath, std::ios::in);
 	
-		if (!file.is_open())
-		{
-			PK_CORE_ERROR("ERROR: could not open file at: %s", filepath.c_str());
-		}
-	
+		PK_CORE_ASSERT(file, "Could not open file at: %s", filepath.c_str());
+
 		std::string result;
 		std::string lineBuffer;
 	
@@ -97,7 +94,7 @@ namespace StringUtilities
 		}
 	
 		file.close();
-	
+
 		return result;
 	}
 	

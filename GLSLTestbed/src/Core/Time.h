@@ -1,6 +1,8 @@
 #pragma once
+#include "Core/ServiceRegister.h"
+#include "Core/Sequencer.h"
 
-class Time
+class Time : public IService, public PKECS::ISimpleStep
 {
     public:
         const float GetTimeScale() const { return (float)m_timeScale; }
@@ -19,24 +21,25 @@ class Time
         const uint64_t GetFrameRateFixed() const { return m_framerateFixed; }
 
         void Reset();
-        void UpdateTime();
         void LogFrameRate();
 
+        void Step() override;
+
     private:
-        uint64_t m_frameIndex;
-        uint64_t m_frameIndexFixed;
-        uint64_t m_framerate;
-        uint64_t m_framerateMin;
-        uint64_t m_framerateMax;
-        uint64_t m_framerateAvg;
-        uint64_t m_framerateFixed;
-        uint64_t m_second;
-        double m_previousSeconds;
-        double m_timeScale;
-        double m_time;
-        double m_unscaledTime;
-        double m_deltaTime;
-        double m_unscaledDeltaTime;
-        double m_smoothDeltaTime;
+        uint64_t m_frameIndex = 0;
+        uint64_t m_frameIndexFixed = 0;
+        uint64_t m_framerate = 0;
+        uint64_t m_framerateMin = 0;
+        uint64_t m_framerateMax = 0;
+        uint64_t m_framerateAvg = 0;
+        uint64_t m_framerateFixed = 0;
+        uint64_t m_second = 0;
+        double m_previousSeconds = 0.0;
+        double m_timeScale = 0.0;
+        double m_time = 0.0;
+        double m_unscaledTime = 0.0;
+        double m_deltaTime = 0.0;
+        double m_unscaledDeltaTime = 0.0;
+        double m_smoothDeltaTime = 0.0;
 };
 

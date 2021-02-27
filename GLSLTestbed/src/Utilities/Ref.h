@@ -2,6 +2,7 @@
 #include "PrecompiledHeader.h"
 
 #define PK_BIND_FUNCTION(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
+#define PK_BIND_MEMBER_FUNCTION(o, fn) [o](auto&&... args) -> decltype(auto) { return o->fn(std::forward<decltype(args)>(args)...); }
 
 template<typename T>
 using Scope = std::unique_ptr<T>;

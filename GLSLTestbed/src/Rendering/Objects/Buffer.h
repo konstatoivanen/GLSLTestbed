@@ -3,7 +3,7 @@
 #include "Rendering/Objects/GraphicsObject.h"
 #include "Rendering/Structs/PropertyBlock.h"
 #include "Rendering/Structs/BufferLayout.h"
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <hlslmath.h>
 
 class VertexBuffer : public GraphicsObject

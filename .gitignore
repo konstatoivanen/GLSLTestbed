@@ -34,3 +34,6 @@
 *.exe
 *.out
 *.app
+
+# Build Folders
+/x64

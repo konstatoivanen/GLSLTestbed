@@ -26,7 +26,7 @@ void Texture2D::SetData(void* data, uint32_t size)
 template<typename T>
 void AssetImporters::Import(const std::string& filepath, Ref<T>& texture)
 {
-	if (texture->m_graphicsId == 0)
+	if (texture->m_graphicsId != 0)
 	{
 		glDeleteTextures(1, &texture->m_graphicsId);
 	}

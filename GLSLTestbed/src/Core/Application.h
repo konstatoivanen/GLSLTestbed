@@ -1,11 +1,14 @@
 #pragma once
 #include "PrecompiledHeader.h"
+#include "Utilities/StringHashID.h"
 #include "Rendering/Graphics.h"
 #include "Rendering/Objects/Shader.h"
+#include "Core/ServiceRegister.h"
 #include "Core/Time.h"
 #include "Core/Input.h"
 #include "Core/ApplicationConfig.h"
 #include "Core/Window.h"
+#include "Core/Sequencer.h"
 
 int main(int argc, char** argv);
 
@@ -17,10 +20,10 @@ class Application
 		void Close();
 	
 		static Application& Get() { return *s_Instance; }
-		static Time& GetTime() { return Get().m_time; }
-		static AssetDatabase& GetAssetDatabase() { return Get().m_assetDatabase; }
-		static ApplicationConfig& GetConfig() { return Get().m_applicationConfig; }
-		static Input& GetInput() { return Get().m_input; }
+		
+		template<typename T>
+		static Ref<T> GetService() { return Get().m_services->GetService<T>(); }
+
 		static const Window& GetWindow() { return *(Get().m_window); }
 
 	private:
@@ -31,11 +34,10 @@ class Application
 		bool m_Running = true;
 
 		Scope<Window> m_window;
+		Scope<ServiceRegister> m_services;
+		PKECS::Sequencer m_sequencer;
+		StringHashID::Cache m_hashCache;
 		GraphicsContext m_graphicsContext;
-		ApplicationConfig m_applicationConfig;
-		AssetDatabase m_assetDatabase;
-		Input m_input;
-		Time m_time;
 
 		friend int ::main(int argc, char** argv);
 };

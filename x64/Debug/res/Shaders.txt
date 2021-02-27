@@ -1,3 +1,0 @@
-res/shaders/HueTerraceMultisampled.shader
-res/shaders/HueTerraceSimple.shader
-res/shaders/ShaderToyImport.shader

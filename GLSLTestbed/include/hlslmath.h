@@ -1,6 +1,6 @@
 #pragma once
 // This is a bit painful but whatever
-#include <GL\glew.h>
+#include <glad/glad.h>
 #include <glm.hpp>
 #include <ext.hpp>
 #include <glm/gtx/quaternion.hpp>

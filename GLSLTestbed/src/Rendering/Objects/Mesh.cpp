@@ -2,7 +2,7 @@
 #include "Utilities/Log.h"
 #include "Rendering/Objects/Mesh.h"
 #include "Rendering/Graphics.h"
-#include <GL\glew.h>
+#include <glad/glad.h>
 #include <hlslmath.h>
 
 Mesh::Mesh()
