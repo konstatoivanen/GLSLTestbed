@@ -20,8 +20,7 @@ namespace LightingUtility
 
     void SetOEMTextures(const Weak<Texture2D>* atlases, uint32_t count, int probeSize)
     {
-        auto buf = alloca(sizeof(GraphicsID) * count);
-        auto ids = reinterpret_cast<GraphicsID*>(buf);
+        auto ids = PK_STACK_ALLOC(GraphicsID, count);
 
         for (uint32_t i = 0; i < count; ++i)
         {

@@ -37,6 +37,7 @@ namespace Graphics
 	void SetGlobalInt4(uint32_t hashId, const int4* values, uint32_t count = 1); 
 	void SetGlobalTexture(uint32_t hashId, const GraphicsID* textureIds, uint32_t count = 1);
 	void SetGlobalConstantBuffer(uint32_t hashId, const GraphicsID* bufferIds, uint32_t count = 1);
+	void SetGlobalComputeBuffer(uint32_t hashId, const GraphicsID* bufferIds, uint32_t count = 1);
 
 	void SetGlobalFloat(uint32_t hashId, float value);
 	void SetGlobalFloat2(uint32_t hashId, const float2& value);
@@ -51,6 +52,7 @@ namespace Graphics
 	void SetGlobalInt4(uint32_t hashId, const int4& value);
 	void SetGlobalTexture(uint32_t hashId, GraphicsID textureId);
 	void SetGlobalConstantBuffer(uint32_t hashId, GraphicsID bufferId);
+	void SetGlobalComputeBuffer(uint32_t hashId, GraphicsID bufferId);
 	void SetGlobalKeyword(uint32_t hashId, bool value);
 
 	void Clear(const float4& color, float depth, GLuint clearFlags);
@@ -77,4 +79,8 @@ namespace Graphics
 	void DrawMesh(const Ref<Mesh>& mesh, const Ref<Shader>& shader, const float4x4& matrix);
 	void DrawMesh(const Ref<Mesh>& mesh, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock);
 	void DrawMesh(const Ref<Mesh>& mesh, const Ref<Shader>& shader, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock);
+
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint count);
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, const Ref<Shader>& shader, uint count);
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock, uint count);
 }

@@ -57,11 +57,21 @@ void ShaderVariant::ListProperties()
 	}
 }
 
+#define BIND_BUFFER_ARRAY(propertyBlock, info, count, func)				\
+{																		\
+	auto bufferIds = propertyBlock.GetElementPtr<GraphicsID>(info);		\
+	for (uint i = 0; i < count; ++i)									\
+	{																	\
+		func;															\
+	}																	\
+}																		\
+
+
 void ShaderVariant::SetPropertyBlock(const ShaderPropertyBlock& propertyBlock)
 {
 	for (auto& i : propertyBlock)
 	{
-		auto hashId = i.first;
+		auto& hashId = i.first;
 
 		if (m_properties.count(hashId) < 1)
 		{
@@ -69,6 +79,12 @@ void ShaderVariant::SetPropertyBlock(const ShaderPropertyBlock& propertyBlock)
 		}
 
 		const auto& prop = m_properties.at(hashId);
+
+		if (prop.cbufferId > 0)
+		{
+			continue;
+		}
+
 		auto& info = i.second;
 		uint count = info.size / CGType::Size(info.type);
 		auto components = CGType::Components(info.type);
@@ -86,24 +102,9 @@ void ShaderVariant::SetPropertyBlock(const ShaderPropertyBlock& propertyBlock)
 			case CG_TYPE_INT2: glUniform2iv(prop.location, count, propertyBlock.GetElementPtr<int>(info)); break;
 			case CG_TYPE_INT3: glUniform3iv(prop.location, count, propertyBlock.GetElementPtr<int>(info)); break;
 			case CG_TYPE_INT4: glUniform4iv(prop.location, count, propertyBlock.GetElementPtr<int>(info)); break;
-			case CG_TYPE_TEXTURE: 
-			{
-				auto textureIds = propertyBlock.GetElementPtr<GraphicsID>(info);
-				for (uint i = 0; i < count; ++i)
-				{
-					glBindTextureUnit(prop.location + i, textureIds[i]);
-				}
-				break;
-			}
-			case CG_TYPE_CONSTANT_BUFFER:
-			{
-				auto bufferIds = propertyBlock.GetElementPtr<GraphicsID>(info);
-				for (uint i = 0; i < count; ++i)
-				{
-					glBindBufferBase(GL_UNIFORM_BUFFER, prop.location + i, bufferIds[i]);
-				}
-				break;
-			}
+			case CG_TYPE_TEXTURE: BIND_BUFFER_ARRAY(propertyBlock, info, count, glBindTextureUnit(prop.location + i, bufferIds[i])) break;
+			case CG_TYPE_CONSTANT_BUFFER: BIND_BUFFER_ARRAY(propertyBlock, info, count, glBindBufferBase(GL_UNIFORM_BUFFER, prop.location + i, bufferIds[i])) break;
+			case CG_TYPE_COMPUTE_BUFFER: BIND_BUFFER_ARRAY(propertyBlock, info, count, glBindBufferBase(GL_SHADER_STORAGE_BUFFER, prop.location + i, bufferIds[i])) break;
 			default: PK_CORE_ERROR("Invalid Shader Property Type");
 		}
 	}
@@ -137,7 +138,7 @@ void Shader::SetKeywords(const std::vector<uint32_t>& keywords)
 
 namespace ShaderCompiler
 {
-	static GLint GetUniformResourceSlot(GLint& currentSlot, GLenum variableType)
+	static GLint GetUniformSamplerSlot(GLint& currentSlot, GLenum variableType)
 	{
 		// Add support for more types later
 		switch (variableType)
@@ -456,7 +457,7 @@ namespace ShaderCompiler
 		return;
 	}
 
-	static void ExtractStateParameters(std::string& source, ShaderStateParameters& parameters)
+	static void ExtractStateAttributes(std::string& source, FixedStateAttributes& parameters)
 	{
 		auto valueZWrite = StringUtilities::ExtractTokens("#ZWrite ", source, false);
 		auto valueZTest = StringUtilities::ExtractTokens("#ZTest ", source, false);
@@ -482,8 +483,8 @@ namespace ShaderCompiler
 			if (keywords.size() == 2)
 			{
 				parameters.BlendEnabled = true;
-				GetBlendModeFromString(keywords.at(0), parameters.BlendSrc);
-				GetBlendModeFromString(keywords.at(1), parameters.BlendDst);
+				GetBlendModeFromString(keywords.at(0), parameters.Blend.Source);
+				GetBlendModeFromString(keywords.at(1), parameters.Blend.Destination);
 			}
 		}
 	
@@ -562,27 +563,30 @@ namespace ShaderCompiler
 	static void Compile(const std::string& filename, const std::unordered_map<GLenum, std::string>& shaderSources, std::map<uint32_t, ShaderPropertyInfo>& variablemap, GraphicsID& program)
 	{
 		program = glCreateProgram();
+		variablemap.clear();
 	
-		PK_CORE_ASSERT(shaderSources.size() <= 2, "We only support 2 shaders for now");
 		PK_CORE_ASSERT(shaderSources.size() > 0, "No shader sources supplied for %s", filename.c_str());
 	
-		std::array<GLenum, 2> glShaderIDs;
+		auto stageCount = shaderSources.size();
+
+		GLenum* glShaderIDs = PK_STACK_ALLOC(GLenum, stageCount);
 		int glShaderIDIndex = 0;
 	
 		for (auto& kv : shaderSources)
 		{
-			GLenum type = kv.first;
-			const std::string& source = kv.second;
+			auto type = kv.first;
+			const auto& source = kv.second;
 	
-			GLuint glShader = glCreateShader(type);
+			auto glShader = glCreateShader(type);
+			
+			const auto* sourceCStr = source.c_str();
 	
-			const GLchar* sourceCStr = source.c_str();
 			glShaderSource(glShader, 1, &sourceCStr, 0);
-	
 			glCompileShader(glShader);
 	
 			GLint isCompiled = 0;
 			glGetShaderiv(glShader, GL_COMPILE_STATUS, &isCompiled);
+
 			if (isCompiled == GL_FALSE)
 			{
 				GLint maxLength = 0;
@@ -601,10 +605,8 @@ namespace ShaderCompiler
 			glShaderIDs[glShaderIDIndex++] = glShader;
 		}
 	
-		// Link our program
 		glLinkProgram(program);
 	
-		// Note the different functions here: glGetProgram* instead of glGetShader*.
 		GLint isLinked = 0;
 		glGetProgramiv(program, GL_LINK_STATUS, (int*)&isLinked);
 
@@ -613,54 +615,76 @@ namespace ShaderCompiler
 			GLint maxLength = 0;
 			glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
 
-			// The maxLength includes the NULL character
 			std::vector<GLchar> infoLog(maxLength);
 			glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
 	
-			// We don't need the program anymore.
 			glDeleteProgram(program);
 	
-			for (auto id : glShaderIDs)
+			for (auto i = 0; i < stageCount; ++i)
 			{
-				glDeleteShader(id);
+				glDeleteShader(glShaderIDs[i]);
 			}
 	
 			PK_CORE_ERROR("Shader link failure! \n%s \n%s", filename.c_str(), infoLog.data());
 		}
 	
-		for (auto id : glShaderIDs)
+		for (auto i = 0; i < stageCount; ++i)
 		{
-			glDetachShader(program, id);
-			glDeleteShader(id);
+			glDetachShader(program, glShaderIDs[i]);
+			glDeleteShader(glShaderIDs[i]);
 		}
-	
-		GLint i;
-		GLint count;
-		GLint size; // size of the variable
-		GLenum type; // type of the variable (float, vec3 or mat4, etc)
-		GLint currentSlot = 0; // Resource slot indexer
-		const GLsizei bufSize = 36; // maximum name length
-		GLchar name[bufSize]; // variable name in GLSL
-		GLsizei length; // name length
-	
-		glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &count);
 	
 		// Set as active so that texture slots can be bound
 		auto currentProgram = Graphics::GetActiveShaderProgramId();
-
 		glUseProgram(program);
 	
-		variablemap.clear();
+		GLint uniformCount;
+		GLint blockCount;
+		GLint bufferCount;
+
+		GLint blockIndex; // Index of the cbuffer the variable belongs to
+		GLint size; // size of the variable
+		GLenum type; // type of the variable (float, vec3 or mat4, etc)
+		GLint samplerSlot = 0; // Resource slot indexer
+
+		GLsizei maxnamelength; // maximum name length
+		GLsizei length; // name length
+
+		glGetProgramiv(program, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxnamelength);
+		glGetProgramInterfaceiv(program, GL_UNIFORM_BLOCK, GL_ACTIVE_RESOURCES, &blockCount);
+		glGetProgramInterfaceiv(program, GL_UNIFORM, GL_ACTIVE_RESOURCES, &uniformCount);
+		glGetProgramInterfaceiv(program, GL_SHADER_STORAGE_BLOCK, GL_ACTIVE_RESOURCES, &bufferCount);
 	
-		for (i = 0; i < count; ++i)
+		maxnamelength += 4;
+		auto* name = PK_STACK_ALLOC(char, maxnamelength);
+
+		// Map CBuffers
+		for (GLuint i = 0; i < (GLuint)blockCount; ++i)
 		{
-			glGetActiveUniform(program, (GLuint)i, bufSize, &length, &size, &type, name);
-	
-			PK_CORE_ASSERT(length < 32, "Uniform name (%s) exeeceds maximum name length (32)", name);
+			glGetProgramResourceName(program, GL_UNIFORM_BLOCK, i, maxnamelength, &length, name);
+			auto location = glGetProgramResourceIndex(program, GL_UNIFORM_BLOCK, name);
+			glUniformBlockBinding(program, location, location);
+			variablemap[StringHashID::StringToID(name)] = { (ushort)location, GL_UNIFORM_BLOCK, 0, false };
+		}
+
+		// Map Compute Buffers
+		for (GLuint i = 0; i < (GLuint)bufferCount; ++i)
+		{
+			glGetProgramResourceName(program, GL_SHADER_STORAGE_BLOCK, i, maxnamelength, &length, name);
+			auto location = glGetProgramResourceIndex(program, GL_SHADER_STORAGE_BLOCK, name);
+			glShaderStorageBlockBinding(program, location, location);
+			variablemap[StringHashID::StringToID(name)] = { (ushort)location, GL_SHADER_STORAGE_BLOCK, 0, false };
+		}
+
+		// Map regular uniforms
+		for (GLuint i = 0; i < (GLuint)uniformCount; ++i)
+		{
+			glGetActiveUniform(program, i, maxnamelength, &length, &size, &type, name);
+			glGetActiveUniformsiv(program, 1, &i, GL_UNIFORM_BLOCK_INDEX, &blockIndex);
 	
 			for (auto j = 0; j < size; ++j)
 			{
-				if (size > 1)
+				if (size > 1 && j > 0)
 				{
 					auto istr = std::to_string(j);
 					auto istrl = istr.length();
@@ -669,7 +693,7 @@ namespace ShaderCompiler
 					name[(int)length - 1 + (int)istrl] = '\0';
 				}
 	
-				auto slot = GetUniformResourceSlot(currentSlot, type);
+				auto slot = GetUniformSamplerSlot(samplerSlot, type);
 				auto location = glGetUniformLocation(program, name);
 	
 				// Uniform requires a resource slot.
@@ -680,27 +704,16 @@ namespace ShaderCompiler
 					location = slot;
 				}
 	
-				variablemap[StringHashID::StringToID(name)] = { location, type };
+				variablemap[StringHashID::StringToID(name)] = { (ushort)location, type, (byte)(blockIndex + 1), false };
 	
 				// For array uniforms also map the variable name without the brackets
 				if (j == 0 && size > 1)
 				{
-					name[StringUtilities::FirstIndexOf(name, '[')] = '\0';
-					variablemap[StringHashID::StringToID(name)] = { location, type };
+					name[(int)length - 3] = '\0';
+					variablemap[StringHashID::StringToID(name)] = { (ushort)location, type, (byte)(blockIndex + 1), false };
+					name[(int)length - 3] = '[';
 				}
 			}
-		}
-
-		// Map Constant Buffers
-		glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &count);
-	
-		for (i = 0; i < count; ++i)
-		{
-			glGetActiveUniformBlockName(program, (GLuint)i, bufSize, &length, name);
-			PK_CORE_ASSERT(length < 32, "Uniform block name (%s) exeeceds maximum name length (32)", name);
-			auto location = glGetUniformBlockIndex(program, name);
-			glUniformBlockBinding(program, location, location);
-			variablemap[StringHashID::StringToID(name)] = { (GLint)location, GL_UNIFORM_BLOCK };
 		}
 
 		glUseProgram(currentProgram);
@@ -723,7 +736,7 @@ void AssetImporters::Import(const std::string& filepath, Ref<T>& shader)
 
 	ShaderCompiler::ReadFile(filepath, source);
 	ShaderCompiler::ExtractMulticompiles(source, mckeywords, shader->m_variantMap);
-	ShaderCompiler::ExtractStateParameters(source, shader->m_stateParameters);
+	ShaderCompiler::ExtractStateAttributes(source, shader->m_stateAttributes);
 	ShaderCompiler::GetSharedInclude(source, sharedInclude);
 
 	for (uint32_t i = 0; i < shader->m_variantMap.variantcount; ++i)

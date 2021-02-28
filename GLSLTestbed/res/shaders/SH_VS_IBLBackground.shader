@@ -3,7 +3,6 @@
 #include Lighting.glsl
 
 #pragma PROGRAM_VERTEX
-uniform float4x4 pk_MATRIX_I_VP;
 
 layout(location = 0) in float4 in_POSITION0;
 out float3 vs_TEXCOORD0;

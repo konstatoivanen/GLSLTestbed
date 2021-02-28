@@ -29,6 +29,7 @@ class DebugEngine : public IService, public PKECS::ISimpleStep, public PKECS::IS
 	
 		Weak<Shader> cubeShader;
 		Weak<Shader> iblShader;
+		Ref<ComputeBuffer> instanceMatrices;
 		Ref<Mesh> cubeMesh;
 		Ref<RenderTexture> renderTarget;
 		Weak<Texture2D> reflectionMaps[3];

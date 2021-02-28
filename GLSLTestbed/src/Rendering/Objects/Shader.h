@@ -2,25 +2,15 @@
 #include "Core/AssetDataBase.h"
 #include "Rendering/Objects/GraphicsObject.h"
 #include "Rendering/Structs/ShaderPropertyBlock.h"
+#include "Rendering/Structs/FixedStateAttributes.h"
 #include <hlslmath.h>
 
 struct ShaderPropertyInfo
 {
-	GLint location;
+	ushort location;
 	GLenum type;
-};
-
-struct ShaderStateParameters
-{
-	bool ZWriteEnabled;
-	bool ZTestEnabled;
-	bool BlendEnabled;
-	bool CullEnabled;
-	GLenum ZTest;
-	GLenum BlendSrc;
-	GLenum BlendDst;
-	GLenum CullMode;
-	unsigned char ColorMask;
+	byte cbufferId;
+	bool isMaterialElement;
 };
 
 class ShaderVariantMap
@@ -53,7 +43,7 @@ class Shader: public Asset
 
 	public:
 		~Shader();
-		const ShaderStateParameters& GetStateParameters() const { return m_stateParameters; }
+		const FixedStateAttributes& GetFixedStateAttributes() const { return m_stateAttributes; }
 		const Ref<ShaderVariant>& GetActiveVariant();
 
 		void SetPropertyBlock(const ShaderPropertyBlock& propertyBlock) { m_variants.at(m_activeIndex)->SetPropertyBlock(propertyBlock); }
@@ -65,5 +55,5 @@ class Shader: public Asset
 		uint32_t m_activeIndex = 0;
 		std::vector<Ref<ShaderVariant>> m_variants;
 		ShaderVariantMap m_variantMap = ShaderVariantMap();
-		ShaderStateParameters m_stateParameters = ShaderStateParameters();
+		FixedStateAttributes m_stateAttributes = FixedStateAttributes();
 };

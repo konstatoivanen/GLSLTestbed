@@ -1,7 +1,7 @@
 #ifndef PK_Lighting
 #define PK_Lighting
 
-#include HLSLSupport.glsl
+#include PKCommon.glsl
 
 uniform sampler2D pk_SceneOEM_HDR[3];
 uniform float4 pk_SceneOEM_ST;

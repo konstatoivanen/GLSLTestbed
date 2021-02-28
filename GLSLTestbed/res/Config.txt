@@ -13,7 +13,7 @@
 #camera_clip_near 0.1
 #camera_clip_far 200.0
 	
-#time_scale 0.1
+#time_scale 1.0
 
 #input_shader_next 82
 #input_shader_reimport 84

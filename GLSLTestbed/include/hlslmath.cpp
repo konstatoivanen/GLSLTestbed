@@ -18,6 +18,7 @@ ushort CGType::Size(ushort type)
 		case CG_TYPE_INT4: return CG_TYPE_SIZE_INT4;
 		case CG_TYPE_TEXTURE: return CG_TYPE_SIZE_TEXTURE;
 		case CG_TYPE_CONSTANT_BUFFER: return CG_TYPE_SIZE_CONSTANT_BUFFER;
+		case CG_TYPE_COMPUTE_BUFFER: return CG_TYPE_SIZE_COMPUTE_BUFFER;
 	}
 
 	return CG_TYPE_ERROR;
@@ -40,6 +41,7 @@ ushort CGType::Components(ushort type)
 		case CG_TYPE_INT4: return CG_TYPE_COMPONENTS_INT4;
 		case CG_TYPE_TEXTURE: return CG_TYPE_COMPONENTS_TEXTURE;
 		case CG_TYPE_CONSTANT_BUFFER: return CG_TYPE_COMPONENTS_CONSTANT_BUFFER;
+		case CG_TYPE_COMPUTE_BUFFER: return CG_TYPE_COMPONENTS_COMPUTE_BUFFER;
 	}
 
 	return CG_TYPE_ERROR;
@@ -62,6 +64,7 @@ ushort CGType::BaseType(ushort type)
 		case CG_TYPE_INT4: return GL_INT;
 		case CG_TYPE_TEXTURE: return GL_INT;
 		case CG_TYPE_CONSTANT_BUFFER: return GL_INT;
+		case CG_TYPE_COMPUTE_BUFFER: return GL_INT;
 	}
 
 	return CG_TYPE_ERROR;

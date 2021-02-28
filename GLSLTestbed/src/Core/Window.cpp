@@ -83,4 +83,7 @@ void Window::SetVSync(bool enabled)
 	m_properties.vsync = enabled;
 }
 
-void Window::SetActive() { glfwMakeContextCurrent(m_window); }
+void Window::SetActive() 
+{ 
+	glfwMakeContextCurrent(m_window); 
+}

@@ -8,13 +8,13 @@
 class VertexBuffer : public GraphicsObject
 {
 	public:
-		VertexBuffer(uint size);
-		VertexBuffer(float* vertices, uint size);
-		VertexBuffer(uint elementCount, const BufferLayout& layout);
-		VertexBuffer(float* vertices, uint elementCount, const BufferLayout& layout);
+		VertexBuffer(size_t size);
+		VertexBuffer(float* vertices, size_t size);
+		VertexBuffer(size_t elementCount, const BufferLayout& layout);
+		VertexBuffer(float* vertices, size_t elementCount, const BufferLayout& layout);
 		~VertexBuffer();
 
-		void SetData(const void* data, uint size);
+		void SetData(const void* data, size_t size);
 	
 		const BufferLayout& GetLayout() const { return m_layout; }
 		void SetLayout(const BufferLayout& layout) { m_layout = layout; }
@@ -42,4 +42,15 @@ class ConstantBuffer : public GraphicsObject, public PropertyBlock
 		~ConstantBuffer();
 		void FlushBufer();
 	private:
+};
+
+class ComputeBuffer : public GraphicsObject
+{
+	public:
+		ComputeBuffer(const BufferLayout& layout, uint count);
+		~ComputeBuffer();
+		void SetData(const void* data, size_t offset, size_t size);
+		void SetData(const void* data, size_t size);
+	private:
+		BufferLayout m_layout;
 };

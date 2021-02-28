@@ -9,14 +9,8 @@
 #ZWrite On
 #Cull Back
 
+#define PK_ENABLE_INSTANCING
 #include PKCommon.glsl
-
-layout(std140) uniform ExampleBlock
-{
-	float4 test0;
-	float4 test1;
-	float4 test3;
-};
 
 #pragma PROGRAM_VERTEX
 layout(location = 0) in float4 in_POSITION0;
@@ -59,5 +53,7 @@ void main()
 	color.rgb = float3(1.0f);
 #endif
 
-	SV_Target0 = float4(color.rgb + test3.rgb, 1);
+	float3 offs = sin(pk_Time.w).xxx * 0.5f + 0.5f;
+
+	SV_Target0 = float4(color.rgb * offs, 1);
 };

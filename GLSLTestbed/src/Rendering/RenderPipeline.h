@@ -10,8 +10,13 @@ class RenderPipeline : public IService, public PKECS::ISimpleStep, public PKECS:
         RenderPipeline(AssetDatabase* assetDatabase);
 
         void Step(Time* token) override;
-
         void Step(int condition) override;
 
-        GraphicsContext m_context;       
+    private:
+        void OnPreRender();
+        void OnRender();
+        void OnPostRender();
+
+        GraphicsContext m_context;  
+        Ref<ConstantBuffer> m_constantsPerFrame;
 };

@@ -8,17 +8,19 @@ EngineEditorCamera::EngineEditorCamera(Time* time)
 	m_time = time;
 }
 
+static ulong m_test;
+
 void EngineEditorCamera::Step(Input* input)
 {
 	auto deltaTime = m_time->GetDeltaTime();
 
 	if (input->GetKey(KeyCode::MOUSE1))
 	{
-		m_eulerAngles.x -= input->GetMouseDeltaY() * deltaTime * 2.5f;
-		m_eulerAngles.y -= input->GetMouseDeltaX() * deltaTime * 2.5f;
+		m_eulerAngles.x -= input->GetMouseDeltaY() * deltaTime;
+		m_eulerAngles.y -= input->GetMouseDeltaX() * deltaTime;
 	}
 
-	auto speed = input->GetKey(KeyCode::LEFT_SHIFT) ? 40.0f : 10.0f;
+	auto speed = input->GetKey(KeyCode::LEFT_SHIFT) ? 8.0f : 2.0f;
 	auto offset = input->GetAxis3D(KeyCode::Q, KeyCode::E, KeyCode::W, KeyCode::S, KeyCode::D, KeyCode::A) * deltaTime * speed;
 
 	auto fdelta = input->GetMouseScrollY() * deltaTime * 1000.0f;

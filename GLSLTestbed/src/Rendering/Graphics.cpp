@@ -14,24 +14,46 @@ namespace Graphics
 	}
 
 	#define CURRENT_WINDOW glfwGetCurrentContext()
+	#define CURRENT_ATTRIBUTES GetCurrentContext()->FixedStateAttributes
 	#define GLOBAL_KEYWORDS GetCurrentContext()->ShaderProperties.GetKeywords()
 	#define GLOBAL_PROPERTIES GetCurrentContext()->ShaderProperties
 	#define ACTIVE_RENDERTARGET GetCurrentContext()->ActiveRenderTarget
 	#define BLIT_QUAD GetCurrentContext()->BlitQuad
 	#define BLIT_SHADER GetCurrentContext()->BlitShader.lock()
+	#define DELTA_CHECK_SET(attrib, value, func) \
+	{											 \
+		auto& current = CURRENT_ATTRIBUTES;		 \
+		if (current.value != attrib.value)		 \
+		{										 \
+			current.value = attrib.value;		 \
+			func;								 \
+		}										 \
+	}											 \
 
-	static inline void glToggle(GLenum cap, bool value)
+	static inline void glToggle(GLenum enumKey, bool value)
 	{
 		if (value)
 		{
-			glEnable(cap);
+			glEnable(enumKey);
 		}
 		else
 		{
-			glDisable(cap);
+			glDisable(enumKey);
 		}
 	}
-	
+
+	static void SetFixedStateAttributes(const FixedStateAttributes& attributes)
+	{
+		DELTA_CHECK_SET(attributes, ZTestEnabled, glToggle(GL_DEPTH_TEST, attributes.ZTestEnabled))
+		DELTA_CHECK_SET(attributes, BlendEnabled, glToggle(GL_BLEND, attributes.BlendEnabled))
+		DELTA_CHECK_SET(attributes, CullEnabled, glToggle(GL_CULL_FACE, attributes.CullEnabled))
+		DELTA_CHECK_SET(attributes, ZWriteEnabled, glDepthMask(attributes.ZWriteEnabled))
+		DELTA_CHECK_SET(attributes, ZTest, glDepthFunc(attributes.ZTest))
+		DELTA_CHECK_SET(attributes, Blend, glBlendFunc(attributes.Blend.Source, attributes.Blend.Destination))
+		DELTA_CHECK_SET(attributes, ColorMask, glColorMask(attributes.ColorMask & (1 << 0), attributes.ColorMask & (1 << 1), attributes.ColorMask & (1 << 2), attributes.ColorMask & (1 << 3)))
+		DELTA_CHECK_SET(attributes, CullMode, glCullFace(attributes.CullMode))
+	}
+
 	static void GLErrorCallback(int error, const char* description) { PK_CORE_ERROR("GLFW Error (%i) : %s", error, description); }
 
 
@@ -62,6 +84,7 @@ namespace Graphics
 	{
 		SetRenderTarget(nullptr);
 		Clear(CG_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glFrontFace(GL_CW);
 	}
 	
 	void EndWindow() { glfwSwapBuffers(CURRENT_WINDOW); }
@@ -99,6 +122,7 @@ namespace Graphics
 	void SetGlobalInt4(uint32_t hashId, const int4* values, uint32_t count) { GLOBAL_PROPERTIES.SetInt4(hashId, values, count); }
 	void SetGlobalTexture(uint32_t hashId, const GraphicsID* textureIds, uint32_t count) { GLOBAL_PROPERTIES.SetTexture(hashId, textureIds, count); }
 	void SetGlobalConstantBuffer(uint32_t hashId, const GraphicsID* bufferIds, uint32_t count) { GLOBAL_PROPERTIES.SetConstantBuffer(hashId, bufferIds, count); }
+	void SetGlobalComputeBuffer(uint32_t hashId, const GraphicsID* bufferIds, uint32_t count) { GLOBAL_PROPERTIES.SetComputeBuffer(hashId, bufferIds, count); }
 	
 	void SetGlobalFloat(uint32_t hashId, float value) { GLOBAL_PROPERTIES.SetFloat(hashId, value); }
 	void SetGlobalFloat2(uint32_t hashId, const float2& value) { GLOBAL_PROPERTIES.SetFloat2(hashId, value); }
@@ -113,10 +137,14 @@ namespace Graphics
 	void SetGlobalInt4(uint32_t hashId, const int4& value) { GLOBAL_PROPERTIES.SetInt4(hashId, value); }
 	void SetGlobalTexture(uint32_t hashId, GraphicsID textureId) { GLOBAL_PROPERTIES.SetTexture(hashId, textureId); }
 	void SetGlobalConstantBuffer(uint32_t hashId, GraphicsID bufferId) { GLOBAL_PROPERTIES.SetConstantBuffer(hashId, bufferId); }
+	void SetGlobalComputeBuffer(uint32_t hashId, GraphicsID bufferId) { GLOBAL_PROPERTIES.SetComputeBuffer(hashId, bufferId); }
 	void SetGlobalKeyword(uint32_t hashId, bool value) { GLOBAL_PROPERTIES.SetKeyword(hashId, value); }
 
 	void Clear(const float4& color, float depth, GLuint clearFlags)
 	{
+		auto& attributes = CURRENT_ATTRIBUTES;
+		attributes.ZWriteEnabled = true;
+		attributes.ColorMask = 255;
 		glDepthMask(GL_TRUE);
 		glColorMask(true, true, true, true);
 		glClearColor(color.r, color.g, color.b, color.a);
@@ -178,19 +206,25 @@ namespace Graphics
 	
 	void SetPass(const Ref<Shader>& shader, uint32_t pass)
 	{
-		glUseProgram(shader != nullptr ? shader->GetActiveVariant()->GetGraphicsID() : 0);
-	
-		auto& parameters = shader->GetStateParameters();
-	
-		glToggle(GL_DEPTH_TEST, parameters.ZTestEnabled);
-		glToggle(GL_BLEND, parameters.BlendEnabled);
-		glToggle(GL_CULL_FACE, parameters.CullEnabled);
-		glFrontFace(GL_CW);
-		glDepthMask(parameters.ZWriteEnabled);
-		glDepthFunc(parameters.ZTest);
-		glBlendFunc(parameters.BlendSrc, parameters.BlendDst);
-		glColorMask(parameters.ColorMask & (1 << 0), parameters.ColorMask & (1 << 1), parameters.ColorMask & (1 << 2), parameters.ColorMask & (1 << 3));
-		glCullFace(parameters.CullMode);
+		auto* context = GetCurrentContext();
+
+		if (shader != nullptr)
+		{
+			auto& variant = shader->GetActiveVariant();
+
+			if (context->ActiveShader == variant)
+			{
+				return;
+			}
+
+			context->ActiveShader = variant;
+			glUseProgram(variant->GetGraphicsID() );
+			SetFixedStateAttributes(shader->GetFixedStateAttributes());
+			return;
+		}
+
+		context->ActiveShader = nullptr;
+		glUseProgram(0);
 	}
 	
 	void SetMesh(const Ref<Mesh>& mesh)
@@ -300,5 +334,31 @@ namespace Graphics
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		shader->SetPropertyBlock(propertyBlock);
 		DrawMesh(mesh);
+	}
+
+    void DrawMeshInstanced(const Ref<Mesh>& mesh, uint count)
+    {
+		SetMesh(mesh);
+		glDrawElementsInstanced(GL_TRIANGLES, mesh->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr, count);
+    }
+
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, const Ref<Shader>& shader, uint count)
+	{
+		shader->ResetKeywords();
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		SetPass(shader);
+		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+		DrawMeshInstanced(mesh, count);
+	}
+
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock, uint count)
+	{
+		shader->ResetKeywords();
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		shader->SetKeywords(propertyBlock.GetKeywords());
+		SetPass(shader);
+		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+		shader->SetPropertyBlock(propertyBlock);
+		DrawMeshInstanced(mesh, count);
 	}
 }

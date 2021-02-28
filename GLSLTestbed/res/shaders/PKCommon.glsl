@@ -12,36 +12,51 @@
 #define PK_HALF_PI       1.57079632679f
 #define PK_INV_HALF_PI   0.636619772367f
 
-// Time since level load (t/20, t, t*2, t*3), use to animate things inside the shaders.
-uniform float4 pk_Time;
-// Sine of time: (t/8, t/4, t/2, t).
-uniform float4 pk_SinTime;
-// Cosine of time: (t/8, t/4, t/2, t).
-uniform float4 pk_CosTime;
-// Delta time: (dt, 1/dt, smoothDt, 1/smoothDt).
-uniform float4 pk_DeltaTime;
-
-// World space position of the camera.
-uniform float3 pk_WorldSpaceCameraPos;
-// x is 1.0 (or –1.0 if currently rendering with a flipped projection matrix), y is the camera’s near plane, z is the camera’s far plane and w is 1/FarPlane.
-uniform float4 pk_ProjectionParams;
-// x is the width of the camera’s target texture in pixels, y is the height of the camera’s target texture in pixels, z is 1.0 + 1.0/width and w is 1.0 + 1.0/height.
-uniform float4 pk_ScreenParams;
-// Used to linearize Z buffer values. x is (1-far/near), y is (far/near), z is (x/far) and w is (y/far).
-uniform float4 pk_ZBufferParams;
+layout(std140) uniform pk_PerFrameConstants
+{
+    // Time since level load (t/20, t, t*2, t*3), use to animate things inside the shaders.
+    float4 pk_Time;
+    // Sine of time: (t/8, t/4, t/2, t).
+    float4 pk_SinTime;
+    // Cosine of time: (t/8, t/4, t/2, t).
+    float4 pk_CosTime;
+    // Delta time: (dt, 1/dt, smoothDt, 1/smoothDt).
+    float4 pk_DeltaTime;
+    
+    // World space position of the camera.
+    float3 pk_WorldSpaceCameraPos;
+    // x is 1.0 (or –1.0 if currently rendering with a flipped projection matrix), y is the camera’s near plane, z is the camera’s far plane and w is 1/FarPlane.
+    float4 pk_ProjectionParams;
+    // x is the width of the camera’s target texture in pixels, y is the height of the camera’s target texture in pixels, z is 1.0 + 1.0/width and w is 1.0 + 1.0/height.
+    float4 pk_ScreenParams;
+    // Used to linearize Z buffer values. x is (1-far/near), y is (far/near), z is (x/far) and w is (y/far).
+    float4 pk_ZBufferParams;
+    
+    // Current view matrix.
+    float4x4 pk_MATRIX_V;
+    // Current projection matrix.
+    float4x4 pk_MATRIX_P;
+    // Current view * projection matrix.
+    float4x4 pk_MATRIX_VP;
+    // Current inverse view * projection matrix.
+    float4x4 pk_MATRIX_I_VP;
+};
 
 // Current model matrix.
 uniform float4x4 pk_MATRIX_M;
 // Current inverse model matrix.
 uniform float4x4 pk_MATRIX_I_M;
-// Current view matrix.
-uniform float4x4 pk_MATRIX_V;
-// Current projection matrix.
-uniform float4x4 pk_MATRIX_P;
-// Current view * projection matrix.
-uniform float4x4 pk_MATRIX_VP;
-// Current inverse view * projection matrix.
-uniform float4x4 pk_MATRIX_I_VP;
+
+#if defined(PK_ENABLE_INSTANCING) && defined(SHADER_STAGE_VERTEX)
+    layout(std430) buffer pk_InstancingData
+    {
+    	float4x4 pk_InstancingMatrices[];
+    };
+    #define ACTIVE_MODEL_MATRIX pk_InstancingMatrices[gl_InstanceID]
+#else
+    #define ACTIVE_MODEL_MATRIX pk_MATRIX_M
+#endif
+
 
 // SH lighting environment
 uniform float4 pk_SHAr;
@@ -67,7 +82,7 @@ float4 ViewToClipPos( in float3 pos)
 // Tranforms position from object to camera space
 float3 ObjectToViewPos( in float3 pos)
 {
-    return mul(pk_MATRIX_V, mul(pk_MATRIX_M, float4(pos, 1.0))).xyz;
+    return mul(pk_MATRIX_V, mul(ACTIVE_MODEL_MATRIX, float4(pos, 1.0))).xyz;
 }
 
 float3 ObjectToViewPos(float4 pos) // overload for float4; avoids "implicit truncation" warning for existing shaders
@@ -84,7 +99,7 @@ float3 WorldToViewPos( in float3 pos)
 // Transforms direction from object to world space
 float3 ObjectToWorldDir( in float3 dir)
 {
-    return normalize(mul(float3x3(pk_MATRIX_M), dir));
+    return normalize(mul(float3x3(ACTIVE_MODEL_MATRIX), dir));
 }
 
 // Transforms direction from world to object space
@@ -107,7 +122,7 @@ float3 ObjectToWorldNormal( in float3 norm)
 // Tranforms position from object to homogenous space
 float4 ObjectToClipPos( in float3 pos)
 {
-    return mul(pk_MATRIX_VP, mul(pk_MATRIX_M, float4(pos, 1.0)));
+    return mul(pk_MATRIX_VP, mul(ACTIVE_MODEL_MATRIX, float4(pos, 1.0)));
 }
 
 // overload for float4; avoids "implicit truncation" warning for existing shaders

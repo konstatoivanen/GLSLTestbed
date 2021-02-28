@@ -30,6 +30,11 @@ DebugEngine::DebugEngine(AssetDatabase* assetDatabase, Time* time)
 	reflectionMaps[0].lock()->SetWrapMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 	reflectionMaps[1].lock()->SetWrapMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 	reflectionMaps[2].lock()->SetWrapMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+	instanceMatrices = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE_FLOAT4X4, "Matrix" } }), 2);
+
+	float4x4 matrices[] = { CG_FLOAT4X4_IDENTITY , CGMath::GetMatrixTRS({ 0.5f, 0.5f, 0.5f }, CG_QUATERNION_IDENTITY, CG_FLOAT3_ONE) };
+	instanceMatrices->SetData(matrices, CG_TYPE_SIZE_FLOAT4X4 * 2);
 }
 
 DebugEngine::~DebugEngine()
@@ -48,7 +53,7 @@ void DebugEngine::Step(Input* input)
 
 	if (input->GetKeyDown(KeyCode::T))
 	{
-		iblShader.lock()->ListProperties();
+		cubeShader.lock()->ListProperties();
 	}
 
 	if (input->GetKeyDown(KeyCode::R))
@@ -71,8 +76,10 @@ void DebugEngine::Step(Input* input)
 void DebugEngine::Step(int condition)
 {
 	LightingUtility::SetOEMTextures(&reflectionMaps[0], 3, 1);
+	
+	Graphics::SetGlobalComputeBuffer(StringHashID::StringToID("pk_InstancingData"), instanceMatrices->GetGraphicsID());
+
 	Graphics::Blit(iblShader.lock());
 
-	Graphics::DrawMesh(cubeMesh, cubeShader.lock(), CG_FLOAT4X4_IDENTITY);
-	Graphics::DrawMesh(cubeMesh, cubeShader.lock(), CGMath::GetMatrixTRS({ 0.5f, 0.5f, 0.5f }, CG_QUATERNION_IDENTITY, CG_FLOAT3_ONE));
+	Graphics::DrawMeshInstanced(cubeMesh, cubeShader.lock(), 2);
 }

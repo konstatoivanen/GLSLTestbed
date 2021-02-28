@@ -3,12 +3,14 @@
 #include "Rendering/Objects/Mesh.h"
 #include "Rendering/Objects/RenderTexture.h"
 #include "Rendering/Structs/ShaderPropertyBlock.h"
+#include "Rendering/Structs/FixedStateAttributes.h"
 
 struct GraphicsContext
 {
     ShaderPropertyBlock ShaderProperties;
-    Ref<ConstantBuffer> FrameConstants;
+    FixedStateAttributes FixedStateAttributes;
     Ref<RenderTexture> ActiveRenderTarget;
+    Ref<ShaderVariant> ActiveShader;
     Ref<Mesh> BlitQuad;
     Weak<Shader> BlitShader;
 };

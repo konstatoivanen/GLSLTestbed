@@ -52,7 +52,7 @@ void PropertyBlock::SetValue(uint hashid, ushort type, const void* src, uint cou
 	memcpy(m_data.data() + info.offset, src, size);
 }
 
-void PropertyBlock::CopyValues(const PropertyBlock& from)
+void PropertyBlock::CopyFrom(PropertyBlock& from)
 {
 	auto& propm = m_properties;
 	auto& propt = from.m_properties;

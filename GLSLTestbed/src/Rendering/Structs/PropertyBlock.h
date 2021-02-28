@@ -14,6 +14,7 @@ class PropertyBlock
 		};
 		
 	public:
+
 		PropertyBlock();
 		PropertyBlock(const BufferLayout& layout);
 		PropertyBlock(const BufferLayout& layout, uint elementStride);
@@ -44,7 +45,7 @@ class PropertyBlock
 		void SetInt3(uint hashId, const int3& value) { SetValue(hashId, CG_TYPE_INT3, glm::value_ptr(value)); }
 		void SetInt4(uint hashId, const int4& value) { SetValue(hashId, CG_TYPE_INT4, glm::value_ptr(value)); }
 	
-		void CopyValues(const PropertyBlock& from);
+		void CopyFrom(PropertyBlock& from);
 
 		virtual void Clear();
 	
