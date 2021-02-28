@@ -1,6 +1,4 @@
 #pragma once
-#include "PrecompiledHeader.h"
-
 typedef uint32_t GraphicsID;
 
 class GraphicsObject

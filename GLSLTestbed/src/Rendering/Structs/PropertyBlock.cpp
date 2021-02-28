@@ -1,7 +1,6 @@
 #include "PrecompiledHeader.h"
 #include "Utilities/StringHashID.h"
 #include "Rendering/Structs/PropertyBlock.h"
-#include <hlslmath.h>
 
 PropertyBlock::PropertyBlock() : m_explicitLayout(false), m_currentByteOffset(0)
 {

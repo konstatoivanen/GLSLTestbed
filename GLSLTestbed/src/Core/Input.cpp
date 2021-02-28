@@ -3,6 +3,10 @@
 #include "Core/Input.h"
 #include "Rendering/Graphics.h"
 
+Input::Input(PKECS::Sequencer* sequencer) : m_sequencer(sequencer)
+{
+}
+
 void Input::OnKeyInput(int key, int scancode, int action, int mods)
 {
 	auto& statecur = m_inputStateCurrent[(KeyCode)key];
@@ -86,7 +90,7 @@ float Input::GetMouseScrollX() { return GetMouseScroll().x; }
 
 float Input::GetMouseScrollY() { return GetMouseScroll().y; }
 
-void Input::Step()
+void Input::Step(int condition)
 {
 	for (auto& statecur : m_inputStateCurrent)
 	{
@@ -104,6 +108,8 @@ void Input::Step()
 
 	m_mouseScroll = m_mouseScrollRaw;
 	m_mouseScrollRaw = { 0, 0 };
+
+	m_sequencer->Next(this, this, 0);
 }
 
 std::string Input::KeyToString(KeyCode keycode)

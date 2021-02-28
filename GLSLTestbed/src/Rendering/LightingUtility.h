@@ -1,10 +1,6 @@
 #pragma once
 #include "PrecompiledHeader.h"
-#include "Utilities/Log.h"
-#include "Utilities/Ref.h"
-#include "Utilities/HashCache.h"
 #include "Rendering/Objects/Texture2D.h"
-#include "Rendering/Structs/ShaderPropertyBlock.h"
 
 namespace LightingUtility
 {

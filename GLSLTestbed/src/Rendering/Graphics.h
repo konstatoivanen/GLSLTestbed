@@ -1,14 +1,9 @@
 #pragma once
-#include "PrecompiledHeader.h"
 #include "Utilities/Ref.h"
-#include "Utilities/HashCache.h"
 #include "Rendering/Objects/Mesh.h"
 #include "Rendering/Objects/Shader.h"
 #include "Rendering/Objects/RenderTexture.h"
 #include "Rendering/Structs/GraphicsContext.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <hlslmath.h>
 

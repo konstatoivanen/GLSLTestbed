@@ -1,6 +1,11 @@
 #pragma once
 #include "PrecompiledHeader.h"
+#include "Core/IService.h"
 #include "Utilities/Ref.h"
+
+#define PK_STEP_T(S, D) static_cast<PKECS::IStep<D>*>(S)
+#define PK_STEP_C(S, D) static_cast<PKECS::IConditionalStep<D>*>(S)
+#define PK_STEP_S(S) static_cast<PKECS::ISimpleStep*>(S)
 
 namespace PKECS
 {
@@ -9,128 +14,101 @@ namespace PKECS
         protected: virtual ~IBaseStep() = 0 {};
     };
 
-    class IEngine : public std::enable_shared_from_this<IEngine>
-    {
-        protected: virtual ~IEngine() = 0 {};
-    };
-
-    struct DefaultToken {};
-
     template <typename T>
     class IStep : public IBaseStep
     {
         protected: virtual ~IStep() = 0 {};
-        public: virtual void Step(T& token) = 0;
+        public: virtual void Step(T* token) = 0;
     };
 
     template <typename T>
     class IConditionalStep : public IBaseStep
     {
         protected: virtual ~IConditionalStep() = 0 {};
-        public: virtual void Step(T& token, int condition) = 0;
+        public: virtual void Step(T* token, int condition) = 0;
     };
 
-    class ISimpleStep : public IStep<DefaultToken>
+    class ISimpleStep : public IConditionalStep<void>
     {
         protected:
             virtual ~ISimpleStep() = 0 {};
         public:
-            virtual void Step() = 0;
-            void Step(DefaultToken& token) { Step(); }
+            virtual void Step(int condition) = 0;
+            void Step(void* token, int condition) { Step(condition); }
     };
 
-    typedef Ref<IBaseStep> RStep;
-    typedef Ref<IEngine> REngine;
-    typedef std::unordered_map<int, std::vector<RStep>> BranchSteps;
+    typedef IBaseStep* StepPtr;
+    typedef std::unordered_map<int, std::vector<StepPtr>> BranchSteps;
 
     class To
     {
         public:
             To(std::initializer_list<BranchSteps::value_type> branchSteps);
-            To(std::initializer_list<RStep> commonSteps);
-            To(std::initializer_list<BranchSteps::value_type> branchSteps, std::initializer_list<RStep> commonSteps);
-            To(std::initializer_list<RStep> commonSteps, std::initializer_list<BranchSteps::value_type> steps);
+            To(std::initializer_list<StepPtr> commonSteps);
+            To(std::initializer_list<BranchSteps::value_type> branchSteps, std::initializer_list<StepPtr> commonSteps);
+            To(std::initializer_list<StepPtr> commonSteps, std::initializer_list<BranchSteps::value_type> steps);
 
-            std::vector<RStep>* GetSteps(int condition);
-            std::vector<RStep>* GetCommonSteps() { return &m_commonSteps; }
+            const std::vector<StepPtr>* GetSteps(int condition);
+            const std::vector<StepPtr>* GetCommonSteps() const { return &m_commonSteps; }
  
         private:
             BranchSteps m_branchSteps;
-            std::vector<RStep> m_commonSteps;
+            std::vector<StepPtr> m_commonSteps;
     };
 
-    typedef std::unordered_map<REngine, To> Steps;
+    typedef std::unordered_map<const void*, To> Steps;
 
-    class Sequencer
+    class Sequencer : public IService
     {
-        class EnginesRoot : public IEngine
-        {
-        };
-
         public:
-            Sequencer();
-            ~Sequencer();
-
             void SetSteps(std::initializer_list<Steps::value_type> steps);
-            REngine& GetRoot() { return m_rootEngine; }
+            void SetRootSequence(std::initializer_list<int> sequence);
+            void ExecuteRootSequence();
+
+            const void* GetRoot() { return this; }
 
             template<typename T>
-            void ExecuteCommand(T& token, int condition) { Next<T>(m_rootEngine, token, condition); }
-
-            void ExecuteCommand(int condition) 
-            {
-                auto token = DefaultToken();
-                ExecuteCommand(token, condition);
-            }
-
-            template<typename T>
-            void Next(REngine engine, T& token, int condition)
+            void Next(const void* engine, T* token, int condition)
             {
                 if (m_steps.count(engine) < 1)
                 {
                     return;
                 }
 
-                auto& to = m_steps.at(engine);
-
-                std::vector<RStep>* branchSteps = to.GetSteps(condition);
+                auto& target = m_steps.at(engine);
+                const auto* branchSteps = target.GetSteps(condition);
 
                 if (branchSteps != nullptr)
                 {
-                    InvokeSteps(token, condition, *branchSteps);
+                    InvokeSteps(branchSteps, token, condition);
                 }
 
-                InvokeSteps(token, condition, *to.GetCommonSteps());
+                InvokeSteps(target.GetCommonSteps(), token, condition);
             }
 
-            void Release()
-            {
-                m_rootEngine = nullptr;
-                m_steps.clear();
-            }
+            void Release() { m_steps.clear(); }
 
         private:
             template<typename T>
-            void InvokeSteps(T& token, int condition, std::vector<RStep>& branchSteps)
+            void InvokeSteps(const std::vector<StepPtr>* branchSteps, T* token, int condition)
             {
-                for (auto& i : branchSteps)
-                {
-                    auto step = std::dynamic_pointer_cast<IConditionalStep<T>>(i);
-                    auto simpleStep = std::dynamic_pointer_cast<IStep<T>>(i);
+                auto& steps = *branchSteps;
 
-                    if (step)
+                for (auto& i : steps)
+                {
+                    if (auto* conditionalStep = dynamic_cast<IConditionalStep<T>*>(i))
                     {
-                        step->Step(token, condition);
+                        conditionalStep->Step(token, condition);
                     }
 
-                    if (simpleStep)
+                    if (auto* step = dynamic_cast<IStep<T>*>(i))
                     {
-                        simpleStep->Step(token);
+                        step->Step(token);
                     }
                 }
             }
 
-            REngine m_rootEngine;
             Steps m_steps;
+            std::vector<int> m_rootSequence;
     };
 }

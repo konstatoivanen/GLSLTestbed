@@ -1,6 +1,5 @@
 #pragma once
-#include "PrecompiledHeader.h"
-#include "Rendering/Graphics.h"
+#include "GLFW/glfw3.h"
 
 struct WindowProperties
 {

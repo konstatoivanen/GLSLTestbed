@@ -6,6 +6,10 @@
 
 static double GetClockSeconds() { return clock() / (double)CLOCKS_PER_SEC; } //glfwGetTime()
 
+Time::Time(PKECS::Sequencer* sequencer, float timeScale) : m_sequencer(sequencer), m_timeScale(timeScale)
+{
+}
+
 void Time::Reset()
 {
     m_time = 0;
@@ -26,7 +30,7 @@ void Time::LogFrameRate()
     PK_CORE_LOG_OVERWRITE("FPS: %4.1i, FIXED: %i, MIN: %i, MAX: %i, AVG: %i     ", m_framerate, m_framerateFixed, m_framerateMin, m_framerateMax, m_framerateAvg);
 }
 
-void Time::Step()
+void Time::Step(int condition)
 {
     auto currentSeconds = GetClockSeconds();
 
@@ -65,4 +69,6 @@ void Time::Step()
     }
 
     m_framerateAvg = (uint64_t)(m_frameIndex / m_unscaledTime);
+
+    m_sequencer->Next<Time>(this, this, 0);
 }

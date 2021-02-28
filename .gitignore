@@ -36,5 +36,5 @@
 *.app
 
 # Build Folders
-/x64
-/.vs
+**/x64
+**/.vs

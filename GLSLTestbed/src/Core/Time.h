@@ -5,6 +5,8 @@
 class Time : public IService, public PKECS::ISimpleStep
 {
     public:
+        Time(PKECS::Sequencer* sequencer, float timeScale);
+
         const float GetTimeScale() const { return (float)m_timeScale; }
         void SetTimeScale(const float timeScale) { m_timeScale = (double)timeScale; }
 
@@ -23,13 +25,15 @@ class Time : public IService, public PKECS::ISimpleStep
         void Reset();
         void LogFrameRate();
 
-        void Step() override;
+        void Step(int condition) override;
 
     private:
+        PKECS::Sequencer* m_sequencer;
+
         uint64_t m_frameIndex = 0;
         uint64_t m_frameIndexFixed = 0;
         uint64_t m_framerate = 0;
-        uint64_t m_framerateMin = 0;
+        uint64_t m_framerateMin = (uint64_t)-1;
         uint64_t m_framerateMax = 0;
         uint64_t m_framerateAvg = 0;
         uint64_t m_framerateFixed = 0;

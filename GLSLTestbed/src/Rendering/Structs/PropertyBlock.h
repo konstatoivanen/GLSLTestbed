@@ -1,9 +1,7 @@
 #pragma once
-#include "PrecompiledHeader.h"
 #include "Utilities/Log.h"
 #include "Rendering/Structs/BufferLayout.h"
 #include <hlslmath.h>
-#include <ext.hpp>
 
 class PropertyBlock
 {

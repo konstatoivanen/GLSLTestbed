@@ -432,7 +432,13 @@
     <ClInclude Include="include\glm\vec4.hpp" />
     <ClInclude Include="include\glm\vector_relational.hpp" />
     <ClInclude Include="include\hlslmath.h" />
+    <ClInclude Include="src\Context\Engines\DebugEngine.h" />
+    <ClInclude Include="src\Context\Engines\EngineEditorCamera.h" />
+    <ClInclude Include="src\Core\IService.h" />
     <ClInclude Include="src\Core\ServiceRegister.h" />
+    <ClInclude Include="src\Core\ISingleton.h" />
+    <ClInclude Include="src\Core\UpdateStep.h" />
+    <ClInclude Include="src\Rendering\RenderPipeline.h" />
     <ClInclude Include="src\Rendering\Structs\BufferLayout.h" />
     <ClInclude Include="src\Rendering\Structs\PropertyBlock.h" />
     <ClInclude Include="src\Core\AssetDataBase.h" />
@@ -647,7 +653,10 @@
     </ClCompile>
     <ClCompile Include="include\glm\detail\glm.cpp" />
     <ClCompile Include="include\hlslmath.cpp" />
+    <ClCompile Include="src\Context\Engines\DebugEngine.cpp" />
+    <ClCompile Include="src\Context\Engines\EngineEditorCamera.cpp" />
     <ClCompile Include="src\Core\Sequencer.cpp" />
+    <ClCompile Include="src\Rendering\RenderPipeline.cpp" />
     <ClCompile Include="src\Rendering\Structs\PropertyBlock.cpp" />
     <ClCompile Include="src\Rendering\LightingUtility.cpp" />
     <ClCompile Include="src\Rendering\MeshUtility.cpp" />
@@ -659,7 +668,6 @@
     <ClCompile Include="src\Rendering\Objects\Buffer.cpp" />
     <ClCompile Include="src\Core\Input.cpp" />
     <ClCompile Include="src\Rendering\Objects\Texture.cpp" />
-    <ClCompile Include="src\Utilities\HashCache.cpp" />
     <ClCompile Include="src\PrecompiledHeader.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>

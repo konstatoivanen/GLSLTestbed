@@ -1,30 +1,26 @@
 #pragma once
+#include "Core/IService.h"
 #include "Utilities/Ref.h"
 #include "Utilities/Log.h"
-
-class IService
-{
-    protected: virtual ~IService() = 0 {};
-};
 
 class ServiceRegister
 {
     public:
         template <typename T>
-        Ref<T> GetService() { return std::static_pointer_cast<T>(m_services.at(std::type_index(typeid(T)))); }
+        T* Get() { return static_cast<T*>(m_services.at(std::type_index(typeid(T))).get()); }
 
         template<typename T, typename ... Args>
-        Ref<T> CreateService(Args&& ... args)
+        T* Create(Args&& ... args)
         {
             auto idx = std::type_index(typeid(T));
             PK_CORE_ASSERT(m_services.count(idx) == 0, "Service of type (%s) is already registered", typeid(T).name());
-            auto service = CreateRef<T, Args...>(args...);
-            m_services[idx] = service;
+            auto service = new T(std::forward<Args>(args)...);
+            m_services[idx] = Scope<IService>(service);
             return service;
         }
 
         void Clear() { m_services.clear(); }
 
     private:
-        std::unordered_map<std::type_index, Ref<IService>> m_services;
+        std::unordered_map<std::type_index, Scope<IService>> m_services;
 };

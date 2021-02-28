@@ -146,6 +146,8 @@ enum class KeyCode
 class Input : public IService, public PKECS::ISimpleStep
 {
 	public:
+        Input(PKECS::Sequencer* sequencer);
+
 		bool GetKeyDown(KeyCode key);
 		bool GetKeyUp(KeyCode key);
 		bool GetKey(KeyCode key);
@@ -162,7 +164,7 @@ class Input : public IService, public PKECS::ISimpleStep
 		float GetMouseScrollX();
 		float GetMouseScrollY();
 
-		void Step() override;
+		void Step(int condition) override;
 
 		void OnKeyInput(int key, int scancode, int action, int mods);
 		void OnScrollInput(double scrollX, double scrollY);
@@ -171,7 +173,9 @@ class Input : public IService, public PKECS::ISimpleStep
         std::string KeyToString(KeyCode keycode);
         KeyCode StringToKey(const std::string& string);
 
-	public:
+	private:
+        PKECS::Sequencer* m_sequencer;
+
 		std::unordered_map<KeyCode, InputState> m_inputStateCurrent;
 		std::unordered_map<KeyCode, InputState> m_inputStatePrevious;
 		float2 m_mousePrev = CG_FLOAT2_ZERO;

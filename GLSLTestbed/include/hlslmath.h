@@ -148,7 +148,7 @@ const color32 CG_COLOR32_YELLOW  = { 255, 255,   0, 255 };
 
 const float CG_FLOAT_PI = 3.14159274F;
 const float CG_FLOAT_DEG2RAD = 0.0174532924F;
-const float CG_FLAOT_RAD2DEG = 57.29578F;
+const float CG_FLOAT_RAD2DEG = 57.29578F;
 
 class CGType
 {

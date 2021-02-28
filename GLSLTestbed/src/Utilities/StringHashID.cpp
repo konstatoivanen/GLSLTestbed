@@ -1,13 +1,11 @@
 #include "PrecompiledHeader.h"
 #include "Utilities/StringHashID.h"
 
-StringHashID::Cache* StringHashID::m_staticCache;
+#define STR_TO_ID m_stringIdMap
+#define ID_TO_STR m_idStringMap
+#define ID_COUNTER m_idCounter
 
-#define STR_TO_ID m_staticCache->string_id_map
-#define ID_TO_STR m_staticCache->id_string_map
-#define ID_COUNTER m_staticCache->id_counter
-
-uint32_t StringHashID::StringToID(const std::string& str)
+uint32_t StringHashID::LocalStringToID(const std::string& str)
 {
     if (STR_TO_ID.count(str) > 0)
     {
@@ -19,12 +17,12 @@ uint32_t StringHashID::StringToID(const std::string& str)
     return ID_COUNTER;
 }
 
-uint32_t StringHashID::StringToID(const char* str)
+uint32_t StringHashID::LocalStringToID(const char* str)
 {
     return StringToID(std::string(str));
 }
 
-const std::string& StringHashID::IDToString(uint32_t id)
+const std::string& StringHashID::LocalIDToString(uint32_t id)
 {
     if (id > ID_COUNTER)
     {

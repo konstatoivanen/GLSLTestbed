@@ -1,6 +1,7 @@
 #include "PrecompiledHeader.h"
 #include "Window.h"
 #include "Utilities/Log.h"
+#include "GLAD/glad.h"
 
 static Window* GetWindowPtr(GLFWwindow* window)
 {

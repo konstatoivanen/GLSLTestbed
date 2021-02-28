@@ -1,6 +1,6 @@
 #include "PrecompiledHeader.h"
 
-//#define PK_DEBUG_LEAKS
+#define PK_DEBUG_LEAKS
 
 #ifdef PK_DEBUG_LEAKS
 	#define _CRTDBG_MAP_ALLOC  

@@ -1,7 +1,5 @@
 #include "PrecompiledHeader.h"
 #include "Rendering/Objects/Buffer.h"
-#include <hlslmath.h>
-#include <glad/glad.h>
 
 void BufferLayout::CalculateOffsetsAndStride()
 {

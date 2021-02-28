@@ -1,10 +1,7 @@
 #pragma once
-#include "PrecompiledHeader.h"
-#include "Utilities/Log.h"
 #include "Rendering/Objects/GraphicsObject.h"
 #include "Rendering/Structs/PropertyBlock.h"
 #include <hlslmath.h>
-#include <ext.hpp>
 
 class ShaderPropertyBlock : public PropertyBlock
 {

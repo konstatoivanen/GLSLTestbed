@@ -1,8 +1,7 @@
 #pragma once
-#include "PrecompiledHeader.h"
 #include "Rendering/Objects/GraphicsObject.h"
-#include "Rendering/Structs/PropertyBlock.h"
 #include "Rendering/Structs/BufferLayout.h"
+#include "Rendering/Structs/PropertyBlock.h"
 #include <glad/glad.h>
 #include <hlslmath.h>
 

@@ -1,7 +1,6 @@
 #include "PrecompiledHeader.h"
+#include "Utilities/HashCache.h"
 #include "Rendering/Graphics.h"
-#include "Rendering/MeshUtility.h"
-#include "Core/Application.h"
 #include <ext.hpp>
 
 namespace Graphics
@@ -128,29 +127,32 @@ namespace Graphics
 	void SetViewPort(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 	{
 		glViewport(x, y, width, height);
-		SetGlobalFloat4(HashCache::pk_ScreenParams, { (float)width, (float)height, 1.0f + 1.0f / (float)width, 1.0f + 1.0f / (float)height });
+		SetGlobalFloat4(HashCache::Get()->pk_ScreenParams, { (float)width, (float)height, 1.0f + 1.0f / (float)width, 1.0f + 1.0f / (float)height });
 	}
 	
 	void SetViewProjectionMatrices(const float4x4& view, const float4x4& projection)
 	{
+		auto* hashCache = HashCache::Get();
+
 		auto n = projection[3][2] / (projection[2][2] - 1.0f);
 		auto f = projection[3][2] / (projection[2][2] + 1.0f);
 		auto a = projection[1][1] / projection[0][0];
 		auto vp = projection * view;
 	
-		SetGlobalFloat4(HashCache::pk_ProjectionParams, { -1.0f, n, f, 1.0f / f });
-		SetGlobalFloat4(HashCache::pk_ZBufferParams, { (1.0f - f) / n, f / n, a / f, 1.0f / f });
-		SetGlobalFloat3(HashCache::pk_WorldSpaceCameraPos, view[3]);
-		SetGlobalFloat4x4(HashCache::pk_MATRIX_V, view);
-		SetGlobalFloat4x4(HashCache::pk_MATRIX_P, projection);
-		SetGlobalFloat4x4(HashCache::pk_MATRIX_VP, vp);
-		SetGlobalFloat4x4(HashCache::pk_MATRIX_I_VP, glm::inverse(vp));
+		SetGlobalFloat4(hashCache->pk_ProjectionParams, { -1.0f, n, f, 1.0f / f });
+		SetGlobalFloat4(hashCache->pk_ZBufferParams, { (1.0f - f) / n, f / n, a / f, 1.0f / f });
+		SetGlobalFloat3(hashCache->pk_WorldSpaceCameraPos, view[3]);
+		SetGlobalFloat4x4(hashCache->pk_MATRIX_V, view);
+		SetGlobalFloat4x4(hashCache->pk_MATRIX_P, projection);
+		SetGlobalFloat4x4(hashCache->pk_MATRIX_VP, vp);
+		SetGlobalFloat4x4(hashCache->pk_MATRIX_I_VP, glm::inverse(vp));
 	}
 	
 	void SetModelMatrix(const float4x4& matrix)
 	{
-		SetGlobalFloat4x4(HashCache::pk_MATRIX_M, matrix);
-		SetGlobalFloat4x4(HashCache::pk_MATRIX_I_M, glm::inverse(matrix));
+		auto* hashCache = HashCache::Get();
+		SetGlobalFloat4x4(hashCache->pk_MATRIX_M, matrix);
+		SetGlobalFloat4x4(hashCache->pk_MATRIX_I_M, glm::inverse(matrix));
 	}
 	
 	void SetRenderTarget(const Ref<RenderTexture>& renderTexture)
@@ -235,19 +237,19 @@ namespace Graphics
 	
 	void Blit(const Ref<Texture>& source, const Ref<RenderTexture>& destination)
 	{
-		SetGlobalTexture(HashCache::_MainTex, source->GetGraphicsID());
+		SetGlobalTexture(HashCache::Get()->_MainTex, source->GetGraphicsID());
 		Blit(destination, BLIT_SHADER);
 	}
 	
 	void Blit(const Ref<Texture>& source, const Ref<RenderTexture>& destination, const Ref<Shader>& shader)
 	{
-		SetGlobalTexture(HashCache::_MainTex, source->GetGraphicsID());
+		SetGlobalTexture(HashCache::Get()->_MainTex, source->GetGraphicsID());
 		Blit(destination, shader);
 	}
 	
 	void Blit(const Ref<Texture>& source, const Ref<RenderTexture>& destination, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock)
 	{
-		SetGlobalTexture(HashCache::_MainTex, source->GetGraphicsID());
+		SetGlobalTexture(HashCache::Get()->_MainTex, source->GetGraphicsID());
 		Blit(destination, shader, propertyBlock);
 	}
 	

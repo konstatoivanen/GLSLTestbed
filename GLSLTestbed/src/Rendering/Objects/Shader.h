@@ -1,5 +1,4 @@
 #pragma once
-#include "PrecompiledHeader.h"
 #include "Core/AssetDataBase.h"
 #include "Rendering/Objects/GraphicsObject.h"
 #include "Rendering/Structs/ShaderPropertyBlock.h"
