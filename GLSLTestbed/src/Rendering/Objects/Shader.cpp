@@ -180,7 +180,7 @@ namespace ShaderCompiler
 			return GL_TESS_EVALUATION_SHADER;
 		}
 	
-		if (type == "GL_COMPUTE_SHADER")
+		if (type == "COMPUTE_SHADER")
 		{
 			return GL_COMPUTE_SHADER;
 		}

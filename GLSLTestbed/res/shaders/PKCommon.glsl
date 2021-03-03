@@ -12,7 +12,7 @@
 #define PK_HALF_PI       1.57079632679f
 #define PK_INV_HALF_PI   0.636619772367f
 
-layout(std140) uniform pk_PerFrameConstants
+PK_DECLARE_CBUFFER(pk_PerFrameConstants)
 {
     // Time since level load (t/20, t, t*2, t*3), use to animate things inside the shaders.
     float4 pk_Time;
@@ -48,11 +48,8 @@ uniform float4x4 pk_MATRIX_M;
 uniform float4x4 pk_MATRIX_I_M;
 
 #if defined(PK_ENABLE_INSTANCING) && defined(SHADER_STAGE_VERTEX)
-    layout(std430) buffer pk_InstancingData
-    {
-    	float4x4 pk_InstancingMatrices[];
-    };
-    #define ACTIVE_MODEL_MATRIX pk_InstancingMatrices[gl_InstanceID]
+    PK_DECLARE_BUFFER(float4x4, pk_InstancingData);
+    #define ACTIVE_MODEL_MATRIX PK_BUFFER_DATA(pk_InstancingData, gl_InstanceID)
 #else
     #define ACTIVE_MODEL_MATRIX pk_MATRIX_M
 #endif

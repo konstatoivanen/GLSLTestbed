@@ -990,13 +990,16 @@
     <ClInclude Include="src\Rendering\Structs\FixedStateAttributes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\KTX\ktx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\glfw3.lib" />
-    <Library Include="libs\glfw3dll.lib" />
+    <Library Include="libs\ktx_read.lib" />
+    <Library Include="libs\ktx.lib" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="libs\glfw3.dll" />
     <None Include="x64\Debug\vc141.idb" />
     <None Include="x64\Debug\vc141.pdb" />
     <None Include="x64\Debug\GLImageProcessor.tlog\CL.command.1.tlog" />
@@ -1420,6 +1423,9 @@
     <None Include="res\shaders\SH_VS_HueTerraceMultisampled.shader" />
     <None Include="res\shaders\SH_VS_IBLBackground.shader" />
     <None Include="res\shaders\Lighting.glsl" />
+    <None Include="res\textures\T_OEM_01.ktx" />
+    <None Include="libs\ktx.dll" />
+    <None Include="libs\ktx_read.dll" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">

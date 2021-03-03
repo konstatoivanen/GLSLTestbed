@@ -1,10 +1,11 @@
 #pragma once
 #include "Rendering/Objects/GraphicsObject.h"
 #include <glad/glad.h>
+#include <KTX/ktx.h>
 
 struct TextureDescriptor
 {
-    uint32_t width = 0, height = 0;
+    uint32_t width = 0, height = 0, depth = 0;
     GLenum colorFormat = GL_RGBA8;
     GLenum dimension = GL_TEXTURE_2D;
     GLenum wrapmodex = GL_REPEAT;
@@ -37,6 +38,7 @@ class Texture : public GraphicsObject
         static GLenum GetFormatChannels(GLenum format);
         static uint8_t GetTexelSize(GLenum format);
         static uint8_t GetChannelCount(GLenum channels);
+        static void GetDescirptorFromKTX(ktxTexture* tex, TextureDescriptor* desc, GLenum* channels);
 
         TextureDescriptor m_descriptor;
         GLenum m_channels;

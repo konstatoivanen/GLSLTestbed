@@ -3,7 +3,7 @@
 
 #include PKCommon.glsl
 
-uniform sampler2D pk_SceneOEM_HDR[3];
+uniform sampler2D pk_SceneOEM_HDR;
 uniform float4 pk_SceneOEM_ST;
 uniform float pk_SceneOEM_RVS[3];
 
@@ -65,16 +65,9 @@ float2 OctaUV(float2 offset, float3 reflection)
 
 float3 SampleEnv(float2 uv, float roughness)
 {
-    float4 env0 = tex2D(pk_SceneOEM_HDR[0], uv);
-    float4 env1 = tex2D(pk_SceneOEM_HDR[1], uv);
-    float4 env2 = tex2D(pk_SceneOEM_HDR[2], uv);
-
-    float f2 = saturate((roughness - pk_SceneOEM_RVS[1]) / (pk_SceneOEM_RVS[2] - pk_SceneOEM_RVS[1]));
-    float f1 = saturate(roughness / pk_SceneOEM_RVS[1]) - f2;
-    float f0 = 1 - f1 - f2;
-
-    float4 env = env0 * f0 + env1 * f1 + env2 * f2;
-
+    float v0 = saturate((roughness - pk_SceneOEM_RVS[0]) / (pk_SceneOEM_RVS[1] - pk_SceneOEM_RVS[0]));
+    float v1 = saturate((roughness - pk_SceneOEM_RVS[1]) / (pk_SceneOEM_RVS[2] - pk_SceneOEM_RVS[1]));
+    float4 env = tex2DLod(pk_SceneOEM_HDR, uv, v0 + v1);
     return HDRDecode(env).rgb;
 }
 #endif

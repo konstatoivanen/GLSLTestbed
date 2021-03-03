@@ -32,5 +32,5 @@ class DebugEngine : public IService, public PKECS::ISimpleStep, public PKECS::IS
 		Ref<ComputeBuffer> instanceMatrices;
 		Ref<Mesh> cubeMesh;
 		Ref<RenderTexture> renderTarget;
-		Weak<Texture2D> reflectionMaps[3];
+		Weak<Texture2D> reflectionMap;
 };

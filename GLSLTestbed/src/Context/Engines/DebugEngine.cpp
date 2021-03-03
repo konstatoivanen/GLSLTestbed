@@ -23,13 +23,7 @@ DebugEngine::DebugEngine(AssetDatabase* assetDatabase, Time* time)
 	cubeShader = assetDatabase->Find<Shader>("SH_WS_Default_Unlit");
 	iblShader = assetDatabase->Find<Shader>("SH_VS_IBLBackground");
 
-	reflectionMaps[0] = assetDatabase->Find<Texture2D>("T_OEM_01");
-	reflectionMaps[1] = assetDatabase->Find<Texture2D>("T_OEM_02");
-	reflectionMaps[2] = assetDatabase->Find<Texture2D>("T_OEM_03");
-
-	reflectionMaps[0].lock()->SetWrapMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-	reflectionMaps[1].lock()->SetWrapMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-	reflectionMaps[2].lock()->SetWrapMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+	reflectionMap = assetDatabase->Find<Texture2D>("T_OEM_01");
 
 	instanceMatrices = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE_FLOAT4X4, "Matrix" } }), 2);
 
@@ -75,7 +69,7 @@ void DebugEngine::Step(Input* input)
 
 void DebugEngine::Step(int condition)
 {
-	LightingUtility::SetOEMTextures(&reflectionMaps[0], 3, 1);
+	LightingUtility::SetOEMTextures(reflectionMap.lock()->GetGraphicsID(), 1);
 	
 	Graphics::SetGlobalComputeBuffer(StringHashID::StringToID("pk_InstancingData"), instanceMatrices->GetGraphicsID());
 

@@ -104,8 +104,14 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)\GLSLTestbed\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;ktx.lib;ktx_read.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /d  "$(ProjectDir)libs\*.dll" "$(TargetDir)"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy DLL Dependencies</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -143,8 +149,14 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(SolutionDir)\GLSLTestbed\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;ktx.lib;ktx_read.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /d  "$(ProjectDir)libs\*.dll" "$(TargetDir)"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy DLL Dependencies</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\GLAD\glad.h" />
@@ -432,6 +444,7 @@
     <ClInclude Include="include\glm\vec4.hpp" />
     <ClInclude Include="include\glm\vector_relational.hpp" />
     <ClInclude Include="include\hlslmath.h" />
+    <ClInclude Include="include\KTX\ktx.h" />
     <ClInclude Include="src\Context\Engines\DebugEngine.h" />
     <ClInclude Include="src\Context\Engines\EngineEditorCamera.h" />
     <ClInclude Include="src\Core\IService.h" />
@@ -475,7 +488,8 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\glfw3.lib" />
-    <Library Include="libs\glfw3dll.lib" />
+    <Library Include="libs\ktx.lib" />
+    <Library Include="libs\ktx_read.lib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="include\glm\detail\func_common.inl" />
@@ -614,7 +628,8 @@
     <None Include="include\glm\gtx\vector_angle.inl" />
     <None Include="include\glm\gtx\vector_query.inl" />
     <None Include="include\glm\gtx\wrap.inl" />
-    <None Include="libs\glfw3.dll" />
+    <None Include="libs\ktx.dll" />
+    <None Include="libs\ktx_read.dll" />
     <None Include="res\shaders\BlitCommon.glsl">
       <DeploymentContent>true</DeploymentContent>
     </None>
@@ -637,6 +652,9 @@
       <DeploymentContent>true</DeploymentContent>
     </None>
     <None Include="res\shaders\Test.glsl">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+    <None Include="res\textures\T_OEM_01.ktx">
       <DeploymentContent>true</DeploymentContent>
     </None>
     <None Include="x64\Debug\GLImageProcessor.tlog\CL.command.1.tlog" />

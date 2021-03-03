@@ -50,6 +50,8 @@
 
 #define tex2D(a,b) texture(a,b)
 
+#define tex2DLod(a,b,c) textureLod(a,b,c)
+
 #define GEqual(a, b) any(greaterThanEqual(a,b))
 
 #define LEqual(a, b) any(lessThanEqual(a,b))
@@ -57,5 +59,11 @@
 #define Less(a,b) any(lessThan(a,b))
 
 #define Greater(a,b) any(greaterThan(a,b))
+
+#define PK_DECLARE_CBUFFER(BufferName) layout(std140) uniform BufferName
+
+#define PK_DECLARE_BUFFER(ValueType, BufferName) layout(std430) buffer BufferName { ValueType BufferName##_Data[]; }
+
+#define PK_BUFFER_DATA(BufferName, index) BufferName##_Data[index]
 
 #endif

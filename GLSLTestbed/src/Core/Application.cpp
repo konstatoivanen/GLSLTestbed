@@ -41,8 +41,8 @@ Application::Application(const std::string& name)
 	m_window->OnMouseButtonInput = PK_BIND_MEMBER_FUNCTION(input, OnMouseButtonInput);
 	m_window->OnClose = PK_BIND_FUNCTION(Application::Close);
 	
-	assetDatabase->LoadDirectory<Shader>("res/shaders/", ".shader");
-	assetDatabase->LoadDirectory<Texture2D>("res/textures/", ".png");
+	assetDatabase->LoadDirectory<Shader>("res/shaders/", { ".shader" });
+	assetDatabase->LoadDirectory<Texture2D>("res/textures/", { ".png", ".ktx" });
 
 	auto renderPipeline = m_services->Create<RenderPipeline>(assetDatabase);
 	auto editorCameraEngine = m_services->Create<EngineEditorCamera>(time);

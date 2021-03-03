@@ -122,43 +122,76 @@ class AssetDatabase : public IService
         }
 
         template<typename T>
-        void LoadDirectory(const std::string& directory, const std::string& extension)
+        void LoadDirectory(const std::string& directory, std::initializer_list<const char*> extensions)
         {
             for (const auto& entry : std::filesystem::directory_iterator(directory))
             {
                 auto& path = entry.path();
-                
-                if (path.has_extension() && path.extension().compare(extension) == 0)
+
+                if (!path.has_extension())
                 {
-                    Load<T>(entry.path().string());
+                    continue;
+                }
+
+                auto pathExtension = path.extension();
+
+                for (auto extension : extensions)
+                {
+                    if (pathExtension.compare(extension) == 0)
+                    {
+                        Load<T>(entry.path().string());
+                        break;
+                    }
                 }
             }
         }
 
         template<typename T>
-        void ReloadDirectory(const std::string& directory, const std::string& extension)
+        void ReloadDirectory(const std::string& directory, std::initializer_list<const char*> extensions)
         {
             for (const auto& entry : std::filesystem::directory_iterator(directory))
             {
                 auto& path = entry.path();
 
-                if (path.has_extension() && path.extension().compare(extension) == 0)
+                if (!path.has_extension())
                 {
-                    Reload<T>(entry.path().string());
+                    continue;
+                }
+
+                auto pathExtension = path.extension();
+
+                for (auto extension : extensions)
+                {
+                    if (pathExtension.compare(extension) == 0)
+                    {
+                        Reload<T>(entry.path().string());
+                        break;
+                    }
                 }
             }
         }
 
         template<typename T>
-        void UnloadDirectory(const std::string& directory, const std::string& extension)
+        void UnloadDirectory(const std::string& directory, std::initializer_list<const char*> extensions)
         {
             for (const auto& entry : std::filesystem::directory_iterator(directory))
             {
                 auto& path = entry.path();
 
-                if (path.has_extension() && path.extension().compare(extension) == 0)
+                if (!path.has_extension())
                 {
-                    Unload<T>(entry.path().string());
+                    continue;
+                }
+
+                auto pathExtension = path.extension();
+
+                for (auto extension : extensions)
+                {
+                    if (pathExtension.compare(extension) == 0)
+                    {
+                        Unload<T>(entry.path().string());
+                        break;
+                    }
                 }
             }
         }

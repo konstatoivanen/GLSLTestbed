@@ -125,3 +125,35 @@ uint8_t Texture::GetChannelCount(GLenum channels)
 
     PK_CORE_ERROR("UNSUPPORTED CHANNEL FORMAT");
 }
+
+void Texture::GetDescirptorFromKTX(ktxTexture* tex, TextureDescriptor* desc, GLenum* channels)
+{
+    PK_CORE_ASSERT(tex->classId == ktxTexture1_c,"KTX2 is unsupported!")
+
+    auto* tex1 = reinterpret_cast<ktxTexture1*>(tex);
+
+    *channels = tex1->glFormat;
+
+    desc->width = tex1->baseWidth;
+    desc->height = tex1->baseHeight;
+    desc->depth = tex1->baseDepth;
+    desc->colorFormat = tex1->glInternalformat;
+    desc->wrapmodex = GL_CLAMP_TO_EDGE;
+    desc->wrapmodey = GL_CLAMP_TO_EDGE;
+    desc->filtermin = GL_NEAREST;
+    desc->filtermag = GL_LINEAR;
+    desc->miplevels = tex1->numLevels;
+
+    switch (tex1->numDimensions)
+    {
+        case 1: desc->dimension = tex1->isArray ? GL_TEXTURE_1D_ARRAY : GL_TEXTURE_1D; break;
+        case 2: desc->dimension = tex1->isArray ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D; break;
+        case 3: desc->dimension = GL_TEXTURE_3D; break;
+        default: PK_CORE_ERROR("Invalid Texture Dimension");
+    }
+
+    if (tex1->isCubemap)
+    {
+        desc->dimension = tex1->isArray ? GL_TEXTURE_CUBE_MAP_ARRAY : GL_TEXTURE_CUBE_MAP;
+    }
+}
