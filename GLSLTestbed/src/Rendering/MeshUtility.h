@@ -21,4 +21,5 @@ namespace MeshUtilities
     Ref<Mesh> GetBox(const float3& offset, const float3& extents);
     Ref<Mesh> GetQuad2D(const float2& min, const float2& max);
     Ref<Mesh> GetQuad3D(const float2& min, const float2& max);
+    Ref<Mesh> GetSphere(const float3& offset, const float radius);
 }

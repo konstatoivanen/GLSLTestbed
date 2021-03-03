@@ -8,7 +8,7 @@ DebugEngine::DebugEngine(AssetDatabase* assetDatabase, Time* time)
 
 	auto desc = RenderTextureDescriptor();
 
-	desc.colorFormat = GL_RGBA8;
+	desc.colorFormats = { GL_RGBA8 };
 	desc.depthFormat = GL_DEPTH24_STENCIL8;
 	desc.width = 512;
 	desc.height = 512;
@@ -19,7 +19,8 @@ DebugEngine::DebugEngine(AssetDatabase* assetDatabase, Time* time)
 	desc.dimension = GL_TEXTURE_2D;
 
 	renderTarget = CreateRef<RenderTexture>(desc);
-	cubeMesh = MeshUtilities::GetBox(CG_FLOAT3_ZERO, { 0.5f, 0.5f, 0.5f });
+	//cubeMesh = MeshUtilities::GetBox(CG_FLOAT3_ZERO, { 0.5f, 0.5f, 0.5f });
+	cubeMesh = MeshUtilities::GetSphere(CG_FLOAT3_ZERO, 1.0f);
 	cubeShader = assetDatabase->Find<Shader>("SH_WS_Default_Unlit");
 	iblShader = assetDatabase->Find<Shader>("SH_VS_IBLBackground");
 
@@ -75,5 +76,10 @@ void DebugEngine::Step(int condition)
 
 	Graphics::Blit(iblShader.lock());
 
+	//Graphics::SetRenderTarget(renderTarget);
+	//Graphics::Clear(CG_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	Graphics::DrawMeshInstanced(cubeMesh, cubeShader.lock(), 2);
+
+	//Graphics::Blit(renderTarget->GetColorBuffer(0).lock(), Graphics::GetBackBuffer());
 }

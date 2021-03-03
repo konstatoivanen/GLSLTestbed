@@ -117,6 +117,11 @@ const bool2 CG_BOOL2_ONE = { true, true };
 const bool3 CG_BOOL3_ONE = { true, true, true };
 const bool4 CG_BOOL4_ONE = { true, true, true, true };
 
+const float2 CG_FLOAT2_UP       = { 0.0f, 1.0f };
+const float2 CG_FLOAT2_DOWN     = { 0.0f, -1.0f };
+const float2 CG_FLOAT2_LEFT     = { -1.0f, 0.0f };
+const float2 CG_FLOAT2_RIGHT    = { 1.0f, 0.0f };
+
 const float3 CG_FLOAT3_LEFT     = {  1.0f,  0.0f,  0.0f };
 const float3 CG_FLOAT3_RIGHT    = { -1.0f,  0.0f,  0.0f };
 const float3 CG_FLOAT3_UP       = {  0.0f,  1.0f,  0.0f };
@@ -151,6 +156,7 @@ const color32 CG_COLOR32_MAGENTA = { 255,   0, 255, 255 };
 const color32 CG_COLOR32_YELLOW  = { 255, 255,   0, 255 };
 
 const float CG_FLOAT_PI = 3.14159274F;
+const float CG_FLOAT_2PI = 2.0f * 3.14159274F;
 const float CG_FLOAT_DEG2RAD = 0.0174532924F;
 const float CG_FLOAT_RAD2DEG = 57.29578F;
 

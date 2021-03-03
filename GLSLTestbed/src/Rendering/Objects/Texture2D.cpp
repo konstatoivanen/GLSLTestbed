@@ -56,6 +56,11 @@ void AssetImporters::Import(const std::string& filepath, Ref<T>& texture)
 
 		result = ktxTexture_GLUpload(kTexture, &texture->m_graphicsId, &target, &glerror);
 		
+		glTextureParameteri(texture->m_graphicsId, GL_TEXTURE_MIN_FILTER, texture->m_descriptor.filtermin);
+		glTextureParameteri(texture->m_graphicsId, GL_TEXTURE_MAG_FILTER, texture->m_descriptor.filtermag);
+		glTextureParameteri(texture->m_graphicsId, GL_TEXTURE_WRAP_S, texture->m_descriptor.wrapmodex);
+		glTextureParameteri(texture->m_graphicsId, GL_TEXTURE_WRAP_T, texture->m_descriptor.wrapmodey);
+
 		PK_CORE_ASSERT(result == KTX_SUCCESS, "Failed to upload ktx!");
 
 		ktxTexture_Destroy(kTexture);

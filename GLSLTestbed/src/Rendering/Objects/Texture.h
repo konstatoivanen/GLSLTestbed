@@ -13,6 +13,7 @@ struct TextureDescriptor
     GLenum filtermag = GL_LINEAR;
     GLenum filtermin = GL_LINEAR;
     uint32_t miplevels = 0;
+    uint32_t msaaSamples = 0;
 };
 
 class Texture : public GraphicsObject

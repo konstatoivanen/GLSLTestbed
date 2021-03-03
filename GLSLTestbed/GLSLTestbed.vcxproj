@@ -107,10 +107,11 @@
       <AdditionalDependencies>opengl32.lib;glfw3.lib;ktx.lib;ktx_read.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /d  "$(ProjectDir)libs\*.dll" "$(TargetDir)"</Command>
+      <Command>xcopy /y /d  "$(ProjectDir)libs\*.dll" "$(TargetDir)"
+xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>Copy DLL Dependencies</Message>
+      <Message>Copy Dependencies</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -152,10 +153,11 @@
       <AdditionalDependencies>opengl32.lib;glfw3.lib;ktx.lib;ktx_read.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /d  "$(ProjectDir)libs\*.dll" "$(TargetDir)"</Command>
+      <Command>xcopy /y /d  "$(ProjectDir)libs\*.dll" "$(TargetDir)"
+xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>Copy DLL Dependencies</Message>
+      <Message>Copy Dependencies</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

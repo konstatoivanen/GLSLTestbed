@@ -31,8 +31,32 @@ void Texture::SetDescriptor(const TextureDescriptor& descriptor)
 void Texture::CreateTextureStorage(GraphicsID& graphicsId, const TextureDescriptor& descriptor)
 {
     // Add support for dimensions later
-    glCreateTextures(GL_TEXTURE_2D, 1, &graphicsId);
-    glTextureStorage2D(graphicsId, descriptor.miplevels > 0 ? descriptor.miplevels : 1, descriptor.colorFormat, descriptor.width, descriptor.height);
+    glCreateTextures(descriptor.dimension, 1, &graphicsId);
+    
+    switch (descriptor.dimension)
+    {
+        case GL_TEXTURE_1D: 
+            glTextureStorage1D(graphicsId, descriptor.miplevels > 0 ? descriptor.miplevels : 1, descriptor.colorFormat, descriptor.width); 
+            break;
+        case GL_TEXTURE_1D_ARRAY: 
+        case GL_TEXTURE_RECTANGLE: 
+        case GL_TEXTURE_CUBE_MAP: 
+        case GL_TEXTURE_2D: 
+            glTextureStorage2D(graphicsId, descriptor.miplevels > 0 ? descriptor.miplevels : 1, descriptor.colorFormat, descriptor.width, descriptor.height); 
+            break;
+        case GL_TEXTURE_CUBE_MAP_ARRAY:
+        case GL_TEXTURE_2D_ARRAY:
+        case GL_TEXTURE_3D:
+            glTextureStorage3D(graphicsId, descriptor.miplevels > 0 ? descriptor.miplevels : 1, descriptor.colorFormat, descriptor.width, descriptor.height, descriptor.depth);
+            break;
+        case GL_TEXTURE_2D_MULTISAMPLE:
+            glTexStorage2DMultisample(graphicsId, descriptor.msaaSamples, descriptor.colorFormat, descriptor.width, descriptor.height, GL_FALSE);
+            return;
+        case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
+            glTexStorage3DMultisample(graphicsId, descriptor.msaaSamples, descriptor.colorFormat, descriptor.width, descriptor.height, descriptor.depth, GL_FALSE);
+            return;
+    }
+
     glTextureParameteri(graphicsId, GL_TEXTURE_MIN_FILTER, descriptor.filtermin);
     glTextureParameteri(graphicsId, GL_TEXTURE_MAG_FILTER, descriptor.filtermag);
     glTextureParameteri(graphicsId, GL_TEXTURE_WRAP_S, descriptor.wrapmodex);
@@ -143,6 +167,11 @@ void Texture::GetDescirptorFromKTX(ktxTexture* tex, TextureDescriptor* desc, GLe
     desc->filtermin = GL_NEAREST;
     desc->filtermag = GL_LINEAR;
     desc->miplevels = tex1->numLevels;
+
+    if (tex1->numLevels > 1)
+    {
+        desc->filtermin = GL_LINEAR_MIPMAP_LINEAR;
+    }
 
     switch (tex1->numDimensions)
     {

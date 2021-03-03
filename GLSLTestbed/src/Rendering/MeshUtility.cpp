@@ -183,4 +183,98 @@ namespace MeshUtilities
         BufferLayout layout = { {CG_TYPE_FLOAT3, "POSITION"}, {CG_TYPE_FLOAT2, "TEXCOORD0"} };
         return CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, 4, layout), CreateRef<IndexBuffer>(indices, 6));
     }
+
+    Ref<Mesh> GetSphere(const float3& offset, const float radius)
+    {
+        const int longc = 24;
+        const int lattc = 16;
+        const int vcount = (longc + 1) * lattc + 2;
+        
+        //Vertex_Full
+        auto vertices = PK_CONTIGUOUS_ALLOC(Vertex_Full, vcount);
+
+        vertices[0].position = CG_FLOAT3_UP * radius;
+       
+        for (int lat = 0; lat < lattc; lat++)
+        {
+            float a1 = CG_FLOAT_PI * (float)(lat + 1) / (lattc + 1);
+            float sin1 = sin(a1);
+            float cos1 = cos(a1);
+
+            for (int lon = 0; lon <= longc; lon++)
+            {
+                float a2 = CG_FLOAT_2PI * (float)(lon == longc ? 0 : lon) / longc;
+                float sin2 = sin(a2);
+                float cos2 = cos(a2);
+                vertices[lon + lat * (longc + 1) + 1].position = float3(sin1 * cos2, cos1, sin1 * sin2) * radius;
+            }
+        }
+
+        vertices[vcount - 1].position = CG_FLOAT3_UP * -radius;
+
+        for (int n = 0; n < vcount; ++n)
+        {
+            vertices[n].normal = glm::normalize(vertices[n].position);
+        }
+
+        vertices[0].texcoord = CG_FLOAT2_UP;
+        vertices[vcount - 1].texcoord = CG_FLOAT2_ZERO;
+        
+        for (int lat = 0; lat < lattc; lat++)
+        {
+            for (int lon = 0; lon <= longc; lon++)
+            {
+                vertices[lon + lat * (longc + 1) + 1].texcoord = float2((float)lon / longc, 1.0f - (float)(lat + 1) / (lattc + 1));
+            }
+        }
+        
+        const int facec = vcount;
+        const int triscount = facec * 2;
+        const int icount = triscount * 3;
+        auto indices = PK_CONTIGUOUS_ALLOC(unsigned int, icount);
+
+        //Top Cap
+        int i = 0;
+
+        for (int lon = 0; lon < longc; lon++)
+        {
+            indices[i++] = lon + 2;
+            indices[i++] = lon + 1;
+            indices[i++] = 0;
+        }
+
+        //Middle
+        for (int lat = 0; lat < lattc - 1; lat++)
+        {
+            for (int lon = 0; lon < longc; lon++)
+            {
+                int current = lon + lat * (longc + 1) + 1;
+                int next = current + longc + 1;
+
+                indices[i++] = current;
+                indices[i++] = current + 1;
+                indices[i++] = next + 1;
+
+                indices[i++] = current;
+                indices[i++] = next + 1;
+                indices[i++] = next;
+            }
+        }
+
+        //Bottom Cap
+        for (int lon = 0; lon < longc; lon++)
+        {
+            indices[i++] = vcount - 1;
+            indices[i++] = vcount - (lon + 2) - 1;
+            indices[i++] = vcount - (lon + 1) - 1;
+        }
+
+        BufferLayout layout = { {CG_TYPE_FLOAT3, "POSITION"}, {CG_TYPE_FLOAT3, "NORMAL"}, {CG_TYPE_FLOAT2, "TEXCOORD0"} };
+        auto mesh = CreateRef<Mesh>(CreateRef<VertexBuffer>(reinterpret_cast<float*>(vertices), vcount, layout), CreateRef<IndexBuffer>(indices, icount));
+
+        free(vertices);
+        free(indices);
+
+        return mesh;
+    }
 }
