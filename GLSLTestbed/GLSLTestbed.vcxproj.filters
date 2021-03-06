@@ -1426,6 +1426,7 @@
     <None Include="res\textures\T_OEM_01.ktx" />
     <None Include="libs\ktx.dll" />
     <None Include="libs\ktx_read.dll" />
+    <None Include="res\shaders\SphericalHarmonics.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">

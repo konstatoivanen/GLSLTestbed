@@ -63,9 +63,6 @@ void DebugEngine::Step(Input* input)
 	}
 
 	m_time->LogFrameRate();
-
-	Graphics::SetGlobalKeyword(StringHashID::StringToID("Test3"), input->GetKey(KeyCode::G));
-	Graphics::SetGlobalKeyword(StringHashID::StringToID("Test6"), input->GetKey(KeyCode::F));
 }
 
 void DebugEngine::Step(int condition)

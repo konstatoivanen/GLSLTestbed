@@ -48,6 +48,16 @@
 
 #define mul(a,b) (a * b)
 
+#define pow2(x) ((x) * (x))
+
+#define pow3(x) ((x) * (x) * (x))
+
+#define pow4(x) ((x) * (x) * (x) * (x))
+
+#define pow5(x) ((x) * (x) * (x) * (x) * (x))
+
+#define mod(x,y) ((x) - (y) * floor((x) / (y)))
+
 #define tex2D(a,b) texture(a,b)
 
 #define tex2DLod(a,b,c) textureLod(a,b,c)

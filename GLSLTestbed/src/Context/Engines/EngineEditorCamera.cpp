@@ -8,8 +8,6 @@ EngineEditorCamera::EngineEditorCamera(Time* time)
 	m_time = time;
 }
 
-static ulong m_test;
-
 void EngineEditorCamera::Step(Input* input)
 {
 	auto deltaTime = m_time->GetDeltaTime();

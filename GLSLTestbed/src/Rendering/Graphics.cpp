@@ -162,6 +162,8 @@ namespace Graphics
 	{
 		auto* hashCache = HashCache::Get();
 
+		auto cameraMatrix = glm::inverse(view);
+
 		auto n = projection[3][2] / (projection[2][2] - 1.0f);
 		auto f = projection[3][2] / (projection[2][2] + 1.0f);
 		auto a = projection[1][1] / projection[0][0];
@@ -169,7 +171,7 @@ namespace Graphics
 	
 		SetGlobalFloat4(hashCache->pk_ProjectionParams, { -1.0f, n, f, 1.0f / f });
 		SetGlobalFloat4(hashCache->pk_ZBufferParams, { (1.0f - f) / n, f / n, a / f, 1.0f / f });
-		SetGlobalFloat3(hashCache->pk_WorldSpaceCameraPos, view[3]);
+		SetGlobalFloat4(hashCache->pk_WorldSpaceCameraPos, cameraMatrix[3]);
 		SetGlobalFloat4x4(hashCache->pk_MATRIX_V, view);
 		SetGlobalFloat4x4(hashCache->pk_MATRIX_P, projection);
 		SetGlobalFloat4x4(hashCache->pk_MATRIX_VP, vp);

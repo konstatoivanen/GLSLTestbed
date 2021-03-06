@@ -5,6 +5,7 @@
 #include "Utilities/StringUtilities.h"
 #include "Utilities/Log.h"
 #include <ext.hpp>
+#include <d3dcompiler.h>
 
 void ShaderVariantMap::Reset()
 {
@@ -737,6 +738,12 @@ void AssetImporters::Import(const std::string& filepath, Ref<T>& shader)
 	ShaderCompiler::ReadFile(filepath, source);
 	ShaderCompiler::ExtractMulticompiles(source, mckeywords, shader->m_variantMap);
 	ShaderCompiler::ExtractStateAttributes(source, shader->m_stateAttributes);
+
+	if (filepath.find_last_of("HLSLTest") != std::string::npos)
+	{
+
+	}
+
 	ShaderCompiler::GetSharedInclude(source, sharedInclude);
 
 	for (uint32_t i = 0; i < shader->m_variantMap.variantcount; ++i)

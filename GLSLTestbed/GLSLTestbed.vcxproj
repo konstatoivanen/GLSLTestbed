@@ -653,6 +653,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\SH_VS_ShaderToyImport.shader">
       <DeploymentContent>true</DeploymentContent>
     </None>
+    <None Include="res\shaders\SphericalHarmonics.glsl" />
     <None Include="res\shaders\Test.glsl">
       <DeploymentContent>true</DeploymentContent>
     </None>

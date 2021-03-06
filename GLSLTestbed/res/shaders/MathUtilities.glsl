@@ -4,14 +4,9 @@
 #include HLSLSupport.glsl
 
 //------------Macros------------//
-#define pow2(x) ((x) * (x))
-#define pow3(x) ((x) * (x) * (x))
-#define pow4(x) ((x) * (x) * (x) * (x))
-#define pow5(x) ((x) * (x) * (x) * (x) * (x))
 #define overlay(s, d) (((d) < 0.5) ? 2.0 * (s) * (d) : 1.0 - 2.0 * (1.0 - (s)) * (1.0 - (d)))
 #define unlerp(a,b,value) (((value) - (a)) / ((b) - (a)))
 #define unlerp_sat(a,b,value) saturate(((value) - (a)) / ((b) - (a)))
-#define mod(x,y) ((x) - (y) * floor((x) / (y)))
 #define mirror(u) (2 * abs(round(0.5 * (u)) - 0.5 * (u)))
 #define rasterize(value, resolution) (((value) * (resolution)) / (resolution))
 #define lengthsqr(x) dot(x,x)

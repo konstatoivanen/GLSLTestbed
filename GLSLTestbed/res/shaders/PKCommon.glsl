@@ -12,6 +12,11 @@
 #define PK_HALF_PI       1.57079632679f
 #define PK_INV_HALF_PI   0.636619772367f
 
+#define pk_ColorSpaceGrey fixed4(0.214041144, 0.214041144, 0.214041144, 0.5)
+#define pk_ColorSpaceDouble fixed4(4.59479380, 4.59479380, 4.59479380, 2.0)
+#define pk_ColorSpaceDielectricSpec half4(0.04, 0.04, 0.04, 1.0 - 0.04) // standard dielectric reflectivity coef at incident angle (= 4%)
+#define pk_ColorSpaceLuminance half4(0.0396819152, 0.458021790, 0.00609653955, 1.0)
+
 PK_DECLARE_CBUFFER(pk_PerFrameConstants)
 {
     // Time since level load (t/20, t, t*2, t*3), use to animate things inside the shaders.
@@ -24,7 +29,7 @@ PK_DECLARE_CBUFFER(pk_PerFrameConstants)
     float4 pk_DeltaTime;
     
     // World space position of the camera.
-    float3 pk_WorldSpaceCameraPos;
+    float4 pk_WorldSpaceCameraPos;
     // x is 1.0 (or –1.0 if currently rendering with a flipped projection matrix), y is the camera’s near plane, z is the camera’s far plane and w is 1/FarPlane.
     float4 pk_ProjectionParams;
     // x is the width of the camera’s target texture in pixels, y is the height of the camera’s target texture in pixels, z is 1.0 + 1.0/width and w is 1.0 + 1.0/height.
@@ -54,15 +59,24 @@ uniform float4x4 pk_MATRIX_I_M;
     #define ACTIVE_MODEL_MATRIX pk_MATRIX_M
 #endif
 
+// An almost-perfect approximation from http://chilliant.blogspot.com.au/2012/08/srgb-approximations-for-hlsl.html?m=1
+float3 LinearToGammaSpace (float3 linRGB)
+{
+    linRGB = max(linRGB, half3(0.0f, 0.0f, 0.0f));
+    return max(1.055f * pow(linRGB, (0.416666667).xxx) - 0.055f, 0.0f);
+}
 
-// SH lighting environment
-uniform float4 pk_SHAr;
-uniform float4 pk_SHAg;
-uniform float4 pk_SHAb;
-uniform float4 pk_SHBr;
-uniform float4 pk_SHBg;
-uniform float4 pk_SHBb;
-uniform float4 pk_SHC;
+#define HDRFactor 4.0
+
+float4 HDREncode(float4 color)
+{
+    return float4(color.rgb / HDRFactor, color.a);
+}
+
+float4 HDRDecode(float4 hdr)
+{
+    return float4(hdr.rgb * HDRFactor, hdr.a);
+}
 
 // Tranforms position from world to homogenous space
 float4 WorldToClipPos( in float3 pos)
@@ -82,7 +96,8 @@ float3 ObjectToViewPos( in float3 pos)
     return mul(pk_MATRIX_V, mul(ACTIVE_MODEL_MATRIX, float4(pos, 1.0))).xyz;
 }
 
-float3 ObjectToViewPos(float4 pos) // overload for float4; avoids "implicit truncation" warning for existing shaders
+// Tranforms position from object to camera space
+float3 ObjectToViewPos(float4 pos)
 {
     return ObjectToViewPos(pos.xyz);
 }
@@ -91,6 +106,12 @@ float3 ObjectToViewPos(float4 pos) // overload for float4; avoids "implicit trun
 float3 WorldToViewPos( in float3 pos)
 {
     return mul(pk_MATRIX_V, float4(pos, 1.0)).xyz;
+}
+
+// Transforms position from object to world space
+float3 ObjectToWorldPos( in float3 pos)
+{
+    return mul(ACTIVE_MODEL_MATRIX, float4(pos, 1.0)).xyz;
 }
 
 // Transforms direction from object to world space
@@ -128,50 +149,4 @@ float4 ObjectToClipPos(float4 pos)
     return ObjectToClipPos(pos.xyz);
 }
 
-// normal should be normalized, w=1.0
-float3 SHEvalLinearL0L1 (float4 normal)
-{
-    half3 x;
-
-    // Linear (L1) + constant (L0) polynomial terms
-    x.r = dot(pk_SHAr, normal);
-    x.g = dot(pk_SHAg, normal);
-    x.b = dot(pk_SHAb, normal);
-
-    return x;
-}
-
-// normal should be normalized, w=1.0
-float3 SHEvalLinearL2 (float4 normal)
-{
-    float3 x1, x2;
-    // 4 of the quadratic (L2) polynomials
-    float4 vB = normal.xyzz * normal.yzzx;
-    x1.r = dot(pk_SHBr,vB);
-    x1.g = dot(pk_SHBg,vB);
-    x1.b = dot(pk_SHBb,vB);
-
-    // Final (5th) quadratic (L2) polynomial
-    float vC = normal.x * normal.x - normal.y * normal.y;
-    x2 = pk_SHC.rgb * vC;
-
-    return x1 + x2;
-}
-
-// normal should be normalized, w=1.0
-// output in active color space
-float3 ShadeSH9 (float4 normal)
-{
-    // Linear + constant polynomial terms
-    float3 res = SHEvalLinearL0L1 (normal);
-
-    // Quadratic polynomials
-    res += SHEvalLinearL2 (normal);
-
-#ifdef PK_COLORSPACE_GAMMA
-    res = LinearToGammaSpace (res);
-#endif
-
-    return res;
-}
 #endif
