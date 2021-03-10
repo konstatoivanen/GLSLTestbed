@@ -32,8 +32,8 @@ void Texture2D::SetMipLevel(const Ref<Texture2D>& texture, uint32_t miplevel)
 	glCopyImageSubData(src, srcDescriptor.dimension, 0, 0, 0, 0, dst, m_descriptor.dimension, miplevel, 0, 0, 0, srcDescriptor.width, srcDescriptor.height, srcDescriptor.depth);
 }
 
-template<typename T>
-void AssetImporters::Import(const std::string& filepath, Ref<T>& texture)
+template<>
+void AssetImporters::Import(const std::string& filepath, Ref<Texture2D>& texture)
 {
 	if (texture->m_graphicsId != 0)
 	{
@@ -88,5 +88,3 @@ void AssetImporters::Import(const std::string& filepath, Ref<T>& texture)
 
 	stbi_image_free(data);
 }
-
-template void AssetImporters::Import<Texture2D>(const std::string& filepath, Ref<Texture2D>& shader);

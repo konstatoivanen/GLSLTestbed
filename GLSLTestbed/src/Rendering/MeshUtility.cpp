@@ -1,8 +1,251 @@
 #include "PrecompiledHeader.h"
 #include "Rendering/MeshUtility.h"
+#include "Rendering/Structs/StructsCommon.h"
+#include <mikktspace/mikktspace.h>
 
 namespace MeshUtilities
 {
+    namespace MikktsInterface0
+    {
+        struct PKMeshData
+        {
+            const float* vertices;
+            const float* normals;
+            float* tangents;
+            const float* texcoords;
+            const unsigned int* indices;
+            unsigned int vcount;
+            unsigned int icount;
+        };
+
+        // Returns the number of faces (triangles/quads) on the mesh to be processed.
+        int GetNumFaces(const SMikkTSpaceContext* pContext)
+        {
+            return reinterpret_cast<PKMeshData*>(pContext->m_pUserData)->icount / 3;
+        }
+
+        // Returns the number of vertices on face number iFace
+        // iFace is a number in the range {0, 1, ..., getNumFaces()-1}
+        int GetNumVerticesOfFace(const SMikkTSpaceContext* pContext, const int iFace)
+        {
+            return 3;
+        }
+
+        // returns the position/normal/texcoord of the referenced face of vertex number iVert.
+        // iVert is in the range {0,1,2} for triangles and {0,1,2,3} for quads.
+        void GetPosition(const SMikkTSpaceContext* pContext, float fvPosOut[], const int iFace, const int iVert)
+        {
+            auto meshData = reinterpret_cast<PKMeshData*>(pContext->m_pUserData);
+            auto baseIndex = meshData->indices[iFace * 3 + iVert];
+            fvPosOut[0] = meshData->vertices[baseIndex * 3 + 0];
+            fvPosOut[1] = meshData->vertices[baseIndex * 3 + 1];
+            fvPosOut[2] = meshData->vertices[baseIndex * 3 + 2];
+        }
+
+        void GetNormal(const SMikkTSpaceContext* pContext, float fvNormOut[], const int iFace, const int iVert)
+        {
+            auto meshData = reinterpret_cast<PKMeshData*>(pContext->m_pUserData);
+            auto baseIndex = meshData->indices[iFace * 3 + iVert];
+            fvNormOut[0] = meshData->normals[baseIndex * 3 + 0];
+            fvNormOut[1] = meshData->normals[baseIndex * 3 + 1];
+            fvNormOut[2] = meshData->normals[baseIndex * 3 + 2];
+        }
+
+        void GetTexCoord(const SMikkTSpaceContext* pContext, float fvTexcOut[], const int iFace, const int iVert)
+        {
+            auto meshData = reinterpret_cast<PKMeshData*>(pContext->m_pUserData);
+            auto baseIndex = meshData->indices[iFace * 3 * iVert];
+            fvTexcOut[0] = meshData->texcoords[baseIndex * 2 + 0];
+            fvTexcOut[1] = meshData->texcoords[baseIndex * 2 + 1];
+        }
+
+        // either (or both) of the two setTSpace callbacks can be set.
+        // The call-back m_setTSpaceBasic() is sufficient for basic normal mapping.
+
+        // This function is used to return the tangent and fSign to the application.
+        // fvTangent is a unit length vector.
+        // For normal maps it is sufficient to use the following simplified version of the bitangent which is generated at pixel/vertex level.
+        // bitangent = fSign * cross(vN, tangent);
+        // Note that the results are returned unindexed. It is possible to generate a new index list
+        // But averaging/overwriting tangent spaces by using an already existing index list WILL produce INCRORRECT results.
+        // DO NOT! use an already existing index list.
+        void SetTSpaceBasic(const SMikkTSpaceContext* pContext, const float fvTangent[], const float fSign, const int iFace, const int iVert)
+        {
+            auto meshData = reinterpret_cast<PKMeshData*>(pContext->m_pUserData);
+            auto baseIndex = meshData->indices[iFace * 3 + iVert];
+
+            meshData->tangents[baseIndex * 4 + 0] = fvTangent[0];
+            meshData->tangents[baseIndex * 4 + 1] = fvTangent[1];
+            meshData->tangents[baseIndex * 4 + 2] = fvTangent[2];
+            meshData->tangents[baseIndex * 4 + 3] = fSign;
+        }
+    }
+
+    namespace MikktsInterface1
+    {
+        struct PKMeshData
+        {
+            float* vertices;
+            unsigned int stride;
+            unsigned int vertexOffset;
+            unsigned int normalOffset;
+            unsigned int tangentOffset;
+            unsigned int texcoordOffset;
+            const unsigned int* indices;
+            unsigned int vcount;
+            unsigned int icount;
+        };
+
+        // Returns the number of faces (triangles/quads) on the mesh to be processed.
+        int GetNumFaces(const SMikkTSpaceContext* pContext)
+        {
+            return reinterpret_cast<PKMeshData*>(pContext->m_pUserData)->icount / 3;
+        }
+
+        // Returns the number of vertices on face number iFace
+        // iFace is a number in the range {0, 1, ..., getNumFaces()-1}
+        int GetNumVerticesOfFace(const SMikkTSpaceContext* pContext, const int iFace)
+        {
+            return 3;
+        }
+
+        // returns the position/normal/texcoord of the referenced face of vertex number iVert.
+        // iVert is in the range {0,1,2} for triangles and {0,1,2,3} for quads.
+        void GetPosition(const SMikkTSpaceContext* pContext, float fvPosOut[], const int iFace, const int iVert)
+        {
+            auto meshData = reinterpret_cast<PKMeshData*>(pContext->m_pUserData);
+            auto baseIndex = meshData->indices[iFace * 3 + iVert];
+            auto vertex = meshData->vertices + baseIndex * meshData->stride + meshData->vertexOffset;
+            fvPosOut[0] = vertex[0];
+            fvPosOut[1] = vertex[1];
+            fvPosOut[2] = vertex[2];
+        }
+
+        void GetNormal(const SMikkTSpaceContext* pContext, float fvNormOut[], const int iFace, const int iVert)
+        {
+            auto meshData = reinterpret_cast<PKMeshData*>(pContext->m_pUserData);
+            auto baseIndex = meshData->indices[iFace * 3 + iVert];
+            auto normal = meshData->vertices + baseIndex * meshData->stride + meshData->normalOffset;
+            fvNormOut[0] = normal[0];
+            fvNormOut[1] = normal[1];
+            fvNormOut[2] = normal[2];
+        }
+
+        void GetTexCoord(const SMikkTSpaceContext* pContext, float fvTexcOut[], const int iFace, const int iVert)
+        {
+            auto meshData = reinterpret_cast<PKMeshData*>(pContext->m_pUserData);
+            auto baseIndex = meshData->indices[iFace * 3 + iVert];
+            auto texcoord = meshData->vertices + baseIndex * meshData->stride + meshData->texcoordOffset;
+            fvTexcOut[0] = texcoord[0];
+            fvTexcOut[1] = texcoord[1];
+        }
+
+        // either (or both) of the two setTSpace callbacks can be set.
+        // The call-back m_setTSpaceBasic() is sufficient for basic normal mapping.
+
+        // This function is used to return the tangent and fSign to the application.
+        // fvTangent is a unit length vector.
+        // For normal maps it is sufficient to use the following simplified version of the bitangent which is generated at pixel/vertex level.
+        // bitangent = fSign * cross(vN, tangent);
+        // Note that the results are returned unindexed. It is possible to generate a new index list
+        // But averaging/overwriting tangent spaces by using an already existing index list WILL produce INCRORRECT results.
+        // DO NOT! use an already existing index list.
+        void SetTSpaceBasic(const SMikkTSpaceContext* pContext, const float fvTangent[], const float fSign, const int iFace, const int iVert)
+        {
+            auto meshData = reinterpret_cast<PKMeshData*>(pContext->m_pUserData);
+            auto baseIndex = meshData->indices[iFace * 3 + iVert];
+            auto tangent = meshData->vertices + baseIndex * meshData->stride + meshData->tangentOffset;
+            tangent[0] = fvTangent[0];
+            tangent[1] = fvTangent[1];
+            tangent[2] = fvTangent[2];
+            tangent[3] = fSign;
+        }
+    }
+
+
+    void CalculateNormals(const float3* vertices, const uint* indices, float3* normals, uint vcount, uint icount)
+    {
+        for (uint i = 0, j = 0; i < icount; i += 3)
+        {
+            auto i0 = indices[i + 0];
+            auto i1 = indices[i + 1];
+            auto i2 = indices[i + 2];
+            auto v0 = vertices[i0];
+            auto v1 = vertices[i1];
+            auto v2 = vertices[i2];
+
+            auto tangent = v1 - v0;
+            auto binormal = v2 - v0;
+            auto normal = glm::normalize(glm::cross(tangent, binormal));
+            normals[i0] += normal;
+            normals[i1] += normal;
+            normals[i2] += normal;
+        }
+
+        for (uint i = 0; i < vcount; ++i)
+        {
+            normals[i] = glm::normalize(normals[i]);
+        }
+
+    }
+
+    void CalculateTangents(const float3* vertices, const float3* normals, const float2* texcoords, const uint* indices, float4* tangents, uint vcount, uint icount)
+    {
+        MikktsInterface0::PKMeshData data;
+        data.vertices = reinterpret_cast<const float*>(vertices);
+        data.normals = reinterpret_cast<const float*>(normals);
+        data.tangents = reinterpret_cast<float*>(tangents);
+        data.texcoords = reinterpret_cast<const float*>(texcoords);
+        data.indices = indices;
+        data.vcount = vcount;
+        data.icount = icount;
+
+        SMikkTSpaceInterface mikttInterface;
+        mikttInterface.m_getNumFaces = MikktsInterface0::GetNumFaces;
+        mikttInterface.m_getNumVerticesOfFace = MikktsInterface0::GetNumVerticesOfFace;
+        mikttInterface.m_getPosition = MikktsInterface0::GetPosition;
+        mikttInterface.m_getNormal = MikktsInterface0::GetNormal;
+        mikttInterface.m_getTexCoord = MikktsInterface0::GetTexCoord;
+        mikttInterface.m_setTSpaceBasic = MikktsInterface0::SetTSpaceBasic;
+        mikttInterface.m_setTSpace = nullptr;
+
+        SMikkTSpaceContext context;
+        context.m_pInterface = &mikttInterface;
+        context.m_pUserData = &data;
+
+        PK_CORE_ASSERT(genTangSpaceDefault(&context), "Failed to calculate tangents");
+    }
+
+    void CalculateTangents(void* vertices, uint stride, uint vertexOffset, uint normalOffset, uint tangentOffset, uint texcoordOffset, const uint* indices, uint vcount, uint icount)
+    {
+        MikktsInterface1::PKMeshData data;
+        data.vertices = reinterpret_cast<float*>(vertices);
+        data.stride = stride;
+        data.vertexOffset = vertexOffset;
+        data.normalOffset = normalOffset;
+        data.tangentOffset = tangentOffset;
+        data.texcoordOffset = texcoordOffset;
+        data.indices = indices;
+        data.vcount = vcount;
+        data.icount = icount;
+
+        SMikkTSpaceInterface mikttInterface;
+        mikttInterface.m_getNumFaces = MikktsInterface1::GetNumFaces;
+        mikttInterface.m_getNumVerticesOfFace = MikktsInterface1::GetNumVerticesOfFace;
+        mikttInterface.m_getPosition = MikktsInterface1::GetPosition;
+        mikttInterface.m_getNormal = MikktsInterface1::GetNormal;
+        mikttInterface.m_getTexCoord = MikktsInterface1::GetTexCoord;
+        mikttInterface.m_setTSpaceBasic = MikktsInterface1::SetTSpaceBasic;
+        mikttInterface.m_setTSpace = nullptr;
+
+        SMikkTSpaceContext context;
+        context.m_pInterface = &mikttInterface;
+        context.m_pUserData = &data;
+
+        PK_CORE_ASSERT(genTangSpaceDefault(&context), "Failed to calculate tangents");
+    }
+
+
     Ref<Mesh> GetBoxSimple(const float3& offset, const float3& extents)
     {
         float vertices[] =
@@ -67,43 +310,43 @@ namespace MeshUtilities
         float2 uv01 = { 0.0f, 1.0f };
         float2 uv11 = { 1.0f, 1.0f };
     
-        Vertex_Full vertices[] =
+        PKStructs::Vertex_Full vertices[] =
         {
             // Bottom
-            { p0, down, uv11 },
-            { p1, down, uv01 },
-            { p2, down, uv00 },
-            { p3, down, uv10 },
+            { p0, down, float4(front, 1), uv11 },
+            { p1, down, float4(front, 1), uv01 },
+            { p2, down, float4(front, 1), uv00 },
+            { p3, down, float4(front, 1), uv10 },
     
             // Left
-            { p7, left, uv11 },
-            { p4, left, uv01 },
-            { p0, left, uv00 },
-            { p3, left, uv10 },
+            { p7, left, float4(down, 1), uv11 },
+            { p4, left, float4(down, 1), uv01 },
+            { p0, left, float4(down, 1), uv00 },
+            { p3, left, float4(down, 1), uv10 },
     
             // Front
-            { p4, front, uv11 },
-            { p5, front, uv01 },
-            { p1, front, uv00 },
-            { p0, front, uv10 },
+            { p4, front, float4(down, 1), uv11 },
+            { p5, front, float4(down, 1), uv01 },
+            { p1, front, float4(down, 1), uv00 },
+            { p0, front, float4(down, 1), uv10 },
     
             // Back
-            { p6, back, uv11 },
-            { p7, back, uv01 },
-            { p3, back, uv00 },
-            { p2, back, uv10 },
+            { p6, back, float4(up, 1), uv11 },
+            { p7, back, float4(up, 1), uv01 },
+            { p3, back, float4(up, 1), uv00 },
+            { p2, back, float4(up, 1), uv10 },
     
             // Right
-            { p5, right, uv11 },
-            { p6, right, uv01 },
-            { p2, right, uv00 },
-            { p1, right, uv10 },
+            { p5, right, float4(up, 1), uv11 },
+            { p6, right, float4(up, 1), uv01 },
+            { p2, right, float4(up, 1), uv00 },
+            { p1, right, float4(up, 1), uv10 },
     
             // Top
-            { p7, up, uv11 },
-            { p6, up, uv01 },
-            { p5, up, uv00 },
-            { p4, up, uv10 }
+            { p7, up, float4(back, 1), uv11 },
+            { p6, up, float4(back, 1), uv01 },
+            { p5, up, float4(back, 1), uv00 },
+            { p4, up, float4(back, 1), uv10 }
         };
     
         unsigned int indices[] =
@@ -191,7 +434,7 @@ namespace MeshUtilities
         const int vcount = (longc + 1) * lattc + 2;
         
         //Vertex_Full
-        auto vertices = PK_CONTIGUOUS_ALLOC(Vertex_Full, vcount);
+        auto vertices = PK_CONTIGUOUS_ALLOC(PKStructs::Vertex_Full, vcount);
 
         vertices[0].position = CG_FLOAT3_UP * radius;
        
@@ -269,7 +512,10 @@ namespace MeshUtilities
             indices[i++] = vcount - (lon + 1) - 1;
         }
 
-        BufferLayout layout = { {CG_TYPE_FLOAT3, "POSITION"}, {CG_TYPE_FLOAT3, "NORMAL"}, {CG_TYPE_FLOAT2, "TEXCOORD0"} };
+        BufferLayout layout = { {CG_TYPE_FLOAT3, "POSITION"}, {CG_TYPE_FLOAT3, "NORMAL"}, {CG_TYPE_FLOAT4, "TANGENT"}, {CG_TYPE_FLOAT2, "TEXCOORD0"} };
+
+        CalculateTangents(reinterpret_cast<float*>(vertices), layout.GetStride() / 4, 0, 3, 6, 10, indices, vcount, icount);
+
         auto mesh = CreateRef<Mesh>(CreateRef<VertexBuffer>(reinterpret_cast<float*>(vertices), vcount, layout), CreateRef<IndexBuffer>(indices, icount));
 
         free(vertices);

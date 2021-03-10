@@ -72,6 +72,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>GLSLTestbed</TargetName>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>GLSLTestbed</TargetName>
@@ -97,14 +98,14 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)\GLSLTestbed\src;$(SolutionDir)\GLSLTestbed\include\glm;$(SolutionDir)\GLSLTestbed\include\stb_image;$(SolutionDir)\GLSLTestbed\include;SDK Path\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>PrecompiledHeader.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)\GLSLTestbed\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;ktx.lib;ktx_read.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;ktx.lib;ktx_read.lib;yaml-cppd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y /d  "$(ProjectDir)libs\*.dll" "$(TargetDir)"
@@ -141,7 +142,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)\GLSLTestbed\src;$(SolutionDir)\GLSLTestbed\include\glm;$(SolutionDir)\GLSLTestbed\include\stb_image;$(SolutionDir)\GLSLTestbed\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>PrecompiledHeader.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -150,7 +151,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(SolutionDir)\GLSLTestbed\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;ktx.lib;ktx_read.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;ktx.lib;ktx_read.lib;yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y /d  "$(ProjectDir)libs\*.dll" "$(TargetDir)"
@@ -447,6 +448,46 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="include\glm\vector_relational.hpp" />
     <ClInclude Include="include\hlslmath.h" />
     <ClInclude Include="include\KTX\ktx.h" />
+    <ClInclude Include="include\mikktspace\mikktspace.h" />
+    <ClInclude Include="include\tinyobjloader\tiny_obj_loader.h" />
+    <ClInclude Include="include\yaml-cpp\anchor.h" />
+    <ClInclude Include="include\yaml-cpp\binary.h" />
+    <ClInclude Include="include\yaml-cpp\contrib\anchordict.h" />
+    <ClInclude Include="include\yaml-cpp\contrib\graphbuilder.h" />
+    <ClInclude Include="include\yaml-cpp\depthguard.h" />
+    <ClInclude Include="include\yaml-cpp\dll.h" />
+    <ClInclude Include="include\yaml-cpp\emitfromevents.h" />
+    <ClInclude Include="include\yaml-cpp\emitter.h" />
+    <ClInclude Include="include\yaml-cpp\emitterdef.h" />
+    <ClInclude Include="include\yaml-cpp\emittermanip.h" />
+    <ClInclude Include="include\yaml-cpp\emitterstyle.h" />
+    <ClInclude Include="include\yaml-cpp\eventhandler.h" />
+    <ClInclude Include="include\yaml-cpp\exceptions.h" />
+    <ClInclude Include="include\yaml-cpp\mark.h" />
+    <ClInclude Include="include\yaml-cpp\node\convert.h" />
+    <ClInclude Include="include\yaml-cpp\node\detail\impl.h" />
+    <ClInclude Include="include\yaml-cpp\node\detail\iterator.h" />
+    <ClInclude Include="include\yaml-cpp\node\detail\iterator_fwd.h" />
+    <ClInclude Include="include\yaml-cpp\node\detail\memory.h" />
+    <ClInclude Include="include\yaml-cpp\node\detail\node.h" />
+    <ClInclude Include="include\yaml-cpp\node\detail\node_data.h" />
+    <ClInclude Include="include\yaml-cpp\node\detail\node_iterator.h" />
+    <ClInclude Include="include\yaml-cpp\node\detail\node_ref.h" />
+    <ClInclude Include="include\yaml-cpp\node\emit.h" />
+    <ClInclude Include="include\yaml-cpp\node\impl.h" />
+    <ClInclude Include="include\yaml-cpp\node\iterator.h" />
+    <ClInclude Include="include\yaml-cpp\node\node.h" />
+    <ClInclude Include="include\yaml-cpp\node\parse.h" />
+    <ClInclude Include="include\yaml-cpp\node\ptr.h" />
+    <ClInclude Include="include\yaml-cpp\node\type.h" />
+    <ClInclude Include="include\yaml-cpp\noexcept.h" />
+    <ClInclude Include="include\yaml-cpp\null.h" />
+    <ClInclude Include="include\yaml-cpp\ostream_wrapper.h" />
+    <ClInclude Include="include\yaml-cpp\parser.h" />
+    <ClInclude Include="include\yaml-cpp\stlemitter.h" />
+    <ClInclude Include="include\yaml-cpp\traits.h" />
+    <ClInclude Include="include\yaml-cpp\yaml.h" />
+    <ClInclude Include="src\Rendering\Objects\Material.h" />
     <ClInclude Include="src\Context\Engines\DebugEngine.h" />
     <ClInclude Include="src\Context\Engines\EngineEditorCamera.h" />
     <ClInclude Include="src\Core\IService.h" />
@@ -471,6 +512,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="src\Core\Application.h" />
     <ClInclude Include="src\Rendering\Objects\Buffer.h" />
     <ClInclude Include="src\Core\Input.h" />
+    <ClInclude Include="src\Rendering\Structs\StructsCommon.h" />
     <ClInclude Include="src\Utilities\HashCache.h" />
     <ClInclude Include="src\Rendering\ShaderPropertyIds.h" />
     <ClInclude Include="src\Utilities\Log.h" />
@@ -492,6 +534,8 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <Library Include="libs\glfw3.lib" />
     <Library Include="libs\ktx.lib" />
     <Library Include="libs\ktx_read.lib" />
+    <Library Include="libs\yaml-cpp.lib" />
+    <Library Include="libs\yaml-cppd.lib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="include\glm\detail\func_common.inl" />
@@ -632,12 +676,16 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="include\glm\gtx\wrap.inl" />
     <None Include="libs\ktx.dll" />
     <None Include="libs\ktx_read.dll" />
-    <None Include="res\shaders\BlitCommon.glsl">
+    <None Include="res\materials\M_Gravel.material" />
+    <None Include="res\materials\M_Metal_Panel.material" />
+    <None Include="res\models\cornell_box.mtl" />
+    <None Include="res\shaders\includes\BlitCommon.glsl">
       <DeploymentContent>true</DeploymentContent>
     </None>
-    <None Include="res\shaders\Lighting.glsl">
+    <None Include="res\shaders\includes\Lighting.glsl">
       <DeploymentContent>true</DeploymentContent>
     </None>
+    <None Include="res\shaders\includes\LightingBRDF.glsl" />
     <None Include="res\shaders\SH_VS_HueTerraceMultisampled.shader">
       <DeploymentContent>true</DeploymentContent>
     </None>
@@ -653,10 +701,17 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\SH_VS_ShaderToyImport.shader">
       <DeploymentContent>true</DeploymentContent>
     </None>
-    <None Include="res\shaders\SphericalHarmonics.glsl" />
-    <None Include="res\shaders\Test.glsl">
+    <None Include="res\shaders\includes\SphericalHarmonics.glsl" />
+    <None Include="res\shaders\includes\Test.glsl">
       <DeploymentContent>true</DeploymentContent>
     </None>
+    <None Include="res\textures\T_Gravel_D.ktx" />
+    <None Include="res\textures\T_Gravel_H.ktx" />
+    <None Include="res\textures\T_Gravel_MAOR.ktx" />
+    <None Include="res\textures\T_Metal_Plates_D.ktx" />
+    <None Include="res\textures\T_Metal_Plates_H.ktx" />
+    <None Include="res\textures\T_Metal_Plates_MAOR.ktx" />
+    <None Include="res\textures\T_Metal_Plates_N.ktx" />
     <None Include="res\textures\T_OEM_01.ktx">
       <DeploymentContent>true</DeploymentContent>
     </None>
@@ -675,6 +730,15 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     </ClCompile>
     <ClCompile Include="include\glm\detail\glm.cpp" />
     <ClCompile Include="include\hlslmath.cpp" />
+    <ClCompile Include="include\mikktspace\mikktspace.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="include\tinyobjloader\tiny_obj_loader.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\Rendering\Objects\Material.cpp" />
     <ClCompile Include="src\Context\Engines\DebugEngine.cpp" />
     <ClCompile Include="src\Context\Engines\EngineEditorCamera.cpp" />
     <ClCompile Include="src\Core\Sequencer.cpp" />
@@ -710,20 +774,21 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClCompile Include="src\Utilities\StringUtilities.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="res\Config.txt">
+    <Text Include="res\ApplicationConfig.cfg">
       <DeploymentContent>true</DeploymentContent>
     </Text>
+    <Text Include="res\shaders\includes\LightingCommon.glsl" />
     <Text Include="res\shaders\SH_WS_Default_Unlit.shader">
       <DeploymentContent>true</DeploymentContent>
     </Text>
-    <Text Include="res\shaders\MathUtilities.glsl">
+    <Text Include="res\shaders\includes\MathUtilities.glsl">
       <DeploymentContent>true</DeploymentContent>
     </Text>
     <Text Include="x64\Debug\GLImageProcessor.Build.CppClean.log" />
     <Text Include="x64\Debug\GLImageProcessor.log" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\shaders\PKCommon.glsl">
+    <None Include="res\shaders\includes\PKCommon.glsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
@@ -731,7 +796,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
       <FileType>Document</FileType>
       <DeploymentContent>true</DeploymentContent>
     </None>
-    <None Include="res\shaders\HLSLSupport.glsl">
+    <None Include="res\shaders\includes\HLSLSupport.glsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
@@ -753,6 +818,11 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <Image Include="res\textures\T_OEM_03.png">
       <DeploymentContent>true</DeploymentContent>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\models\cornell_box.obj">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

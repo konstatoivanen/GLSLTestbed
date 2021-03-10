@@ -9,9 +9,9 @@ class VertexBuffer : public GraphicsObject
 {
 	public:
 		VertexBuffer(size_t size);
-		VertexBuffer(float* vertices, size_t size);
+		VertexBuffer(const void* vertices, size_t size);
 		VertexBuffer(size_t elementCount, const BufferLayout& layout);
-		VertexBuffer(float* vertices, size_t elementCount, const BufferLayout& layout);
+		VertexBuffer(const void* vertices, size_t elementCount, const BufferLayout& layout);
 		~VertexBuffer();
 
 		void SetData(const void* data, size_t size);
@@ -51,6 +51,10 @@ class ComputeBuffer : public GraphicsObject
 		~ComputeBuffer();
 		void SetData(const void* data, size_t offset, size_t size);
 		void SetData(const void* data, size_t size);
+		size_t GetSize() const { return m_count * m_layout.GetStride(); }
+		size_t GetStride() const { return m_layout.GetStride(); }
+		size_t GetCount() const { return m_count; }
 	private:
 		BufferLayout m_layout;
+		size_t m_count;
 };

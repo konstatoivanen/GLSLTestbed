@@ -229,11 +229,6 @@ namespace Graphics
 		glUseProgram(0);
 	}
 	
-	void SetMesh(const Ref<Mesh>& mesh)
-	{
-		glBindVertexArray(mesh != nullptr ? mesh->GetGraphicsID() : 0);
-	}
-
 	void SetVertexBuffer(const Ref<VertexBuffer>& buffer)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, buffer == nullptr ? 0 : buffer->GetGraphicsID());
@@ -247,12 +242,12 @@ namespace Graphics
 	
 	void Blit(const Ref<Shader>& shader)
 	{
-		DrawMesh(BLIT_QUAD, shader);
+		DrawMesh(BLIT_QUAD, 0, shader);
 	}
 	
 	void Blit(const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock)
 	{
-		DrawMesh(BLIT_QUAD, shader, propertyBlock);
+		DrawMesh(BLIT_QUAD, 0, shader, propertyBlock);
 	}
 	
 	void Blit(const Ref<RenderTexture>& destination, const Ref<Shader>& shader)
@@ -289,71 +284,168 @@ namespace Graphics
 		Blit(destination, shader, propertyBlock);
 	}
 	
-	
-	void DrawMesh(const Ref<Mesh>& mesh)
+
+	void Blit(const Ref<Material>& material)
 	{
-		SetMesh(mesh);
-		glDrawElements(GL_TRIANGLES, mesh->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
-	}
-	
-	void DrawMesh(const Ref<Mesh>& mesh, const Ref<Shader>& shader)
-	{
-		shader->ResetKeywords();
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		SetPass(shader);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		DrawMesh(mesh);
-	}
-	
-	void DrawMesh(const Ref<Mesh>& mesh, const Ref<Shader>& shader, const float4x4& matrix)
-	{
-		shader->ResetKeywords();
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		SetPass(shader);
-		SetModelMatrix(matrix);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		DrawMesh(mesh);
-	}
-	
-	void DrawMesh(const Ref<Mesh>& mesh, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock)
-	{
-		shader->ResetKeywords();
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		shader->SetKeywords(propertyBlock.GetKeywords());
-		SetPass(shader);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		shader->SetPropertyBlock(propertyBlock);
-		DrawMesh(mesh);
-	}
-	
-	void DrawMesh(const Ref<Mesh>& mesh, const Ref<Shader>& shader, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock)
-	{
-		shader->ResetKeywords();
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		shader->SetKeywords(propertyBlock.GetKeywords());
-		SetPass(shader);
-		SetModelMatrix(matrix);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		shader->SetPropertyBlock(propertyBlock);
-		DrawMesh(mesh);
+		DrawMesh(BLIT_QUAD, 0, material);
 	}
 
-    void DrawMeshInstanced(const Ref<Mesh>& mesh, uint count)
+	void Blit(const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock)
+	{
+		DrawMesh(BLIT_QUAD, 0, material, propertyBlock);
+	}
+
+	void Blit(const Ref<RenderTexture>& destination, const Ref<Material>& material)
+	{
+		auto activeRenderTarget = GetActiveRenderTarget();
+		SetRenderTarget(destination);
+		Blit(material);
+		SetRenderTarget(activeRenderTarget);
+	}
+
+	void Blit(const Ref<RenderTexture>& destination, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock)
+	{
+		auto activeRenderTarget = GetActiveRenderTarget();
+		SetRenderTarget(destination);
+		Blit(material, propertyBlock);
+		SetRenderTarget(activeRenderTarget);
+	}
+
+	void Blit(const Ref<Texture>& source, const Ref<RenderTexture>& destination, const Ref<Material>& material)
+	{
+		SetGlobalTexture(HashCache::Get()->_MainTex, source->GetGraphicsID());
+		Blit(destination, material);
+	}
+
+	void Blit(const Ref<Texture>& source, const Ref<RenderTexture>& destination, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock)
+	{
+		SetGlobalTexture(HashCache::Get()->_MainTex, source->GetGraphicsID());
+		Blit(destination, material, propertyBlock);
+	}
+
+
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh)
+	{
+		glBindVertexArray(mesh->GetGraphicsID());
+		auto indexRange = mesh->GetSubmeshIndexRange(submesh);
+		glDrawElements(GL_TRIANGLES, indexRange.count, GL_UNSIGNED_INT, (GLvoid*)(size_t)(indexRange.offset * sizeof(GLuint)));
+	}
+	
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader)
+	{
+		shader->ResetKeywords();
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		SetPass(shader);
+		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+		DrawMesh(mesh, submesh);
+	}
+	
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader, const float4x4& matrix)
+	{
+		shader->ResetKeywords();
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		SetPass(shader);
+		SetModelMatrix(matrix);
+		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+		DrawMesh(mesh, submesh);
+	}
+	
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock)
+	{
+		shader->ResetKeywords();
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		shader->SetKeywords(propertyBlock.GetKeywords());
+		SetPass(shader);
+		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+		shader->SetPropertyBlock(propertyBlock);
+		DrawMesh(mesh, submesh);
+	}
+	
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock)
+	{
+		shader->ResetKeywords();
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		shader->SetKeywords(propertyBlock.GetKeywords());
+		SetPass(shader);
+		SetModelMatrix(matrix);
+		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+		shader->SetPropertyBlock(propertyBlock);
+		DrawMesh(mesh, submesh);
+	}
+
+
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material)
+	{
+		auto shader = material->GetShader().lock();
+		shader->ResetKeywords();
+		shader->SetKeywords(material->GetKeywords());
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		SetPass(shader);
+		shader->SetPropertyBlock(*material);
+		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+		DrawMesh(mesh, submesh);
+	}
+
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const float4x4& matrix)
+	{
+		auto shader = material->GetShader().lock();
+		shader->ResetKeywords();
+		shader->SetKeywords(material->GetKeywords());
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		SetPass(shader);
+		SetModelMatrix(matrix);
+		shader->SetPropertyBlock(*material);
+		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+		DrawMesh(mesh, submesh);
+	}
+
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock)
+	{
+		auto shader = material->GetShader().lock();
+		shader->ResetKeywords();
+		shader->SetKeywords(material->GetKeywords());
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		shader->SetKeywords(propertyBlock.GetKeywords());
+		SetPass(shader);
+		shader->SetPropertyBlock(*material);
+		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+		shader->SetPropertyBlock(propertyBlock);
+		DrawMesh(mesh, submesh);
+	}
+
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock)
+	{
+		auto shader = material->GetShader().lock();
+		shader->ResetKeywords();
+		shader->SetKeywords(material->GetKeywords());
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		shader->SetKeywords(propertyBlock.GetKeywords());
+		SetPass(shader);
+		SetModelMatrix(matrix);
+		shader->SetPropertyBlock(*material);
+		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+		shader->SetPropertyBlock(propertyBlock);
+		DrawMesh(mesh, submesh);
+	}
+
+
+    void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count)
     {
-		SetMesh(mesh);
-		glDrawElementsInstanced(GL_TRIANGLES, mesh->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr, count);
+		glBindVertexArray(mesh->GetGraphicsID());
+		auto indexRange = mesh->GetSubmeshIndexRange(submesh);
+		glDrawElementsInstanced(GL_TRIANGLES, indexRange.count, GL_UNSIGNED_INT, (GLvoid*)(size_t)(indexRange.offset * sizeof(GLuint)), count);
     }
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, const Ref<Shader>& shader, uint count)
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Shader>& shader)
 	{
 		shader->ResetKeywords();
 		shader->SetKeywords(GLOBAL_KEYWORDS);
 		SetPass(shader);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		DrawMeshInstanced(mesh, count);
+		DrawMeshInstanced(mesh, submesh, count);
 	}
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock, uint count)
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock)
 	{
 		shader->ResetKeywords();
 		shader->SetKeywords(GLOBAL_KEYWORDS);
@@ -361,6 +453,33 @@ namespace Graphics
 		SetPass(shader);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		shader->SetPropertyBlock(propertyBlock);
-		DrawMeshInstanced(mesh, count);
+		DrawMeshInstanced(mesh, submesh, count);
+	}
+
+
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Material>& material)
+	{
+		auto shader = material->GetShader().lock();
+		shader->ResetKeywords();
+		shader->SetKeywords(material->GetKeywords());
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		SetPass(shader);
+		shader->SetPropertyBlock(*material);
+		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+		DrawMeshInstanced(mesh, submesh, count);
+	}
+
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock)
+	{
+		auto shader = material->GetShader().lock();
+		shader->ResetKeywords();
+		shader->SetKeywords(material->GetKeywords());
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		shader->SetKeywords(propertyBlock.GetKeywords());
+		SetPass(shader);
+		shader->SetPropertyBlock(*material);
+		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+		shader->SetPropertyBlock(propertyBlock);
+		DrawMeshInstanced(mesh, submesh, count);
 	}
 }

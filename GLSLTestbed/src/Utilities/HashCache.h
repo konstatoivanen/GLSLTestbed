@@ -30,4 +30,8 @@ class HashCache : public IService, public ISingleton<HashCache>
         DEFINE_HASH_CACHE(pk_SceneOEM_HDR)
         DEFINE_HASH_CACHE(pk_SceneOEM_ST)
         DEFINE_HASH_CACHE(pk_SceneOEM_RVS)
+        DEFINE_HASH_CACHE(pk_Lights)
+        DEFINE_HASH_CACHE(pk_LightCount)
+        DEFINE_HASH_CACHE(pk_InstancingData)
+        DEFINE_HASH_CACHE(PK_ENABLE_INSTANCING)
 };

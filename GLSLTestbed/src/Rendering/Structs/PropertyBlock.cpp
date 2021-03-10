@@ -12,7 +12,7 @@ PropertyBlock::PropertyBlock(const BufferLayout& layout, uint elementStride) : m
 
 	for (const auto& element : layout)
 	{
-		PK_CORE_ASSERT(CGType::Size(element.Type) % elementStride == 0, "Property block doesnt support elements that are not of ")
+		PK_CORE_ASSERT(CGConvert::Size(element.Type) % elementStride == 0, "Property block doesnt support elements that are not of ")
 		m_properties[StringHashID::StringToID(element.Name)] = { element.Type, element.Size, m_currentByteOffset };
 		m_currentByteOffset += element.Size;
 	}
@@ -29,16 +29,16 @@ void PropertyBlock::SetValue(uint hashid, ushort type, const void* src, uint cou
 		PK_CORE_ERROR("INVALID DATA TYPE OR COUNT!");
 	}
 
-	auto size = (ushort)(CGType::Size(type) * count);
+	auto size = (ushort)(CGConvert::Size(type) * count);
 	auto& info = m_properties[hashid];
 
 	if (info.size == 0)
 	{
 		PK_CORE_ASSERT(!m_explicitLayout, "Cannot add elements to explicitly mapped property block!");
 
-		if (m_currentByteOffset >= m_data.capacity())
+		if (m_currentByteOffset >= m_data.size())
 		{
-			m_data.reserve(m_data.capacity() + size);
+			m_data.resize(m_data.size() + size);
 		}
 
 		info = { type, size, m_currentByteOffset };

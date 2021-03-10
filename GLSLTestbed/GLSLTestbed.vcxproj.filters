@@ -993,11 +993,136 @@
     <ClInclude Include="include\KTX\ktx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Rendering\Structs\StructsCommon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\tinyobjloader\tiny_obj_loader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\Objects\Material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\contrib\anchordict.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\contrib\graphbuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\node\detail\impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\node\detail\iterator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\node\detail\iterator_fwd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\node\detail\memory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\node\detail\node.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\node\detail\node_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\node\detail\node_iterator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\node\detail\node_ref.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\node\convert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\node\emit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\node\impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\node\iterator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\node\node.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\node\parse.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\node\ptr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\node\type.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\anchor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\binary.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\depthguard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\dll.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\emitfromevents.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\emitter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\emitterdef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\emittermanip.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\emitterstyle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\eventhandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\exceptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\mark.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\noexcept.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\null.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\ostream_wrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\stlemitter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\traits.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\yaml-cpp\yaml.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mikktspace\mikktspace.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\glfw3.lib" />
     <Library Include="libs\ktx_read.lib" />
     <Library Include="libs\ktx.lib" />
+    <Library Include="libs\yaml-cpp.lib" />
+    <Library Include="libs\yaml-cppd.lib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="x64\Debug\vc141.idb" />
@@ -1005,9 +1130,6 @@
     <None Include="x64\Debug\GLImageProcessor.tlog\CL.command.1.tlog" />
     <None Include="x64\Debug\GLImageProcessor.tlog\GLImageProcessor.lastbuildstate" />
     <None Include="x64\Debug\GLImageProcessor.tlog\unsuccessfulbuild" />
-    <None Include="res\shaders\Test.glsl" />
-    <None Include="res\shaders\HLSLSupport.glsl" />
-    <None Include="res\shaders\PKCommon.glsl" />
     <None Include="include\glm\detail\func_common.inl">
       <Filter>Header Files</Filter>
     </None>
@@ -1416,17 +1538,32 @@
     <None Include="include\glm\gtx\wrap.inl">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="res\shaders\BlitCommon.glsl" />
     <None Include="res\shaders\SH_VS_ShaderToyImport.shader" />
     <None Include="res\shaders\SH_VS_Internal_Blit.shader" />
     <None Include="res\shaders\SH_VS_HueTerraceSimple.shader" />
     <None Include="res\shaders\SH_VS_HueTerraceMultisampled.shader" />
     <None Include="res\shaders\SH_VS_IBLBackground.shader" />
-    <None Include="res\shaders\Lighting.glsl" />
     <None Include="res\textures\T_OEM_01.ktx" />
     <None Include="libs\ktx.dll" />
     <None Include="libs\ktx_read.dll" />
-    <None Include="res\shaders\SphericalHarmonics.glsl" />
+    <None Include="res\shaders\includes\BlitCommon.glsl" />
+    <None Include="res\shaders\includes\HLSLSupport.glsl" />
+    <None Include="res\shaders\includes\Lighting.glsl" />
+    <None Include="res\shaders\includes\PKCommon.glsl" />
+    <None Include="res\shaders\includes\SphericalHarmonics.glsl" />
+    <None Include="res\shaders\includes\Test.glsl" />
+    <None Include="res\shaders\includes\LightingBRDF.glsl" />
+    <None Include="res\models\cornell_box.mtl" />
+    <None Include="res\models\cornell_box.obj" />
+    <None Include="res\materials\M_Metal_Panel.material" />
+    <None Include="res\textures\T_Metal_Plates_D.ktx" />
+    <None Include="res\textures\T_Metal_Plates_MAOR.ktx" />
+    <None Include="res\textures\T_Metal_Plates_N.ktx" />
+    <None Include="res\textures\T_Gravel_D.ktx" />
+    <None Include="res\textures\T_Gravel_H.ktx" />
+    <None Include="res\textures\T_Gravel_MAOR.ktx" />
+    <None Include="res\textures\T_Metal_Plates_H.ktx" />
+    <None Include="res\materials\M_Gravel.material" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">
@@ -1513,13 +1650,23 @@
     <ClCompile Include="src\Context\Engines\DebugEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="include\tinyobjloader\tiny_obj_loader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rendering\Objects\Material.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="include\mikktspace\mikktspace.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="x64\Debug\GLImageProcessor.log" />
     <Text Include="x64\Debug\GLImageProcessor.Build.CppClean.log" />
-    <Text Include="res\Config.txt" />
-    <Text Include="res\shaders\MathUtilities.glsl" />
     <Text Include="res\shaders\SH_WS_Default_Unlit.shader" />
+    <Text Include="res\shaders\includes\MathUtilities.glsl" />
+    <Text Include="res\shaders\includes\LightingCommon.glsl" />
+    <Text Include="res\ApplicationConfig.cfg" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\checkerboard.png">

@@ -1,6 +1,6 @@
 #version 460
 
-#include Lighting.glsl
+#include includes/Lighting.glsl
 
 #pragma PROGRAM_VERTEX
 

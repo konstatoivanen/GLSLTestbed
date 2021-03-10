@@ -27,7 +27,7 @@ void Time::Reset()
 
 void Time::LogFrameRate()
 {
-    PK_CORE_LOG_OVERWRITE("FPS: %4.1i, FIXED: %i, MIN: %i, MAX: %i, AVG: %i     ", m_framerate, m_framerateFixed, m_framerateMin, m_framerateMax, m_framerateAvg);
+    PK_CORE_LOG_OVERWRITE("FPS: %4.1i, FIXED: %i, MIN: %i, MAX: %i, AVG: %i MS: %4.2f    ", m_framerate, m_framerateFixed, m_framerateMin, m_framerateMax, m_framerateAvg, m_unscaledDeltaTime * 1000.0f);
 }
 
 void Time::Step(int condition)

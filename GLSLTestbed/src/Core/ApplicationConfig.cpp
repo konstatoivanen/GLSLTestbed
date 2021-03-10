@@ -3,65 +3,92 @@
 #include "Utilities/StringUtilities.h"
 #include "Core/ApplicationConfig.h"
 #include <GLFW\glfw3.h>
+#include <yaml-cpp/yaml.h>
 
 ApplicationConfig::ApplicationConfig(const std::string& filepath)
 {
-	std::ifstream file(filepath);
+	YAML::Node root = YAML::LoadFile(filepath);
 
-	PK_CORE_ASSERT(!file.fail(), "Failed to open config file at: %s", filepath.c_str());
+	PK_CORE_ASSERT(root, "Failed to open config file at: %s", filepath.c_str());
 
-	std::string line;
-	std::unordered_map<std::string, std::string> variables;
+	auto properties = root["Properties"];
 
-	while (std::getline(file, line))
-	{
-		if (line.find("#") == line.npos)
-		{
-			continue;
-		}
+	PK_CORE_ASSERT(properties, "Config (%s) doesn't contain any properties!", filepath.c_str());
 
-		line.erase(0, 1);
+	YAML::Node prop;
 
-		auto spaceIdx = line.find(" ");
+	prop = properties["EnableConsole"];
+	enable_console = prop ? prop.as<bool>() : false;
 
-		if (spaceIdx == line.npos || spaceIdx == line.length() - 1)
-		{
-			continue;
-		}
+	prop = properties["EnableVsync"];
+	enable_vsync = prop ? prop.as<bool>() : false;
 
-		auto name = line.substr(0, spaceIdx);
-		auto value = StringUtilities::Trim(line.erase(0, spaceIdx));
-		variables[name] = value;
-	}
+	prop = properties["EnableVerbose"];
+	enable_verbose = prop ? prop.as<bool>() : false;
 
-	enable_console = variables.count("enable_console") ? stoi(variables["enable_console"]) > 0 : false;
-	enable_vsync = variables.count("enable_vsync") ? stoi(variables["enable_vsync"]) > 0 : false;
-	enable_verbose = variables.count("enable_verbose") ? stoi(variables["enable_verbose"]) > 0 : false;
-	enable_profiler = variables.count("enable_profiler") ? stoi(variables["enable_profiler"]) > 0 : false;
-	enable_orthographic = variables.count("enable_orthographic") ? stoi(variables["enable_orthographic"]) > 0 : false;
+	prop = properties["EnableProfiler"];
+	enable_profiler = prop ? prop.as<bool>() : false;
 
-	window_width = variables.count("window_width") ? stoi(variables["window_width"]) : 512;
-	window_height = variables.count("window_height") ? stoi(variables["window_height"]) : 512;
+	prop = properties["EnableOrthoGraphic"];
+	enable_orthographic = prop ? prop.as<bool>() : false;
 
-	camera_move_speed = variables.count("camera_move_speed") ? stof(variables["camera_move_speed"]) : 1.0f;
-	camera_field_o_fview = variables.count("camera_field_o_fview") ? stof(variables["camera_field_o_fview"]) : 90.0f;
-	camera_orthographic_size = variables.count("camera_orthographic_size") ? stof(variables["camera_orthographic_size"]) : 10.0f;
-	camera_clip_near = variables.count("camera_clip_near") ? stof(variables["camera_clip_near"]) : 0.1f;
-	camera_clip_far = variables.count("camera_clip_far") ? stof(variables["camera_clip_far"]) : 100.0f;
+	prop = properties["WindowWidth"];
+	window_width = prop ? prop.as<int>() : 512;
 
-	time_scale = variables.count("time_scale") ? stof(variables["time_scale"]) : 1.0f;
+	prop = properties["WindowHeight"];
+	window_height = prop ? prop.as<int>() : 512;
 
-	input_shader_next = variables.count("input_shader_next") ? stoi(variables["input_shader_next"]) : GLFW_KEY_Z;
-	input_shader_reimport = variables.count("input_shader_reimport") ? stoi(variables["input_shader_reimport"]) : GLFW_KEY_X;
-	input_shader_list_uniforms = variables.count("input_shader_list_uniforms") ? stoi(variables["input_shader_list_uniforms"]) : GLFW_KEY_B;
-	input_timescale_increase = variables.count("input_timescale_increase") ? stoi(variables["input_timescale_increase"]) : GLFW_KEY_C;
-	input_timescale_decrease = variables.count("input_timescale_decrease") ? stoi(variables["input_timescale_decrease"]) : GLFW_KEY_V;
-	input_exit = variables.count("input_exit") ? stoi(variables["input_exit"]) : GLFW_KEY_ESCAPE;
+	prop = properties["CameraSpeed"];
+	camera_move_speed = prop ? prop.as<float>() : 5.0f;
 
-	input_move_forward = variables.count("input_move_forward") ? stoi(variables["input_move_forward"]) : GLFW_KEY_W;
-	input_move_backward = variables.count("input_move_backward") ? stoi(variables["input_move_backward"]) : GLFW_KEY_S;
-	input_move_left = variables.count("input_move_left") ? stoi(variables["input_move_left"]) : GLFW_KEY_A;
-	input_move_right = variables.count("input_move_right") ? stoi(variables["input_move_right"]) : GLFW_KEY_D;
-	input_move_up = variables.count("input_move_up") ? stoi(variables["input_move_up"]) : GLFW_KEY_Q;
-	input_move_down = variables.count("input_move_down") ? stoi(variables["input_move_down"]) : GLFW_KEY_E;
+	prop = properties["CameraFov"];
+	camera_field_o_fview = prop ? prop.as<float>() : 75.0f;
+
+	prop = properties["CameraOrthographicSize"];
+	camera_orthographic_size = prop ? prop.as<float>() : 10.0f;
+
+	prop = properties["CameraClipNear"];
+	camera_clip_near = prop ? prop.as<float>() : 0.1f;
+
+	prop = properties["CameraClipFar"];
+	camera_clip_far = prop ? prop.as<float>() : 200.0f;
+
+	prop = properties["TimeScale"];
+	time_scale = prop ? prop.as<float>() : 1.0f;
+
+	prop = properties["ButtonShaderNext"];
+	input_shader_next = prop ? Input::StringToKey(prop.as<std::string>()) : KeyCode::X;
+
+	prop = properties["ButtonShaderReimport"];
+	input_shader_reimport = prop ? Input::StringToKey(prop.as<std::string>()) : KeyCode::R;
+
+	prop = properties["ButtonListUniforms"];
+	input_shader_list_uniforms = prop ? Input::StringToKey(prop.as<std::string>()) : KeyCode::L;
+
+	prop = properties["ButtonTimescaleUp"];
+	input_timescale_increase = prop ? Input::StringToKey(prop.as<std::string>()) : KeyCode::C;
+
+	prop = properties["ButtonTimescaleDown"];
+	input_timescale_decrease = prop ? Input::StringToKey(prop.as<std::string>()) : KeyCode::V;
+
+	prop = properties["ButtonExit"];
+	input_exit = prop ? Input::StringToKey(prop.as<std::string>()) : KeyCode::ESCAPE;
+
+	prop = properties["ButtonMoveForward"];
+	input_move_forward = prop ? Input::StringToKey(prop.as<std::string>()) : KeyCode::W;
+
+	prop = properties["ButtonMoveBackward"];
+	input_move_backward = prop ? Input::StringToKey(prop.as<std::string>()) : KeyCode::S;
+
+	prop = properties["ButtonMoveLeft"];
+	input_move_left = prop ? Input::StringToKey(prop.as<std::string>()) : KeyCode::A;
+
+	prop = properties["ButtonMoveRight"];
+	input_move_right = prop ? Input::StringToKey(prop.as<std::string>()) : KeyCode::D;
+
+	prop = properties["ButtonMoveUP"];
+	input_move_up = prop ? Input::StringToKey(prop.as<std::string>()) : KeyCode::Q;
+
+	prop = properties["ButtonMoveDown"];
+	input_move_down = prop ? Input::StringToKey(prop.as<std::string>()) : KeyCode::E;
 }

@@ -2,8 +2,10 @@
 #include "Utilities/Log.h"
 #include "Rendering/Objects/Mesh.h"
 #include "Rendering/Graphics.h"
+#include "Rendering/MeshUtility.h"
 #include <glad/glad.h>
 #include <hlslmath.h>
+#include <tinyobjloader/tiny_obj_loader.h>
 
 Mesh::Mesh()
 {
@@ -44,32 +46,32 @@ void Mesh::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer)
 			case CG_TYPE_INT3:
 			case CG_TYPE_INT4:
 			{
-				glEnableVertexAttribArray(m_VertexBufferIndex);
-				glVertexAttribPointer(m_VertexBufferIndex,
-					CGType::Components(element.Type),
-					CGType::BaseType(element.Type),
+				glEnableVertexAttribArray(m_vertexBufferIndex);
+				glVertexAttribPointer(m_vertexBufferIndex,
+					CGConvert::Components(element.Type),
+					CGConvert::BaseType(element.Type),
 					element.Normalized ? GL_TRUE : GL_FALSE,
 					layout.GetStride(),
 					(const void*)element.Offset);
-				m_VertexBufferIndex++;
+				++m_vertexBufferIndex;
 				break;
 			}
 			case CG_TYPE_FLOAT3X3:
 			case CG_TYPE_FLOAT4X4:
 			{
-				auto count = CGType::Components(element.Type);
+				auto count = CGConvert::Components(element.Type);
 
 				for (uint8_t i = 0; i < count; i++)
 				{
-					glEnableVertexAttribArray(m_VertexBufferIndex);
-					glVertexAttribPointer(m_VertexBufferIndex,
+					glEnableVertexAttribArray(m_vertexBufferIndex);
+					glVertexAttribPointer(m_vertexBufferIndex,
 						count,
-						CGType::BaseType(element.Type),
+						CGConvert::BaseType(element.Type),
 						element.Normalized ? GL_TRUE : GL_FALSE,
 						layout.GetStride(),
 						(const void*)(element.Offset + sizeof(float) * count * i));
-					glVertexAttribDivisor(m_VertexBufferIndex, 1);
-					m_VertexBufferIndex++;
+					glVertexAttribDivisor(m_vertexBufferIndex, 1);
+					++m_vertexBufferIndex;
 				}
 				break;
 			}
@@ -78,12 +80,96 @@ void Mesh::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer)
 		}
 	}
 
-	m_VertexBuffers.push_back(vertexBuffer);
+	m_vertexBuffers.push_back(vertexBuffer);
 }
 
 void Mesh::SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer)
 {
 	glBindVertexArray(m_graphicsId);
 	Graphics::SetIndexBuffer(indexBuffer);
-	m_IndexBuffer = indexBuffer;
+	m_indexBuffer = indexBuffer;
+}
+
+const PKStructs::IndexRange Mesh::GetSubmeshIndexRange(uint submesh) const
+{
+	if (m_indexRanges.empty())
+	{
+		return { 0, m_indexBuffer->GetCount() };
+	}
+
+	auto idx = glm::min(submesh, (uint)m_indexRanges.size());
+	return m_indexRanges.at(idx);
+}
+
+template<>
+void AssetImporters::Import<Mesh>(const std::string& filepath, Ref<Mesh>& mesh)
+{
+	if (mesh->m_graphicsId)
+	{
+		glDeleteVertexArrays(1, &mesh->m_graphicsId);
+	}
+
+	glCreateVertexArrays(1, &mesh->m_graphicsId);
+
+	mesh->m_vertexBufferIndex = 0;
+	mesh->m_vertexBuffers.clear();
+	mesh->m_indexBuffer = nullptr;
+	mesh->m_indexRanges.clear();
+
+	tinyobj::attrib_t attrib;
+	std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::material_t> materials;
+	std::string err;
+	
+	bool success = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, filepath.c_str(), StringUtilities::ReadDirectory(filepath).c_str(), true);
+
+	PK_CORE_ASSERT(err.empty(), err.c_str());
+	PK_CORE_ASSERT(!attrib.vertices.empty(), "Mesh doesn't contain vertices");
+	PK_CORE_ASSERT(success, "Failed to load .obj");
+
+	uint indexCount = 0;
+	std::vector<uint> indices;
+	std::vector<PKStructs::IndexRange> submeshes;
+
+	for (size_t i = 0; i < shapes.size(); ++i) 
+	{
+		auto& tris = shapes.at(i).mesh.indices;
+		auto tcount = (uint)tris.size();
+
+		submeshes.push_back({ indexCount, tcount });
+
+		for (uint j = 0; j < tcount; ++j)
+		{
+			indices.push_back(tris.at(j).vertex_index);
+		}
+
+		indexCount += tcount;
+	}
+
+	auto vcount = attrib.vertices.size() / 3;
+	auto hasNormals = !attrib.normals.empty() && (attrib.normals.size() / 3) == vcount;
+	auto hasUVs = !attrib.texcoords.empty() && (attrib.texcoords.size() / 2) == vcount;
+
+	mesh->AddVertexBuffer(CreateRef<VertexBuffer>(attrib.vertices.data(), vcount, BufferLayout({ { CG_TYPE_FLOAT3, "POSITION" } })));
+
+	if (hasNormals)
+	{
+		mesh->AddVertexBuffer(CreateRef<VertexBuffer>(attrib.normals.data(), vcount, BufferLayout({ { CG_TYPE_FLOAT3, "NORMAL" } })));
+	}
+	else
+	{
+		auto normals = PK_CONTIGUOUS_ALLOC(float3, vcount);
+		auto vertices = reinterpret_cast<float3*>(attrib.vertices.data());
+		MeshUtilities::CalculateNormals(vertices, indices.data(), normals, (uint)vcount, (uint)indices.size());
+		mesh->AddVertexBuffer(CreateRef<VertexBuffer>(normals, vcount, BufferLayout({ { CG_TYPE_FLOAT3, "NORMAL" } })));
+		free(normals);
+	}
+
+	if (hasUVs)
+	{
+		mesh->AddVertexBuffer(CreateRef<VertexBuffer>(attrib.texcoords.data(), vcount, BufferLayout({ { CG_TYPE_FLOAT2, "TEXCOORD0" } })));
+	}
+
+	mesh->SetIndexBuffer(CreateRef<IndexBuffer>(indices.data(), (uint)indices.size()));
+	mesh->SetSubMeshes(submeshes);
 }

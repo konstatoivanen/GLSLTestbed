@@ -62,40 +62,69 @@ namespace StringUtilities
 		auto count = lastDot == std::string::npos ? filepath.size() - lastSlash : lastDot - lastSlash;
 		return filepath.substr(lastSlash, count);
 	}
-	
-	std::string ReadFileRecursiveInclude(const std::string& filepath, bool isRecursive)
+
+    std::string ReadDirectory(const std::string& filepath)
+    {
+		auto lastSlash = filepath.find_last_of("/\\");
+		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
+		return filepath.substr(0, lastSlash);
+    }
+
+	std::string ReadFileRecursiveInclude(const std::string& filepath, std::vector<std::string>& includes, bool isRecursive)
 	{
+		auto includeOnceToken = "#pragma once";
 		auto includeToken = "#include ";
 		auto includeTokenLength = strlen(includeToken);
-	
+		auto foundPragmaOnce = false;
+
 		std::ifstream file(filepath, std::ios::in);
-	
+
 		PK_CORE_ASSERT(file, "Could not open file at: %s", filepath.c_str());
 
 		std::string result;
 		std::string lineBuffer;
-	
+
 		while (std::getline(file, lineBuffer))
 		{
+			if (!foundPragmaOnce && lineBuffer.find(includeOnceToken) != lineBuffer.npos)
+			{
+				foundPragmaOnce = true;
+
+				if (std::find(includes.begin(), includes.end(), filepath) != includes.end())
+				{
+					file.close();
+					return "";
+				}
+
+				includes.push_back(filepath);
+				continue;
+			}
+
 			if (lineBuffer.find(includeToken) != lineBuffer.npos)
 			{
 				lineBuffer.erase(0, includeTokenLength);
 				lineBuffer.insert(0, filepath.substr(0, filepath.find_last_of("/\\") + 1));
-				result += ReadFileRecursiveInclude(lineBuffer, true);
+				result += ReadFileRecursiveInclude(lineBuffer, includes, true);
 				continue;
 			}
-	
+
 			result += lineBuffer + '\n';
 		}
-	
+
 		if (!isRecursive)
 		{
 			result += '\0';
 		}
-	
+
 		file.close();
 
 		return result;
+	}
+
+	std::string ReadFileRecursiveInclude(const std::string& filepath)
+	{
+		std::vector<std::string> includes;
+		return StringUtilities::ReadFileRecursiveInclude(filepath, includes, false);
 	}
 	
 	std::string ExtractTokens(const char* token, std::string& source, bool includeToken)

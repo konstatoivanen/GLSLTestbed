@@ -27,10 +27,12 @@ class DebugEngine : public IService, public PKECS::ISimpleStep, public PKECS::IS
 		AssetDatabase* m_assetDatabase;
 		Time* m_time;
 	
-		Weak<Shader> cubeShader;
+		Weak<Material> materialMetal;
+		Weak<Material> materialGravel;
 		Weak<Shader> iblShader;
 		Ref<ComputeBuffer> instanceMatrices;
-		Ref<Mesh> cubeMesh;
+		Weak<Mesh> cornellBox;
+		Ref<Mesh> meshSphere;
 		Ref<RenderTexture> renderTarget;
 		Weak<Texture2D> reflectionMap;
 };

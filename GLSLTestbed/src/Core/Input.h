@@ -170,12 +170,12 @@ class Input : public IService, public PKECS::ISimpleStep
 		void OnScrollInput(double scrollX, double scrollY);
 		void OnMouseButtonInput(int button, int action, int mods);
         
-        std::string KeyToString(KeyCode keycode);
-        KeyCode StringToKey(const std::string& string);
+        static std::string KeyToString(KeyCode keycode);
+        static KeyCode StringToKey(const std::string& string);
 
 	private:
         PKECS::Sequencer* m_sequencer;
-
+        
 		std::unordered_map<KeyCode, InputState> m_inputStateCurrent;
 		std::unordered_map<KeyCode, InputState> m_inputStatePrevious;
 		float2 m_mousePrev = CG_FLOAT2_ZERO;

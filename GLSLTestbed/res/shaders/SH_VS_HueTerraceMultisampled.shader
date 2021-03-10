@@ -1,10 +1,10 @@
 #version 460
 
-#include Test.glsl
+#include includes/Test.glsl
 
 #pragma PROGRAM_VERTEX
 #define USE_VERTEX_PROGRAM_IMG
-#include BlitCommon.glsl
+#include includes/BlitCommon.glsl
 
 #pragma PROGRAM_FRAGMENT
 in float2 vs_TEXCOORD0;

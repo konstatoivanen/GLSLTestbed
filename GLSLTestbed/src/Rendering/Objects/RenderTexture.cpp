@@ -72,7 +72,7 @@ void RenderTexture::Rebuild(const RenderTextureDescriptor& descriptor)
 
 	if (colorCount > 0)
 	{
-		glDrawBuffers(colorCount, buffers);
+		glDrawBuffers((GLsizei)colorCount, buffers);
 	}
 	else
 	{
@@ -102,7 +102,7 @@ void RenderTexture::DiscardContents()
 		buffers[colorCount] = GL_DEPTH_STENCIL_ATTACHMENT;
 	}
 
-	glInvalidateFramebuffer(GL_FRAMEBUFFER, count, buffers);
+	glInvalidateFramebuffer(GL_FRAMEBUFFER, (GLsizei)count, buffers);
 
 }
 

@@ -160,12 +160,13 @@ const float CG_FLOAT_2PI = 2.0f * 3.14159274F;
 const float CG_FLOAT_DEG2RAD = 0.0174532924F;
 const float CG_FLOAT_RAD2DEG = 57.29578F;
 
-class CGType
+namespace CGConvert
 {
-    public:
-        static ushort Size(ushort type);
-        static ushort Components(ushort type);
-        static ushort BaseType(ushort type);
+    ushort Size(ushort type);
+    ushort Components(ushort type);
+    ushort BaseType(ushort type);
+    std::string ToString(ushort type);
+    ushort FromString(const char* string);
 };
 
 namespace CGMath

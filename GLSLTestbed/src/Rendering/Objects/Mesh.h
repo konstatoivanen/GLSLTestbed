@@ -1,10 +1,14 @@
 #pragma once
 #include "PreCompiledHeader.h"
 #include "Utilities/Ref.h"
+#include "Core/AssetDataBase.h"
 #include "Rendering/Objects/Buffer.h"
+#include "Rendering/Structs/StructsCommon.h"
 
-class Mesh : public GraphicsObject
+class Mesh : public GraphicsObject, public Asset
 {
+	friend void AssetImporters::Import(const std::string& filepath, Ref<Mesh>& mesh);
+
 	public:
 		Mesh();
 		Mesh(const Ref<VertexBuffer>& vertexBuffer, const Ref<IndexBuffer>& indexBuffer);
@@ -12,12 +16,17 @@ class Mesh : public GraphicsObject
 	
 		void AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer);
 		void SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer);
+		void SetSubMeshes(const std::initializer_list<PKStructs::IndexRange>& indexRanges) { m_indexRanges = indexRanges; }
+		void SetSubMeshes(const std::vector<PKStructs::IndexRange>& indexRanges) { m_indexRanges = indexRanges; }
 	
-		const std::vector<Ref<VertexBuffer>>& GetVertexBuffers() const { return m_VertexBuffers; }
-		const Ref<IndexBuffer>& GetIndexBuffer() const { return m_IndexBuffer; }
+		const std::vector<Ref<VertexBuffer>>& GetVertexBuffers() const { return m_vertexBuffers; }
+		const Ref<IndexBuffer>& GetIndexBuffer() const { return m_indexBuffer; }
+		const PKStructs::IndexRange GetSubmeshIndexRange(uint submesh) const;
+		const uint GetSubmeshCount() const { return glm::max(1, (int)m_indexRanges.size()); }
 
 	private:
-		uint32_t m_VertexBufferIndex = 0;
-		std::vector<Ref<VertexBuffer>> m_VertexBuffers;
-		Ref<IndexBuffer> m_IndexBuffer;
+		uint32_t m_vertexBufferIndex = 0;
+		std::vector<Ref<VertexBuffer>> m_vertexBuffers;
+		Ref<IndexBuffer> m_indexBuffer;
+		std::vector<PKStructs::IndexRange> m_indexRanges;
 };

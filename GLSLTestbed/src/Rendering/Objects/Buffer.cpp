@@ -19,7 +19,7 @@ VertexBuffer::VertexBuffer(size_t size)
 	glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
 }
 
-VertexBuffer::VertexBuffer(float* vertices, size_t size)
+VertexBuffer::VertexBuffer(const void* vertices, size_t size)
 {
 	glCreateBuffers(1, &m_graphicsId);
 	glBindBuffer(GL_ARRAY_BUFFER, m_graphicsId);
@@ -31,7 +31,7 @@ VertexBuffer::VertexBuffer(size_t elementCount, const BufferLayout& layout) : Ve
 	SetLayout(layout);
 }
 
-VertexBuffer::VertexBuffer(float* vertices, size_t elementCount, const BufferLayout& layout) : VertexBuffer(vertices, layout.GetStride() * elementCount)
+VertexBuffer::VertexBuffer(const void* vertices, size_t elementCount, const BufferLayout& layout) : VertexBuffer(vertices, layout.GetStride() * elementCount)
 {
 	SetLayout(layout);
 }
@@ -78,11 +78,13 @@ void ConstantBuffer::FlushBufer()
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, m_data.size(), m_data.data());
 }
 
-ComputeBuffer::ComputeBuffer(const BufferLayout& layout, uint count) : m_layout(layout)
+ComputeBuffer::ComputeBuffer(const BufferLayout& layout, uint count) : m_count(count), m_layout(layout)
 {
+	auto stride = m_layout.GetStride();
+	auto size = GetSize();
 	glGenBuffers(1, &m_graphicsId);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_graphicsId);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, (size_t)layout.GetStride() * (size_t)count, nullptr, GL_DYNAMIC_DRAW);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
 }
 
 ComputeBuffer::~ComputeBuffer()
@@ -93,7 +95,7 @@ ComputeBuffer::~ComputeBuffer()
 void ComputeBuffer::SetData(const void* data, size_t offset, size_t size)
 {
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_graphicsId);
-	auto dest = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, offset, size, GL_WRITE_ONLY | GL_MAP_INVALIDATE_BUFFER_BIT);
+	auto dest = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, offset, size, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
 	memcpy(dest, data, size);
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 }

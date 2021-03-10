@@ -25,6 +25,12 @@ RenderPipeline::RenderPipeline(AssetDatabase* assetDatabase)
 		{CG_TYPE_FLOAT4X4, "pk_MATRIX_VP"},
 		{CG_TYPE_FLOAT4X4, "pk_MATRIX_I_VP"},
 	}));
+
+	m_lightsBuffer = CreateRef<ComputeBuffer>(BufferLayout(
+	{
+		{CG_TYPE_FLOAT4, "COLOR"},
+		{CG_TYPE_FLOAT4, "DIRECTION"}
+	}), 32);
 }
 
 void RenderPipeline::Step(Time* timeRef)
@@ -37,6 +43,19 @@ void RenderPipeline::Step(Time* timeRef)
 	m_constantsPerFrame->SetFloat4(hashCache->pk_SinTime, { sinf(time / 8), sinf(time / 4), sinf(time / 2), sinf(time) });
 	m_constantsPerFrame->SetFloat4(hashCache->pk_CosTime, { cosf(time / 8), cosf(time / 4), cosf(time / 2), cosf(time) });
 	m_constantsPerFrame->SetFloat4(hashCache->pk_DeltaTime, { deltatime, 1.0f / deltatime, smoothdeltatime, 1.0f / smoothdeltatime });
+
+	if (m_lights.size() != 2)
+	{
+		m_lights.resize(2);
+	}
+
+	m_lights[0] = { float4(4.0f, 4.0f, 4.0f, 0.0f), float4(0.0f, sin(time), cos(time), 0.0f) };
+	m_lights[1] = { float4(0.5f, 0.5f, 0.5f, 0.0f), float4(sin(time + 0.5f), cos(time + 0.5f), 0, 0.0f) };
+
+	m_lightsBuffer->SetData(m_lights.data(), 0, sizeof(PKStructs::PKLight) * 2);
+
+	Graphics::SetGlobalComputeBuffer(StringHashID::StringToID("pk_Lights"), m_lightsBuffer->GetGraphicsID());
+	Graphics::SetGlobalInt(StringHashID::StringToID("pk_LightCount"), 2);
 }
 
 void RenderPipeline::Step(int condition)
@@ -56,6 +75,8 @@ void RenderPipeline::Step(int condition)
 void RenderPipeline::OnPreRender()
 {
 	Graphics::StartWindow();
+
+
 	m_constantsPerFrame->CopyFrom(m_context.ShaderProperties);
 	m_constantsPerFrame->FlushBufer();
 	Graphics::SetGlobalConstantBuffer(StringHashID::StringToID("pk_PerFrameConstants"), m_constantsPerFrame->GetGraphicsID());

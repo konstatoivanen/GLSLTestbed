@@ -118,12 +118,17 @@ class AssetDatabase : public IService
         void Reload(const Weak<T>& asset) 
         {
             auto assetId = asset.lock()->GetAssetID();
-            return Reload<T>(StringHashID::IDToString(assetId), assetId); 
+            Reload<T>(StringHashID::IDToString(assetId), assetId); 
         }
 
         template<typename T>
         void LoadDirectory(const std::string& directory, std::initializer_list<const char*> extensions)
         {
+            if (!std::filesystem::exists(directory))
+            {
+                return;
+            }
+
             for (const auto& entry : std::filesystem::directory_iterator(directory))
             {
                 auto& path = entry.path();
@@ -149,6 +154,11 @@ class AssetDatabase : public IService
         template<typename T>
         void ReloadDirectory(const std::string& directory, std::initializer_list<const char*> extensions)
         {
+            if (!std::filesystem::exists(directory))
+            {
+                return;
+            }
+
             for (const auto& entry : std::filesystem::directory_iterator(directory))
             {
                 auto& path = entry.path();
@@ -174,6 +184,11 @@ class AssetDatabase : public IService
         template<typename T>
         void UnloadDirectory(const std::string& directory, std::initializer_list<const char*> extensions)
         {
+            if (!std::filesystem::exists(directory))
+            {
+                return;
+            }
+
             for (const auto& entry : std::filesystem::directory_iterator(directory))
             {
                 auto& path = entry.path();

@@ -2,6 +2,7 @@
 #include "Utilities/Ref.h"
 #include "Rendering/Objects/Mesh.h"
 #include "Rendering/Objects/Shader.h"
+#include "Rendering/Objects/Material.h"
 #include "Rendering/Objects/RenderTexture.h"
 #include "Rendering/Structs/GraphicsContext.h"
 #include <GLFW/glfw3.h>
@@ -62,7 +63,6 @@ namespace Graphics
 	void SetRenderTarget(const Ref<RenderTexture>& renderTexture);
 	void SetRenderBuffer(const Ref<RenderBuffer>& renderBuffer, GLenum attachment);
 	void SetPass(const Ref<Shader>& shader, uint32_t pass = 0);
-	void SetMesh(const Ref<Mesh>& mesh);
 	void SetVertexBuffer(const Ref<VertexBuffer>& buffer);
 	void SetIndexBuffer(const Ref<IndexBuffer>& buffer);
 
@@ -74,13 +74,28 @@ namespace Graphics
 	void Blit(const Ref<Texture>& source, const Ref<RenderTexture>& destination, const Ref<Shader>& shader);
 	void Blit(const Ref<Texture>& source, const Ref<RenderTexture>& destination, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock);
 
-	void DrawMesh(const Ref<Mesh>& mesh);
-	void DrawMesh(const Ref<Mesh>& mesh, const Ref<Shader>& shader);
-	void DrawMesh(const Ref<Mesh>& mesh, const Ref<Shader>& shader, const float4x4& matrix);
-	void DrawMesh(const Ref<Mesh>& mesh, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock);
-	void DrawMesh(const Ref<Mesh>& mesh, const Ref<Shader>& shader, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock);
+	void Blit(const Ref<Material>& material);
+	void Blit(const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
+	void Blit(const Ref<RenderTexture>& destination, const Ref<Material>& material);
+	void Blit(const Ref<RenderTexture>& destination, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
+	void Blit(const Ref<Texture>& source, const Ref<RenderTexture>& destination, const Ref<Material>& material);
+	void Blit(const Ref<Texture>& source, const Ref<RenderTexture>& destination, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint count);
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, const Ref<Shader>& shader, uint count);
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock, uint count);
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh);
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader);
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader, const float4x4& matrix);
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock);
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock);
+
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material);
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const float4x4& matrix);
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock);
+
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count);
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Shader>& shader);
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock);
+
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Material>& material);
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
 }

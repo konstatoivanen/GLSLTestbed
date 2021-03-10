@@ -35,7 +35,7 @@ class RenderTexture : public Texture
 
         Weak<RenderBuffer> GetColorBuffer(int index) const { return colorBuffers.at(index); }
         Weak<RenderBuffer> GetDepthBuffer() const { return depthBuffer; }
-        uint32_t GetColorBufferCount() const { return colorBuffers.size(); }
+        size_t GetColorBufferCount() const { return colorBuffers.size(); }
 
     private:
         std::vector<Ref<RenderBuffer>> colorBuffers;

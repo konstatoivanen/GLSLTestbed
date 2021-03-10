@@ -1,5 +1,6 @@
 #pragma once
 #include "PrecompiledHeader.h"
+#include "Input.h"
 
 struct ApplicationConfig
 {
@@ -20,19 +21,19 @@ struct ApplicationConfig
 	
 	float time_scale;
 
-	int input_shader_next;
-	int input_shader_reimport;
-	int input_shader_list_uniforms;
-	int input_timescale_increase;
-	int input_timescale_decrease;
-	int input_exit;
+	KeyCode input_shader_next;
+	KeyCode input_shader_reimport;
+	KeyCode input_shader_list_uniforms;
+	KeyCode input_timescale_increase;
+	KeyCode input_timescale_decrease;
+	KeyCode input_exit;
 
-	int input_move_forward;
-	int input_move_backward;
-	int input_move_left;
-	int input_move_right;
-	int input_move_up;
-	int input_move_down;
+	KeyCode input_move_forward;
+	KeyCode input_move_backward;
+	KeyCode input_move_left;
+	KeyCode input_move_right;
+	KeyCode input_move_up;
+	KeyCode input_move_down;
 
 	ApplicationConfig(const std::string& filepath);
 };

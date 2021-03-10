@@ -5,7 +5,6 @@
 #include "Utilities/StringUtilities.h"
 #include "Utilities/Log.h"
 #include <ext.hpp>
-#include <d3dcompiler.h>
 
 void ShaderVariantMap::Reset()
 {
@@ -87,8 +86,8 @@ void ShaderVariant::SetPropertyBlock(const ShaderPropertyBlock& propertyBlock)
 		}
 
 		auto& info = i.second;
-		uint count = info.size / CGType::Size(info.type);
-		auto components = CGType::Components(info.type);
+		uint count = info.size / CGConvert::Size(info.type);
+		auto components = CGConvert::Components(info.type);
 
 		switch (info.type)
 		{
@@ -524,7 +523,7 @@ namespace ShaderCompiler
 	
 	static void ReadFile(const std::string& filepath, std::string& ouput)
 	{
-		ouput = StringUtilities::ReadFileRecursiveInclude(filepath, false);
+		ouput = StringUtilities::ReadFileRecursiveInclude(filepath);
 	}
 	
 	static void ProcessTypeSources(const std::string& source, const std::string& sharedInclude, const std::string& variantDefines, std::unordered_map<GLenum, std::string>& shaderSources)
@@ -598,7 +597,7 @@ namespace ShaderCompiler
 	
 				glDeleteShader(glShader);
 	
-				PK_CORE_LOG_HEADER("Shader (%s) Compilation Failure!", filename);
+				PK_CORE_LOG_HEADER("Shader (%s) Compilation Failure!", filename.c_str());
 				PK_CORE_ERROR(infoLog.data());
 			}
 	
@@ -722,11 +721,13 @@ namespace ShaderCompiler
 }
 
 
-template<typename T> 
-void AssetImporters::Import(const std::string& filepath, Ref<T>& shader)
+template<> 
+void AssetImporters::Import(const std::string& filepath, Ref<Shader>& shader)
 {
 	shader->m_variants.clear();
 
+	// A lot of hacky stuff in this parser at the moment.
+	// @TODO Consider clean up once priorities allow it.
 	std::string source;
 	std::string sharedInclude;
 	std::string variantDefines;
@@ -738,12 +739,7 @@ void AssetImporters::Import(const std::string& filepath, Ref<T>& shader)
 	ShaderCompiler::ReadFile(filepath, source);
 	ShaderCompiler::ExtractMulticompiles(source, mckeywords, shader->m_variantMap);
 	ShaderCompiler::ExtractStateAttributes(source, shader->m_stateAttributes);
-
-	if (filepath.find_last_of("HLSLTest") != std::string::npos)
-	{
-
-	}
-
+	
 	ShaderCompiler::GetSharedInclude(source, sharedInclude);
 
 	for (uint32_t i = 0; i < shader->m_variantMap.variantcount; ++i)
@@ -754,5 +750,3 @@ void AssetImporters::Import(const std::string& filepath, Ref<T>& shader)
 		shader->m_variants.push_back(CreateRef<ShaderVariant>(programId, properties));
 	}
 }
-
-template void AssetImporters::Import<Shader>(const std::string& filepath, Ref<Shader>& shader);

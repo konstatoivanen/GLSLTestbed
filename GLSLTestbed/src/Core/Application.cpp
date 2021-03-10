@@ -19,7 +19,7 @@ Application::Application(const std::string& name)
 	PK_CORE_ASSERT(!s_Instance, "Application already exists!");
 	s_Instance = this;
 
-	auto config = ApplicationConfig("res/Config.txt");
+	auto config = ApplicationConfig("res/ApplicationConfig.cfg");
 
 	::ShowWindow(::GetConsoleWindow(), config.enable_console ? SW_SHOW : SW_HIDE);
 
@@ -43,6 +43,8 @@ Application::Application(const std::string& name)
 	
 	assetDatabase->LoadDirectory<Shader>("res/shaders/", { ".shader" });
 	assetDatabase->LoadDirectory<Texture2D>("res/textures/", { ".png", ".ktx" });
+	assetDatabase->LoadDirectory<Mesh>("res/models/", { ".obj" });
+	assetDatabase->LoadDirectory<Material>("res/materials/", { ".material" });
 
 	auto renderPipeline = m_services->Create<RenderPipeline>(assetDatabase);
 	auto editorCameraEngine = m_services->Create<EngineEditorCamera>(time);
