@@ -9,16 +9,19 @@ static void CreateMeshRenderable(PKECS::EntityDatabase* entityDb, const float3& 
 {
 	auto egid = PKECS::EGID(entityDb->ReserveEntityId(), (uint)PKECS::ENTITY_GROUPS::ACTIVE);
 	auto implementer = entityDb->ResereveImplementer<PKECS::Implementers::MeshRenderableImplementer>();
+	auto transformView = entityDb->ReserveEntityView<PKECS::EntityViews::TransformView>(egid);
 	auto baseView = entityDb->ReserveEntityView<PKECS::EntityViews::BaseRenderable>(egid);
 	auto meshView = entityDb->ReserveEntityView<PKECS::EntityViews::MeshRenderable>(egid);
 
+	transformView->bounds = static_cast<PKECS::Components::Bounds*>(implementer);
+	transformView->transform = static_cast<PKECS::Components::Transform*>(implementer);
 	baseView->bounds = static_cast<PKECS::Components::Bounds*>(implementer);
 	baseView->handle = static_cast<PKECS::Components::RenderableHandle*>(implementer);
 	meshView->materials = static_cast<PKECS::Components::Materials*>(implementer);
 	meshView->mesh = static_cast<PKECS::Components::MeshReference*>(implementer);
 	meshView->transform = static_cast<PKECS::Components::Transform*>(implementer);
 
-	implementer->aabb = CGMath::CreateBoundsCenterExtents(position, CG_FLOAT3_ONE);
+	implementer->localAABB = CGMath::CreateBoundsCenterExtents(CG_FLOAT3_ZERO, CG_FLOAT3_ONE);
 	implementer->isCullable = true;
 	implementer->isVisible = false;
 	implementer->position = position;
@@ -34,15 +37,18 @@ static void CreatePointLight(PKECS::EntityDatabase* entityDb, const float3& posi
 {
 	auto egid = PKECS::EGID(entityDb->ReserveEntityId(), (uint)PKECS::ENTITY_GROUPS::ACTIVE);
 	auto implementer = entityDb->ResereveImplementer<PKECS::Implementers::PointLightImplementer>();
+	auto transformView = entityDb->ReserveEntityView<PKECS::EntityViews::TransformView>(egid);
 	auto baseView = entityDb->ReserveEntityView<PKECS::EntityViews::BaseRenderable>(egid);
 	auto lightView = entityDb->ReserveEntityView<PKECS::EntityViews::PointLightRenderable>(egid);
 
+	transformView->bounds = static_cast<PKECS::Components::Bounds*>(implementer);
+	transformView->transform = static_cast<PKECS::Components::Transform*>(implementer);
 	baseView->bounds = static_cast<PKECS::Components::Bounds*>(implementer);
 	baseView->handle = static_cast<PKECS::Components::RenderableHandle*>(implementer);
 	lightView->pointLight = static_cast<PKECS::Components::PointLight*>(implementer);
 	lightView->transform = static_cast<PKECS::Components::Transform*>(implementer);
 
-	implementer->aabb = CGMath::CreateBoundsCenterExtents(position, CG_FLOAT3_ONE * 0.5f * radius);
+	implementer->localAABB = CGMath::CreateBoundsCenterExtents(CG_FLOAT3_ZERO, CG_FLOAT3_ONE * 0.5f * radius);
 	implementer->isCullable = true;
 	implementer->isVisible = false;
 	implementer->position = position;
@@ -65,8 +71,8 @@ DebugEngine::DebugEngine(AssetDatabase* assetDatabase, Time* time, PKECS::Entity
 	cornellBoxMaterial = assetDatabase->Find<Material>("M_Metal_Panel1");
 	cornellBox = assetDatabase->Find<Mesh>("cornell_box");
 
-	auto minpos = float3(-20, -10, 20);
-	auto maxpos = float3(20, 10, 30);
+	auto minpos = float3(-40, -10, -40);
+	auto maxpos = float3(40, 10, 40);
 
 	for (auto i = 0; i < 256; ++i)
 	{
@@ -119,6 +125,20 @@ void DebugEngine::Step(Input* input)
 
 void DebugEngine::Step(int condition)
 {
+	auto lights = m_entityDb->Query<PKECS::EntityViews::PointLightRenderable>((int)PKECS::ENTITY_GROUPS::ACTIVE);
+	auto time = Application::GetService<Time>()->GetTime();
+
+	for (auto i = 0; i < lights.count; ++i)
+	{
+		lights[i].transform->position.y = sin(time + ((float)i / lights.count)) * 10;
+	}
+
+	auto meshes = m_entityDb->Query<PKECS::EntityViews::MeshRenderable>((int)PKECS::ENTITY_GROUPS::ACTIVE);
+
+	for (auto i = 0; i < meshes.count; ++i)
+	{
+		meshes[i].transform->position.y = sin(time + (10 * (float)i / meshes.count)) * 10;
+	}
 }
 
 void DebugEngine::Step(GizmoRenderer* gizmos)
@@ -138,7 +158,7 @@ void DebugEngine::Step(GizmoRenderer* gizmos)
 
 	for (auto i = 0; i < cullables.count; ++i)
 	{
-		const auto& bounds = cullables[i].bounds->aabb;
+		const auto& bounds = cullables[i].bounds->worldAABB;
 		gizmos->SetColor(CGMath::IntersectPlanesAABB(frustrum.planes, 6, bounds) ? CG_COLOR_GREEN : CG_COLOR_BLACK);
 		gizmos->DrawWireBounds(bounds);
 	}

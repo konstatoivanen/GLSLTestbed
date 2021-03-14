@@ -11,6 +11,7 @@
 #include "Rendering/GizmoRenderer.h"
 #include "Context/Engines/EngineEditorCamera.h"
 #include "Context/Engines/DebugEngine.h"
+#include "Context/Engines/EngineUpdateTransforms.h"
 #include "Rendering/Graphics.h"
 #include <math.h>
 
@@ -50,8 +51,9 @@ Application::Application(const std::string& name)
 	assetDatabase->LoadDirectory<Material>("res/materials/", { ".material" });
 
 	auto renderPipeline = m_services->Create<RenderPipeline>(assetDatabase, entityDb);
-	auto editorCameraEngine = m_services->Create<EngineEditorCamera>(time);
-	auto debugEngine = m_services->Create<DebugEngine>(assetDatabase, time, entityDb);
+	auto engineEditorCamera = m_services->Create<EngineEditorCamera>(time);
+	auto engineUpdateTransforms = m_services->Create<EngineUpdateTransforms>(entityDb);
+	auto engineDebug = m_services->Create<DebugEngine>(assetDatabase, time, entityDb);
 	auto gizmoRenderer = m_services->Create<GizmoRenderer>(sequencer, assetDatabase);
 	
 	sequencer->SetSteps(
@@ -61,16 +63,16 @@ Application::Application(const std::string& name)
 			{
 				{ (int)UpdateStep::OpenFrame,		{ PK_STEP_S(renderPipeline), time }},
 				{ (int)UpdateStep::UpdateInput,		{ input } },
-				{ (int)UpdateStep::UpdateEngines,	{ PK_STEP_S(debugEngine) }},
+				{ (int)UpdateStep::UpdateEngines,	{ PK_STEP_S(engineDebug), PK_STEP_S(engineUpdateTransforms) }},
 				{ (int)UpdateStep::PreRender,		{ PK_STEP_S(renderPipeline) }},
 				{ (int)UpdateStep::Render,			{ PK_STEP_S(renderPipeline) }},
 				{ (int)UpdateStep::PostRender,		{ PK_STEP_S(gizmoRenderer), PK_STEP_S(renderPipeline)}},
 				{ (int)UpdateStep::CloseFrame,		{ PK_STEP_S(renderPipeline) }},
 			}
 		},
-		{ input, { PK_STEP_T(debugEngine, Input), PK_STEP_T(editorCameraEngine, Input) } },
+		{ input, { PK_STEP_T(engineDebug, Input), PK_STEP_T(engineEditorCamera, Input) } },
 		{ time, { PK_STEP_T(renderPipeline, Time) } },
-		{ gizmoRenderer, { PK_STEP_T(debugEngine, GizmoRenderer) }}
+		{ gizmoRenderer, { PK_STEP_T(engineDebug, GizmoRenderer) }}
 	});
 
 	sequencer->SetRootSequence(

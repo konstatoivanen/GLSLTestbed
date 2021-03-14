@@ -9,6 +9,12 @@ namespace PKECS::EntityViews
         Components::Bounds* bounds;
         Components::RenderableHandle* handle;
     };
+
+    struct TransformView : public IEntityView
+    {
+        Components::Transform* transform;
+        Components::Bounds* bounds;
+    };
     
     struct MeshRenderable : public IEntityView
     {

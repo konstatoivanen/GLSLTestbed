@@ -1140,6 +1140,9 @@
     <ClInclude Include="src\Rendering\DynamicBatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Context\Engines\EngineUpdateTransforms.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\glfw3.lib" />
@@ -1692,6 +1695,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Rendering\DynamicBatcher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Context\Engines\EngineUpdateTransforms.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

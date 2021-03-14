@@ -239,5 +239,5 @@ namespace CGMath
     int BoundsShortestAxis(const BoundingBox& bounds);
     void BoundsSplit(const BoundingBox& bounds, int axis, BoundingBox* out0, BoundingBox* out1);
     bool BoundsContains(const BoundingBox& bounds, const float3& point);
-
+    BoundingBox BoundsTransform(const float4x4& matrix, const BoundingBox& bounds);
 };

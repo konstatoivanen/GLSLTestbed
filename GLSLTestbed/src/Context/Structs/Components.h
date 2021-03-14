@@ -10,6 +10,7 @@ namespace PKECS::Components
         float3 position = CG_FLOAT3_ZERO;
         quaternion rotation = CG_QUATERNION_IDENTITY;
         float3 scale = CG_FLOAT3_ONE;
+        float4x4 localToWorld = CG_FLOAT4X4_IDENTITY;
 
         float4x4 GetLocalToWorld() const { return CGMath::GetMatrixTRS(position, rotation, scale); }
 
@@ -18,7 +19,8 @@ namespace PKECS::Components
     
     struct Bounds
     {
-        BoundingBox aabb;
+        BoundingBox localAABB;
+        BoundingBox worldAABB;
         virtual ~Bounds() = 0 {}
     };
     

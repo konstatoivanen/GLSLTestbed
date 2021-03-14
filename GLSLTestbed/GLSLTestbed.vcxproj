@@ -162,6 +162,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Context\Engines\EngineUpdateTransforms.h" />
     <ClInclude Include="src\Context\Structs\Components.h" />
     <ClInclude Include="src\Context\Structs\EntityViews.h" />
     <ClInclude Include="src\Context\Structs\Implementers.h" />
@@ -732,6 +733,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="x64\Debug\vc141.pdb" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Context\Engines\EngineUpdateTransforms.cpp" />
     <ClCompile Include="src\Rendering\DynamicBatcher.cpp" />
     <ClCompile Include="src\Rendering\GizmoRenderer.cpp" />
     <ClCompile Include="include\GLAD\glad.c">

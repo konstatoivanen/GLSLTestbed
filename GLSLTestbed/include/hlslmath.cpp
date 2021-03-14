@@ -416,3 +416,28 @@ bool CGMath::BoundsContains(const BoundingBox& bounds, const float3& point)
 
     return true;
 }
+
+BoundingBox CGMath::BoundsTransform(const float4x4& matrix, const BoundingBox& bounds)
+{
+	BoundingBox out(matrix[3].xyz, matrix[3].xyz);
+
+	for (int i = 0; i < 3; ++i)
+	for (int j = 0; j < 3; ++j)
+	{
+		auto a = matrix[i][j] * bounds.min[j];
+		auto b = matrix[i][j] * bounds.max[j];
+
+		if (a < b)
+		{
+			out.min[i] += a;
+			out.max[i] += b;
+		}
+		else
+		{
+			out.min[i] += b;
+			out.max[i] += a;
+		}
+	}
+
+	return out;
+}

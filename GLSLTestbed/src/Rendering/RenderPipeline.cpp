@@ -41,11 +41,10 @@ static void UpdateDynamicBatches(PKECS::EntityDatabase* entityDb, FrustrumCuller
 		auto* view = entityDb->Query<PKECS::EntityViews::MeshRenderable>(PKECS::EGID(cullingResults[i], (uint)PKECS::ENTITY_GROUPS::ACTIVE));
 		auto* materials = &view->materials->sharedMaterials;
 		auto mesh = view->mesh->sharedMesh;
-		auto matrix = view->transform->GetLocalToWorld();
 
 		for (auto i = 0; i < materials->size(); ++i)
 		{
-			batcher.QueueDraw(mesh, i, materials->at(i), matrix);
+			batcher.QueueDraw(mesh, i, materials->at(i), view->transform->localToWorld);
 		}
 	}
 
@@ -171,7 +170,7 @@ void FrustrumCuller::Update(PKECS::EntityDatabase* entityDb, const float4x4& mat
 	for (auto i = 0; i < cullables.count; ++i)
 	{
 		auto cullable = &cullables[i];
-		cullable->handle->isVisible = !cullable->handle->isCullable || CGMath::IntersectPlanesAABB(frustrum.planes, 6, cullable->bounds->aabb);
+		cullable->handle->isVisible = !cullable->handle->isCullable || CGMath::IntersectPlanesAABB(frustrum.planes, 6, cullable->bounds->worldAABB);
 
 		if (cullable->handle->isVisible)
 		{
