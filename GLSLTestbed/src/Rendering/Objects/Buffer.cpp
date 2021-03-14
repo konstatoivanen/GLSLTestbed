@@ -92,7 +92,30 @@ ComputeBuffer::~ComputeBuffer()
 	glDeleteBuffers(1, &m_graphicsId);
 }
 
-void ComputeBuffer::SetData(const void* data, size_t offset, size_t size)
+void ComputeBuffer::Resize(uint newCount)
+{
+	if (newCount == m_count)
+	{
+		return;
+	}
+
+	m_count = newCount;
+	auto size = GetSize();
+	
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_graphicsId);
+	glInvalidateBufferData(GL_SHADER_STORAGE_BUFFER);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
+}
+
+void ComputeBuffer::ValidateSize(uint newCount)
+{
+	if (newCount > m_count)
+	{
+		Resize(newCount);
+	}
+}
+
+void ComputeBuffer::MapBuffer(const void* data, size_t offset, size_t size)
 {
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_graphicsId);
 	auto dest = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, offset, size, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
@@ -100,10 +123,29 @@ void ComputeBuffer::SetData(const void* data, size_t offset, size_t size)
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 }
 
-void ComputeBuffer::SetData(const void* data, size_t size)
+void ComputeBuffer::MapBuffer(const void* data, size_t size)
 {
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_graphicsId);
 	auto dest = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY | GL_MAP_INVALIDATE_BUFFER_BIT);
 	memcpy(dest, data, size);
+	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+}
+
+void ComputeBuffer::SubmitData(const void* data, size_t offset, size_t size)
+{
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_graphicsId);
+	glInvalidateBufferData(GL_SHADER_STORAGE_BUFFER);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, data);
+}
+
+void* ComputeBuffer::BeginMapBuffer()
+{
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_graphicsId);
+	return glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY | GL_MAP_INVALIDATE_BUFFER_BIT);
+}
+
+void ComputeBuffer::EndMapBuffer()
+{
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_graphicsId);
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 }

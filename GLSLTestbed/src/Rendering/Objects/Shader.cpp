@@ -4,7 +4,7 @@
 #include "Utilities/StringHashID.h"
 #include "Utilities/StringUtilities.h"
 #include "Utilities/Log.h"
-#include <ext.hpp>
+#include <hlslmath.h>
 
 void ShaderVariantMap::Reset()
 {
@@ -57,16 +57,6 @@ void ShaderVariant::ListProperties()
 	}
 }
 
-#define BIND_BUFFER_ARRAY(propertyBlock, info, count, func)				\
-{																		\
-	auto bufferIds = propertyBlock.GetElementPtr<GraphicsID>(info);		\
-	for (uint i = 0; i < count; ++i)									\
-	{																	\
-		func;															\
-	}																	\
-}																		\
-
-
 void ShaderVariant::SetPropertyBlock(const ShaderPropertyBlock& propertyBlock)
 {
 	for (auto& i : propertyBlock)
@@ -102,9 +92,9 @@ void ShaderVariant::SetPropertyBlock(const ShaderPropertyBlock& propertyBlock)
 			case CG_TYPE_INT2: glUniform2iv(prop.location, count, propertyBlock.GetElementPtr<int>(info)); break;
 			case CG_TYPE_INT3: glUniform3iv(prop.location, count, propertyBlock.GetElementPtr<int>(info)); break;
 			case CG_TYPE_INT4: glUniform4iv(prop.location, count, propertyBlock.GetElementPtr<int>(info)); break;
-			case CG_TYPE_TEXTURE: BIND_BUFFER_ARRAY(propertyBlock, info, count, glBindTextureUnit(prop.location + i, bufferIds[i])) break;
-			case CG_TYPE_CONSTANT_BUFFER: BIND_BUFFER_ARRAY(propertyBlock, info, count, glBindBufferBase(GL_UNIFORM_BUFFER, prop.location + i, bufferIds[i])) break;
-			case CG_TYPE_COMPUTE_BUFFER: BIND_BUFFER_ARRAY(propertyBlock, info, count, glBindBufferBase(GL_SHADER_STORAGE_BUFFER, prop.location + i, bufferIds[i])) break;
+			case CG_TYPE_TEXTURE: Graphics::BindTextures(prop.location, propertyBlock.GetElementPtr<GraphicsID>(info), count); break;
+			case CG_TYPE_CONSTANT_BUFFER: Graphics::BindBuffers(CG_TYPE_CONSTANT_BUFFER, prop.location, propertyBlock.GetElementPtr<GraphicsID>(info), count); break;
+			case CG_TYPE_COMPUTE_BUFFER: Graphics::BindBuffers(CG_TYPE_COMPUTE_BUFFER, prop.location, propertyBlock.GetElementPtr<GraphicsID>(info), count); break;
 			default: PK_CORE_ERROR("Invalid Shader Property Type");
 		}
 	}

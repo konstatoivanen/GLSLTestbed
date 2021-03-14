@@ -16,10 +16,10 @@ namespace PKStructs
         float2 texcoord;
     };
     
-    struct PKLight
+    struct PKPointLight
     {
         float4 color;
-        float4 direction;
+        float4 position;
     };
 
     struct IndexRange

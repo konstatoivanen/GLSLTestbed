@@ -60,6 +60,12 @@ class PropertyBlock
 			return reinterpret_cast<const T*>(m_data.data() + info.offset);
 		}
 
+		template<typename T>
+		const T* GetPropertyPtr(const uint hashId) const
+		{
+			return GetElementPtr<T>(m_properties.at(hashId));
+		}
+
 		std::unordered_map<uint, PropertyInfo>::iterator begin() { return m_properties.begin(); }
 		std::unordered_map<uint, PropertyInfo>::iterator end() { return m_properties.end(); }
 		std::unordered_map<uint, PropertyInfo>::const_iterator begin() const { return m_properties.begin(); }

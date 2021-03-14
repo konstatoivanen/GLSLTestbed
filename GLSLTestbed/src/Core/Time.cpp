@@ -4,11 +4,20 @@
 #include <ctime>
 #include <cstdlib>
 
-static double GetClockSeconds() { return clock() / (double)CLOCKS_PER_SEC; } //glfwGetTime()
+const clock_t Time::GetClockTicks()
+{
+    return clock();
+}
+
+const double Time::GetClockSeconds()
+{
+    return clock() / (double)CLOCKS_PER_SEC;
+}
 
 Time::Time(PKECS::Sequencer* sequencer, float timeScale) : m_sequencer(sequencer), m_timeScale(timeScale)
 {
 }
+
 
 void Time::Reset()
 {

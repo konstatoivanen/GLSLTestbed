@@ -4,7 +4,7 @@
 
 struct RenderTextureDescriptor
 {
-    uint32_t width = 0, height = 0, depth = 0;
+    uint3 resolution = CG_UINT3_ZERO;
     std::vector<GLenum> colorFormats = { GL_RGBA8 };
     GLenum depthFormat = GL_DEPTH24_STENCIL8;
     GLenum dimension = GL_TEXTURE_2D;
@@ -33,11 +33,13 @@ class RenderTexture : public Texture
 		void Rebuild(const RenderTextureDescriptor& descriptor);
         void DiscardContents();
 
+        RenderTextureDescriptor GetCompoundDescriptor() { return m_compoundDescriptor; }
         Weak<RenderBuffer> GetColorBuffer(int index) const { return colorBuffers.at(index); }
         Weak<RenderBuffer> GetDepthBuffer() const { return depthBuffer; }
         size_t GetColorBufferCount() const { return colorBuffers.size(); }
 
     private:
+        RenderTextureDescriptor m_compoundDescriptor;
         std::vector<Ref<RenderBuffer>> colorBuffers;
         Ref<RenderBuffer> depthBuffer;
 };

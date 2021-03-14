@@ -55,7 +55,8 @@ uniform float4x4 pk_MATRIX_I_M;
 
 #if defined(PK_ENABLE_INSTANCING) && defined(SHADER_STAGE_VERTEX)
     PK_DECLARE_BUFFER(float4x4, pk_InstancingData);
-    #define ACTIVE_MODEL_MATRIX PK_BUFFER_DATA(pk_InstancingData, gl_InstanceID)
+    uniform int pk_InstancingOffset;
+    #define ACTIVE_MODEL_MATRIX PK_BUFFER_DATA(pk_InstancingData, PK_INSTANCE_ID + pk_InstancingOffset)
 #else
     #define ACTIVE_MODEL_MATRIX pk_MATRIX_M
 #endif
@@ -134,6 +135,12 @@ float3 ObjectToWorldPos( in float3 pos)
 float3 ObjectToWorldDir( in float3 dir)
 {
     return normalize(mul(float3x3(ACTIVE_MODEL_MATRIX), dir));
+}
+
+// Transforms vector from world to object space
+float3 WorldToObjectPos(in float3 pos)
+{
+    return mul(pk_MATRIX_I_M, float4(pos, 1.0f)).xyz;
 }
 
 // Transforms vector from world to object space

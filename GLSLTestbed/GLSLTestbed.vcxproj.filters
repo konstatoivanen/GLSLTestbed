@@ -933,9 +933,6 @@
     <ClInclude Include="src\Rendering\Objects\Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Objects\Texture2D.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Rendering\Objects\RenderTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1114,6 +1111,33 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\mikktspace\mikktspace.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\GizmoRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\Structs\ResourceBindState.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\EntityDatabase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Context\Structs\Components.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Context\Structs\Implementers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Context\Structs\EntityViews.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\BufferView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\Objects\TextureXD.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\DynamicBatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1555,7 +1579,6 @@
     <None Include="res\shaders\includes\LightingBRDF.glsl" />
     <None Include="res\models\cornell_box.mtl" />
     <None Include="res\models\cornell_box.obj" />
-    <None Include="res\materials\M_Metal_Panel.material" />
     <None Include="res\textures\T_Metal_Plates_D.ktx" />
     <None Include="res\textures\T_Metal_Plates_MAOR.ktx" />
     <None Include="res\textures\T_Metal_Plates_N.ktx" />
@@ -1564,6 +1587,9 @@
     <None Include="res\textures\T_Gravel_MAOR.ktx" />
     <None Include="res\textures\T_Metal_Plates_H.ktx" />
     <None Include="res\materials\M_Gravel.material" />
+    <None Include="res\materials\M_Metal_Panel0.material" />
+    <None Include="res\materials\M_Metal_Panel1.material" />
+    <None Include="res\textures\T_Gravel_N.ktx" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">
@@ -1620,9 +1646,6 @@
     <ClCompile Include="src\Rendering\Objects\Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Objects\Texture2D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Rendering\Objects\RenderTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1659,6 +1682,18 @@
     <ClCompile Include="include\mikktspace\mikktspace.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Rendering\GizmoRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rendering\Structs\ResourceBindState.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rendering\Objects\TextureXD.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rendering\DynamicBatcher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="x64\Debug\GLImageProcessor.log" />
@@ -1667,6 +1702,7 @@
     <Text Include="res\shaders\includes\MathUtilities.glsl" />
     <Text Include="res\shaders\includes\LightingCommon.glsl" />
     <Text Include="res\ApplicationConfig.cfg" />
+    <Text Include="res\shaders\SH_WS_Gizmos.shader" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\checkerboard.png">

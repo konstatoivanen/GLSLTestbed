@@ -15,5 +15,5 @@ class GraphicsObject
         }
 
     protected:
-        GraphicsID m_graphicsId;
+        GraphicsID m_graphicsId = 0;
 };

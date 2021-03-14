@@ -1,38 +1,31 @@
 #pragma once
 #include "PrecompiledHeader.h"
 #include "Utilities/Ref.h"
-#include "Utilities/StringHashID.h"
-#include "Utilities/Log.h"
-#include "Utilities/HashCache.h"
 #include "Core/Time.h"
 #include "Core/Input.h"
 #include "Core/UpdateStep.h"
 #include "Core/AssetDataBase.h"
-#include "Core/Application.h"
-#include "Rendering/Graphics.h"
-#include "Rendering/Objects/Texture2D.h"
-#include "Rendering/MeshUtility.h"
-#include "Rendering/LightingUtility.h"
-#include <math.h>
+#include "Core/EntityDatabase.h"
+#include "Rendering/GizmoRenderer.h"
 
-class DebugEngine : public IService, public PKECS::ISimpleStep, public PKECS::IStep<Input>
+class DebugEngine : public IService, public PKECS::ISimpleStep, public PKECS::IStep<Input>, public PKECS::IStep<GizmoRenderer>
 {
 	public:
-		DebugEngine(AssetDatabase* assetDatabase, Time* time);
+		DebugEngine(AssetDatabase* assetDatabase, Time* time, PKECS::EntityDatabase* entityDb);
 		~DebugEngine();
 		void Step(Input* input) override;
 		void Step(int condition) override;
+		void Step(GizmoRenderer* gizmos) override;
 
 	private:
+		PKECS::EntityDatabase* m_entityDb;
 		AssetDatabase* m_assetDatabase;
 		Time* m_time;
 	
 		Weak<Material> materialMetal;
 		Weak<Material> materialGravel;
-		Weak<Shader> iblShader;
 		Ref<ComputeBuffer> instanceMatrices;
 		Weak<Mesh> cornellBox;
+		Weak<Material> cornellBoxMaterial;
 		Ref<Mesh> meshSphere;
-		Ref<RenderTexture> renderTarget;
-		Weak<Texture2D> reflectionMap;
 };

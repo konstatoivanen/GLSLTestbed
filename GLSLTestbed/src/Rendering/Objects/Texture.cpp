@@ -36,24 +36,24 @@ void Texture::CreateTextureStorage(GraphicsID& graphicsId, const TextureDescript
     switch (descriptor.dimension)
     {
         case GL_TEXTURE_1D: 
-            glTextureStorage1D(graphicsId, descriptor.miplevels > 0 ? descriptor.miplevels : 1, descriptor.colorFormat, descriptor.width); 
+            glTextureStorage1D(graphicsId, descriptor.miplevels > 0 ? descriptor.miplevels : 1, descriptor.colorFormat, descriptor.resolution.x); 
             break;
         case GL_TEXTURE_1D_ARRAY: 
         case GL_TEXTURE_RECTANGLE: 
         case GL_TEXTURE_CUBE_MAP: 
         case GL_TEXTURE_2D: 
-            glTextureStorage2D(graphicsId, descriptor.miplevels > 0 ? descriptor.miplevels : 1, descriptor.colorFormat, descriptor.width, descriptor.height); 
+            glTextureStorage2D(graphicsId, descriptor.miplevels > 0 ? descriptor.miplevels : 1, descriptor.colorFormat, descriptor.resolution.x, descriptor.resolution.y); 
             break;
         case GL_TEXTURE_CUBE_MAP_ARRAY:
         case GL_TEXTURE_2D_ARRAY:
         case GL_TEXTURE_3D:
-            glTextureStorage3D(graphicsId, descriptor.miplevels > 0 ? descriptor.miplevels : 1, descriptor.colorFormat, descriptor.width, descriptor.height, descriptor.depth);
+            glTextureStorage3D(graphicsId, descriptor.miplevels > 0 ? descriptor.miplevels : 1, descriptor.colorFormat, descriptor.resolution.x, descriptor.resolution.y, descriptor.resolution.z);
             break;
         case GL_TEXTURE_2D_MULTISAMPLE:
-            glTexStorage2DMultisample(graphicsId, descriptor.msaaSamples, descriptor.colorFormat, descriptor.width, descriptor.height, GL_FALSE);
+            glTexStorage2DMultisample(graphicsId, descriptor.msaaSamples, descriptor.colorFormat, descriptor.resolution.x, descriptor.resolution.y, GL_FALSE);
             return;
         case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
-            glTexStorage3DMultisample(graphicsId, descriptor.msaaSamples, descriptor.colorFormat, descriptor.width, descriptor.height, descriptor.depth, GL_FALSE);
+            glTexStorage3DMultisample(graphicsId, descriptor.msaaSamples, descriptor.colorFormat, descriptor.resolution.x, descriptor.resolution.y, descriptor.resolution.z, GL_FALSE);
             return;
     }
 
@@ -70,7 +70,7 @@ GLenum Texture::GetFormatChannels(GLenum format)
         case GL_R8:
         case GL_R16:
         case GL_R16F:
-        case GL_R32F:
+        case GL_R32F: 
             return GL_RED;
         case GL_RG8:
         case GL_RG16:
@@ -95,6 +95,47 @@ GLenum Texture::GetFormatChannels(GLenum format)
             return GL_RGBA;
         case GL_DEPTH24_STENCIL8:
             return GL_DEPTH_STENCIL;
+    }
+
+    PK_CORE_ERROR("UNSUPPORTED TEXTURE FORMAT");
+}
+
+GLenum Texture::GetFormatDataType(GLenum format)
+{
+    switch (format)
+    {
+        case GL_R8:
+        case GL_RG8:
+        case GL_RGB8:
+        case GL_RGBA8:
+            return GL_UNSIGNED_BYTE;
+        case GL_R16:
+        case GL_RG16:
+        case GL_RGB16:
+        case GL_RGBA16:
+        case GL_R16F:
+        case GL_RG16F:
+        case GL_RGB16F:
+        case GL_RGBA16F:
+            return GL_UNSIGNED_SHORT;
+        case GL_R32F:
+        case GL_RG32F:
+        case GL_RGB32F:
+        case GL_RGBA32F:
+            return GL_UNSIGNED_INT;
+        case GL_RGB4:
+        case GL_RGBA4:
+            return GL_UNSIGNED_SHORT_4_4_4_4;
+        case GL_RGB5:
+            return GL_UNSIGNED_SHORT_5_5_5_1;
+        case GL_RGB565:
+            return GL_UNSIGNED_SHORT_5_6_5;
+        case GL_RGB10:
+            return GL_UNSIGNED_INT_10_10_10_2;
+        case GL_RGBA12:
+            return GL_UNSIGNED_INT;
+        case GL_DEPTH24_STENCIL8:
+            return GL_UNSIGNED_INT_24_8;
     }
 
     PK_CORE_ERROR("UNSUPPORTED TEXTURE FORMAT");
@@ -158,9 +199,7 @@ void Texture::GetDescirptorFromKTX(ktxTexture* tex, TextureDescriptor* desc, GLe
 
     *channels = tex1->glFormat;
 
-    desc->width = tex1->baseWidth;
-    desc->height = tex1->baseHeight;
-    desc->depth = tex1->baseDepth;
+    desc->resolution = { tex1->baseWidth, tex1->baseHeight, tex1->baseDepth };
     desc->colorFormat = tex1->glInternalformat;
     desc->wrapmodex = GL_CLAMP_TO_EDGE;
     desc->wrapmodey = GL_CLAMP_TO_EDGE;

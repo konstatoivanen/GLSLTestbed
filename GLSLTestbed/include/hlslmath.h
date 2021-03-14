@@ -1,5 +1,5 @@
 #pragma once
-// This is a bit painful but whatever
+#define GLM_FORCE_SWIZZLE 
 #include <glad/glad.h>
 #include <glm.hpp>
 #include <ext.hpp>
@@ -7,6 +7,7 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+// @TODO Replace with enums
 #define CG_TYPE_ERROR 0xFFFF
 
 #define CG_TYPE_NONE 0
@@ -81,7 +82,7 @@ typedef glm::bvec3 bool3;
 typedef glm::bvec4 bool4;
 
 typedef glm::lowp_i8vec4 color32;
-typedef glm::ivec4 color;
+typedef glm::vec4 color;
 
 typedef glm::quat quaternion;
 
@@ -160,42 +161,82 @@ const float CG_FLOAT_2PI = 2.0f * 3.14159274F;
 const float CG_FLOAT_DEG2RAD = 0.0174532924F;
 const float CG_FLOAT_RAD2DEG = 57.29578F;
 
+struct FrustrumPlanes
+{
+    // left, right, top, bottom, near, far
+    float4 planes[6];
+};
+
+struct BoundingBox
+{
+    float3 min;
+    float3 max;
+
+    float3 GetCenter() const { return min + (max - min) * 0.5f; }
+    float3 GetExtents() const { return (max - min) * 0.5f; }
+
+    BoundingBox() : min(CG_FLOAT3_ZERO), max(CG_FLOAT3_ZERO) {}
+    BoundingBox(const float3& _min, const float3& _max) : min(_min), max(_max) {}
+};
+
 namespace CGConvert
 {
     ushort Size(ushort type);
     ushort Components(ushort type);
     ushort BaseType(ushort type);
+    ushort NativeEnum(ushort type);
     std::string ToString(ushort type);
     ushort FromString(const char* string);
 };
 
 namespace CGMath
 {
-    inline float4x4 GetMatrixTRS(const float3& position, const quaternion& rotation, const float3& scale)
+    float4x4 GetMatrixTRS(const float3& position, const quaternion& rotation, const float3& scale);
+    float4x4 GetMatrixInvTRS(const float3& position, const quaternion& rotation, const float3& scale);
+    float4x4 GetMatrixTR(const float3& position, const quaternion& rotation);
+    float4x4 GetPerspective(float fov, float aspect, float nearClip, float farClip);
+    inline float GetSizePerDepth(float fovy) { return (float)tan(fovy * 0.5f * CG_FLOAT_DEG2RAD); }
+    inline float GetSizeOnScreen(float depth, float sizePerDepth, float radius) { return radius / (sizePerDepth * depth); }
+    float4x4 GetOffsetPerspective(float left, float right, float bottom, float top, float fovy, float aspect, float zNear, float zFar);
+    float4x4 GetPerspectiveSubdivision(int index, const int3& gridSize, float fovy, float aspect, float znear, float zfar);
+
+    color HueToRGB(float hue);
+    inline float Cot(float value) { return cos(value) / sin(value); }
+    inline float RandomFloat() { return (float)rand() / (float)RAND_MAX; }
+    inline float3 RandomFloat3() { return float3(RandomFloat(), RandomFloat(), RandomFloat()); }
+    inline float RandomRangeFloat(float min, float max) { return min + (RandomFloat() * (max - min)); }
+    inline float3 RandomRangeFloat3(const float3& min, const float3& max) { return float3(RandomRangeFloat(min.x, max.x), RandomRangeFloat(min.y, max.y), RandomRangeFloat(min.z, max.z)); }
+    size_t GetNextExponentialSize(size_t start, size_t min);
+
+    // @TODO Move somewhere more appropriate
+    template<typename T>
+    void ValidateVectorSize(std::vector<T>& v, size_t newSize)
     {
-        return glm::translate(float4x4(1.0f), position) * glm::toMat4(rotation) * glm::scale(scale);
+        if (v.size() < newSize)
+        {
+            v.resize(CGMath::GetNextExponentialSize(v.size(), newSize));
+        }
+    }
+    
+    void NormalizePlane(float4* plane);
+    void ExtractFrustrumPlanes(const float4x4 viewprojection, FrustrumPlanes* frustrum, bool normalize);
+
+    inline float PlaneDistanceToPoint(const float4& plane, const float3& point) { return plane.x * point.x + plane.y * point.y + plane.z * point.z + plane.w; }
+
+    inline float3 IntesectPlanes3(const float4& p1, const float4& p2, const float4& p3)
+    {
+        float3 n1 = p1.xyz, n2 = p2.xyz, n3 = p3.xyz;
+        return ((-p1.w * glm::cross(n2, n3)) + (-p2.w * glm::cross(n3, n1)) + (-p3.w * glm::cross(n1, n2))) / (glm::dot(n1, glm::cross(n2, n3)));
     }
 
-    inline float4x4 GetMatrixInvTRS(const float3& position, const quaternion& rotation, const float3& scale)
-    {
-        return glm::inverse(glm::translate(float4x4(1.0f), position) * glm::toMat4(rotation) * glm::scale(scale));
-    }
+    inline BoundingBox CreateBoundsMinMax(const float3& min, const float3& max) { return BoundingBox(min, max); }
+    inline BoundingBox CreateBoundsCenterExtents(const float3& center, const float3& extents) { return BoundingBox(center - extents, center + extents); }
 
-    inline float4x4 GetMatrixTR(const float3& position, const quaternion& rotation)
-    {
-        return glm::translate(float4x4(1.0f), position) * glm::toMat4(rotation);
-    }
+    bool IntersectPlanesAABB(const float4* planes, int planeCount, const BoundingBox& aabb);
+    void BoundsEncapsulate(BoundingBox* bounds, const BoundingBox& other);
+    int BoundsLongestAxis(const BoundingBox& bounds);
+    int BoundsShortestAxis(const BoundingBox& bounds);
+    void BoundsSplit(const BoundingBox& bounds, int axis, BoundingBox* out0, BoundingBox* out1);
+    bool BoundsContains(const BoundingBox& bounds, const float3& point);
 
-    inline float4x4 GetPerspective(float fov, float aspect, float nearClip, float farClip)
-    {
-        auto proj = glm::perspective(fov * CG_FLOAT_DEG2RAD, aspect, nearClip, farClip);
-        proj[2][2] *= -1;
-        proj[2][3] *= -1;
-        return proj;
-    }
-
-    inline float Cot(float value)
-    {
-        return cos(value) / sin(value);
-    }
 };

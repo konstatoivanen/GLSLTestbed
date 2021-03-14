@@ -77,4 +77,7 @@
 
 #define PK_BUFFER_DATA(BufferName, index) BufferName##_Data[index]
 
+#define PK_INSTANCE_ID gl_InstanceID
+#define PK_VERTEX_ID gl_VertexID
+
 #endif

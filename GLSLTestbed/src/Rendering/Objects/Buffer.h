@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/BufferView.h"
 #include "Rendering/Objects/GraphicsObject.h"
 #include "Rendering/Structs/BufferLayout.h"
 #include "Rendering/Structs/PropertyBlock.h"
@@ -49,8 +50,22 @@ class ComputeBuffer : public GraphicsObject
 	public:
 		ComputeBuffer(const BufferLayout& layout, uint count);
 		~ComputeBuffer();
-		void SetData(const void* data, size_t offset, size_t size);
-		void SetData(const void* data, size_t size);
+		void Resize(uint newCount);
+		void ValidateSize(uint newCount);
+		void MapBuffer(const void* data, size_t offset, size_t size);
+		void MapBuffer(const void* data, size_t size);
+		void SubmitData(const void* data, size_t offset, size_t size);
+		
+		void* BeginMapBuffer();
+
+		template<typename T>
+		BufferView<T> BeginMapBuffer()
+		{
+			return { reinterpret_cast<T*>(BeginMapBuffer()), GetSize() / sizeof(T) };
+		}
+
+		void EndMapBuffer();
+		
 		size_t GetSize() const { return m_count * m_layout.GetStride(); }
 		size_t GetStride() const { return m_layout.GetStride(); }
 		size_t GetCount() const { return m_count; }

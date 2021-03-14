@@ -12,11 +12,11 @@
 
 int main(int argc, char** argv)
 {
+#ifdef PK_DEBUG_LEAKS
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
+
 	auto app = new Application("GLSL Testbed");
 	app->Run();
 	delete app;
-
-#ifdef PK_DEBUG_LEAKS
-	_CrtDumpMemoryLeaks();
-#endif
 }

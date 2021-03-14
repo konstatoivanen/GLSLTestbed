@@ -8,8 +8,10 @@
 #include "Core/Application.h"
 #include "Core/ApplicationConfig.h"
 #include "Rendering/RenderPipeline.h"
+#include "Rendering/GizmoRenderer.h"
 #include "Context/Engines/EngineEditorCamera.h"
 #include "Context/Engines/DebugEngine.h"
+#include "Rendering/Graphics.h"
 #include <math.h>
 
 Application* Application::s_Instance = nullptr;
@@ -31,6 +33,7 @@ Application::Application(const std::string& name)
 	m_services->Create<StringHashID>();
 	m_services->Create<HashCache>();
 	
+	auto entityDb = m_services->Create<PKECS::EntityDatabase>();
 	auto sequencer = m_services->Create<PKECS::Sequencer>();
 	auto time = m_services->Create<Time>(sequencer, config.time_scale);
 	auto assetDatabase = m_services->Create<AssetDatabase>();
@@ -42,29 +45,32 @@ Application::Application(const std::string& name)
 	m_window->OnClose = PK_BIND_FUNCTION(Application::Close);
 	
 	assetDatabase->LoadDirectory<Shader>("res/shaders/", { ".shader" });
-	assetDatabase->LoadDirectory<Texture2D>("res/textures/", { ".png", ".ktx" });
+	assetDatabase->LoadDirectory<TextureXD>("res/textures/", { ".png", ".ktx" });
 	assetDatabase->LoadDirectory<Mesh>("res/models/", { ".obj" });
 	assetDatabase->LoadDirectory<Material>("res/materials/", { ".material" });
 
-	auto renderPipeline = m_services->Create<RenderPipeline>(assetDatabase);
+	auto renderPipeline = m_services->Create<RenderPipeline>(assetDatabase, entityDb);
 	auto editorCameraEngine = m_services->Create<EngineEditorCamera>(time);
-	auto debugEngine = m_services->Create<DebugEngine>(assetDatabase, time);
+	auto debugEngine = m_services->Create<DebugEngine>(assetDatabase, time, entityDb);
+	auto gizmoRenderer = m_services->Create<GizmoRenderer>(sequencer, assetDatabase);
 	
 	sequencer->SetSteps(
 	{
 		{
 			sequencer->GetRoot(),
 			{
-				{ (int)UpdateStep::OpenFrame, { PK_STEP_S(renderPipeline), time }},
-				{ (int)UpdateStep::UpdateInput, { input } },
-				{ (int)UpdateStep::PreRender, { PK_STEP_S(renderPipeline) }},
-				{ (int)UpdateStep::Render, { PK_STEP_S(debugEngine) }},
-				{ (int)UpdateStep::PostRender, { PK_STEP_S(renderPipeline) }},
-				{ (int)UpdateStep::CloseFrame, { PK_STEP_S(renderPipeline) }},
+				{ (int)UpdateStep::OpenFrame,		{ PK_STEP_S(renderPipeline), time }},
+				{ (int)UpdateStep::UpdateInput,		{ input } },
+				{ (int)UpdateStep::UpdateEngines,	{ PK_STEP_S(debugEngine) }},
+				{ (int)UpdateStep::PreRender,		{ PK_STEP_S(renderPipeline) }},
+				{ (int)UpdateStep::Render,			{ PK_STEP_S(renderPipeline) }},
+				{ (int)UpdateStep::PostRender,		{ PK_STEP_S(gizmoRenderer), PK_STEP_S(renderPipeline)}},
+				{ (int)UpdateStep::CloseFrame,		{ PK_STEP_S(renderPipeline) }},
 			}
 		},
 		{ input, { PK_STEP_T(debugEngine, Input), PK_STEP_T(editorCameraEngine, Input) } },
-		{ time, { PK_STEP_T(renderPipeline, Time) } }
+		{ time, { PK_STEP_T(renderPipeline, Time) } },
+		{ gizmoRenderer, { PK_STEP_T(debugEngine, GizmoRenderer) }}
 	});
 
 	sequencer->SetRootSequence(

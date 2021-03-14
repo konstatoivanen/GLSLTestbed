@@ -59,8 +59,18 @@ float3 SampleEnv(float2 uv, float roughness)
     return HDRDecode(env).rgb;
 }
 
+PKLight TransformPointLight(in PKRawPointLight raw, in float3 worldpos)
+{
+    float3 vector =  raw.position.xyz - worldpos;
+    float sqrdist = dot(vector, vector);
+    float atten = max(1.0f - sqrdist / (raw.position.w * raw.position.w), 0.0);
+    PKLight l;
+    l.color = raw.color.xyz * atten;
+    l.direction = vector / sqrt(sqrdist);
+    return l;
+}
 
-float4 PhysicallyBasedShading(SurfaceData surf, float3 viewdir)
+float4 PhysicallyBasedShading(SurfaceData surf, float3 viewdir, float3 worldpos)
 {
     surf.normal = normalize(surf.normal);
     surf.roughness = max(surf.roughness, 0.002);
@@ -96,7 +106,7 @@ float4 PhysicallyBasedShading(SurfaceData surf, float3 viewdir)
 
     for (uint i = 0; i < pk_LightCount; ++i)
     {
-        gi.light = PK_BUFFER_DATA(pk_Lights, i);
+        gi.light = TransformPointLight(PK_BUFFER_DATA(pk_Lights, i), worldpos);
         color += BRDF_PBS_DEFAULT(surf.albedo, specColor, oneMinusReflectivity, surf.roughness, surf.normal, viewdir, gi.light, gi.indirect);
     }
 

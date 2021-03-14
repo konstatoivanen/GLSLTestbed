@@ -14,7 +14,7 @@
 struct FragmentVaryings
 {
     float2 vs_TEXCOORD0;
-    float3 vs_VIEWDIRECTION;
+    float3 vs_WORLDPOSITION;
     #if defined(PK_NORMALMAPS)
         float3x3 vs_TSROTATION;
     #else
@@ -37,7 +37,7 @@ void main()
 {
 	gl_Position = ObjectToClipPos(float4(in_POSITION0, 0));
     varyings.vs_TEXCOORD0 = in_TEXCOORD0;
-    varyings.vs_VIEWDIRECTION = (pk_WorldSpaceCameraPos.xyz - ObjectToWorldPos(in_POSITION0.xyz));
+    varyings.vs_WORLDPOSITION = ObjectToWorldPos(in_POSITION0.xyz);
 
     #if defined(PK_NORMALMAPS) || defined(PK_HEIGHTMAPS)
         float3 tangent = ObjectToWorldDir(in_TANGENT.xyz);
@@ -50,9 +50,8 @@ void main()
         #endif
 
         #if defined(PK_HEIGHTMAPS)
-            varyings.vs_TSVIEWDIRECTION = mul(inverse(TSROTATION), WorldToObjectVector(varyings.vs_VIEWDIRECTION));
+            varyings.vs_TSVIEWDIRECTION = mul(inverse(TSROTATION), WorldToObjectVector(pk_WorldSpaceCameraPos.xyz - varyings.vs_WORLDPOSITION));
         #endif
-
     #endif
 
     #if !defined(PK_NORMALMAPS)
@@ -77,7 +76,8 @@ layout(location = 0) out float4 SV_Target0;
 
 void main()
 {
-    float3 viewdir = normalize(varyings.vs_VIEWDIRECTION);
+    float3 worldpos = varyings.vs_WORLDPOSITION;
+    float3 viewdir = normalize(pk_WorldSpaceCameraPos.xyz - worldpos);
     float2 uv = varyings.vs_TEXCOORD0;
 
     #if defined(PK_HEIGHTMAPS)
@@ -101,5 +101,5 @@ void main()
     surf.roughness = pbsval.z * _Roughness;
     surf.occlusion = lerp(1.0f, pbsval.y, _Occlusion);
     
-    SV_Target0 = PhysicallyBasedShading(surf, viewdir);
+    SV_Target0 = PhysicallyBasedShading(surf, viewdir, worldpos);
 };

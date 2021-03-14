@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/ServiceRegister.h"
 #include "Core/Sequencer.h"
+#include <ctime>
 
 class Time : public IService, public PKECS::ISimpleStep
 {
@@ -9,6 +10,9 @@ class Time : public IService, public PKECS::ISimpleStep
 
         const float GetTimeScale() const { return (float)m_timeScale; }
         void SetTimeScale(const float timeScale) { m_timeScale = (double)timeScale; }
+
+        static const clock_t GetClockTicks();
+        static const double GetClockSeconds();
 
         const float GetTime() const { return (float)m_time; }
         const float GetUnscaledTime() const { return (float)m_unscaledTime; }

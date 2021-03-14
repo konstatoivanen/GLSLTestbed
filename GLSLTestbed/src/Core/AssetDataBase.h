@@ -14,7 +14,7 @@ class Asset
     friend class AssetDatabase;
 
     public:
-        virtual ~Asset() = default;
+        virtual ~Asset() = 0 {};
 
         AssetID GetAssetID() const { return m_assetId; }
 

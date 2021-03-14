@@ -1,16 +1,29 @@
 #pragma once
 #include HLSLSupport.glsl
 
-struct PKLight
+struct PKRawPointLight
 {
     float4 color;
+    float4 position;
+};
+
+struct PKRawSpotLight
+{
+    float4 color;
+    float4 position;
     float4 direction;
+};
+
+struct PKLight
+{
+    float3 color;
+    float3 direction;
 };
 
 struct PKIndirect
 {
-    float4 diffuse;
-    float4 specular;
+    float3 diffuse;
+    float3 specular;
 };
 
 struct PKGI
@@ -32,13 +45,13 @@ struct SurfaceData
 
 PKLight EmptyLight()
 {
-    return PKLight(float4(0,0,0,0), float4(0,1,0,0));
+    return PKLight(float3(0,0,0), float3(0,1,0));
 }
 
 PKIndirect EmptyIndirect()
 {
-    return PKIndirect(float4(0,0,0,0), float4(0,0,0,0));
+    return PKIndirect(float3(0,0,0), float3(0,0,0));
 }
 
 uniform int pk_LightCount;
-PK_DECLARE_BUFFER(PKLight, pk_Lights);
+PK_DECLARE_BUFFER(PKRawPointLight, pk_Lights);

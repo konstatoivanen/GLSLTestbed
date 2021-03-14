@@ -162,6 +162,13 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Context\Structs\Components.h" />
+    <ClInclude Include="src\Context\Structs\EntityViews.h" />
+    <ClInclude Include="src\Context\Structs\Implementers.h" />
+    <ClInclude Include="src\Core\BufferView.h" />
+    <ClInclude Include="src\Core\EntityDatabase.h" />
+    <ClInclude Include="src\Rendering\DynamicBatcher.h" />
+    <ClInclude Include="src\Rendering\GizmoRenderer.h" />
     <ClInclude Include="include\GLAD\glad.h" />
     <ClInclude Include="include\GLAD\khrplatform.h" />
     <ClInclude Include="include\glm\common.hpp" />
@@ -506,6 +513,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="src\HLSLMath.h" />
     <ClInclude Include="src\Rendering\Objects\GraphicsObject.h" />
     <ClInclude Include="src\Rendering\Objects\RenderTexture.h" />
+    <ClInclude Include="src\Rendering\Structs\ResourceBindState.h" />
     <ClInclude Include="src\Rendering\Structs\ShaderPropertyBlock.h" />
     <ClInclude Include="src\Rendering\Objects\Mesh.h" />
     <ClInclude Include="src\Core\ApplicationConfig.h" />
@@ -524,7 +532,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="include\GLFW\glfw3native.h" />
     <ClInclude Include="src\Utilities\StringHashID.h" />
     <ClInclude Include="src\Core\Time.h" />
-    <ClInclude Include="src\Rendering\Objects\Texture2D.h" />
+    <ClInclude Include="src\Rendering\Objects\TextureXD.h" />
     <ClInclude Include="include\stb_image\stb_image.h" />
     <ClInclude Include="src\Rendering\Objects\Texture.h" />
     <ClInclude Include="src\Core\Window.h" />
@@ -677,7 +685,8 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="libs\ktx.dll" />
     <None Include="libs\ktx_read.dll" />
     <None Include="res\materials\M_Gravel.material" />
-    <None Include="res\materials\M_Metal_Panel.material" />
+    <None Include="res\materials\M_Metal_Panel0.material" />
+    <None Include="res\materials\M_Metal_Panel1.material" />
     <None Include="res\models\cornell_box.mtl" />
     <None Include="res\shaders\includes\BlitCommon.glsl">
       <DeploymentContent>true</DeploymentContent>
@@ -708,6 +717,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\textures\T_Gravel_D.ktx" />
     <None Include="res\textures\T_Gravel_H.ktx" />
     <None Include="res\textures\T_Gravel_MAOR.ktx" />
+    <None Include="res\textures\T_Gravel_N.ktx" />
     <None Include="res\textures\T_Metal_Plates_D.ktx" />
     <None Include="res\textures\T_Metal_Plates_H.ktx" />
     <None Include="res\textures\T_Metal_Plates_MAOR.ktx" />
@@ -722,6 +732,8 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="x64\Debug\vc141.pdb" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Rendering\DynamicBatcher.cpp" />
+    <ClCompile Include="src\Rendering\GizmoRenderer.cpp" />
     <ClCompile Include="include\GLAD\glad.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -748,6 +760,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClCompile Include="src\Rendering\MeshUtility.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Rendering\Objects\RenderTexture.cpp" />
+    <ClCompile Include="src\Rendering\Structs\ResourceBindState.cpp" />
     <ClCompile Include="src\Rendering\Structs\ShaderPropertyBlock.cpp" />
     <ClCompile Include="src\Rendering\Objects\Mesh.cpp" />
     <ClCompile Include="src\Core\ApplicationConfig.cpp" />
@@ -763,7 +776,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClCompile Include="src\Core\Application.cpp" />
     <ClCompile Include="src\Utilities\StringHashID.cpp" />
     <ClCompile Include="src\Core\Time.cpp" />
-    <ClCompile Include="src\Rendering\Objects\Texture2D.cpp" />
+    <ClCompile Include="src\Rendering\Objects\TextureXD.cpp" />
     <ClCompile Include="include\stb_image\stb_image.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -784,6 +797,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <Text Include="res\shaders\includes\MathUtilities.glsl">
       <DeploymentContent>true</DeploymentContent>
     </Text>
+    <Text Include="res\shaders\SH_WS_Gizmos.shader" />
     <Text Include="x64\Debug\GLImageProcessor.Build.CppClean.log" />
     <Text Include="x64\Debug\GLImageProcessor.log" />
   </ItemGroup>

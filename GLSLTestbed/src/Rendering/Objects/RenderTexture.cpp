@@ -5,9 +5,7 @@
 static TextureDescriptor ConvertDescriptor(const RenderTextureDescriptor& descriptor, GLenum colorFromat)
 {
 	auto textureDescriptor = TextureDescriptor();
-	textureDescriptor.width = descriptor.width;
-	textureDescriptor.height = descriptor.height;
-	textureDescriptor.depth = descriptor.depth;
+	textureDescriptor.resolution = descriptor.resolution;
 	textureDescriptor.colorFormat = colorFromat;
 	textureDescriptor.dimension = descriptor.dimension;
 	textureDescriptor.wrapmodex = descriptor.wrapmodex;
@@ -43,6 +41,7 @@ void RenderTexture::Rebuild(const RenderTextureDescriptor& descriptor)
 	PK_CORE_ASSERT(descriptor.depthFormat != GL_NONE || colorCount > 0, "RenderTextureDescriptor doesn't specify at least 1 valid format");
 
 	SetDescriptor(ConvertDescriptor(descriptor, colorCount ? descriptor.colorFormats.at(0) : GL_NONE));
+	m_compoundDescriptor = descriptor;
 
 	depthBuffer = nullptr;
 	colorBuffers.clear();

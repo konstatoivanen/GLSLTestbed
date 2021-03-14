@@ -1,6 +1,6 @@
 #include "PrecompiledHeader.h"
 #include "Rendering/Objects/Material.h"
-#include "Rendering/Objects/Texture2D.h"
+#include "Rendering/Objects/TextureXD.h"
 #include "Core/Application.h"
 #include <yaml-cpp/yaml.h>
 
@@ -304,9 +304,9 @@ namespace YAML
 	};
 
 	template<>
-	struct convert<Weak<Texture2D>>
+	struct convert<Weak<TextureXD>>
 	{
-		static Node encode(const Weak<Texture2D>& rhs)
+		static Node encode(const Weak<TextureXD>& rhs)
 		{
 			Node node;
 			node.push_back(rhs.lock()->GetFileName());
@@ -314,10 +314,10 @@ namespace YAML
 			return node;
 		}
 
-		static bool decode(const Node& node, Weak<Texture2D>& rhs)
+		static bool decode(const Node& node, Weak<TextureXD>& rhs)
 		{
 			auto path = node.as<std::string>();
-			rhs = Application::GetService<AssetDatabase>()->Load<Texture2D>(path);
+			rhs = Application::GetService<AssetDatabase>()->Load<TextureXD>(path);
 			return true;
 		}
 	};
@@ -396,7 +396,7 @@ void AssetImporters::Import<Material>(const std::string& filepath, Ref<Material>
 				case CG_TYPE_INT2: material->SetInt2(nameHash, values.as<int2>()); break;
 				case CG_TYPE_INT3: material->SetInt3(nameHash, values.as<int3>()); break;
 				case CG_TYPE_INT4: material->SetInt4(nameHash, values.as<int4>()); break;
-				case CG_TYPE_TEXTURE: material->SetTexture(nameHash, values.as<Weak<Texture2D>>().lock()->GetGraphicsID()); break;
+				case CG_TYPE_TEXTURE: material->SetTexture(nameHash, values.as<Weak<TextureXD>>().lock()->GetGraphicsID()); break;
 			}
 		}
 	}

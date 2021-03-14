@@ -1,43 +1,90 @@
 #include "PrecompiledHeader.h"
 #include "DebugEngine.h"
+#include "Context/Structs/Implementers.h"
+#include "Context/Structs/EntityViews.h"
+#include "Rendering/MeshUtility.h"
 #include "Core/Application.h"
 
-DebugEngine::DebugEngine(AssetDatabase* assetDatabase, Time* time)
+static void CreateMeshRenderable(PKECS::EntityDatabase* entityDb, const float3& position, const float3& rotation, Ref<Mesh> mesh, Weak<Material> material)
 {
+	auto egid = PKECS::EGID(entityDb->ReserveEntityId(), (uint)PKECS::ENTITY_GROUPS::ACTIVE);
+	auto implementer = entityDb->ResereveImplementer<PKECS::Implementers::MeshRenderableImplementer>();
+	auto baseView = entityDb->ReserveEntityView<PKECS::EntityViews::BaseRenderable>(egid);
+	auto meshView = entityDb->ReserveEntityView<PKECS::EntityViews::MeshRenderable>(egid);
+
+	baseView->bounds = static_cast<PKECS::Components::Bounds*>(implementer);
+	baseView->handle = static_cast<PKECS::Components::RenderableHandle*>(implementer);
+	meshView->materials = static_cast<PKECS::Components::Materials*>(implementer);
+	meshView->mesh = static_cast<PKECS::Components::MeshReference*>(implementer);
+	meshView->transform = static_cast<PKECS::Components::Transform*>(implementer);
+
+	implementer->aabb = CGMath::CreateBoundsCenterExtents(position, CG_FLOAT3_ONE);
+	implementer->isCullable = true;
+	implementer->isVisible = false;
+	implementer->position = position;
+	implementer->rotation = glm::quat(rotation);
+	implementer->scale = CG_FLOAT3_ONE;
+	implementer->sharedMaterials.push_back(material);
+	implementer->sharedMesh = mesh;
+	implementer->type = PKECS::Components::RenderHandleType::MeshRenderer;
+	implementer->viewSize = 1.0f;
+}
+
+static void CreatePointLight(PKECS::EntityDatabase* entityDb, const float3& position, const color& color, float radius)
+{
+	auto egid = PKECS::EGID(entityDb->ReserveEntityId(), (uint)PKECS::ENTITY_GROUPS::ACTIVE);
+	auto implementer = entityDb->ResereveImplementer<PKECS::Implementers::PointLightImplementer>();
+	auto baseView = entityDb->ReserveEntityView<PKECS::EntityViews::BaseRenderable>(egid);
+	auto lightView = entityDb->ReserveEntityView<PKECS::EntityViews::PointLightRenderable>(egid);
+
+	baseView->bounds = static_cast<PKECS::Components::Bounds*>(implementer);
+	baseView->handle = static_cast<PKECS::Components::RenderableHandle*>(implementer);
+	lightView->pointLight = static_cast<PKECS::Components::PointLight*>(implementer);
+	lightView->transform = static_cast<PKECS::Components::Transform*>(implementer);
+
+	implementer->aabb = CGMath::CreateBoundsCenterExtents(position, CG_FLOAT3_ONE * 0.5f * radius);
+	implementer->isCullable = true;
+	implementer->isVisible = false;
+	implementer->position = position;
+	implementer->color = color;
+	implementer->radius = radius;
+	implementer->type = PKECS::Components::RenderHandleType::PointLight;
+	implementer->viewSize = 1.0f;
+}
+
+DebugEngine::DebugEngine(AssetDatabase* assetDatabase, Time* time, PKECS::EntityDatabase* entityDb)
+{
+	m_entityDb = entityDb;
 	m_assetDatabase = assetDatabase;
 	m_time = time;
 
-	auto desc = RenderTextureDescriptor();
-
-	desc.colorFormats = { GL_RGBA8 };
-	desc.depthFormat = GL_DEPTH24_STENCIL8;
-	desc.width = Application::GetWindow().GetWidth();
-	desc.height = Application::GetWindow().GetHeight();
-	desc.filtermin = GL_NEAREST;
-	desc.filtermag = GL_LINEAR;
-	desc.wrapmodex = GL_CLAMP_TO_EDGE;
-	desc.wrapmodey = GL_CLAMP_TO_EDGE;
-	desc.dimension = GL_TEXTURE_2D;
-
-	renderTarget = CreateRef<RenderTexture>(desc);
 	//meshCube = MeshUtilities::GetBox(CG_FLOAT3_ZERO, { 10.0f, 0.5f, 10.0f });
 	meshSphere = MeshUtilities::GetSphere(CG_FLOAT3_ZERO, 1.0f);
 	materialMetal = assetDatabase->Find<Material>("M_Metal_Panel");
 	materialGravel = assetDatabase->Find<Material>("M_Gravel");
-	iblShader = assetDatabase->Find<Shader>("SH_VS_IBLBackground");
+	cornellBoxMaterial = assetDatabase->Find<Material>("M_Metal_Panel1");
 	cornellBox = assetDatabase->Find<Mesh>("cornell_box");
 
-	reflectionMap = assetDatabase->Find<Texture2D>("T_OEM_01");
+	auto minpos = float3(-5, -5, -5);
+	auto maxpos = float3(5, 5, 5);
 
-	instanceMatrices = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE_FLOAT4X4, "Matrix" } }), 2);
+	CreateMeshRenderable(entityDb, CGMath::RandomRangeFloat3(minpos, maxpos), { 0,0,0 }, meshSphere, materialMetal);
+	CreateMeshRenderable(entityDb, CGMath::RandomRangeFloat3(minpos, maxpos), { 0,0,0 }, meshSphere, materialMetal);
+	CreateMeshRenderable(entityDb, CGMath::RandomRangeFloat3(minpos, maxpos), { 0,0,0 }, meshSphere, materialGravel);
 
-	float4x4 matrices[] = { CG_FLOAT4X4_IDENTITY , CGMath::GetMatrixTRS({ 0.5f, 0.5f, 0.5f }, CG_QUATERNION_IDENTITY, CG_FLOAT3_ONE) };
-	instanceMatrices->SetData(matrices, CG_TYPE_SIZE_FLOAT4X4 * 2);
+	CreatePointLight(entityDb, CGMath::RandomRangeFloat3(minpos, maxpos), CGMath::HueToRGB(CGMath::RandomFloat()) * CGMath::RandomRangeFloat(0.5f, 4.0f), CGMath::RandomRangeFloat(5, 40));
+	CreatePointLight(entityDb, CGMath::RandomRangeFloat3(minpos, maxpos), CGMath::HueToRGB(CGMath::RandomFloat()) * CGMath::RandomRangeFloat(0.5f, 4.0f), CGMath::RandomRangeFloat(5, 40));
+	CreatePointLight(entityDb, CGMath::RandomRangeFloat3(minpos, maxpos), CGMath::HueToRGB(CGMath::RandomFloat()) * CGMath::RandomRangeFloat(0.5f, 4.0f), CGMath::RandomRangeFloat(5, 40));
+	CreatePointLight(entityDb, CGMath::RandomRangeFloat3(minpos, maxpos), CGMath::HueToRGB(CGMath::RandomFloat()) * CGMath::RandomRangeFloat(0.5f, 4.0f), CGMath::RandomRangeFloat(5, 40));
+
+	//instanceMatrices = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE_FLOAT4X4, "Matrix" } }), 2);
+	//
+	//float4x4 matrices[] = { CG_FLOAT4X4_IDENTITY , CGMath::GetMatrixTRS({ 5.0f, 0.0f, 0.0f }, glm::quat({1,2,3}), CG_FLOAT3_ONE) };
+	//instanceMatrices->MapBuffer(matrices, CG_TYPE_SIZE_FLOAT4X4 * 2);
 }
 
 DebugEngine::~DebugEngine()
 {
-	renderTarget = nullptr;
 	meshSphere = nullptr;
 }
 
@@ -71,11 +118,10 @@ void DebugEngine::Step(Input* input)
 
 void DebugEngine::Step(int condition)
 {
-	auto hashCache = HashCache::Get();
+	//Graphics::SetRenderTarget(renderTarget);
+	//Graphics::Clear(CG_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	Graphics::SetRenderTarget(renderTarget);
-	Graphics::Clear(CG_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+	/*
 	LightingUtility::SetOEMTextures(reflectionMap.lock()->GetGraphicsID(), 1);
 	
 	Graphics::SetGlobalComputeBuffer(hashCache->pk_InstancingData, instanceMatrices->GetGraphicsID());
@@ -86,15 +132,45 @@ void DebugEngine::Step(int condition)
 	Graphics::DrawMeshInstanced(meshSphere, 0, 2, materialMetal.lock());
 	Graphics::SetGlobalKeyword(hashCache->PK_ENABLE_INSTANCING, false);
 
-	Graphics::DrawMesh(meshSphere, 0, materialGravel.lock(), CGMath::GetMatrixTRS({10.0f, 0.0f, 10.0f}, CG_QUATERNION_IDENTITY, CG_FLOAT3_ONE));
+	Graphics::DrawMesh(meshSphere, 0, materialGravel.lock(), CGMath::GetMatrixTRS({-5.0f, 0.0f, 0.0f}, CG_QUATERNION_IDENTITY, CG_FLOAT3_ONE));
 
 	auto count = cornellBox.lock()->GetSubmeshCount();
-	auto matrix = CGMath::GetMatrixTRS(CG_FLOAT3_ZERO, CG_QUATERNION_IDENTITY, CG_FLOAT3_ONE * 0.01f);
+	auto matrix = CGMath::GetMatrixTRS({ 10.0f, 0.0f, 0.0f }, CG_QUATERNION_IDENTITY, CG_FLOAT3_ONE * 0.01f);
 
 	for (uint i = 0; i < count; ++i)
 	{
-		Graphics::DrawMesh(cornellBox.lock(), i, materialMetal.lock(), matrix);
+		Graphics::DrawMesh(cornellBox.lock(), i, cornellBoxMaterial.lock(), matrix);
 	}
+	*/
 
-	Graphics::Blit(renderTarget->GetColorBuffer(0).lock(), Graphics::GetBackBuffer());
+	//Graphics::Blit(renderTarget->GetColorBuffer(0).lock(), Graphics::GetBackBuffer());
+}
+
+void DebugEngine::Step(GizmoRenderer* gizmos)
+{
+	auto aspect = Application::GetWindow().GetAspect();
+	auto proj = CGMath::GetPerspective(50.0f, aspect, 0.1f, 50.0f);
+	auto view = CGMath::GetMatrixInvTRS(CG_FLOAT3_ZERO, glm::quat(float3(0, Application::GetService<Time>()->GetTime(), 0)), CG_FLOAT3_ONE);
+	auto vp = proj * view;
+
+	gizmos->SetColor(CG_COLOR_GREEN);
+	gizmos->DrawFrustrum(vp);
+	
+	FrustrumPlanes frustrum;
+	CGMath::ExtractFrustrumPlanes(vp, &frustrum, true);
+
+	auto cullables = m_entityDb->Query<PKECS::EntityViews::BaseRenderable>((int)PKECS::ENTITY_GROUPS::ACTIVE);
+
+	for (auto i = 0; i < cullables.count; ++i)
+	{
+		const auto& bounds = cullables[i].bounds->aabb;
+		gizmos->SetColor(CG_COLOR_BLACK);
+
+		if (CGMath::IntersectPlanesAABB(frustrum.planes, 6, bounds))
+		{
+			gizmos->SetColor(CGMath::HueToRGB((float)i / (4 * 4 * 4)));
+		}
+
+		gizmos->DrawWireBounds(bounds.GetCenter(), bounds.GetExtents());
+	}
 }

@@ -1,7 +1,7 @@
 #include "PrecompiledHeader.h"
 #include "Utilities/HashCache.h"
 #include "Rendering/Graphics.h"
-#include <ext.hpp>
+#include <hlslmath.h>
 
 namespace Graphics
 {
@@ -17,6 +17,7 @@ namespace Graphics
 	#define CURRENT_ATTRIBUTES GetCurrentContext()->FixedStateAttributes
 	#define GLOBAL_KEYWORDS GetCurrentContext()->ShaderProperties.GetKeywords()
 	#define GLOBAL_PROPERTIES GetCurrentContext()->ShaderProperties
+	#define RESOURCE_BINDINGS GetCurrentContext()->ResourceBindState
 	#define ACTIVE_RENDERTARGET GetCurrentContext()->ActiveRenderTarget
 	#define BLIT_QUAD GetCurrentContext()->BlitQuad
 	#define BLIT_SHADER GetCurrentContext()->BlitShader.lock()
@@ -90,13 +91,17 @@ namespace Graphics
 	void EndWindow() { glfwSwapBuffers(CURRENT_WINDOW); }
 	
 	
-	int2 GetWindowResolution(GLFWwindow* window)
+    uint2 GetWindowResolution(GLFWwindow* window)
 	{
 		int width, height;
 		glfwGetFramebufferSize(window, &width, &height);
-		return int2(width, height);
+		return int2((uint)width, (uint)height);
 	}
 	
+	uint2 GetActiveWindowResolution() { return GetWindowResolution(CURRENT_WINDOW); }
+
+	float4x4 GetActiveViewProjectionMatrix() { return *GLOBAL_PROPERTIES.GetPropertyPtr<float4x4>(HashCache::Get()->pk_MATRIX_VP); }
+
 	Ref<RenderTexture>& GetActiveRenderTarget() { return ACTIVE_RENDERTARGET; }
 	
 	Ref<RenderTexture> GetBackBuffer() { return (Ref<RenderTexture>)nullptr; }
@@ -197,7 +202,7 @@ namespace Graphics
 	
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		ACTIVE_RENDERTARGET = nullptr;
-		auto resolution = GetWindowResolution(CURRENT_WINDOW);
+		auto resolution = GetActiveWindowResolution();
 		SetViewPort(0, 0, resolution.x, resolution.y);
 	}
 	
@@ -229,15 +234,14 @@ namespace Graphics
 		glUseProgram(0);
 	}
 	
-	void SetVertexBuffer(const Ref<VertexBuffer>& buffer)
-	{
-		glBindBuffer(GL_ARRAY_BUFFER, buffer == nullptr ? 0 : buffer->GetGraphicsID());
-	}
+	void SetVertexBuffer(const Ref<VertexBuffer>& buffer) { glBindBuffer(GL_ARRAY_BUFFER, buffer == nullptr ? 0 : buffer->GetGraphicsID()); }
 
-	void SetIndexBuffer(const Ref<IndexBuffer>& buffer)
-	{
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer == nullptr ? 0 : buffer->GetGraphicsID());
-	}
+	void SetIndexBuffer(const Ref<IndexBuffer>& buffer) { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer == nullptr ? 0 : buffer->GetGraphicsID()); }
+
+
+    void BindTextures(ushort location, const GraphicsID* graphicsIds, ushort count) { RESOURCE_BINDINGS.BindTextures(location, graphicsIds, count); }
+
+	void BindBuffers(ushort type, ushort location, const GraphicsID* graphicsIds, ushort count) { RESOURCE_BINDINGS.BindBuffers(type, location, graphicsIds, count); }
 	
 	
 	void Blit(const Ref<Shader>& shader)
@@ -436,40 +440,43 @@ namespace Graphics
 		glDrawElementsInstanced(GL_TRIANGLES, indexRange.count, GL_UNSIGNED_INT, (GLvoid*)(size_t)(indexRange.offset * sizeof(GLuint)), count);
     }
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Shader>& shader)
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint offset, uint count, const Ref<Shader>& shader)
 	{
 		shader->ResetKeywords();
 		shader->SetKeywords(GLOBAL_KEYWORDS);
 		SetPass(shader);
+		SetGlobalInt(HashCache::Get()->pk_InstancingOffset, offset);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		DrawMeshInstanced(mesh, submesh, count);
 	}
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock)
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint offset, uint count, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock)
 	{
 		shader->ResetKeywords();
 		shader->SetKeywords(GLOBAL_KEYWORDS);
 		shader->SetKeywords(propertyBlock.GetKeywords());
 		SetPass(shader);
+		SetGlobalInt(HashCache::Get()->pk_InstancingOffset, offset);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		shader->SetPropertyBlock(propertyBlock);
 		DrawMeshInstanced(mesh, submesh, count);
 	}
 
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Material>& material)
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint offset, uint count, const Ref<Material>& material)
 	{
 		auto shader = material->GetShader().lock();
 		shader->ResetKeywords();
 		shader->SetKeywords(material->GetKeywords());
 		shader->SetKeywords(GLOBAL_KEYWORDS);
 		SetPass(shader);
+		SetGlobalInt(HashCache::Get()->pk_InstancingOffset, offset);
 		shader->SetPropertyBlock(*material);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		DrawMeshInstanced(mesh, submesh, count);
 	}
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock)
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint offset, uint count, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock)
 	{
 		auto shader = material->GetShader().lock();
 		shader->ResetKeywords();
@@ -477,9 +484,19 @@ namespace Graphics
 		shader->SetKeywords(GLOBAL_KEYWORDS);
 		shader->SetKeywords(propertyBlock.GetKeywords());
 		SetPass(shader);
+		SetGlobalInt(HashCache::Get()->pk_InstancingOffset, offset);
 		shader->SetPropertyBlock(*material);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		shader->SetPropertyBlock(propertyBlock);
 		DrawMeshInstanced(mesh, submesh, count);
+	}
+
+	void DrawProcedural(const Ref<Shader>& shader, GLenum topology, size_t offset, size_t count)
+	{
+		shader->ResetKeywords();
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		SetPass(shader);
+		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+		glDrawArrays(topology, (GLint)offset, (GLsizei)count);
 	}
 }

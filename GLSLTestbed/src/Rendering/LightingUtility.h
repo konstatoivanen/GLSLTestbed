@@ -1,6 +1,6 @@
 #pragma once
 #include "PrecompiledHeader.h"
-#include "Rendering/Objects/Texture2D.h"
+#include "Rendering/Objects/GraphicsObject.h"
 
 namespace LightingUtility
 {
