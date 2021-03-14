@@ -33,7 +33,6 @@ class HashCache : public IService, public ISingleton<HashCache>
         DEFINE_HASH_CACHE(pk_Lights)
         DEFINE_HASH_CACHE(pk_LightCount)
         DEFINE_HASH_CACHE(pk_InstancingData)
-        DEFINE_HASH_CACHE(pk_InstancingOffset)
         DEFINE_HASH_CACHE(pk_PerFrameConstants)
         DEFINE_HASH_CACHE(PK_ENABLE_INSTANCING)
 };

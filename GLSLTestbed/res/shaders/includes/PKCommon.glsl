@@ -55,8 +55,7 @@ uniform float4x4 pk_MATRIX_I_M;
 
 #if defined(PK_ENABLE_INSTANCING) && defined(SHADER_STAGE_VERTEX)
     PK_DECLARE_BUFFER(float4x4, pk_InstancingData);
-    uniform int pk_InstancingOffset;
-    #define ACTIVE_MODEL_MATRIX PK_BUFFER_DATA(pk_InstancingData, PK_INSTANCE_ID + pk_InstancingOffset)
+    #define ACTIVE_MODEL_MATRIX PK_BUFFER_DATA(pk_InstancingData, PK_INSTANCE_ID)
 #else
     #define ACTIVE_MODEL_MATRIX pk_MATRIX_M
 #endif

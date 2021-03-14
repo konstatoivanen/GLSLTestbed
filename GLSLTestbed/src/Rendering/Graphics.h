@@ -98,11 +98,11 @@ namespace Graphics
 	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock);
 
 	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count);
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint offset, uint count, const Ref<Shader>& shader);
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint offset, uint count, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock);
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Shader>& shader);
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock);
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint offset, uint count, const Ref<Material>& material);
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint offset, uint count, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Material>& material);
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
 
 	void DrawProcedural(const Ref<Shader>& shader, GLenum topology, size_t offset, size_t count);
 }

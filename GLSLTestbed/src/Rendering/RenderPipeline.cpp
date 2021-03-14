@@ -32,23 +32,9 @@ static void UpdateLightsBuffer(PKECS::EntityDatabase* entityDb, FrustrumCuller& 
 
 static void UpdateDynamicBatches(PKECS::EntityDatabase* entityDb, FrustrumCuller& culler, DynamicBatcher& batcher)
 {
-	batcher.ResetCapacities();
+	batcher.Reset();
 
 	auto cullingResults = culler.GetCullingResults((int)PKECS::Components::RenderHandleType::MeshRenderer);
-
-	for (uint i = 0; i < cullingResults.count; ++i)
-	{
-		auto* view = entityDb->Query<PKECS::EntityViews::MeshRenderable>(PKECS::EGID(cullingResults[i], (uint)PKECS::ENTITY_GROUPS::ACTIVE));
-		auto* materials = &view->materials->sharedMaterials;
-		auto mesh = view->mesh->sharedMesh;
-
-		for (auto i = 0; i < materials->size(); ++i)
-		{
-			batcher.BuildCapacity(mesh, i, materials->at(i));
-		}
-	}
-
-	batcher.BeginMapBuffers();
 
 	for (uint i = 0; i < cullingResults.count; ++i)
 	{
@@ -63,7 +49,7 @@ static void UpdateDynamicBatches(PKECS::EntityDatabase* entityDb, FrustrumCuller
 		}
 	}
 
-	batcher.EndMapBuffers();
+	batcher.UpdateBuffers();
 }
 
 RenderPipeline::RenderPipeline(AssetDatabase* assetDatabase, PKECS::EntityDatabase* entityDb)

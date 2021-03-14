@@ -10,22 +10,18 @@ class DynamicBatcher
         Weak<Material> material;
         Weak<Mesh> mesh;
         uint submesh;
-        uint offset;
-        uint count;
-        uint activeIndex;
+        Ref<ComputeBuffer> instancingBuffer;
+        std::vector<float4x4> matrices;
+        size_t count;
     };
 
     public:
-        void ResetCapacities();
-        void BuildCapacity(Weak<Mesh>& mesh, uint submesh, Weak<Material>& material);
-        void BeginMapBuffers();
-        void EndMapBuffers();
+        void Reset();
         void QueueDraw(Weak<Mesh>& mesh, uint submesh, Weak<Material>& material, const float4x4& matrix);
+        void UpdateBuffers();
         void Execute();
         void Execute(Ref<Material>& overrideMaterial);
     private:
-        Ref<ComputeBuffer> m_instancingBuffer;
         std::vector<DynamicBatch> m_batches;
         std::map<ulong, uint> m_batchmap;
-        BufferView<float4x4> m_mappedBuffer;
 };

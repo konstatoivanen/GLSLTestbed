@@ -440,43 +440,40 @@ namespace Graphics
 		glDrawElementsInstanced(GL_TRIANGLES, indexRange.count, GL_UNSIGNED_INT, (GLvoid*)(size_t)(indexRange.offset * sizeof(GLuint)), count);
     }
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint offset, uint count, const Ref<Shader>& shader)
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Shader>& shader)
 	{
 		shader->ResetKeywords();
 		shader->SetKeywords(GLOBAL_KEYWORDS);
 		SetPass(shader);
-		SetGlobalInt(HashCache::Get()->pk_InstancingOffset, offset);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		DrawMeshInstanced(mesh, submesh, count);
 	}
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint offset, uint count, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock)
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock)
 	{
 		shader->ResetKeywords();
 		shader->SetKeywords(GLOBAL_KEYWORDS);
 		shader->SetKeywords(propertyBlock.GetKeywords());
 		SetPass(shader);
-		SetGlobalInt(HashCache::Get()->pk_InstancingOffset, offset);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		shader->SetPropertyBlock(propertyBlock);
 		DrawMeshInstanced(mesh, submesh, count);
 	}
 
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint offset, uint count, const Ref<Material>& material)
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Material>& material)
 	{
 		auto shader = material->GetShader().lock();
 		shader->ResetKeywords();
 		shader->SetKeywords(material->GetKeywords());
 		shader->SetKeywords(GLOBAL_KEYWORDS);
 		SetPass(shader);
-		SetGlobalInt(HashCache::Get()->pk_InstancingOffset, offset);
 		shader->SetPropertyBlock(*material);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		DrawMeshInstanced(mesh, submesh, count);
 	}
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint offset, uint count, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock)
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock)
 	{
 		auto shader = material->GetShader().lock();
 		shader->ResetKeywords();
@@ -484,7 +481,6 @@ namespace Graphics
 		shader->SetKeywords(GLOBAL_KEYWORDS);
 		shader->SetKeywords(propertyBlock.GetKeywords());
 		SetPass(shader);
-		SetGlobalInt(HashCache::Get()->pk_InstancingOffset, offset);
 		shader->SetPropertyBlock(*material);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		shader->SetPropertyBlock(propertyBlock);
