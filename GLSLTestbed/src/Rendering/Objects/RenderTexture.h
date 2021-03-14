@@ -31,6 +31,7 @@ class RenderTexture : public Texture
 		RenderTexture(const RenderTextureDescriptor& descriptor);
 		~RenderTexture();
 		void Rebuild(const RenderTextureDescriptor& descriptor);
+        void ValidateResolution(const uint3& resolution);
         void DiscardContents();
 
         RenderTextureDescriptor GetCompoundDescriptor() { return m_compoundDescriptor; }

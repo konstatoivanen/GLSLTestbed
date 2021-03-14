@@ -137,17 +137,65 @@ ushort CGConvert::FromString(const char* string)
 
 float4x4 CGMath::GetMatrixTRS(const float3& position, const quaternion& rotation, const float3& scale)
 {
-	return glm::translate(float4x4(1.0f), position) * glm::toMat4(rotation) * glm::scale(scale);
+	float qxx(rotation.x * rotation.x);
+	float qyy(rotation.y * rotation.y);
+	float qzz(rotation.z * rotation.z);
+	float qxz(rotation.x * rotation.z);
+	float qxy(rotation.x * rotation.y);
+	float qyz(rotation.y * rotation.z);
+	float qwx(rotation.w * rotation.x);
+	float qwy(rotation.w * rotation.y);
+	float qwz(rotation.w * rotation.z);
+
+	float4x4 m(1.0f);
+	m[3].xyz = position;
+	m[0][0] = scale[0] * (1.0f - 2.0f * (qyy + qzz));
+	m[0][1] = scale[0] * (2.0f * (qxy + qwz));
+	m[0][2] = scale[0] * (2.0f * (qxz - qwy));
+
+	m[1][0] = scale[1] * (2.0f * (qxy - qwz));
+	m[1][1] = scale[1] * (1.0f - 2.0f * (qxx + qzz));
+	m[1][2] = scale[1] * (2.0f * (qyz + qwx));
+
+	m[2][0] = scale[2] * (2.0f * (qxz + qwy));
+	m[2][1] = scale[2] * (2.0f * (qyz - qwx));
+	m[2][2] = scale[2] * (1.0f - 2.0f * (qxx + qyy));
+
+	return m;
 }
 
 float4x4 CGMath::GetMatrixInvTRS(const float3& position, const quaternion& rotation, const float3& scale)
 {
-	return glm::inverse(glm::translate(float4x4(1.0f), position) * glm::toMat4(rotation) * glm::scale(scale));
+	return glm::inverse(GetMatrixTRS(position, rotation, scale));
 }
 
 float4x4 CGMath::GetMatrixTR(const float3& position, const quaternion& rotation)
 {
-	return glm::translate(float4x4(1.0f), position) * glm::toMat4(rotation);
+	float qxx(rotation.x * rotation.x);
+	float qyy(rotation.y * rotation.y);
+	float qzz(rotation.z * rotation.z);
+	float qxz(rotation.x * rotation.z);
+	float qxy(rotation.x * rotation.y);
+	float qyz(rotation.y * rotation.z);
+	float qwx(rotation.w * rotation.x);
+	float qwy(rotation.w * rotation.y);
+	float qwz(rotation.w * rotation.z);
+
+	float4x4 m(1.0f);
+	m[3].xyz = position;
+	m[0][0] = 1.0f - 2.0f * (qyy + qzz);
+	m[0][1] = 2.0f * (qxy + qwz);
+	m[0][2] = 2.0f * (qxz - qwy);
+			  
+	m[1][0] = 2.0f * (qxy - qwz);
+	m[1][1] = 1.0f - 2.0f * (qxx + qzz);
+	m[1][2] = 2.0f * (qyz + qwx);
+			  
+	m[2][0] = 2.0f * (qxz + qwy);
+	m[2][1] = 2.0f * (qyz - qwx);
+	m[2][2] = 1.0f - 2.0f * (qxx + qyy);
+
+	return m;
 }
 
 float4x4 CGMath::GetPerspective(float fov, float aspect, float nearClip, float farClip)

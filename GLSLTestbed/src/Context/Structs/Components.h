@@ -31,10 +31,10 @@ namespace PKECS::Components
 
     struct RenderableHandle
     {
-        bool isVisible;
+        bool isVisible = false;
         bool isCullable = true;
-        RenderHandleType type;
-        float viewSize;
+        RenderHandleType type = RenderHandleType::MeshRenderer;
+        float viewSize = 1.0f;
         virtual ~RenderableHandle() = 0 {}
     };
     
@@ -52,8 +52,8 @@ namespace PKECS::Components
     
     struct PointLight
     {
-        color color;
-        float radius;
+        color color = CG_COLOR_WHITE;
+        float radius = 1.0f;
         virtual ~PointLight() = 0 {}
     };
 }

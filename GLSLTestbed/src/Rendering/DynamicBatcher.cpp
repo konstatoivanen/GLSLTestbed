@@ -44,11 +44,11 @@ void DynamicBatcher::UpdateBuffers()
     {
         if (batch.instancingBuffer == nullptr)
         {
-            batch.instancingBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE_FLOAT4X4, "Matrix" } }), batch.count);
+            batch.instancingBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE_FLOAT4X4, "Matrix" } }), (uint)batch.count);
         }
         else
         {
-            batch.instancingBuffer->ValidateSize(batch.count);
+            batch.instancingBuffer->ValidateSize((uint)batch.count);
         }
 
         batch.instancingBuffer->MapBuffer(batch.matrices.data(), batch.count * CG_TYPE_SIZE_FLOAT4X4);
@@ -71,7 +71,7 @@ void DynamicBatcher::Execute()
         {
             Graphics::SetGlobalKeyword(PK_ENABLE_INSTANCING, true);
             Graphics::SetGlobalComputeBuffer(pk_InstancingData, batch.instancingBuffer->GetGraphicsID());
-            Graphics::DrawMeshInstanced(batch.mesh.lock(), batch.submesh, batch.count, batch.material.lock());
+            Graphics::DrawMeshInstanced(batch.mesh.lock(), batch.submesh, (uint)batch.count, batch.material.lock());
             Graphics::SetGlobalKeyword(PK_ENABLE_INSTANCING, false);
             continue;
         }
@@ -96,7 +96,7 @@ void DynamicBatcher::Execute(Ref<Material>& overrideMaterial)
         {
             Graphics::SetGlobalKeyword(PK_ENABLE_INSTANCING, true);
             Graphics::SetGlobalComputeBuffer(pk_InstancingData, batch.instancingBuffer->GetGraphicsID());
-            Graphics::DrawMeshInstanced(batch.mesh.lock(), batch.submesh, batch.count, overrideMaterial);
+            Graphics::DrawMeshInstanced(batch.mesh.lock(), batch.submesh, (uint)batch.count, overrideMaterial);
             Graphics::SetGlobalKeyword(PK_ENABLE_INSTANCING, false);
             continue;
         }

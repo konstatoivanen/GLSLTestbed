@@ -60,7 +60,7 @@ namespace PKECS
 
     struct ImplementerContainer
     {
-        size_t count;
+        size_t count = 0;
         std::vector<Scope<ImplementerBucket>> buckets;
     };
 

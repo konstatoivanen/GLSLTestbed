@@ -206,6 +206,7 @@ namespace CGMath
     inline float3 RandomFloat3() { return float3(RandomFloat(), RandomFloat(), RandomFloat()); }
     inline float RandomRangeFloat(float min, float max) { return min + (RandomFloat() * (max - min)); }
     inline float3 RandomRangeFloat3(const float3& min, const float3& max) { return float3(RandomRangeFloat(min.x, max.x), RandomRangeFloat(min.y, max.y), RandomRangeFloat(min.z, max.z)); }
+    inline float3 RandomEuler() { return float3(RandomRangeFloat(-360.0f, 360.0f), RandomRangeFloat(-360.0f, 360.0f), RandomRangeFloat(-360.0f, 360.0f)); }
     size_t GetNextExponentialSize(size_t start, size_t min);
 
     // @TODO Move somewhere more appropriate

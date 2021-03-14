@@ -83,6 +83,15 @@ void RenderTexture::Rebuild(const RenderTextureDescriptor& descriptor)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void RenderTexture::ValidateResolution(const uint3& resolution)
+{
+	if (m_compoundDescriptor.resolution != resolution)
+	{
+		m_compoundDescriptor.resolution = resolution;
+		Rebuild(m_compoundDescriptor);
+	}
+}
+
 void RenderTexture::DiscardContents()
 {
 	auto colorCount = colorBuffers.size();

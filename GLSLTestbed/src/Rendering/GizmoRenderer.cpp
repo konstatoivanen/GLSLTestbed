@@ -10,41 +10,49 @@ GizmoRenderer::GizmoRenderer(PKECS::Sequencer* sequencer, AssetDatabase* assetDa
     m_vertexBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE_FLOAT4, "POSITION", CG_TYPE_FLOAT4, "COLOR" } }), 32);
 }
 
-void GizmoRenderer::DrawWireBounds(const float3& center, const float3& extents)
+void GizmoRenderer::DrawWireBounds(const BoundingBox& aabb)
 {
-    DrawWireBox(center - extents, extents * 2.0f);
+    if (!CGMath::IntersectPlanesAABB(m_frustrumPlanes.planes, 6, aabb))
+    {
+        return;
+    }
+
+    auto vertices = ReserveVertices(24);
+    auto min = aabb.min;
+    auto max = aabb.max;
+
+    auto idx = 0;
+    vertices[idx++] = { min, 0, m_color };
+    vertices[idx++] = { float3(min.x, max.y, min.z), 0, m_color };
+    vertices[idx++] = { float3(max.x, min.y, min.z), 0, m_color };
+    vertices[idx++] = { float3(max.x, max.y, min.z), 0, m_color };
+    vertices[idx++] = { float3(min.x, min.y, max.z), 0, m_color };
+    vertices[idx++] = { float3(min.x, max.y, max.z), 0, m_color };
+    vertices[idx++] = { float3(max.x, min.y, max.z), 0, m_color };
+    vertices[idx++] = { float3(max.x, max.y, max.z), 0, m_color };
+    vertices[idx++] = { min, 0, m_color };
+    vertices[idx++] = { float3(max.x, min.y, min.z), 0, m_color };
+    vertices[idx++] = { float3(min.x, max.y, min.z), 0, m_color };
+    vertices[idx++] = { float3(max.x, max.y, min.z), 0, m_color };
+    vertices[idx++] = { float3(min.x, min.y, max.z), 0, m_color };
+    vertices[idx++] = { float3(max.x, min.y, max.z), 0, m_color };
+    vertices[idx++] = { float3(min.x, max.y, max.z), 0, m_color };
+    vertices[idx++] = { float3(max.x, max.y, max.z), 0, m_color };
+    vertices[idx++] = { min, 0, m_color };
+    vertices[idx++] = { float3(min.x, min.y, max.z), 0, m_color };
+    vertices[idx++] = { float3(max.x, min.y, min.z), 0, m_color };
+    vertices[idx++] = { float3(max.x, min.y, max.z), 0, m_color };
+    vertices[idx++] = { float3(min.x, max.y, min.z), 0, m_color };
+    vertices[idx++] = { float3(min.x, max.y, max.z), 0, m_color };
+    vertices[idx++] = { float3(max.x, max.y, min.z), 0, m_color };
+    vertices[idx++] = { float3(max.x, max.y, max.z), 0, m_color };
 }
 
 void GizmoRenderer::DrawWireBox(const float3& origin, const float3& size)
 {
-    auto vertices = ReserveVertices(24);
-
-    auto idx = 0;
-    vertices[idx++] = { origin + float3(0, 0, 0), 0, m_color };
-    vertices[idx++] = { origin + float3(0, size.y, 0), 0, m_color };
-    vertices[idx++] = { origin + float3(size.x, 0, 0), 0, m_color };
-    vertices[idx++] = { origin + float3(size.x, size.y, 0), 0, m_color };
-    vertices[idx++] = { origin + float3(0, 0, size.z), 0, m_color };
-    vertices[idx++] = { origin + float3(0, size.y, size.z), 0, m_color };
-    vertices[idx++] = { origin + float3(size.x, 0, size.z), 0, m_color };
-    vertices[idx++] = { origin + float3(size.x, size.y, size.z), 0, m_color };
-    vertices[idx++] = { origin + float3(0, 0, 0), 0, m_color };
-    vertices[idx++] = { origin + float3(size.x, 0, 0), 0, m_color };
-    vertices[idx++] = { origin + float3(0, size.y, 0), 0, m_color };
-    vertices[idx++] = { origin + float3(size.x, size.y, 0), 0, m_color };
-    vertices[idx++] = { origin + float3(0, 0, size.z), 0, m_color };
-    vertices[idx++] = { origin + float3(size.x, 0, size.z), 0, m_color };
-    vertices[idx++] = { origin + float3(0, size.y, size.z), 0, m_color };
-    vertices[idx++] = { origin + float3(size.x, size.y, size.z), 0, m_color };
-    vertices[idx++] = { origin + float3(0, 0, 0), 0, m_color };
-    vertices[idx++] = { origin + float3(0, 0, size.z), 0, m_color };
-    vertices[idx++] = { origin + float3(size.x, 0, 0), 0, m_color };
-    vertices[idx++] = { origin + float3(size.x, 0, size.z), 0, m_color };
-    vertices[idx++] = { origin + float3(0, size.y, 0), 0, m_color };
-    vertices[idx++] = { origin + float3(0, size.y, size.z), 0, m_color };
-    vertices[idx++] = { origin + float3(size.x, size.y, 0), 0, m_color };
-    vertices[idx++] = { origin + float3(size.x, size.y, size.z), 0, m_color };
+    DrawWireBounds(CGMath::CreateBoundsMinMax(origin, origin + size));
 }
+
 
 void GizmoRenderer::DrawLine(const float3& start, const float3& end)
 {
@@ -117,6 +125,9 @@ void GizmoRenderer::Step(int condition)
     SetColor(CG_COLOR_WHITE);
     SetMatrix(CG_FLOAT4X4_IDENTITY);
     m_vertexCount = 0;
+
+    auto matrix = Graphics::GetActiveViewProjectionMatrix();
+    CGMath::ExtractFrustrumPlanes(matrix, &m_frustrumPlanes, true);
 
     m_sequencer->Next<GizmoRenderer>(this, this, 0);
 

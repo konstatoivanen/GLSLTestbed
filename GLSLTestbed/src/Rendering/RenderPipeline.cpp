@@ -62,7 +62,7 @@ RenderPipeline::RenderPipeline(AssetDatabase* assetDatabase, PKECS::EntityDataba
 	m_OEMTexture = assetDatabase->Find<TextureXD>("T_OEM_01");
 
 	auto renderTargetDescriptor = RenderTextureDescriptor();
-	renderTargetDescriptor.colorFormats = { GL_RGBA8 };
+	renderTargetDescriptor.colorFormats = { GL_RGBA16F };
 	renderTargetDescriptor.depthFormat = GL_DEPTH24_STENCIL8;
 	renderTargetDescriptor.resolution = { Application::GetWindow().GetWidth(), Application::GetWindow().GetHeight(), 0 };
 	renderTargetDescriptor.filtermin = GL_NEAREST;
@@ -135,14 +135,7 @@ void RenderPipeline::OnPreRender()
 	UpdateLightsBuffer(m_entityDb, m_frustrumCuller, m_lightsBuffer);
 	UpdateDynamicBatches(m_entityDb, m_frustrumCuller, m_dynamicBatcher);
 
-	auto windowResolution = Graphics::GetActiveWindowResolution();
-
-	if (m_HDRRenderTarget->GetResolution2D() != windowResolution)
-	{
-		auto descriptor = m_HDRRenderTarget->GetCompoundDescriptor();
-		descriptor.resolution.xy = windowResolution;
-		m_HDRRenderTarget->Rebuild(descriptor);
-	}
+	m_HDRRenderTarget->ValidateResolution(uint3(Graphics::GetActiveWindowResolution(), 0));
 
 	Graphics::SetRenderTarget(m_HDRRenderTarget);
 	Graphics::Clear(CG_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

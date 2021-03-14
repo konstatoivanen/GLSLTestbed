@@ -65,22 +65,23 @@ DebugEngine::DebugEngine(AssetDatabase* assetDatabase, Time* time, PKECS::Entity
 	cornellBoxMaterial = assetDatabase->Find<Material>("M_Metal_Panel1");
 	cornellBox = assetDatabase->Find<Mesh>("cornell_box");
 
-	auto minpos = float3(-5, -5, -5);
-	auto maxpos = float3(5, 5, 5);
+	auto minpos = float3(-20, -10, 20);
+	auto maxpos = float3(20, 10, 30);
 
-	CreateMeshRenderable(entityDb, CGMath::RandomRangeFloat3(minpos, maxpos), { 0,0,0 }, meshSphere, materialMetal);
-	CreateMeshRenderable(entityDb, CGMath::RandomRangeFloat3(minpos, maxpos), { 0,0,0 }, meshSphere, materialMetal);
-	CreateMeshRenderable(entityDb, CGMath::RandomRangeFloat3(minpos, maxpos), { 0,0,0 }, meshSphere, materialGravel);
+	for (auto i = 0; i < 256; ++i)
+	{
+		CreateMeshRenderable(entityDb, CGMath::RandomRangeFloat3(minpos, maxpos), CGMath::RandomEuler(), meshSphere, materialMetal);
+	}
 
-	CreatePointLight(entityDb, CGMath::RandomRangeFloat3(minpos, maxpos), CGMath::HueToRGB(CGMath::RandomFloat()) * CGMath::RandomRangeFloat(0.5f, 4.0f), CGMath::RandomRangeFloat(5, 40));
-	CreatePointLight(entityDb, CGMath::RandomRangeFloat3(minpos, maxpos), CGMath::HueToRGB(CGMath::RandomFloat()) * CGMath::RandomRangeFloat(0.5f, 4.0f), CGMath::RandomRangeFloat(5, 40));
-	CreatePointLight(entityDb, CGMath::RandomRangeFloat3(minpos, maxpos), CGMath::HueToRGB(CGMath::RandomFloat()) * CGMath::RandomRangeFloat(0.5f, 4.0f), CGMath::RandomRangeFloat(5, 40));
-	CreatePointLight(entityDb, CGMath::RandomRangeFloat3(minpos, maxpos), CGMath::HueToRGB(CGMath::RandomFloat()) * CGMath::RandomRangeFloat(0.5f, 4.0f), CGMath::RandomRangeFloat(5, 40));
+	for (auto i = 0; i < 256; ++i)
+	{
+		CreateMeshRenderable(entityDb, CGMath::RandomRangeFloat3(minpos, maxpos), CGMath::RandomEuler(), meshSphere, materialGravel);
+	}
 
-	//instanceMatrices = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE_FLOAT4X4, "Matrix" } }), 2);
-	//
-	//float4x4 matrices[] = { CG_FLOAT4X4_IDENTITY , CGMath::GetMatrixTRS({ 5.0f, 0.0f, 0.0f }, glm::quat({1,2,3}), CG_FLOAT3_ONE) };
-	//instanceMatrices->MapBuffer(matrices, CG_TYPE_SIZE_FLOAT4X4 * 2);
+	for (auto i = 0; i < 4; ++i)
+	{
+		CreatePointLight(entityDb, CGMath::RandomRangeFloat3(minpos, maxpos), CGMath::HueToRGB(CGMath::RandomFloat()) * CGMath::RandomRangeFloat(2.5f, 10.0f), CGMath::RandomRangeFloat(5, 40));
+	}
 }
 
 DebugEngine::~DebugEngine()
@@ -118,32 +119,6 @@ void DebugEngine::Step(Input* input)
 
 void DebugEngine::Step(int condition)
 {
-	//Graphics::SetRenderTarget(renderTarget);
-	//Graphics::Clear(CG_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	/*
-	LightingUtility::SetOEMTextures(reflectionMap.lock()->GetGraphicsID(), 1);
-	
-	Graphics::SetGlobalComputeBuffer(hashCache->pk_InstancingData, instanceMatrices->GetGraphicsID());
-
-	Graphics::Blit(iblShader.lock());
-
-	Graphics::SetGlobalKeyword(hashCache->PK_ENABLE_INSTANCING, true);
-	Graphics::DrawMeshInstanced(meshSphere, 0, 2, materialMetal.lock());
-	Graphics::SetGlobalKeyword(hashCache->PK_ENABLE_INSTANCING, false);
-
-	Graphics::DrawMesh(meshSphere, 0, materialGravel.lock(), CGMath::GetMatrixTRS({-5.0f, 0.0f, 0.0f}, CG_QUATERNION_IDENTITY, CG_FLOAT3_ONE));
-
-	auto count = cornellBox.lock()->GetSubmeshCount();
-	auto matrix = CGMath::GetMatrixTRS({ 10.0f, 0.0f, 0.0f }, CG_QUATERNION_IDENTITY, CG_FLOAT3_ONE * 0.01f);
-
-	for (uint i = 0; i < count; ++i)
-	{
-		Graphics::DrawMesh(cornellBox.lock(), i, cornellBoxMaterial.lock(), matrix);
-	}
-	*/
-
-	//Graphics::Blit(renderTarget->GetColorBuffer(0).lock(), Graphics::GetBackBuffer());
 }
 
 void DebugEngine::Step(GizmoRenderer* gizmos)
@@ -164,13 +139,7 @@ void DebugEngine::Step(GizmoRenderer* gizmos)
 	for (auto i = 0; i < cullables.count; ++i)
 	{
 		const auto& bounds = cullables[i].bounds->aabb;
-		gizmos->SetColor(CG_COLOR_BLACK);
-
-		if (CGMath::IntersectPlanesAABB(frustrum.planes, 6, bounds))
-		{
-			gizmos->SetColor(CGMath::HueToRGB((float)i / (4 * 4 * 4)));
-		}
-
-		gizmos->DrawWireBounds(bounds.GetCenter(), bounds.GetExtents());
+		gizmos->SetColor(CGMath::IntersectPlanesAABB(frustrum.planes, 6, bounds) ? CG_COLOR_GREEN : CG_COLOR_BLACK);
+		gizmos->DrawWireBounds(bounds);
 	}
 }

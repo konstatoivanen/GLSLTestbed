@@ -14,7 +14,7 @@ class FrustrumCuller
     struct CullingResults
     {
         std::vector<uint> list;
-        size_t count;
+        size_t count = 0;
     };
 
     public:

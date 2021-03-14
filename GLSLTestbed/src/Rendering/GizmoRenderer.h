@@ -19,7 +19,7 @@ class GizmoRenderer : public IService, public PKECS::ISimpleStep
 
         void Step(int condition) override;
 
-        void DrawWireBounds(const float3& center, const float3& extents);
+        void DrawWireBounds(const BoundingBox& aabb);
         void DrawWireBox(const float3& origin, const float3& size);
         void DrawLine(const float3& start, const float3& end);
         void DrawRay(const float3& origin, const float3& vector);
