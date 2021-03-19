@@ -113,7 +113,9 @@ namespace Graphics
 		return currentProgram;
     }
 	
-	void ClearGlobalProperties() { GLOBAL_PROPERTIES.Clear(); }
+	void ResetResourceBindings() { RESOURCE_BINDINGS.ResetBindStates(); }
+
+    void ClearGlobalProperties() { GLOBAL_PROPERTIES.Clear(); }
 	void SetGlobalFloat(uint32_t hashId, const float* values, uint32_t count) { GLOBAL_PROPERTIES.SetFloat(hashId, values, count); }
 	void SetGlobalFloat2(uint32_t hashId, const float2* values, uint32_t count) { GLOBAL_PROPERTIES.SetFloat2(hashId, values, count); }
 	void SetGlobalFloat3(uint32_t hashId, const float3* values, uint32_t count) { GLOBAL_PROPERTIES.SetFloat3(hashId, values, count); }
@@ -159,6 +161,18 @@ namespace Graphics
 	
 	void SetViewPort(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 	{
+		auto context = GetCurrentContext();
+
+		if (context->ViewPortX == x && context->ViewPortY == y && context->ViewPortW == width && context->ViewPortH == height)
+		{
+			return;
+		}
+
+		context->ViewPortX = x;
+		context->ViewPortY = y;
+		context->ViewPortW = width;
+		context->ViewPortH = height;
+
 		glViewport(x, y, width, height);
 		SetGlobalFloat4(HashCache::Get()->pk_ScreenParams, { (float)width, (float)height, 1.0f + 1.0f / (float)width, 1.0f + 1.0f / (float)height });
 	}
@@ -256,18 +270,14 @@ namespace Graphics
 	
 	void Blit(const Ref<RenderTexture>& destination, const Ref<Shader>& shader)
 	{
-		auto activeRenderTarget = GetActiveRenderTarget();
 		SetRenderTarget(destination);
 		Blit(shader);
-		SetRenderTarget(activeRenderTarget);
 	}
 	
 	void Blit(const Ref<RenderTexture>& destination, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock)
 	{
-		auto activeRenderTarget = GetActiveRenderTarget();
 		SetRenderTarget(destination);
 		Blit(shader, propertyBlock);
-		SetRenderTarget(activeRenderTarget);
 	}
 	
 	void Blit(const Ref<Texture>& source, const Ref<RenderTexture>& destination)
@@ -301,18 +311,14 @@ namespace Graphics
 
 	void Blit(const Ref<RenderTexture>& destination, const Ref<Material>& material)
 	{
-		auto activeRenderTarget = GetActiveRenderTarget();
 		SetRenderTarget(destination);
 		Blit(material);
-		SetRenderTarget(activeRenderTarget);
 	}
 
 	void Blit(const Ref<RenderTexture>& destination, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock)
 	{
-		auto activeRenderTarget = GetActiveRenderTarget();
 		SetRenderTarget(destination);
 		Blit(material, propertyBlock);
-		SetRenderTarget(activeRenderTarget);
 	}
 
 	void Blit(const Ref<Texture>& source, const Ref<RenderTexture>& destination, const Ref<Material>& material)
@@ -330,7 +336,7 @@ namespace Graphics
 
 	void DrawMesh(const Ref<Mesh>& mesh, uint submesh)
 	{
-		glBindVertexArray(mesh->GetGraphicsID());
+		RESOURCE_BINDINGS.BindMesh(mesh->GetGraphicsID());
 		auto indexRange = mesh->GetSubmeshIndexRange(submesh);
 		glDrawElements(GL_TRIANGLES, indexRange.count, GL_UNSIGNED_INT, (GLvoid*)(size_t)(indexRange.offset * sizeof(GLuint)));
 	}
@@ -435,7 +441,7 @@ namespace Graphics
 
     void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count)
     {
-		glBindVertexArray(mesh->GetGraphicsID());
+		RESOURCE_BINDINGS.BindMesh(mesh->GetGraphicsID());
 		auto indexRange = mesh->GetSubmeshIndexRange(submesh);
 		glDrawElementsInstanced(GL_TRIANGLES, indexRange.count, GL_UNSIGNED_INT, (GLvoid*)(size_t)(indexRange.offset * sizeof(GLuint)), count);
     }

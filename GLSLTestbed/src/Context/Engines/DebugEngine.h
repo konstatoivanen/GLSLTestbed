@@ -24,8 +24,6 @@ class DebugEngine : public IService, public PKECS::ISimpleStep, public PKECS::IS
 	
 		Weak<Material> materialMetal;
 		Weak<Material> materialGravel;
-		Ref<ComputeBuffer> instanceMatrices;
 		Weak<Mesh> cornellBox;
 		Weak<Material> cornellBoxMaterial;
-		Ref<Mesh> meshSphere;
 };

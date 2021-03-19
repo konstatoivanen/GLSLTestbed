@@ -51,14 +51,20 @@ static void UpdateDynamicBatches(PKECS::EntityDatabase* entityDb, FrustrumCuller
 	batcher.UpdateBuffers();
 }
 
-RenderPipeline::RenderPipeline(AssetDatabase* assetDatabase, PKECS::EntityDatabase* entityDb)
+RenderPipeline::RenderPipeline(AssetDatabase* assetDatabase, PKECS::EntityDatabase* entityDb, const ApplicationConfig& config) :
+	m_filterBloom(
+		assetDatabase->Find<Shader>("SH_VS_FilterBloom"), 
+		assetDatabase->Find<TextureXD>(config.FileBloomDirt.c_str()), 
+		config.TonemapExposure, 
+		config.BloomIntensity, 
+		config.BloomLensDirtIntensity)
 {
 	m_entityDb = entityDb;
 	m_context.BlitQuad = MeshUtilities::GetQuad2D({ -1.0f,-1.0f }, { 1.0f, 1.0f });
 	m_context.BlitShader = assetDatabase->Find<Shader>("SH_VS_Internal_Blit");
 
 	m_OEMBackgroundShader = assetDatabase->Find<Shader>("SH_VS_IBLBackground");
-	m_OEMTexture = assetDatabase->Find<TextureXD>("T_OEM_01");
+	m_OEMTexture = assetDatabase->Find<TextureXD>(config.FileBackgroundTexture.c_str());
 
 	auto renderTargetDescriptor = RenderTextureDescriptor();
 	renderTargetDescriptor.colorFormats = { GL_RGBA16F };
@@ -124,6 +130,8 @@ void RenderPipeline::Step(int condition)
 void RenderPipeline::OnPreRender()
 {
 	Graphics::StartWindow();
+	Graphics::ResetResourceBindings();
+
 	m_constantsPerFrame->CopyFrom(m_context.ShaderProperties);
 	m_constantsPerFrame->FlushBufer();
 	Graphics::SetGlobalConstantBuffer(HashCache::Get()->pk_PerFrameConstants, m_constantsPerFrame->GetGraphicsID());
@@ -151,7 +159,10 @@ void RenderPipeline::OnRender()
 
 void RenderPipeline::OnPostRender()
 {
-	Graphics::Blit(m_HDRRenderTarget->GetColorBuffer(0).lock(), Graphics::GetBackBuffer());
+	//Graphics::Blit(m_HDRRenderTarget->GetColorBuffer(0).lock(), Graphics::GetBackBuffer());
+	
+	m_filterBloom.Execute(m_HDRRenderTarget, Graphics::GetBackBuffer());
+
 	Graphics::EndWindow();
 }
 

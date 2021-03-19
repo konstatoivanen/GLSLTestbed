@@ -13,11 +13,25 @@ ResourceBindState::ResourceBindState()
 
     glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &count);
     m_bindings[CG_TYPE_COMPUTE_BUFFER] = std::vector<GraphicsID>(count);
+
+    // Replace with cg enum later
+    m_bindings[GL_VERTEX_ARRAY] = std::vector<GraphicsID>(1);
 }
 
 void ResourceBindState::BindTextures(ushort location, const GraphicsID* graphicsIds, ushort count)
 {
     auto bindings = GetBindings(CG_TYPE_TEXTURE, location, count);
+
+    if (count == 1)
+    {
+        if (bindings[0] != graphicsIds[0])
+        {
+            bindings[0] = graphicsIds[0];
+            glBindTextureUnit(location, graphicsIds[0]);
+        }
+
+        return;
+    }
 
     for (ushort i = 0; i < count; ++i)
     {
@@ -26,8 +40,9 @@ void ResourceBindState::BindTextures(ushort location, const GraphicsID* graphics
             continue;
         }
 
-        bindings[i] = graphicsIds[i];
-        glBindTextureUnit(location + i, graphicsIds[i]);
+        memcpy(bindings, graphicsIds, sizeof(GraphicsID) * count);
+        glBindTextures(location, count, graphicsIds);
+        break;
     }
 }
 
@@ -45,6 +60,25 @@ void ResourceBindState::BindBuffers(ushort type, ushort location, const Graphics
 
         bindings[i] = graphicsIds[i];
         glBindBufferBase(nativeType, location + i, graphicsIds[i]);
+    }
+}
+
+void ResourceBindState::BindMesh(GraphicsID graphicsId)
+{
+    auto* binding = m_bindings.at(GL_VERTEX_ARRAY).data();
+
+    if (binding[0] != graphicsId)
+    {
+        binding[0] = graphicsId;
+        glBindVertexArray(graphicsId);
+    }
+}
+
+void ResourceBindState::ResetBindStates()
+{
+    for (auto& i : m_bindings)
+    {
+        std::fill(i.second.begin(), i.second.end(), 0);
     }
 }
 

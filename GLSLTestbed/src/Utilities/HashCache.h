@@ -35,4 +35,11 @@ class HashCache : public IService, public ISingleton<HashCache>
         DEFINE_HASH_CACHE(pk_InstancingData)
         DEFINE_HASH_CACHE(pk_PerFrameConstants)
         DEFINE_HASH_CACHE(PK_ENABLE_INSTANCING)
+        DEFINE_HASH_CACHE(pk_GizmoVertices)
+        DEFINE_HASH_CACHE(_Bloom_Intensity)
+        DEFINE_HASH_CACHE(_Bloom_LensDirtIntensity)
+        DEFINE_HASH_CACHE(_Bloom_DirtTexture)
+        DEFINE_HASH_CACHE(_Bloom_BlurSize)
+        DEFINE_HASH_CACHE(_Bloom_Textures)
+        DEFINE_HASH_CACHE(_Tonemap_Exposure)
 };

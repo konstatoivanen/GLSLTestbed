@@ -28,4 +28,10 @@ namespace PKECS::EntityViews
         Components::Transform* transform;
         Components::PointLight* pointLight;
     };
+
+    struct LightSphere : public IEntityView
+    {
+        Components::Transform* transformMesh;
+        Components::Transform* transformLight;
+    };
 }

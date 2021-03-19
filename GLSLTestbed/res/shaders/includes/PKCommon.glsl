@@ -48,16 +48,16 @@ PK_DECLARE_CBUFFER(pk_PerFrameConstants)
     float4x4 pk_MATRIX_I_VP;
 };
 
-// Current model matrix.
-uniform float4x4 pk_MATRIX_M;
-// Current inverse model matrix.
-uniform float4x4 pk_MATRIX_I_M;
 
 #if defined(PK_ENABLE_INSTANCING) && defined(SHADER_STAGE_VERTEX)
     PK_DECLARE_BUFFER(float4x4, pk_InstancingData);
-    #define ACTIVE_MODEL_MATRIX PK_BUFFER_DATA(pk_InstancingData, PK_INSTANCE_ID)
+    #define pk_MATRIX_M PK_BUFFER_DATA(pk_InstancingData, PK_INSTANCE_ID)
+    #define pk_MATRIX_I_M inverse(PK_BUFFER_DATA(pk_InstancingData, PK_INSTANCE_ID))
 #else
-    #define ACTIVE_MODEL_MATRIX pk_MATRIX_M
+    // Current model matrix.
+    uniform float4x4 pk_MATRIX_M;
+    // Current inverse model matrix.
+    uniform float4x4 pk_MATRIX_I_M;
 #endif
 
 // An almost-perfect approximation from http://chilliant.blogspot.com.au/2012/08/srgb-approximations-for-hlsl.html?m=1
@@ -109,7 +109,7 @@ float4 ViewToClipPos( in float3 pos)
 // Tranforms position from object to camera space
 float3 ObjectToViewPos( in float3 pos)
 {
-    return mul(pk_MATRIX_V, mul(ACTIVE_MODEL_MATRIX, float4(pos, 1.0))).xyz;
+    return mul(pk_MATRIX_V, mul(pk_MATRIX_M, float4(pos, 1.0))).xyz;
 }
 
 // Tranforms position from object to camera space
@@ -127,13 +127,13 @@ float3 WorldToViewPos( in float3 pos)
 // Transforms position from object to world space
 float3 ObjectToWorldPos( in float3 pos)
 {
-    return mul(ACTIVE_MODEL_MATRIX, float4(pos, 1.0)).xyz;
+    return mul(pk_MATRIX_M, float4(pos, 1.0)).xyz;
 }
 
 // Transforms direction from object to world space
 float3 ObjectToWorldDir( in float3 dir)
 {
-    return normalize(mul(float3x3(ACTIVE_MODEL_MATRIX), dir));
+    return normalize(mul(float3x3(pk_MATRIX_M), dir));
 }
 
 // Transforms vector from world to object space
@@ -151,7 +151,7 @@ float3 WorldToObjectVector( in float3 dir)
 // Transforms vector from object to world space
 float3 ObjectToWorldVector( in float3 dir)
 {
-    return mul(float3x3(ACTIVE_MODEL_MATRIX), dir);
+    return mul(float3x3(pk_MATRIX_M), dir);
 }
 
 // Transforms direction from world to object space
@@ -174,7 +174,7 @@ float3 ObjectToWorldNormal( in float3 norm)
 // Tranforms position from object to homogenous space
 float4 ObjectToClipPos( in float3 pos)
 {
-    return mul(pk_MATRIX_VP, mul(ACTIVE_MODEL_MATRIX, float4(pos, 1.0)));
+    return mul(pk_MATRIX_VP, mul(pk_MATRIX_M, float4(pos, 1.0)));
 }
 
 // overload for float4; avoids "implicit truncation" warning for existing shaders

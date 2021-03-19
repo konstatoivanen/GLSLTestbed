@@ -24,11 +24,11 @@ Application::Application(const std::string& name)
 
 	auto config = ApplicationConfig("res/ApplicationConfig.cfg");
 
-	::ShowWindow(::GetConsoleWindow(), config.enable_console ? SW_SHOW : SW_HIDE);
+	::ShowWindow(::GetConsoleWindow(), config.EnableConsole ? SW_SHOW : SW_HIDE);
 
 	Graphics::Initialize();
 	
-	m_window = CreateScope<Window>(WindowProperties(name, config.window_width, config.window_height, config.enable_vsync));
+	m_window = CreateScope<Window>(WindowProperties(name, config.WindowWidth, config.WindowHeight, config.EnableVsync));
 	m_services = CreateScope<ServiceRegister>();
 	
 	m_services->Create<StringHashID>();
@@ -36,7 +36,7 @@ Application::Application(const std::string& name)
 	
 	auto entityDb = m_services->Create<PKECS::EntityDatabase>();
 	auto sequencer = m_services->Create<PKECS::Sequencer>();
-	auto time = m_services->Create<Time>(sequencer, config.time_scale);
+	auto time = m_services->Create<Time>(sequencer, config.TimeScale);
 	auto assetDatabase = m_services->Create<AssetDatabase>();
 	auto input = m_services->Create<Input>(sequencer);
 	
@@ -50,11 +50,11 @@ Application::Application(const std::string& name)
 	assetDatabase->LoadDirectory<Mesh>("res/models/", { ".obj" });
 	assetDatabase->LoadDirectory<Material>("res/materials/", { ".material" });
 
-	auto renderPipeline = m_services->Create<RenderPipeline>(assetDatabase, entityDb);
-	auto engineEditorCamera = m_services->Create<EngineEditorCamera>(time);
+	auto renderPipeline = m_services->Create<RenderPipeline>(assetDatabase, entityDb, config);
+	auto engineEditorCamera = m_services->Create<EngineEditorCamera>(time, config);
 	auto engineUpdateTransforms = m_services->Create<EngineUpdateTransforms>(entityDb);
 	auto engineDebug = m_services->Create<DebugEngine>(assetDatabase, time, entityDb);
-	auto gizmoRenderer = m_services->Create<GizmoRenderer>(sequencer, assetDatabase);
+	auto gizmoRenderer = m_services->Create<GizmoRenderer>(sequencer, assetDatabase, config.EnableGizmos);
 	
 	sequencer->SetSteps(
 	{

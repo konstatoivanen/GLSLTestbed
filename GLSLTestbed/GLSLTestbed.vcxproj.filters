@@ -1143,6 +1143,12 @@
     <ClInclude Include="src\Context\Engines\EngineUpdateTransforms.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Rendering\PostProcessing\FilterBloom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\PostProcessing\FilterBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\glfw3.lib" />
@@ -1570,7 +1576,6 @@
     <None Include="res\shaders\SH_VS_HueTerraceSimple.shader" />
     <None Include="res\shaders\SH_VS_HueTerraceMultisampled.shader" />
     <None Include="res\shaders\SH_VS_IBLBackground.shader" />
-    <None Include="res\textures\T_OEM_01.ktx" />
     <None Include="libs\ktx.dll" />
     <None Include="libs\ktx_read.dll" />
     <None Include="res\shaders\includes\BlitCommon.glsl" />
@@ -1593,6 +1598,10 @@
     <None Include="res\materials\M_Metal_Panel0.material" />
     <None Include="res\materials\M_Metal_Panel1.material" />
     <None Include="res\textures\T_Gravel_N.ktx" />
+    <None Include="res\textures\T_Bloom_LensDirt.ktx" />
+    <None Include="res\textures\T_OEM_Mountains.ktx" />
+    <None Include="res\textures\T_OEM_Park.ktx" />
+    <None Include="res\textures\T_OEM_Quarry.ktx" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">
@@ -1700,20 +1709,22 @@
     <ClCompile Include="src\Context\Engines\EngineUpdateTransforms.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Rendering\PostProcessing\FilterBloom.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="x64\Debug\GLImageProcessor.log" />
     <Text Include="x64\Debug\GLImageProcessor.Build.CppClean.log" />
-    <Text Include="res\shaders\SH_WS_Default_Unlit.shader" />
     <Text Include="res\shaders\includes\MathUtilities.glsl" />
     <Text Include="res\shaders\includes\LightingCommon.glsl" />
     <Text Include="res\ApplicationConfig.cfg" />
     <Text Include="res\shaders\SH_WS_Gizmos.shader" />
+    <Text Include="res\shaders\SH_VS_FilterBloom.shader" />
+    <Text Include="res\shaders\SH_WS_PBR_Forward.shader" />
+    <Text Include="res\shaders\SH_WS_Unlit_Color.shader" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\textures\checkerboard.png">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="res\textures\T_OEM_01.png">
       <Filter>Resource Files</Filter>
     </Image>

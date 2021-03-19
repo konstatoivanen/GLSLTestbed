@@ -26,6 +26,7 @@ namespace Graphics
 	Ref<RenderTexture> GetBackBuffer();
 	int GetActiveShaderProgramId();
 
+	void ResetResourceBindings();
 	void ClearGlobalProperties();
 	void SetGlobalFloat(uint32_t hashId, const float* values, uint32_t count = 1);
 	void SetGlobalFloat2(uint32_t hashId, const float2* values, uint32_t count = 1);

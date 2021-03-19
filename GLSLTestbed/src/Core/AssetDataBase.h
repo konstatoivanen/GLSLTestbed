@@ -40,6 +40,8 @@ class AssetDatabase : public IService
         template<typename T>
         Weak<T> Load(const std::string& filepath, AssetID assetId)
         {
+            PK_CORE_ASSERT(std::filesystem::exists(filepath), "Asset not found at path: %s", filepath.c_str());
+
             auto& collection = m_assets[std::type_index(typeid(T))];
 
             if (collection.count(assetId) > 0)
@@ -59,6 +61,8 @@ class AssetDatabase : public IService
         template<typename T>
         Weak<T> Reload(const std::string& filepath, AssetID assetId)
         {
+            PK_CORE_ASSERT(std::filesystem::exists(filepath), "Asset not found at path: %s", filepath.c_str());
+            
             auto& collection = m_assets[std::type_index(typeid(T))];
             Ref<T> asset = nullptr;
 
@@ -79,6 +83,35 @@ class AssetDatabase : public IService
         }
 
     public:
+        template<typename T, typename ... Args>
+        Weak<T> CreateProcedural(std::string name, Args&& ... args)
+        {
+            auto& collection = m_assets[std::type_index(typeid(T))];
+            auto assetId = StringHashID::StringToID(name);
+
+            PK_CORE_ASSERT(collection.count(assetId) < 1, "Procedural asset (%s) already exists", name.c_str());
+
+            auto asset = CreateRef<T>(std::forward<Args>(args)...);
+            collection[assetId] = asset;
+            std::static_pointer_cast<Asset>(asset)->m_assetId = assetId;
+
+            return asset;
+        }
+
+        template<typename T, typename ... Args>
+        Weak<T> RegisterProcedural(std::string name, Ref<T> asset)
+        {
+            auto& collection = m_assets[std::type_index(typeid(T))];
+            auto assetId = StringHashID::StringToID(name);
+
+            PK_CORE_ASSERT(collection.count(assetId) < 1, "Procedural asset (%s) already exists", name.c_str());
+
+            collection[assetId] = asset;
+            std::static_pointer_cast<Asset>(asset)->m_assetId = assetId;
+
+            return asset;
+        }
+
         template<typename T>
         Weak<T> Find(const char* name)
         {

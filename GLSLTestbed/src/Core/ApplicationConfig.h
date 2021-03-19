@@ -4,22 +4,27 @@
 
 struct ApplicationConfig
 {
-	bool enable_console;
-	bool enable_vsync;
-	bool enable_verbose;
-	bool enable_profiler;
-	bool enable_orthographic;
+	bool EnableConsole;
+	bool EnableVsync;
+	bool EnableGizmos;
+
+	int	WindowWidth;
+	int	WindowHeight;
 	
-	int	window_width;
-	int	window_height;
+	bool EnableOrthoGraphic;
+	float CameraSpeed;
+	float CameraFov;
+	float CameraOrthoSize;
+	float CameraZNear;
+	float CameraZFar;
 	
-	float camera_move_speed;
-	float camera_field_o_fview;
-	float camera_orthographic_size;
-	float camera_clip_near;
-	float camera_clip_far;
-	
-	float time_scale;
+	float TimeScale;
+
+	float TonemapExposure;
+	float BloomIntensity;
+	float BloomLensDirtIntensity;
+	std::string FileBackgroundTexture;
+	std::string FileBloomDirt;
 
 	KeyCode input_shader_next;
 	KeyCode input_shader_reimport;

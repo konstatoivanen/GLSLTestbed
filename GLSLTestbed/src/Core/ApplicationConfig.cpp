@@ -5,6 +5,12 @@
 #include <GLFW\glfw3.h>
 #include <yaml-cpp/yaml.h>
 
+template<typename T>
+T TryParse(const YAML::Node& node, const T& _default)
+{
+	return node ? node.as<T>() : _default;
+}
+
 ApplicationConfig::ApplicationConfig(const std::string& filepath)
 {
 	YAML::Node root = YAML::LoadFile(filepath);
@@ -15,48 +21,26 @@ ApplicationConfig::ApplicationConfig(const std::string& filepath)
 
 	PK_CORE_ASSERT(properties, "Config (%s) doesn't contain any properties!", filepath.c_str());
 
-	YAML::Node prop;
+	EnableConsole = TryParse(properties["EnableConsole"], false);
+	EnableVsync = TryParse(properties["EnableVsync"], false);
+	EnableGizmos = TryParse(properties["EnableGizmos"], false);
+	EnableOrthoGraphic = TryParse(properties["EnableOrthoGraphic"], false);
+	WindowWidth = TryParse(properties["WindowWidth"], 512);
+	WindowHeight = TryParse(properties["WindowHeight"], 512);
+	CameraSpeed = TryParse(properties["CameraSpeed"], 5.0f);
+	CameraFov = TryParse(properties["CameraFov"], 75.0f);
+	CameraOrthoSize = TryParse(properties["CameraOrthoSize"], 10.0f);
+	CameraZNear = TryParse(properties["CameraZNear"], 0.1f);
+	CameraZFar = TryParse(properties["CameraZFar"], 200.0f);
+	TimeScale = TryParse(properties["TimeScale"], 1.0f); 
 
-	prop = properties["EnableConsole"];
-	enable_console = prop ? prop.as<bool>() : false;
+	TonemapExposure = TryParse(properties["TonemapExposure"], 1.0f);
+	BloomIntensity = TryParse(properties["BloomIntensity"], 0.0f);
+	BloomLensDirtIntensity = TryParse(properties["BloomLensDirtIntensity"], 0.0f);
+	FileBackgroundTexture = TryParse(properties["FileBackgroundTexture"], std::string("T_OEM_Mountains"));
+	FileBloomDirt = TryParse(properties["FileBloomDirt"], std::string("T_Bloom_LensDirt"));
 
-	prop = properties["EnableVsync"];
-	enable_vsync = prop ? prop.as<bool>() : false;
-
-	prop = properties["EnableVerbose"];
-	enable_verbose = prop ? prop.as<bool>() : false;
-
-	prop = properties["EnableProfiler"];
-	enable_profiler = prop ? prop.as<bool>() : false;
-
-	prop = properties["EnableOrthoGraphic"];
-	enable_orthographic = prop ? prop.as<bool>() : false;
-
-	prop = properties["WindowWidth"];
-	window_width = prop ? prop.as<int>() : 512;
-
-	prop = properties["WindowHeight"];
-	window_height = prop ? prop.as<int>() : 512;
-
-	prop = properties["CameraSpeed"];
-	camera_move_speed = prop ? prop.as<float>() : 5.0f;
-
-	prop = properties["CameraFov"];
-	camera_field_o_fview = prop ? prop.as<float>() : 75.0f;
-
-	prop = properties["CameraOrthographicSize"];
-	camera_orthographic_size = prop ? prop.as<float>() : 10.0f;
-
-	prop = properties["CameraClipNear"];
-	camera_clip_near = prop ? prop.as<float>() : 0.1f;
-
-	prop = properties["CameraClipFar"];
-	camera_clip_far = prop ? prop.as<float>() : 200.0f;
-
-	prop = properties["TimeScale"];
-	time_scale = prop ? prop.as<float>() : 1.0f;
-
-	prop = properties["ButtonShaderNext"];
+	auto prop = properties["ButtonShaderNext"];
 	input_shader_next = prop ? Input::StringToKey(prop.as<std::string>()) : KeyCode::X;
 
 	prop = properties["ButtonShaderReimport"];

@@ -113,16 +113,17 @@ GLenum Texture::GetFormatDataType(GLenum format)
         case GL_RG16:
         case GL_RGB16:
         case GL_RGBA16:
+            return GL_UNSIGNED_SHORT;
         case GL_R16F:
         case GL_RG16F:
         case GL_RGB16F:
         case GL_RGBA16F:
-            return GL_UNSIGNED_SHORT;
+            return GL_FLOAT;
         case GL_R32F:
         case GL_RG32F:
         case GL_RGB32F:
         case GL_RGBA32F:
-            return GL_UNSIGNED_INT;
+            return GL_FLOAT;
         case GL_RGB4:
         case GL_RGBA4:
             return GL_UNSIGNED_SHORT_4_4_4_4;

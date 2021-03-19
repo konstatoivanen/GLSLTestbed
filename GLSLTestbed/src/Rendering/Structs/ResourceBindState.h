@@ -8,7 +8,8 @@ class ResourceBindState
         ResourceBindState();
         void BindTextures(ushort location, const GraphicsID* graphicsId, ushort count);
         void BindBuffers(ushort type, ushort location, const GraphicsID* graphicsId, ushort count);
-
+        void BindMesh(GraphicsID graphicsId);
+        void ResetBindStates();
     private:
         GraphicsID* GetBindings(ushort type, ushort location, ushort count);
         std::map<ushort, std::vector<GraphicsID>> m_bindings;

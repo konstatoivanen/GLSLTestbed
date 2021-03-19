@@ -98,7 +98,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)\GLSLTestbed\src;$(SolutionDir)\GLSLTestbed\include\glm;$(SolutionDir)\GLSLTestbed\include\stb_image;$(SolutionDir)\GLSLTestbed\include;SDK Path\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;_MBCS;PK_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>PrecompiledHeader.h</PrecompiledHeaderFile>
@@ -502,6 +502,8 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="src\Core\ServiceRegister.h" />
     <ClInclude Include="src\Core\ISingleton.h" />
     <ClInclude Include="src\Core\UpdateStep.h" />
+    <ClInclude Include="src\Rendering\PostProcessing\FilterBase.h" />
+    <ClInclude Include="src\Rendering\PostProcessing\FilterBloom.h" />
     <ClInclude Include="src\Rendering\RenderPipeline.h" />
     <ClInclude Include="src\Rendering\Structs\BufferLayout.h" />
     <ClInclude Include="src\Rendering\Structs\FixedStateAttributes.h" />
@@ -715,6 +717,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\includes\Test.glsl">
       <DeploymentContent>true</DeploymentContent>
     </None>
+    <None Include="res\textures\T_Bloom_LensDirt.ktx" />
     <None Include="res\textures\T_Gravel_D.ktx" />
     <None Include="res\textures\T_Gravel_H.ktx" />
     <None Include="res\textures\T_Gravel_MAOR.ktx" />
@@ -723,9 +726,9 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\textures\T_Metal_Plates_H.ktx" />
     <None Include="res\textures\T_Metal_Plates_MAOR.ktx" />
     <None Include="res\textures\T_Metal_Plates_N.ktx" />
-    <None Include="res\textures\T_OEM_01.ktx">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
+    <None Include="res\textures\T_OEM_Mountains.ktx" />
+    <None Include="res\textures\T_OEM_Park.ktx" />
+    <None Include="res\textures\T_OEM_Quarry.ktx" />
     <None Include="x64\Debug\GLImageProcessor.tlog\CL.command.1.tlog" />
     <None Include="x64\Debug\GLImageProcessor.tlog\GLImageProcessor.lastbuildstate" />
     <None Include="x64\Debug\GLImageProcessor.tlog\unsuccessfulbuild" />
@@ -756,6 +759,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClCompile Include="src\Context\Engines\DebugEngine.cpp" />
     <ClCompile Include="src\Context\Engines\EngineEditorCamera.cpp" />
     <ClCompile Include="src\Core\Sequencer.cpp" />
+    <ClCompile Include="src\Rendering\PostProcessing\FilterBloom.cpp" />
     <ClCompile Include="src\Rendering\RenderPipeline.cpp" />
     <ClCompile Include="src\Rendering\Structs\PropertyBlock.cpp" />
     <ClCompile Include="src\Rendering\LightingUtility.cpp" />
@@ -793,7 +797,9 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
       <DeploymentContent>true</DeploymentContent>
     </Text>
     <Text Include="res\shaders\includes\LightingCommon.glsl" />
-    <Text Include="res\shaders\SH_WS_Default_Unlit.shader">
+    <Text Include="res\shaders\SH_WS_Unlit_Color.shader" />
+    <Text Include="res\shaders\SH_VS_FilterBloom.shader" />
+    <Text Include="res\shaders\SH_WS_PBR_Forward.shader">
       <DeploymentContent>true</DeploymentContent>
     </Text>
     <Text Include="res\shaders\includes\MathUtilities.glsl">
@@ -822,9 +828,6 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\textures\checkerboard.png">
-      <DeploymentContent>true</DeploymentContent>
-    </Image>
     <Image Include="res\textures\T_OEM_01.png">
       <DeploymentContent>true</DeploymentContent>
     </Image>

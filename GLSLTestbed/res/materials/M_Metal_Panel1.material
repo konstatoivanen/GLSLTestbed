@@ -1,5 +1,5 @@
 Material:
-    Shader: res/shaders/SH_WS_Default_Unlit.shader
+    Shader: res/shaders/SH_WS_PBR_Forward.shader
     Keywords:
     Properties:
         _AlbedoTexture:

@@ -4,10 +4,12 @@
 #include "Core/IService.h"
 #include "Core/Time.h"
 #include "Core/EntityDatabase.h"
+#include "Core/ApplicationConfig.h"
 #include "Rendering/Objects/TextureXD.h"
 #include "Rendering/Structs/GraphicsContext.h"
 #include "Rendering/Structs/StructsCommon.h"
 #include "Rendering/DynamicBatcher.h"
+#include "Rendering/PostProcessing/FilterBloom.h"
 
 class FrustrumCuller
 {
@@ -32,7 +34,7 @@ class FrustrumCuller
 class RenderPipeline : public IService, public PKECS::ISimpleStep, public PKECS::IStep<Time>
 {
     public:
-        RenderPipeline(AssetDatabase* assetDatabase, PKECS::EntityDatabase* entityDb);
+        RenderPipeline(AssetDatabase* assetDatabase, PKECS::EntityDatabase* entityDb, const ApplicationConfig& config);
 
         void Step(Time* token) override;
         void Step(int condition) override;
@@ -46,6 +48,7 @@ class RenderPipeline : public IService, public PKECS::ISimpleStep, public PKECS:
         PKECS::EntityDatabase* m_entityDb;
         FrustrumCuller m_frustrumCuller;
         DynamicBatcher m_dynamicBatcher;
+        FilterBloom m_filterBloom;
 
         Ref<RenderTexture> m_HDRRenderTarget;
         Ref<ConstantBuffer> m_constantsPerFrame;

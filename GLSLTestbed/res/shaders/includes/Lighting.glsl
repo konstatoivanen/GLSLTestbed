@@ -5,7 +5,7 @@
 
 uniform sampler2D pk_SceneOEM_HDR;
 uniform float4 pk_SceneOEM_ST;
-uniform float pk_SceneOEM_RVS[3];
+uniform float pk_SceneOEM_RVS[4];
 
 float2 OctaEncode(float3 n)
 {
@@ -53,9 +53,9 @@ float2 OctaUV(float2 offset, float3 reflection)
 
 float3 SampleEnv(float2 uv, float roughness)
 {
-    float v0 = saturate((roughness - pk_SceneOEM_RVS[0]) / (pk_SceneOEM_RVS[1] - pk_SceneOEM_RVS[0]));
-    float v1 = saturate((roughness - pk_SceneOEM_RVS[1]) / (pk_SceneOEM_RVS[2] - pk_SceneOEM_RVS[1]));
-    float4 env = tex2DLod(pk_SceneOEM_HDR, uv, v0 + v1);
+    //float v0 = saturate((roughness - pk_SceneOEM_RVS[0]) / (pk_SceneOEM_RVS[1] - pk_SceneOEM_RVS[0]));
+    //float v1 = saturate((roughness - pk_SceneOEM_RVS[1]) / (pk_SceneOEM_RVS[2] - pk_SceneOEM_RVS[1]));
+    float4 env = tex2DLod(pk_SceneOEM_HDR, uv, roughness * 4);
     return HDRDecode(env).rgb;
 }
 

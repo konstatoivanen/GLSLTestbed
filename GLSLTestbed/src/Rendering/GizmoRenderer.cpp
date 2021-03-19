@@ -1,13 +1,15 @@
 #include "PrecompiledHeader.h"
 #include "Core/Time.h"
+#include "Utilities/HashCache.h"
 #include "Rendering/GizmoRenderer.h"
 #include "Rendering/Graphics.h"
 
-GizmoRenderer::GizmoRenderer(PKECS::Sequencer* sequencer, AssetDatabase* assetDatabase)
+GizmoRenderer::GizmoRenderer(PKECS::Sequencer* sequencer, AssetDatabase* assetDatabase, bool enabled)
 {
     m_sequencer = sequencer;
     m_gizmoShader = assetDatabase->Find<Shader>("SH_WS_Gizmos");
     m_vertexBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE_FLOAT4, "POSITION", CG_TYPE_FLOAT4, "COLOR" } }), 32);
+    m_enabled = enabled;
 }
 
 void GizmoRenderer::DrawWireBounds(const BoundingBox& aabb)
@@ -122,6 +124,11 @@ GizmoRenderer::GizmoVertex* GizmoRenderer::ReserveVertices(uint count)
 
 void GizmoRenderer::Step(int condition)
 {
+    if (!m_enabled)
+    {
+        return;
+    }
+
     SetColor(CG_COLOR_WHITE);
     SetMatrix(CG_FLOAT4X4_IDENTITY);
     m_vertexCount = 0;
@@ -139,6 +146,6 @@ void GizmoRenderer::Step(int condition)
     m_vertexBuffer->ValidateSize((uint)m_vertices.size());
     m_vertexBuffer->MapBuffer(m_vertices.data(), m_vertices.size() * sizeof(GizmoVertex));
 
-    Graphics::SetGlobalComputeBuffer(StringHashID::StringToID("pk_GizmoVertices"), m_vertexBuffer->GetGraphicsID());
+    Graphics::SetGlobalComputeBuffer(HashCache::Get()->pk_GizmoVertices, m_vertexBuffer->GetGraphicsID());
     Graphics::DrawProcedural(m_gizmoShader.lock(), GL_LINES, 0, m_vertexCount);
 }

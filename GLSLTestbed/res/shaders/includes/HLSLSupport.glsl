@@ -47,6 +47,8 @@
 
 #define lerp(a,b,v) mix(a,b,v)
 
+#define lerp_true(x,y,s) ((x) + (s) * ((y) - (x)))
+
 #define mul(a,b) (a * b)
 
 #define pow2(x) ((x) * (x))

@@ -427,6 +427,48 @@ namespace MeshUtilities
         return CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, 4, layout), CreateRef<IndexBuffer>(indices, 6));
     }
 
+    Ref<Mesh> GetPlane(const float2& center, const float2& extents, uint2 resolution)
+    {
+        auto vcount = resolution.x * resolution.y * 4;
+        auto icount = resolution.x * resolution.y * 6;
+        auto* vertices = PK_CONTIGUOUS_ALLOC(PKStructs::Vertex_Full, vcount);
+        auto* indices = PK_CONTIGUOUS_ALLOC(uint, icount);
+        auto isize = float3(extents.x / resolution.x, extents.y / resolution.y, 0.0f) * 2.0f;
+        auto min = float3(center - extents, 0);
+
+        for (auto x = 0; x < resolution.x; ++x)
+        for (auto y = 0; y < resolution.y; ++y)
+        {
+            auto vmin = min + isize * float3(x, y, 0);
+            auto baseVertex = (y * resolution.x + x) * 4;
+            auto baseIndex = (y * resolution.x + x) * 6;
+
+            vertices[baseVertex + 0] = { vmin + isize.zzz, CG_FLOAT3_BACKWARD, CG_FLOAT4_ZERO, float2(0, 0) };
+            vertices[baseVertex + 1] = { vmin + isize.zyz, CG_FLOAT3_BACKWARD, CG_FLOAT4_ZERO, float2(0, 1) };
+            vertices[baseVertex + 2] = { vmin + isize.xyz, CG_FLOAT3_BACKWARD, CG_FLOAT4_ZERO, float2(1, 1) };
+            vertices[baseVertex + 3] = { vmin + isize.xzz, CG_FLOAT3_BACKWARD, CG_FLOAT4_ZERO, float2(1, 0) };
+
+            indices[baseIndex + 0] = baseVertex + 0;
+            indices[baseIndex + 1] = baseVertex + 1;
+            indices[baseIndex + 2] = baseVertex + 2;
+
+            indices[baseIndex + 3] = baseVertex + 2;
+            indices[baseIndex + 4] = baseVertex + 3;
+            indices[baseIndex + 5] = baseVertex + 0;
+        }
+
+        BufferLayout layout = { {CG_TYPE_FLOAT3, "POSITION"}, {CG_TYPE_FLOAT3, "NORMAL"}, {CG_TYPE_FLOAT4, "TANGENT"}, {CG_TYPE_FLOAT2, "TEXCOORD0"} };
+
+        CalculateTangents(reinterpret_cast<float*>(vertices), layout.GetStride() / 4, 0, 3, 6, 10, indices, vcount, icount);
+
+        auto mesh = CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, vcount, layout), CreateRef<IndexBuffer>(indices, icount));
+    
+        free(vertices);
+        free(indices);
+
+        return mesh;
+    }
+
     Ref<Mesh> GetSphere(const float3& offset, const float radius)
     {
         const int longc = 24;

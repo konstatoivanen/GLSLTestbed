@@ -3,9 +3,13 @@
 #include "Core/Application.h"
 #include "Rendering/Graphics.h"
 
-EngineEditorCamera::EngineEditorCamera(Time* time)
+EngineEditorCamera::EngineEditorCamera(Time* time, const ApplicationConfig& config)
 {
 	m_time = time;
+	m_moveSpeed = config.CameraSpeed;
+	m_fieldOfView = config.CameraFov;
+	m_zNear = config.CameraZNear;
+	m_zFar = config.CameraZFar;
 }
 
 void EngineEditorCamera::Step(Input* input)
@@ -18,7 +22,7 @@ void EngineEditorCamera::Step(Input* input)
 		m_eulerAngles.y -= input->GetMouseDeltaX() * deltaTime;
 	}
 
-	auto speed = input->GetKey(KeyCode::LEFT_SHIFT) ? 8.0f : 2.0f;
+	auto speed = input->GetKey(KeyCode::LEFT_SHIFT) ? (m_moveSpeed * 5) : m_moveSpeed;
 	auto offset = input->GetAxis3D(KeyCode::Q, KeyCode::E, KeyCode::W, KeyCode::S, KeyCode::D, KeyCode::A) * deltaTime * speed;
 
 	auto fdelta = input->GetMouseScrollY() * deltaTime * 1000.0f;
@@ -37,7 +41,7 @@ void EngineEditorCamera::Step(Input* input)
 
 	m_fieldOfView -= fdelta;
 
-	auto proj = CGMath::GetPerspective(m_fieldOfView, Application::GetWindow().GetAspect(), 0.1f, 250.0f);
+	auto proj = CGMath::GetPerspective(m_fieldOfView, Application::GetWindow().GetAspect(), m_zNear, m_zFar);
 	auto view = CGMath::GetMatrixInvTRS(m_position, m_rotation, CG_FLOAT3_ONE);
 	Graphics::SetViewProjectionMatrices(view, proj);
 }

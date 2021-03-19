@@ -15,7 +15,7 @@ class GizmoRenderer : public IService, public PKECS::ISimpleStep
     };
 
     public:
-        GizmoRenderer(PKECS::Sequencer* sequencer, AssetDatabase* assetDatabase);
+        GizmoRenderer(PKECS::Sequencer* sequencer, AssetDatabase* assetDatabase, bool enabled);
 
         void Step(int condition) override;
 
@@ -37,5 +37,6 @@ class GizmoRenderer : public IService, public PKECS::ISimpleStep
         std::vector<GizmoVertex> m_vertices;
         uint m_vertexCount = 0;
         color m_color = CG_COLOR_WHITE;
+        bool m_enabled = true;
 };
 

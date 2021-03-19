@@ -28,19 +28,25 @@ class RenderBuffer : public Texture
 class RenderTexture : public Texture
 {
     public:
+        enum : uint { MAX_RENDER_BUFFER_COUNT = 32 };
+
 		RenderTexture(const RenderTextureDescriptor& descriptor);
 		~RenderTexture();
 		void Rebuild(const RenderTextureDescriptor& descriptor);
         void ValidateResolution(const uint3& resolution);
+        void SetDrawTargets(std::initializer_list<GLenum> attachements);
+        void ResetDrawTargets();
         void DiscardContents();
 
         RenderTextureDescriptor GetCompoundDescriptor() { return m_compoundDescriptor; }
-        Weak<RenderBuffer> GetColorBuffer(int index) const { return colorBuffers.at(index); }
-        Weak<RenderBuffer> GetDepthBuffer() const { return depthBuffer; }
-        size_t GetColorBufferCount() const { return colorBuffers.size(); }
+        Weak<RenderBuffer> GetColorBuffer(int index) const { return m_colorBuffers.at(index); }
+        Weak<RenderBuffer> GetDepthBuffer() const { return m_depthBuffer; }
+        size_t GetColorBufferCount() const { return m_colorBuffers.size(); }
 
     private:
         RenderTextureDescriptor m_compoundDescriptor;
-        std::vector<Ref<RenderBuffer>> colorBuffers;
-        Ref<RenderBuffer> depthBuffer;
+        std::vector<Ref<RenderBuffer>> m_colorBuffers;
+        Ref<RenderBuffer> m_depthBuffer;
+        GLenum m_bufferAttachments[MAX_RENDER_BUFFER_COUNT];
+        size_t m_bufferAttachmentCount;
 };
