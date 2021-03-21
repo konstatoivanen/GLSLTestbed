@@ -1,6 +1,8 @@
 # GLSLTestbed
 A Windows only OpenGL 4.6 renderer for testing different rendering techniques & solutions.
 
+![Preview](T_Preview.jpg?raw=true "Preview")
+
 ## Implemented Features
 - Instanced dynamic batching.
 - Frustum culling.
@@ -9,6 +11,9 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 - Opengl object & function wrappers.
 - Shader Material/Property block system.
 - PBR shading.
+- HDR Bloom.
+- Tone mapping.
+- Ambient Occlusion.
 - Multi compile shader variants.
 - Octahedron environment maps.
 - Batched debug renderer.
@@ -19,9 +24,7 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 - A global illumination solution.
 - Render pass abstraction.
 - Depth sorted index queue.
-- HDR bloom.
-- Tone mapping & color grading.
-- Ambient occlusion.
+- Color grading.
 - Documentation.
 
 ## Library Dependencies
