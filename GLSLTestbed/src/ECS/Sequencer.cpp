@@ -1,7 +1,7 @@
 #include "PrecompiledHeader.h"
-#include "Core/Sequencer.h"
+#include "ECS/Sequencer.h"
 
-namespace PKECS
+namespace PK::ECS
 {
     To::To(std::initializer_list<BranchSteps::value_type> branchSteps) : m_branchSteps(branchSteps) {}
     To::To(std::initializer_list<StepPtr> commonSteps) : m_commonSteps(commonSteps) {}

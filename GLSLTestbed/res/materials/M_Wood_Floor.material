@@ -1,19 +1,21 @@
 Material:
     Shader: res/shaders/SH_WS_PBR_Forward.shader
     Keywords:
+        - PK_NORMALMAPS
+        - PK_HEIGHTMAPS
     Properties:
         _AlbedoTexture:
             Type: TEXTURE
-            Value: res/textures/T_Metal_Plates_D.ktx
+            Value: res/textures/T_Wood_Floor_D.ktx
         _PBSTexture:
             Type: TEXTURE
-            Value: res/textures/T_Metal_Plates_MAOR.ktx
+            Value: res/textures/T_Wood_Floor_MAOR.ktx
         _NormalMap:
             Type: TEXTURE
-            Value: res/textures/T_Metal_Plates_N.ktx
+            Value: res/textures/T_Wood_Floor_N.ktx
         _HeightMap:
             Type: TEXTURE
-            Value: res/textures/T_Metal_Plates_H.ktx
+            Value: res/textures/T_Wood_Floor_H.ktx
         _Color:
             Type: FLOAT4
             Value: [1,1,1,1]

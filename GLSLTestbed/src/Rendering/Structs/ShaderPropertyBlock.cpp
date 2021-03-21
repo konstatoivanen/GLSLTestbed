@@ -1,28 +1,37 @@
 #include "PrecompiledHeader.h"
 #include "Rendering/Structs/ShaderPropertyBlock.h"
 
-void ShaderPropertyBlock::SetKeyword(uint32_t hashId, bool value)
+namespace PK::Rendering::Structs
 {
-	auto iterator = std::find(m_keywords.begin(), m_keywords.end(), hashId);
-
-	if (iterator == m_keywords.end())
+	void ShaderPropertyBlock::SetKeyword(uint32_t hashId, bool value)
 	{
-		if (value)
+		auto iterator = std::find(m_keywords.begin(), m_keywords.end(), hashId);
+	
+		if (iterator == m_keywords.end())
 		{
-			m_keywords.push_back(hashId);
+			if (value)
+			{
+				m_keywords.push_back(hashId);
+			}
+	
+			return;
 		}
-
-		return;
+	
+		if (!value)
+		{
+			m_keywords.erase(iterator);
+		}
 	}
 
-	if (!value)
+    void ShaderPropertyBlock::SetKeywords(std::initializer_list<uint32_t> hashIds)
+    {
+		m_keywords.resize(hashIds.size());
+		memcpy(m_keywords.data(), hashIds.begin(), sizeof(uint32_t) * hashIds.size());
+    }
+	
+	void ShaderPropertyBlock::Clear()
 	{
-		m_keywords.erase(iterator);
+		PropertyBlock::Clear();
+		m_keywords.clear();
 	}
-}
-
-void ShaderPropertyBlock::Clear()
-{
-	PropertyBlock::Clear();
-	m_keywords.clear();
 }

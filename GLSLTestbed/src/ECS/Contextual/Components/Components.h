@@ -3,16 +3,21 @@
 #include "Rendering/Objects/Material.h"
 #include <hlslmath.h>
 
-namespace PKECS::Components
+namespace PK::ECS::Components
 {
+    using namespace PK::Rendering::Objects;
+    using namespace PK::Math;
+
     struct Transform
     {
         float3 position = CG_FLOAT3_ZERO;
         quaternion rotation = CG_QUATERNION_IDENTITY;
         float3 scale = CG_FLOAT3_ONE;
         float4x4 localToWorld = CG_FLOAT4X4_IDENTITY;
+        float4x4 worldToLocal = CG_FLOAT4X4_IDENTITY;
 
-        float4x4 GetLocalToWorld() const { return CGMath::GetMatrixTRS(position, rotation, scale); }
+        float4x4 GetLocalToWorld() const { return Functions::GetMatrixTRS(position, rotation, scale); }
+        float4x4 GetWorldToLocal() const { return Functions::GetMatrixInvTRS(position, rotation, scale); }
 
         virtual ~Transform() = 0 {}
     };

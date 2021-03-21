@@ -1,7 +1,7 @@
 #pragma once
 #include "PrecompiledHeader.h"
 
-namespace StringUtilities
+namespace PK::Utilities::String
 {
 	std::string Trim(const std::string& value);
 	std::vector<std::string> Split(const std::string& value, const char* symbols);

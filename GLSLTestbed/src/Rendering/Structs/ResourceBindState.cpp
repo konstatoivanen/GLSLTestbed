@@ -2,90 +2,94 @@
 #include "ResourceBindState.h"
 #include "Utilities/Log.h"
 
-ResourceBindState::ResourceBindState()
+namespace PK::Rendering::Structs
 {
-    GLint count;
-    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &count);
-    m_bindings[CG_TYPE_TEXTURE] = std::vector<GraphicsID>(count);
+    using namespace PK::Rendering::Objects;
 
-    glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &count);
-    m_bindings[CG_TYPE_CONSTANT_BUFFER] = std::vector<GraphicsID>(count);
-
-    glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &count);
-    m_bindings[CG_TYPE_COMPUTE_BUFFER] = std::vector<GraphicsID>(count);
-
-    // Replace with cg enum later
-    m_bindings[GL_VERTEX_ARRAY] = std::vector<GraphicsID>(1);
-}
-
-void ResourceBindState::BindTextures(ushort location, const GraphicsID* graphicsIds, ushort count)
-{
-    auto bindings = GetBindings(CG_TYPE_TEXTURE, location, count);
-
-    if (count == 1)
+    ResourceBindState::ResourceBindState()
     {
-        if (bindings[0] != graphicsIds[0])
+        GLint count;
+        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &count);
+        m_bindings[CG_TYPE::TEXTURE] = std::vector<GraphicsID>(count);
+    
+        glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &count);
+        m_bindings[CG_TYPE::CONSTANT_BUFFER] = std::vector<GraphicsID>(count);
+    
+        glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &count);
+        m_bindings[CG_TYPE::COMPUTE_BUFFER] = std::vector<GraphicsID>(count);
+    
+        m_bindings[CG_TYPE::VERTEX_ARRAY] = std::vector<GraphicsID>(1);
+    }
+    
+    void ResourceBindState::BindTextures(ushort location, const GraphicsID* graphicsIds, ushort count)
+    {
+        auto bindings = GetBindings(CG_TYPE::TEXTURE, location, count);
+    
+        if (count == 1)
         {
-            bindings[0] = graphicsIds[0];
-            glBindTextureUnit(location, graphicsIds[0]);
+            if (bindings[0] != graphicsIds[0])
+            {
+                bindings[0] = graphicsIds[0];
+                glBindTextureUnit(location, graphicsIds[0]);
+            }
+    
+            return;
         }
-
-        return;
-    }
-
-    for (ushort i = 0; i < count; ++i)
-    {
-        if (bindings[i] == graphicsIds[i])
+    
+        for (ushort i = 0; i < count; ++i)
         {
-            continue;
+            if (bindings[i] == graphicsIds[i])
+            {
+                continue;
+            }
+    
+            memcpy(bindings, graphicsIds, sizeof(GraphicsID) * count);
+            glBindTextures(location, count, graphicsIds);
+            break;
         }
-
-        memcpy(bindings, graphicsIds, sizeof(GraphicsID) * count);
-        glBindTextures(location, count, graphicsIds);
-        break;
     }
-}
-
-void ResourceBindState::BindBuffers(ushort type, ushort location, const GraphicsID* graphicsIds, ushort count)
-{
-    auto bindings = GetBindings(type, location, count);
-    auto nativeType = CGConvert::NativeEnum(type);
-
-    for (ushort i = 0; i < count; ++i)
+    
+    void ResourceBindState::BindBuffers(CG_TYPE type, ushort location, const GraphicsID* graphicsIds, ushort count)
     {
-        if (bindings[i] == graphicsIds[i])
+        auto bindings = GetBindings(type, location, count);
+        auto nativeType = Convert::NativeEnum(type);
+    
+        for (ushort i = 0; i < count; ++i)
         {
-            continue;
+            if (bindings[i] == graphicsIds[i])
+            {
+                continue;
+            }
+    
+            bindings[i] = graphicsIds[i];
+            glBindBufferBase(nativeType, location + i, graphicsIds[i]);
         }
-
-        bindings[i] = graphicsIds[i];
-        glBindBufferBase(nativeType, location + i, graphicsIds[i]);
     }
-}
-
-void ResourceBindState::BindMesh(GraphicsID graphicsId)
-{
-    auto* binding = m_bindings.at(GL_VERTEX_ARRAY).data();
-
-    if (binding[0] != graphicsId)
+    
+    void ResourceBindState::BindMesh(GraphicsID graphicsId)
     {
-        binding[0] = graphicsId;
-        glBindVertexArray(graphicsId);
+        auto* binding = m_bindings.at(CG_TYPE::VERTEX_ARRAY).data();
+    
+        if (binding[0] != graphicsId)
+        {
+            binding[0] = graphicsId;
+            glBindVertexArray(graphicsId);
+        }
     }
-}
-
-void ResourceBindState::ResetBindStates()
-{
-    for (auto& i : m_bindings)
+    
+    void ResourceBindState::ResetBindStates()
     {
-        std::fill(i.second.begin(), i.second.end(), 0);
+        for (auto& i : m_bindings)
+        {
+            std::fill(i.second.begin(), i.second.end(), 0);
+        }
     }
-}
-
-GraphicsID* ResourceBindState::GetBindings(ushort type, ushort location, ushort count)
-{
-    auto& bindings = m_bindings.at(type);
-    auto* bbuff = bindings.data();
-    PK_CORE_ASSERT((ushort)bindings.size() > (location + count), "MAXIMUM BUFFER BINDING INDEX EXCEEDED!");
-    return bbuff + location;
+    
+    GraphicsID* ResourceBindState::GetBindings(CG_TYPE type, ushort location, ushort count)
+    {
+        auto& bindings = m_bindings.at(type);
+        auto* bbuff = bindings.data();
+        PK_CORE_ASSERT((ushort)bindings.size() > (location + count), "MAXIMUM BUFFER BINDING INDEX EXCEEDED!");
+        return bbuff + location;
+    }
 }

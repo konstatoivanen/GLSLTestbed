@@ -1,6 +1,6 @@
 #pragma once
 
-namespace PKStructs
+namespace PK::Rendering::Structs
 {
     struct Vertex_Simple
     {

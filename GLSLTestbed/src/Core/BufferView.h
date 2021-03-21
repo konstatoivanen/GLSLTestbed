@@ -1,21 +1,24 @@
 #pragma once
 
-template<typename T>
-struct BufferView
+namespace PK::Core
 {
-    T* data;
-    size_t count;
-
-    T& operator[](size_t);
-};
-
-template<typename T>
-T& BufferView<T>::operator[](size_t index)
-{
-    if (index >= count)
+    template<typename T>
+    struct BufferView
     {
-        throw std::invalid_argument("Out of bounds index");
+        T* data;
+        size_t count;
+    
+        T& operator[](size_t);
+    };
+    
+    template<typename T>
+    T& BufferView<T>::operator[](size_t index)
+    {
+        if (index >= count)
+        {
+            throw std::invalid_argument("Out of bounds index");
+        }
+    
+        return data[index];
     }
-
-    return data[index];
 }

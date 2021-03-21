@@ -1,0 +1,33 @@
+Material:
+    Shader: res/shaders/SH_WS_PBR_Forward.shader
+    Keywords:
+        - PK_NORMALMAPS
+        - PK_HEIGHTMAPS
+    Properties:
+        _AlbedoTexture:
+            Type: TEXTURE
+            Value: res/textures/T_Metal_Rust_D.ktx
+        _PBSTexture:
+            Type: TEXTURE
+            Value: res/textures/T_Metal_Rust_MAOR.ktx
+        _NormalMap:
+            Type: TEXTURE
+            Value: res/textures/T_Metal_Rust_N.ktx
+        _HeightMap:
+            Type: TEXTURE
+            Value: res/textures/T_Metal_Rust_H.ktx
+        _Color:
+            Type: FLOAT4
+            Value: [1,1,1,1]
+        _Metallic:
+            Type: FLOAT
+            Value: 1
+        _Roughness:
+            Type: FLOAT
+            Value: 1
+        _Occlusion:
+            Type: FLOAT
+            Value: 1
+        _HeightAmount:
+            Type: FLOAT
+            Value: 0.005

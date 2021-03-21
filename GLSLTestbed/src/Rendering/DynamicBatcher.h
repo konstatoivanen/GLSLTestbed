@@ -2,26 +2,40 @@
 #include "Rendering/Objects/Material.h"
 #include "Rendering/Objects/Mesh.h"
 
-// @TODO Consider using persistently mapped triple buffering instead
-class DynamicBatcher
+namespace PK::Rendering
 {
-    struct DynamicBatch
-    {
-        Weak<Material> material;
-        Weak<Mesh> mesh;
-        uint submesh;
-        Ref<ComputeBuffer> instancingBuffer;
-        std::vector<float4x4> matrices;
-        size_t count;
-    };
+    using namespace PK::Utilities;
+    using namespace PK::Rendering::Objects;
+    using namespace PK::Math;
 
-    public:
-        void Reset();
-        void QueueDraw(Weak<Mesh>& mesh, uint submesh, Weak<Material>& material, const float4x4& matrix);
-        void UpdateBuffers();
-        void Execute();
-        void Execute(Ref<Material>& overrideMaterial);
-    private:
-        std::vector<DynamicBatch> m_batches;
-        std::map<ulong, uint> m_batchmap;
-};
+    // @TODO Consider using persistently mapped triple buffering instead
+    class DynamicBatcher
+    {
+        struct DrawMatrices
+        {
+            float4x4* localToWorld;
+            float4x4* worldToLocal;
+        };
+
+        struct DynamicBatch
+        {
+            Weak<Material> material;
+            Weak<Mesh> mesh;
+            uint submesh;
+            Ref<ComputeBuffer> instancingBuffer;
+            std::vector<DrawMatrices> matrices;
+            size_t count;
+        };
+    
+        public:
+            void Reset();
+            void QueueDraw(Weak<Mesh>& mesh, uint submesh, Weak<Material>& material, float4x4* localToWorld, float4x4* worldToLocal);
+            void UpdateBuffers();
+            void Execute(uint32_t renderQueueIndex);
+            void Execute(uint32_t renderQueueIndex, Ref<Material>& overrideMaterial);
+            void Execute(uint32_t renderQueueIndex, Ref<Shader>& overrideShader);
+        private:
+            std::vector<DynamicBatch> m_batches;
+            std::map<ulong, uint> m_batchmap;
+    };
+}

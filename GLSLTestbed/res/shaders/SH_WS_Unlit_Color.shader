@@ -1,7 +1,7 @@
 #version 460
 
 #Blend Off
-#ZTest LEqual
+#ZTest Equal
 #ZWrite On
 #Cull Back
 

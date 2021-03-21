@@ -3,13 +3,19 @@
 #include "Rendering/Objects/Shader.h"
 #include "Rendering/Structs/ShaderPropertyBlock.h"
 
-class FilterBase
+namespace PK::Rendering::PostProcessing
 {
-    public:
-        FilterBase(Weak<Shader> shader) { m_shader = shader; }
-        virtual void Execute(Ref<RenderTexture> source, Ref<RenderTexture> destination) = 0;
-    protected: 
-        ShaderPropertyBlock m_properties;
-        Weak<Shader> m_shader;
-        virtual ~FilterBase() = 0 {}
-};
+    using namespace PK::Utilities;
+    using namespace PK::Rendering::Objects;
+
+    class FilterBase
+    {
+        public:
+            FilterBase(Weak<Shader> shader) { m_shader = shader; }
+            virtual void Execute(Ref<RenderTexture> source, Ref<RenderTexture> destination) = 0;
+        protected: 
+            Structs::ShaderPropertyBlock m_properties;
+            Weak<Shader> m_shader;
+            virtual ~FilterBase() = 0 {}
+    };
+}

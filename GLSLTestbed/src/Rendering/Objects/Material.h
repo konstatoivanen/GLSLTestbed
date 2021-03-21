@@ -3,16 +3,23 @@
 #include "Rendering/Objects/Shader.h"
 #include "Rendering/Structs/ShaderPropertyBlock.h"
 
-class Material : public ShaderPropertyBlock, public Asset
+namespace PK::Rendering::Objects
 {
-    friend void AssetImporters::Import(const std::string& filepath, Ref<Material>& material);
+    using namespace Utilities;
+    using namespace Structs;
 
-    public:
-        Material() {}
-        Material(Ref<Shader> shader) { m_shader = shader; }
-        Weak<Shader> GetShader() const { return m_shader; }
+    class Material : public ShaderPropertyBlock, public Asset
+    {
+        friend void AssetImporters::Import(const std::string& filepath, Ref<Material>& material);
+    
+        public:
+            Material() {}
+            Material(Ref<Shader> shader) { m_shader = shader; }
+            Weak<Shader> GetShader() const { return m_shader; }
+            const uint32_t GetRenderQueueIndex() const { return m_renderQueueIndex; }
 
-    private:
-        Weak<Shader> m_shader;
-};
-
+        private:
+            uint32_t m_renderQueueIndex;
+            Weak<Shader> m_shader;
+    };
+}

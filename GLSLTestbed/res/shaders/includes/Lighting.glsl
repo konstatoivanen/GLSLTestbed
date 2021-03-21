@@ -3,9 +3,11 @@
 #include LightingCommon.glsl
 #include LightingBRDF.glsl
 
+uniform sampler2D pk_ScreenOcclusion;
 uniform sampler2D pk_SceneOEM_HDR;
 uniform float4 pk_SceneOEM_ST;
 uniform float pk_SceneOEM_RVS[4];
+uniform float pk_SceneOEM_Exposure;
 
 float2 OctaEncode(float3 n)
 {
@@ -56,7 +58,12 @@ float3 SampleEnv(float2 uv, float roughness)
     //float v0 = saturate((roughness - pk_SceneOEM_RVS[0]) / (pk_SceneOEM_RVS[1] - pk_SceneOEM_RVS[0]));
     //float v1 = saturate((roughness - pk_SceneOEM_RVS[1]) / (pk_SceneOEM_RVS[2] - pk_SceneOEM_RVS[1]));
     float4 env = tex2DLod(pk_SceneOEM_HDR, uv, roughness * 4);
-    return HDRDecode(env).rgb;
+    return HDRDecode(env).rgb * pk_SceneOEM_Exposure;
+}
+
+float SampleScreenSpaceOcclusion(float2 uv)
+{
+    return 1.0f - tex2D(pk_ScreenOcclusion, uv).r;
 }
 
 PKLight TransformPointLight(in PKRawPointLight raw, in float3 worldpos)
@@ -75,19 +82,18 @@ float4 PhysicallyBasedShading(SurfaceData surf, float3 viewdir, float3 worldpos)
     surf.normal = normalize(surf.normal);
     surf.roughness = max(surf.roughness, 0.002);
 
-    // The amount we shift the normal toward the view vector is defined by the dot product.
+    // Fix edge artifacts for when normals are pointing away from camera.
     half shiftAmount = dot(surf.normal, viewdir);
     surf.normal = shiftAmount < 0.0f ? surf.normal + viewdir * (-shiftAmount + 1e-5f) : surf.normal;
 
-    float3 specColor = lerp (pk_ColorSpaceDielectricSpec.rgb, surf.albedo, surf.metallic);
-    float oneMinusReflectivity = pk_ColorSpaceDielectricSpec.a - surf.metallic * pk_ColorSpaceDielectricSpec.a;
-    surf.albedo *= oneMinusReflectivity;
+    float3 specColor = lerp(pk_DielectricSpecular.rgb, surf.albedo, surf.metallic);
+    float reflectivity = pk_DielectricSpecular.r + surf.metallic * pk_DielectricSpecular.a;
+    surf.albedo *= 1.0f - reflectivity;
 
-    // shader relies on pre-multiply alpha-blend (_SrcBlend = One, _DstBlend = OneMinusSrcAlpha)
     // this is necessary to handle transparency in physically correct way - only diffuse component gets affected by alpha
-    #if defined(_ALPHAPREMULTIPLY_ON)
+    #if defined(PK_TRANSPARENT_PBR)
         surf.albedo *= alpha;
-        surf.alpha = 1.0f - oneMinusReflectivity + surf.alpha * oneMinusReflectivity;
+        surf.alpha = reflectivity + surf.alpha * (1.0f - reflectivity);
     #endif
 
     PKGI gi;
@@ -98,7 +104,7 @@ float4 PhysicallyBasedShading(SurfaceData surf, float3 viewdir, float3 worldpos)
     gi.indirect.diffuse.xyz  = SampleEnv(diffUV, 1.0f);
     gi.indirect.specular.xyz = SampleEnv(specUV, surf.roughness);
     
-    float3 color = BRDF_PBS_DEFAULT(surf.albedo, specColor, oneMinusReflectivity, surf.roughness, surf.normal, viewdir, gi.light, gi.indirect);
+    float3 color = BRDF_PBS_DEFAULT(surf.albedo, specColor, reflectivity, surf.roughness, surf.normal, viewdir, gi.light, gi.indirect);
 
     color *= surf.occlusion;
 
@@ -107,7 +113,7 @@ float4 PhysicallyBasedShading(SurfaceData surf, float3 viewdir, float3 worldpos)
     for (uint i = 0; i < pk_LightCount; ++i)
     {
         gi.light = TransformPointLight(PK_BUFFER_DATA(pk_Lights, i), worldpos);
-        color += BRDF_PBS_DEFAULT(surf.albedo, specColor, oneMinusReflectivity, surf.roughness, surf.normal, viewdir, gi.light, gi.indirect);
+        color += BRDF_PBS_DEFAULT(surf.albedo, specColor, reflectivity, surf.roughness, surf.normal, viewdir, gi.light, gi.indirect);
     }
 
     return float4(color, surf.alpha);

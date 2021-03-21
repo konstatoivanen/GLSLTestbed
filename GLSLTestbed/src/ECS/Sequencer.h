@@ -3,11 +3,11 @@
 #include "Core/IService.h"
 #include "Utilities/Ref.h"
 
-#define PK_STEP_T(S, D) static_cast<PKECS::IStep<D>*>(S)
-#define PK_STEP_C(S, D) static_cast<PKECS::IConditionalStep<D>*>(S)
-#define PK_STEP_S(S) static_cast<PKECS::ISimpleStep*>(S)
+#define PK_STEP_T(S, D) static_cast<PK::ECS::IStep<D>*>(S)
+#define PK_STEP_C(S, D) static_cast<PK::ECS::IConditionalStep<D>*>(S)
+#define PK_STEP_S(S) static_cast<PK::ECS::ISimpleStep*>(S)
 
-namespace PKECS
+namespace PK::ECS
 {
     class IBaseStep
     {
@@ -58,7 +58,7 @@ namespace PKECS
 
     typedef std::unordered_map<const void*, To> Steps;
 
-    class Sequencer : public IService
+    class Sequencer : public Core::IService
     {
         public:
             void SetSteps(std::initializer_list<Steps::value_type> steps);

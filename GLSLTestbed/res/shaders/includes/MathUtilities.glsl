@@ -1,3 +1,4 @@
+#pragma once
 #ifndef MATH_UTILITIES
 #define MATH_UTILITIES
 

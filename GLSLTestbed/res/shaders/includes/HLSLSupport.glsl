@@ -67,6 +67,10 @@
 
 #define GEqual(a, b) any(greaterThanEqual(a,b))
 
+#define Equal(a, b) any(equal(a,b))
+
+#define NotEqual(a, b) any(notEqual(a,b))
+
 #define LEqual(a, b) any(lessThanEqual(a,b))
 
 #define Less(a,b) any(lessThan(a,b))

@@ -2,7 +2,7 @@
 #include "Utilities/StringUtilities.h"
 #include "Utilities/Log.h"
 
-namespace StringUtilities
+namespace PK::Utilities::String
 {
 	std::string Trim(const std::string& value)
 	{
@@ -124,7 +124,7 @@ namespace StringUtilities
 	std::string ReadFileRecursiveInclude(const std::string& filepath)
 	{
 		std::vector<std::string> includes;
-		return StringUtilities::ReadFileRecursiveInclude(filepath, includes, false);
+		return ReadFileRecursiveInclude(filepath, includes, false);
 	}
 	
 	std::string ExtractTokens(const char* token, std::string& source, bool includeToken)

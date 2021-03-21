@@ -30,4 +30,4 @@ Material:
             Value: 1
         _HeightAmount:
             Type: FLOAT
-            Value: 0.01
+            Value: 0.05

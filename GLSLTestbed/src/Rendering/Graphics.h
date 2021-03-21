@@ -8,8 +8,12 @@
 #include <GLFW/glfw3.h>
 #include <hlslmath.h>
 
-namespace Graphics
+namespace PK::Rendering::GraphicsAPI
 {
+	using namespace Utilities;
+	using namespace Objects;
+	using namespace Structs;
+
 	void Initialize();
 	void Terminate();
 
@@ -63,6 +67,7 @@ namespace Graphics
 	void SetViewPort(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 	void SetViewProjectionMatrices(const float4x4& view, const float4x4& projection);
 	void SetModelMatrix(const float4x4& matrix);
+	void SetModelMatrix(const float4x4& matrix, const float4x4& invMatrix);
 	void SetRenderTarget(const Ref<RenderTexture>& renderTexture);
 	void SetRenderBuffer(const Ref<RenderBuffer>& renderBuffer, GLenum attachment);
 	void SetPass(const Ref<Shader>& shader, uint32_t pass = 0);
@@ -70,7 +75,7 @@ namespace Graphics
 	void SetIndexBuffer(const Ref<IndexBuffer>& buffer);
 
 	void BindTextures(ushort location, const GraphicsID* graphicsIds, ushort count);
-	void BindBuffers(ushort type, ushort location, const GraphicsID* graphicsIds, ushort count);
+	void BindBuffers(CG_TYPE type, ushort location, const GraphicsID* graphicsIds, ushort count);
 
 	void Blit(const Ref<Shader>& shader);
 	void Blit(const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock);
@@ -86,15 +91,19 @@ namespace Graphics
 	void Blit(const Ref<RenderTexture>& destination, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
 	void Blit(const Ref<Texture>& source, const Ref<RenderTexture>& destination, const Ref<Material>& material);
 	void Blit(const Ref<Texture>& source, const Ref<RenderTexture>& destination, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
+	
+	void CopyRenderTexture(const Ref<RenderTexture>& source, const Ref<RenderTexture>& destination, GLbitfield mask, GLenum filter);
 
 	void DrawMesh(const Ref<Mesh>& mesh, uint submesh);
 	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader);
 	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader, const float4x4& matrix);
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader, const float4x4& matrix, const float4x4& invMatrix);
 	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock);
 	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock);
 
 	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material);
 	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const float4x4& matrix);
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const float4x4& matrix, const float4x4& invMatrix);
 	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
 	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock);
 

@@ -1,12 +1,24 @@
 #pragma once
+#include "Core/NoCopy.h"
 
-template<typename T>
-class ISingleton
+namespace PK::Core
 {
-    public: 
-        ISingleton() { s_Instance = static_cast<T*>(this); }
-        virtual ~ISingleton() = 0 {};
-        static T* Get() { return s_Instance; }
+    template<typename T>
+    class ISingleton : public NoCopy
+    {
+        public: 
+            ISingleton() 
+            {
+                if (s_Instance != nullptr)
+                {
+                    throw std::exception("Singleton instance already exists!");
+                }
 
-    private: inline static T* s_Instance = nullptr;
-};
+                s_Instance = static_cast<T*>(this); 
+            }
+            virtual ~ISingleton() = 0 {};
+            static T* Get() { return s_Instance; }
+    
+        private: inline static T* s_Instance = nullptr;
+    };
+}

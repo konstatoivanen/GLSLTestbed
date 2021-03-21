@@ -3,7 +3,7 @@
 #include "Rendering/Graphics.h"
 #include <hlslmath.h>
 
-namespace Graphics
+namespace PK::Rendering::GraphicsAPI
 {
 	static GraphicsContext* m_currentContext;
 	
@@ -185,14 +185,14 @@ namespace Graphics
 
 		auto n = projection[3][2] / (projection[2][2] - 1.0f);
 		auto f = projection[3][2] / (projection[2][2] + 1.0f);
-		auto a = projection[1][1] / projection[0][0];
 		auto vp = projection * view;
-	
-		SetGlobalFloat4(hashCache->pk_ProjectionParams, { -1.0f, n, f, 1.0f / f });
-		SetGlobalFloat4(hashCache->pk_ZBufferParams, { (1.0f - f) / n, f / n, a / f, 1.0f / f });
+
+		SetGlobalFloat4(hashCache->pk_ProjectionParams, { 1.0f, n, f, 1.0f / f });
 		SetGlobalFloat4(hashCache->pk_WorldSpaceCameraPos, cameraMatrix[3]);
 		SetGlobalFloat4x4(hashCache->pk_MATRIX_V, view);
+		SetGlobalFloat4x4(hashCache->pk_MATRIX_I_V, cameraMatrix);
 		SetGlobalFloat4x4(hashCache->pk_MATRIX_P, projection);
+		SetGlobalFloat4x4(hashCache->pk_MATRIX_I_P, glm::inverse(projection));
 		SetGlobalFloat4x4(hashCache->pk_MATRIX_VP, vp);
 		SetGlobalFloat4x4(hashCache->pk_MATRIX_I_VP, glm::inverse(vp));
 	}
@@ -202,6 +202,13 @@ namespace Graphics
 		auto* hashCache = HashCache::Get();
 		SetGlobalFloat4x4(hashCache->pk_MATRIX_M, matrix);
 		SetGlobalFloat4x4(hashCache->pk_MATRIX_I_M, glm::inverse(matrix));
+	}
+
+	void SetModelMatrix(const float4x4& matrix, const float4x4& invMatrix)
+	{
+		auto* hashCache = HashCache::Get();
+		SetGlobalFloat4x4(hashCache->pk_MATRIX_M, matrix);
+		SetGlobalFloat4x4(hashCache->pk_MATRIX_I_M, invMatrix);
 	}
 	
 	void SetRenderTarget(const Ref<RenderTexture>& renderTexture)
@@ -255,7 +262,7 @@ namespace Graphics
 
     void BindTextures(ushort location, const GraphicsID* graphicsIds, ushort count) { RESOURCE_BINDINGS.BindTextures(location, graphicsIds, count); }
 
-	void BindBuffers(ushort type, ushort location, const GraphicsID* graphicsIds, ushort count) { RESOURCE_BINDINGS.BindBuffers(type, location, graphicsIds, count); }
+	void BindBuffers(CG_TYPE type, ushort location, const GraphicsID* graphicsIds, ushort count) { RESOURCE_BINDINGS.BindBuffers(type, location, graphicsIds, count); }
 	
 	
 	void Blit(const Ref<Shader>& shader)
@@ -333,6 +340,24 @@ namespace Graphics
 		Blit(destination, material, propertyBlock);
 	}
 
+	void CopyRenderTexture(const Ref<RenderTexture>& source, const Ref<RenderTexture>& destination, GLbitfield mask, GLenum filter)
+	{
+		uint2 destresolution = uint2(0,0);
+		uint32_t destid = 0;
+
+		if (destination != nullptr)
+		{
+			destresolution = destination->GetResolution2D();
+			destid = destination->GetGraphicsID();
+		}
+		else
+		{
+			destresolution = GetActiveWindowResolution();
+		}
+
+		glBlitNamedFramebuffer(source->GetGraphicsID(), destid, 0, 0, source->GetWidth(), source->GetHeight(), 0, 0, destresolution.x, destresolution.y, mask, filter);
+	}
+
 
 	void DrawMesh(const Ref<Mesh>& mesh, uint submesh)
 	{
@@ -356,6 +381,16 @@ namespace Graphics
 		shader->SetKeywords(GLOBAL_KEYWORDS);
 		SetPass(shader);
 		SetModelMatrix(matrix);
+		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+		DrawMesh(mesh, submesh);
+	}
+
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader, const float4x4& matrix, const float4x4& invMatrix)
+	{
+		shader->ResetKeywords();
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		SetPass(shader);
+		SetModelMatrix(matrix, invMatrix);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		DrawMesh(mesh, submesh);
 	}
@@ -404,6 +439,19 @@ namespace Graphics
 		shader->SetKeywords(GLOBAL_KEYWORDS);
 		SetPass(shader);
 		SetModelMatrix(matrix);
+		shader->SetPropertyBlock(*material);
+		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+		DrawMesh(mesh, submesh);
+	}
+
+	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const float4x4& matrix, const float4x4& invMatrix)
+	{
+		auto shader = material->GetShader().lock();
+		shader->ResetKeywords();
+		shader->SetKeywords(material->GetKeywords());
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		SetPass(shader);
+		SetModelMatrix(matrix, invMatrix);
 		shader->SetPropertyBlock(*material);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		DrawMesh(mesh, submesh);
@@ -501,4 +549,14 @@ namespace Graphics
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		glDrawArrays(topology, (GLint)offset, (GLsizei)count);
 	}
+
+	#undef CURRENT_WINDOW 
+	#undef CURRENT_ATTRIBUTES 
+	#undef GLOBAL_KEYWORDS 
+	#undef GLOBAL_PROPERTIES 
+	#undef RESOURCE_BINDINGS 
+	#undef ACTIVE_RENDERTARGET 
+	#undef BLIT_QUAD 
+	#undef BLIT_SHADER 
+	#undef DELTA_CHECK_SET
 }

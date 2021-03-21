@@ -36,7 +36,7 @@ float NDF_GGX(float NdotH, float roughness)
     return PK_INV_PI * a2 / (d * d + 1e-7f);
 }
 
-float3 BRDF_PBS_DEFAULT(float3 diffuse, float3 specular, float oneMinusReflectivity, float roughness, float3 normal, float3 viewDir, const PKLight light, const PKIndirect gi)
+float3 BRDF_PBS_DEFAULT(float3 diffuse, float3 specular, float reflectivity, float roughness, float3 normal, float3 viewDir, const PKLight light, const PKIndirect gi)
 {
     float perceptualRoughness = sqrt(roughness);
 
@@ -56,7 +56,7 @@ float3 BRDF_PBS_DEFAULT(float3 diffuse, float3 specular, float oneMinusReflectiv
     
     float surfaceReduction = 1.0 / (roughness * roughness + 1.0);
     
-    float grazingTerm = saturate((1 - perceptualRoughness) + (1 - oneMinusReflectivity));
+    float grazingTerm = saturate((1 - perceptualRoughness) + reflectivity);
     
     return diffuse * (gi.diffuse.rgb + light.color.rgb * diffuseTerm)
             + specularTerm * light.color.rgb * FresnelTerm(specular, lh)

@@ -918,9 +918,6 @@
     <ClInclude Include="src\Rendering\MeshUtility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\LightingUtility.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Rendering\Objects\Buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -937,9 +934,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Rendering\Objects\Shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\Sequencer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\AssetDataBase.h">
@@ -976,12 +970,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\UpdateStep.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Context\Engines\EngineEditorCamera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Context\Engines\DebugEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Rendering\Structs\FixedStateAttributes.h">
@@ -1119,18 +1107,6 @@
     <ClInclude Include="src\Rendering\Structs\ResourceBindState.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Core\EntityDatabase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Context\Structs\Components.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Context\Structs\Implementers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Context\Structs\EntityViews.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Core\BufferView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1140,13 +1116,49 @@
     <ClInclude Include="src\Rendering\DynamicBatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Context\Engines\EngineUpdateTransforms.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Rendering\PostProcessing\FilterBloom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Rendering\PostProcessing\FilterBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Utilities\Utilities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\Sequencer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\EntityDatabase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\Contextual\Engines\DebugEngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\Contextual\Engines\EngineEditorCamera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\Contextual\Engines\EngineUpdateTransforms.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\Contextual\Components\Components.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\Contextual\Implementers\Implementers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\Contextual\EntityViews\EntityViews.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\NoCopy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\FrustumCuller.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\RenderQueueInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\PostProcessing\FilterAO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1571,10 +1583,7 @@
     <None Include="include\glm\gtx\wrap.inl">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="res\shaders\SH_VS_ShaderToyImport.shader" />
     <None Include="res\shaders\SH_VS_Internal_Blit.shader" />
-    <None Include="res\shaders\SH_VS_HueTerraceSimple.shader" />
-    <None Include="res\shaders\SH_VS_HueTerraceMultisampled.shader" />
     <None Include="res\shaders\SH_VS_IBLBackground.shader" />
     <None Include="libs\ktx.dll" />
     <None Include="libs\ktx_read.dll" />
@@ -1595,13 +1604,27 @@
     <None Include="res\textures\T_Gravel_MAOR.ktx" />
     <None Include="res\textures\T_Metal_Plates_H.ktx" />
     <None Include="res\materials\M_Gravel.material" />
-    <None Include="res\materials\M_Metal_Panel0.material" />
-    <None Include="res\materials\M_Metal_Panel1.material" />
     <None Include="res\textures\T_Gravel_N.ktx" />
     <None Include="res\textures\T_Bloom_LensDirt.ktx" />
     <None Include="res\textures\T_OEM_Mountains.ktx" />
     <None Include="res\textures\T_OEM_Park.ktx" />
     <None Include="res\textures\T_OEM_Quarry.ktx" />
+    <None Include="res\materials\M_Metal_Panel.material" />
+    <None Include="res\materials\M_Metal_Rust.material" />
+    <None Include="res\textures\T_Metal_Rust_D.ktx" />
+    <None Include="res\textures\T_Metal_Rust_H.ktx" />
+    <None Include="res\textures\T_Metal_Rust_MAOR.ktx" />
+    <None Include="res\textures\T_Metal_Rust_N.ktx" />
+    <None Include="res\textures\T_Wood_Floor_N.ktx" />
+    <None Include="res\textures\T_Wood_Floor_D.ktx" />
+    <None Include="res\textures\T_Wood_Floor_H.ktx" />
+    <None Include="res\textures\T_Wood_Floor_MAOR.ktx" />
+    <None Include="res\materials\M_Wood_Floor.material" />
+    <None Include="res\textures\T_OEM_Night.ktx" />
+    <None Include="res\shaders\SH_WS_DepthNormals.shader" />
+    <None Include="res\shaders\SH_VS_FilterAO.shader" />
+    <None Include="res\shaders\includes\Reconstruction.glsl" />
+    <None Include="res\shaders\includes\Noise.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">
@@ -1646,9 +1669,6 @@
     <ClCompile Include="src\Rendering\MeshUtility.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\LightingUtility.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Rendering\Objects\Buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1673,16 +1693,7 @@
     <ClCompile Include="include\GLAD\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Core\Sequencer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Rendering\RenderPipeline.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Context\Engines\EngineEditorCamera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Context\Engines\DebugEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="include\tinyobjloader\tiny_obj_loader.cpp">
@@ -1706,10 +1717,25 @@
     <ClCompile Include="src\Rendering\DynamicBatcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Context\Engines\EngineUpdateTransforms.cpp">
+    <ClCompile Include="src\Rendering\PostProcessing\FilterBloom.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\PostProcessing\FilterBloom.cpp">
+    <ClCompile Include="src\ECS\Sequencer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ECS\Contextual\Engines\DebugEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ECS\Contextual\Engines\EngineEditorCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ECS\Contextual\Engines\EngineUpdateTransforms.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rendering\FrustumCuller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rendering\PostProcessing\FilterAO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

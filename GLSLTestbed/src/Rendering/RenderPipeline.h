@@ -1,58 +1,47 @@
 #pragma once
 #include "Core/BufferView.h"
-#include "Core/Sequencer.h"
+#include "ECS/Sequencer.h"
 #include "Core/IService.h"
 #include "Core/Time.h"
-#include "Core/EntityDatabase.h"
+#include "ECS/EntityDatabase.h"
 #include "Core/ApplicationConfig.h"
 #include "Rendering/Objects/TextureXD.h"
 #include "Rendering/Structs/GraphicsContext.h"
 #include "Rendering/Structs/StructsCommon.h"
 #include "Rendering/DynamicBatcher.h"
+#include "Rendering/FrustumCuller.h"
 #include "Rendering/PostProcessing/FilterBloom.h"
+#include "Rendering/PostProcessing/FilterAO.h"
 
-class FrustrumCuller
+namespace PK::Rendering
 {
-    struct CullingResults
+    class RenderPipeline : public IService, public PK::ECS::ISimpleStep, public PK::ECS::IStep<Time>
     {
-        std::vector<uint> list;
-        size_t count = 0;
+        public:
+            RenderPipeline(AssetDatabase* assetDatabase, PK::ECS::EntityDatabase* entityDb, const ApplicationConfig& config);
+    
+            void Step(Time* token) override;
+            void Step(int condition) override;
+    
+        private:
+            void OnPreRender();
+            void OnRender();
+            void OnPostRender();
+    
+            GraphicsContext m_context;  
+            PK::ECS::EntityDatabase* m_entityDb;
+            FrustumCuller m_frustrumCuller;
+            DynamicBatcher m_dynamicBatcher;
+            PostProcessing::FilterBloom m_filterBloom;
+            PostProcessing::FilterAO m_filterAO;
+    
+            Utilities::Ref<RenderTexture> m_PreZRenderTarget;
+            Utilities::Ref<RenderTexture> m_HDRRenderTarget;
+            Utilities::Ref<ConstantBuffer> m_constantsPerFrame;
+            Utilities::Ref<ComputeBuffer> m_lightsBuffer;
+            Utilities::Weak<Shader> m_depthNormalsShader;
+            Utilities::Weak<Shader> m_OEMBackgroundShader;
+            Utilities::Weak<TextureXD> m_OEMTexture;
+            float m_OEMExposure;
     };
-
-    public:
-        void Update(PKECS::EntityDatabase* entityDb, const float4x4& matrix);
-        BufferView<uint> GetCullingResults(uint type)
-        { 
-            auto& element = m_visibilityLists[type];
-            return { element.list.data(), element.count };
-        }
-
-    private:
-        std::map<uint, CullingResults> m_visibilityLists;
-};
-
-class RenderPipeline : public IService, public PKECS::ISimpleStep, public PKECS::IStep<Time>
-{
-    public:
-        RenderPipeline(AssetDatabase* assetDatabase, PKECS::EntityDatabase* entityDb, const ApplicationConfig& config);
-
-        void Step(Time* token) override;
-        void Step(int condition) override;
-
-    private:
-        void OnPreRender();
-        void OnRender();
-        void OnPostRender();
-
-        GraphicsContext m_context;  
-        PKECS::EntityDatabase* m_entityDb;
-        FrustrumCuller m_frustrumCuller;
-        DynamicBatcher m_dynamicBatcher;
-        FilterBloom m_filterBloom;
-
-        Ref<RenderTexture> m_HDRRenderTarget;
-        Ref<ConstantBuffer> m_constantsPerFrame;
-        Ref<ComputeBuffer> m_lightsBuffer;
-        Weak<Shader> m_OEMBackgroundShader;
-        Weak<TextureXD> m_OEMTexture;
-};
+}

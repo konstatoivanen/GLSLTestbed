@@ -3,8 +3,10 @@
 #include "Rendering/Structs/StructsCommon.h"
 #include <mikktspace/mikktspace.h>
 
-namespace MeshUtilities
+namespace PK::Rendering::MeshUtility
 {
+    using namespace Utilities;
+
     namespace MikktsInterface0
     {
         struct PKMeshData
@@ -283,7 +285,7 @@ namespace MeshUtilities
             0, 6, 7, 0, 1, 6
         };
     
-        BufferLayout layout = { {CG_TYPE_FLOAT3, "POSITION"} };
+        BufferLayout layout = { {CG_TYPE::FLOAT3, "POSITION"} };
         return CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, 8, layout), CreateRef<IndexBuffer>(indices, 36));
     }
     
@@ -310,7 +312,7 @@ namespace MeshUtilities
         float2 uv01 = { 0.0f, 1.0f };
         float2 uv11 = { 1.0f, 1.0f };
     
-        PKStructs::Vertex_Full vertices[] =
+        Structs::Vertex_Full vertices[] =
         {
             // Bottom
             { p0, down, float4(front, 1), uv11 },
@@ -375,7 +377,7 @@ namespace MeshUtilities
             3 + 4 * 5, 2 + 4 * 5, 1 + 4 * 5,
         };
     
-        BufferLayout layout = { {CG_TYPE_FLOAT3, "POSITION"}, {CG_TYPE_FLOAT3, "NORMAL"}, {CG_TYPE_FLOAT2, "TEXCOORD0"} };
+        BufferLayout layout = { {CG_TYPE::FLOAT3, "POSITION"}, {CG_TYPE::FLOAT3, "NORMAL"}, {CG_TYPE::FLOAT2, "TEXCOORD0"} };
         return CreateRef<Mesh>(CreateRef<VertexBuffer>(reinterpret_cast<float*>(vertices), 24, layout), CreateRef<IndexBuffer>(indices, 36));
     }
     
@@ -399,7 +401,7 @@ namespace MeshUtilities
             2,3,0
         };
     
-        BufferLayout layout = { {CG_TYPE_FLOAT2, "POSITION"}, {CG_TYPE_FLOAT2, "TEXCOORD0"} };
+        BufferLayout layout = { {CG_TYPE::FLOAT2, "POSITION"}, {CG_TYPE::FLOAT2, "TEXCOORD0"} };
         return CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, 4, layout), CreateRef<IndexBuffer>(indices, 6));
     }
     
@@ -423,7 +425,7 @@ namespace MeshUtilities
             2,3,0
         };
     
-        BufferLayout layout = { {CG_TYPE_FLOAT3, "POSITION"}, {CG_TYPE_FLOAT2, "TEXCOORD0"} };
+        BufferLayout layout = { {CG_TYPE::FLOAT3, "POSITION"}, {CG_TYPE::FLOAT2, "TEXCOORD0"} };
         return CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, 4, layout), CreateRef<IndexBuffer>(indices, 6));
     }
 
@@ -431,13 +433,13 @@ namespace MeshUtilities
     {
         auto vcount = resolution.x * resolution.y * 4;
         auto icount = resolution.x * resolution.y * 6;
-        auto* vertices = PK_CONTIGUOUS_ALLOC(PKStructs::Vertex_Full, vcount);
+        auto* vertices = PK_CONTIGUOUS_ALLOC(Structs::Vertex_Full, vcount);
         auto* indices = PK_CONTIGUOUS_ALLOC(uint, icount);
         auto isize = float3(extents.x / resolution.x, extents.y / resolution.y, 0.0f) * 2.0f;
         auto min = float3(center - extents, 0);
 
-        for (auto x = 0; x < resolution.x; ++x)
-        for (auto y = 0; y < resolution.y; ++y)
+        for (uint x = 0; x < resolution.x; ++x)
+        for (uint y = 0; y < resolution.y; ++y)
         {
             auto vmin = min + isize * float3(x, y, 0);
             auto baseVertex = (y * resolution.x + x) * 4;
@@ -457,7 +459,7 @@ namespace MeshUtilities
             indices[baseIndex + 5] = baseVertex + 0;
         }
 
-        BufferLayout layout = { {CG_TYPE_FLOAT3, "POSITION"}, {CG_TYPE_FLOAT3, "NORMAL"}, {CG_TYPE_FLOAT4, "TANGENT"}, {CG_TYPE_FLOAT2, "TEXCOORD0"} };
+        BufferLayout layout = { {CG_TYPE::FLOAT3, "POSITION"}, {CG_TYPE::FLOAT3, "NORMAL"}, {CG_TYPE::FLOAT4, "TANGENT"}, {CG_TYPE::FLOAT2, "TEXCOORD0"} };
 
         CalculateTangents(reinterpret_cast<float*>(vertices), layout.GetStride() / 4, 0, 3, 6, 10, indices, vcount, icount);
 
@@ -476,7 +478,7 @@ namespace MeshUtilities
         const int vcount = (longc + 1) * lattc + 2;
         
         //Vertex_Full
-        auto vertices = PK_CONTIGUOUS_ALLOC(PKStructs::Vertex_Full, vcount);
+        auto vertices = PK_CONTIGUOUS_ALLOC(Structs::Vertex_Full, vcount);
 
         vertices[0].position = CG_FLOAT3_UP * radius;
        
@@ -554,7 +556,7 @@ namespace MeshUtilities
             indices[i++] = vcount - (lon + 1) - 1;
         }
 
-        BufferLayout layout = { {CG_TYPE_FLOAT3, "POSITION"}, {CG_TYPE_FLOAT3, "NORMAL"}, {CG_TYPE_FLOAT4, "TANGENT"}, {CG_TYPE_FLOAT2, "TEXCOORD0"} };
+        BufferLayout layout = { {CG_TYPE::FLOAT3, "POSITION"}, {CG_TYPE::FLOAT3, "NORMAL"}, {CG_TYPE::FLOAT4, "TANGENT"}, {CG_TYPE::FLOAT2, "TEXCOORD0"} };
 
         CalculateTangents(reinterpret_cast<float*>(vertices), layout.GetStride() / 4, 0, 3, 6, 10, indices, vcount, icount);
 

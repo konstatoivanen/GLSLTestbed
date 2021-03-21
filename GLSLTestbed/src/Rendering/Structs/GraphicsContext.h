@@ -6,17 +6,23 @@
 #include "Rendering/Structs/FixedStateAttributes.h"
 #include "Rendering/Structs/ResourceBindState.h"
 
-struct GraphicsContext
+namespace PK::Rendering::Structs
 {
-    ShaderPropertyBlock ShaderProperties;
-    FixedStateAttributes FixedStateAttributes;
-    ResourceBindState ResourceBindState;
-    Ref<RenderTexture> ActiveRenderTarget;
-    Ref<ShaderVariant> ActiveShader;
-    Ref<Mesh> BlitQuad;
-    Weak<Shader> BlitShader;
-    uint32_t ViewPortX;
-    uint32_t ViewPortY;
-    uint32_t ViewPortW;
-    uint32_t ViewPortH;
-};
+    using namespace Utilities;
+    using namespace Objects;
+
+    struct GraphicsContext
+    {
+        ShaderPropertyBlock ShaderProperties;
+        FixedStateAttributes FixedStateAttributes;
+        ResourceBindState ResourceBindState;
+        Ref<RenderTexture> ActiveRenderTarget;
+        Ref<ShaderVariant> ActiveShader;
+        Ref<Mesh> BlitQuad;
+        Weak<Shader> BlitShader;
+        uint32_t ViewPortX;
+        uint32_t ViewPortY;
+        uint32_t ViewPortW;
+        uint32_t ViewPortH;
+    };
+}

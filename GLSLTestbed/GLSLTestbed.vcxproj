@@ -162,13 +162,15 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\Context\Engines\EngineUpdateTransforms.h" />
-    <ClInclude Include="src\Context\Structs\Components.h" />
-    <ClInclude Include="src\Context\Structs\EntityViews.h" />
-    <ClInclude Include="src\Context\Structs\Implementers.h" />
+    <ClInclude Include="src\Core\NoCopy.h" />
+    <ClInclude Include="src\ECS\Contextual\Engines\EngineUpdateTransforms.h" />
+    <ClInclude Include="src\ECS\Contextual\Components\Components.h" />
+    <ClInclude Include="src\ECS\Contextual\EntityViews\EntityViews.h" />
+    <ClInclude Include="src\ECS\Contextual\Implementers\Implementers.h" />
     <ClInclude Include="src\Core\BufferView.h" />
-    <ClInclude Include="src\Core\EntityDatabase.h" />
+    <ClInclude Include="src\ECS\EntityDatabase.h" />
     <ClInclude Include="src\Rendering\DynamicBatcher.h" />
+    <ClInclude Include="src\Rendering\FrustumCuller.h" />
     <ClInclude Include="src\Rendering\GizmoRenderer.h" />
     <ClInclude Include="include\GLAD\glad.h" />
     <ClInclude Include="include\GLAD\khrplatform.h" />
@@ -496,21 +498,22 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="include\yaml-cpp\traits.h" />
     <ClInclude Include="include\yaml-cpp\yaml.h" />
     <ClInclude Include="src\Rendering\Objects\Material.h" />
-    <ClInclude Include="src\Context\Engines\DebugEngine.h" />
-    <ClInclude Include="src\Context\Engines\EngineEditorCamera.h" />
+    <ClInclude Include="src\ECS\Contextual\Engines\DebugEngine.h" />
+    <ClInclude Include="src\ECS\Contextual\Engines\EngineEditorCamera.h" />
     <ClInclude Include="src\Core\IService.h" />
     <ClInclude Include="src\Core\ServiceRegister.h" />
     <ClInclude Include="src\Core\ISingleton.h" />
     <ClInclude Include="src\Core\UpdateStep.h" />
+    <ClInclude Include="src\Rendering\PostProcessing\FilterAO.h" />
     <ClInclude Include="src\Rendering\PostProcessing\FilterBase.h" />
     <ClInclude Include="src\Rendering\PostProcessing\FilterBloom.h" />
     <ClInclude Include="src\Rendering\RenderPipeline.h" />
+    <ClInclude Include="src\Rendering\RenderQueueInfo.h" />
     <ClInclude Include="src\Rendering\Structs\BufferLayout.h" />
     <ClInclude Include="src\Rendering\Structs\FixedStateAttributes.h" />
     <ClInclude Include="src\Rendering\Structs\PropertyBlock.h" />
     <ClInclude Include="src\Core\AssetDataBase.h" />
-    <ClInclude Include="src\Core\Sequencer.h" />
-    <ClInclude Include="src\Rendering\LightingUtility.h" />
+    <ClInclude Include="src\ECS\Sequencer.h" />
     <ClInclude Include="src\Rendering\Structs\GraphicsContext.h" />
     <ClInclude Include="src\Rendering\MeshUtility.h" />
     <ClInclude Include="src\HLSLMath.h" />
@@ -540,6 +543,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="src\Rendering\Objects\Texture.h" />
     <ClInclude Include="src\Core\Window.h" />
     <ClInclude Include="src\Utilities\StringUtilities.h" />
+    <ClInclude Include="src\Utilities\Utilities.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\glfw3.lib" />
@@ -688,8 +692,9 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="libs\ktx.dll" />
     <None Include="libs\ktx_read.dll" />
     <None Include="res\materials\M_Gravel.material" />
-    <None Include="res\materials\M_Metal_Panel0.material" />
-    <None Include="res\materials\M_Metal_Panel1.material" />
+    <None Include="res\materials\M_Metal_Panel.material" />
+    <None Include="res\materials\M_Metal_Rust.material" />
+    <None Include="res\materials\M_Wood_Floor.material" />
     <None Include="res\models\cornell_box.mtl" />
     <None Include="res\shaders\includes\BlitCommon.glsl">
       <DeploymentContent>true</DeploymentContent>
@@ -698,25 +703,20 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
       <DeploymentContent>true</DeploymentContent>
     </None>
     <None Include="res\shaders\includes\LightingBRDF.glsl" />
-    <None Include="res\shaders\SH_VS_HueTerraceMultisampled.shader">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
-    <None Include="res\shaders\SH_VS_HueTerraceSimple.shader">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
+    <None Include="res\shaders\includes\Noise.glsl" />
+    <None Include="res\shaders\includes\Reconstruction.glsl" />
+    <None Include="res\shaders\SH_VS_FilterAO.shader" />
     <None Include="res\shaders\SH_VS_IBLBackground.shader">
       <DeploymentContent>true</DeploymentContent>
     </None>
     <None Include="res\shaders\SH_VS_Internal_Blit.shader">
       <DeploymentContent>true</DeploymentContent>
     </None>
-    <None Include="res\shaders\SH_VS_ShaderToyImport.shader">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
     <None Include="res\shaders\includes\SphericalHarmonics.glsl" />
     <None Include="res\shaders\includes\Test.glsl">
       <DeploymentContent>true</DeploymentContent>
     </None>
+    <None Include="res\shaders\SH_WS_DepthNormals.shader" />
     <None Include="res\textures\T_Bloom_LensDirt.ktx" />
     <None Include="res\textures\T_Gravel_D.ktx" />
     <None Include="res\textures\T_Gravel_H.ktx" />
@@ -726,9 +726,18 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\textures\T_Metal_Plates_H.ktx" />
     <None Include="res\textures\T_Metal_Plates_MAOR.ktx" />
     <None Include="res\textures\T_Metal_Plates_N.ktx" />
+    <None Include="res\textures\T_Metal_Rust_D.ktx" />
+    <None Include="res\textures\T_Metal_Rust_H.ktx" />
+    <None Include="res\textures\T_Metal_Rust_MAOR.ktx" />
+    <None Include="res\textures\T_Metal_Rust_N.ktx" />
     <None Include="res\textures\T_OEM_Mountains.ktx" />
+    <None Include="res\textures\T_OEM_Night.ktx" />
     <None Include="res\textures\T_OEM_Park.ktx" />
     <None Include="res\textures\T_OEM_Quarry.ktx" />
+    <None Include="res\textures\T_Wood_Floor_D.ktx" />
+    <None Include="res\textures\T_Wood_Floor_H.ktx" />
+    <None Include="res\textures\T_Wood_Floor_MAOR.ktx" />
+    <None Include="res\textures\T_Wood_Floor_N.ktx" />
     <None Include="x64\Debug\GLImageProcessor.tlog\CL.command.1.tlog" />
     <None Include="x64\Debug\GLImageProcessor.tlog\GLImageProcessor.lastbuildstate" />
     <None Include="x64\Debug\GLImageProcessor.tlog\unsuccessfulbuild" />
@@ -736,8 +745,9 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="x64\Debug\vc141.pdb" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Context\Engines\EngineUpdateTransforms.cpp" />
+    <ClCompile Include="src\ECS\Contextual\Engines\EngineUpdateTransforms.cpp" />
     <ClCompile Include="src\Rendering\DynamicBatcher.cpp" />
+    <ClCompile Include="src\Rendering\FrustumCuller.cpp" />
     <ClCompile Include="src\Rendering\GizmoRenderer.cpp" />
     <ClCompile Include="include\GLAD\glad.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -756,13 +766,13 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\Rendering\Objects\Material.cpp" />
-    <ClCompile Include="src\Context\Engines\DebugEngine.cpp" />
-    <ClCompile Include="src\Context\Engines\EngineEditorCamera.cpp" />
-    <ClCompile Include="src\Core\Sequencer.cpp" />
+    <ClCompile Include="src\ECS\Contextual\Engines\DebugEngine.cpp" />
+    <ClCompile Include="src\ECS\Contextual\Engines\EngineEditorCamera.cpp" />
+    <ClCompile Include="src\ECS\Sequencer.cpp" />
+    <ClCompile Include="src\Rendering\PostProcessing\FilterAO.cpp" />
     <ClCompile Include="src\Rendering\PostProcessing\FilterBloom.cpp" />
     <ClCompile Include="src\Rendering\RenderPipeline.cpp" />
     <ClCompile Include="src\Rendering\Structs\PropertyBlock.cpp" />
-    <ClCompile Include="src\Rendering\LightingUtility.cpp" />
     <ClCompile Include="src\Rendering\MeshUtility.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Rendering\Objects\RenderTexture.cpp" />

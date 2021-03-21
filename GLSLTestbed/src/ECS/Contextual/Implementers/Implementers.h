@@ -1,8 +1,8 @@
 #pragma once
-#include "Core/EntityDatabase.h"
-#include "Context/Structs/Components.h"
+#include "ECS/EntityDatabase.h"
+#include "ECS/Contextual/Components/Components.h"
 
-namespace PKECS::Implementers
+namespace PK::ECS::Implementers
 {
     struct MeshRenderableImplementer : public IImplementer,
         public Components::Transform,

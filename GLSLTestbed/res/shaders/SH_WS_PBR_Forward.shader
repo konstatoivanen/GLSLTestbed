@@ -1,7 +1,7 @@
 #version 460
 
 #Blend Off
-#ZTest LEqual
+#ZTest Equal
 #ZWrite On
 #Cull Back
 
@@ -10,6 +10,7 @@
 #multi_compile _ PK_ENABLE_INSTANCING
 
 #include includes/Lighting.glsl
+#include includes/Reconstruction.glsl
 
 struct FragmentVaryings
 {
@@ -32,25 +33,30 @@ layout(location = 2) in float4 in_TANGENT;
 layout(location = 3) in float2 in_TEXCOORD0;
 
 out FragmentVaryings varyings;
+out float4 vs_SCREENCOORD;
 
 void main()
 {
     varyings.vs_WORLDPOSITION = ObjectToWorldPos(in_POSITION0.xyz);
     varyings.vs_TEXCOORD0 = in_TEXCOORD0;
-	gl_Position = WorldToClipPos(varyings.vs_WORLDPOSITION);
+    gl_Position = WorldToClipPos(varyings.vs_WORLDPOSITION);
+
+    vs_SCREENCOORD = ComputeScreenPos(gl_Position);
 
     #if defined(PK_NORMALMAPS) || defined(PK_HEIGHTMAPS)
-        float3 tangent = ObjectToWorldDir(in_TANGENT.xyz);
-        float3 bitangent = ObjectToWorldDir(in_TANGENT.w * cross(in_NORMAL.xyz, in_TANGENT.xyz));
-        float3 normal = ObjectToWorldDir(in_NORMAL.xyz);
+        float3 tangent = normalize(in_TANGENT.xyz);
+        float3 bitangent = normalize(in_TANGENT.w * cross(in_NORMAL.xyz, in_TANGENT.xyz));
+        float3 normal = normalize(in_NORMAL.xyz);
+
         float3x3 TSROTATION = float3x3(tangent, bitangent, normal);
 
         #if defined(PK_NORMALMAPS)
-            varyings.vs_TSROTATION = TSROTATION;
+            varyings.vs_TSROTATION = mul(float3x3(pk_MATRIX_M), TSROTATION);
         #endif
 
         #if defined(PK_HEIGHTMAPS)
-            varyings.vs_TSVIEWDIRECTION = mul(inverse(TSROTATION), normalize(pk_WorldSpaceCameraPos.xyz - varyings.vs_WORLDPOSITION));
+            float3 localViewDir = WorldToObjectDir(pk_WorldSpaceCameraPos.xyz - varyings.vs_WORLDPOSITION);
+            varyings.vs_TSVIEWDIRECTION = mul(localViewDir, TSROTATION);
         #endif
     #endif
 
@@ -72,19 +78,19 @@ uniform float _NormalAmount = 0.5f;
 uniform float _HeightAmount = 0.1f;
 
 in FragmentVaryings varyings;
+in float4 vs_SCREENCOORD;
+
 layout(location = 0) out float4 SV_Target0;
 
 void main()
 {
+    float2 screenuv = vs_SCREENCOORD.xy / vs_SCREENCOORD.w;
     float3 worldpos = varyings.vs_WORLDPOSITION;
     float3 viewdir = normalize(pk_WorldSpaceCameraPos.xyz - worldpos);
     float2 uv = varyings.vs_TEXCOORD0;
 
-    float hh;
-
     #if defined(PK_HEIGHTMAPS)
         float heightval = tex2D(_HeightMap, uv).x;
-        hh = heightval;
         uv.xy += ParallaxOffset(heightval, _HeightAmount, normalize(varyings.vs_TSVIEWDIRECTION));
     #endif
 
@@ -100,6 +106,7 @@ void main()
     #endif
 
     float3 pbsval = tex2D(_PBSTexture, uv).xyz;
+    pbsval.y *= SampleScreenSpaceOcclusion(screenuv);
     surf.metallic = pbsval.x * _Metallic;
     surf.roughness = pbsval.z * _Roughness;
     surf.occlusion = lerp(1.0f, pbsval.y, _Occlusion);

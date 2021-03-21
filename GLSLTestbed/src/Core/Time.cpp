@@ -4,80 +4,83 @@
 #include <ctime>
 #include <cstdlib>
 
-const clock_t Time::GetClockTicks()
+namespace PK::Core
 {
-    return clock();
-}
-
-const double Time::GetClockSeconds()
-{
-    return clock() / (double)CLOCKS_PER_SEC;
-}
-
-Time::Time(PKECS::Sequencer* sequencer, float timeScale) : m_sequencer(sequencer), m_timeScale(timeScale)
-{
-}
-
-
-void Time::Reset()
-{
-    m_time = 0;
-    m_unscaledTime = 0;
-
-    m_frameIndex = 0;
-    m_frameIndexFixed = 0;
-    m_framerate = 0;
-    m_framerateMin = (uint64_t)-1;
-    m_framerateMax = 0;
-    m_framerateAvg = 0;
-    m_framerateFixed = 0;
-    m_second = 0;
-}
-
-void Time::LogFrameRate()
-{
-    PK_CORE_LOG_OVERWRITE("FPS: %4.1i, FIXED: %i, MIN: %i, MAX: %i, AVG: %i MS: %4.2f    ", m_framerate, m_framerateFixed, m_framerateMin, m_framerateMax, m_framerateAvg, m_unscaledDeltaTime * 1000.0f);
-}
-
-void Time::Step(int condition)
-{
-    auto currentSeconds = GetClockSeconds();
-
-    m_unscaledDeltaTime = currentSeconds - m_previousSeconds;
-    m_deltaTime = m_unscaledDeltaTime * m_timeScale;
-
-    m_unscaledTime += m_unscaledDeltaTime;
-    m_time += m_deltaTime;
-
-    m_smoothDeltaTime = m_smoothDeltaTime + 0.5 * (m_deltaTime - m_smoothDeltaTime);
-
-    m_previousSeconds = currentSeconds;
-
-    ++m_frameIndex;
-
-    if (m_unscaledDeltaTime > 0)
+    const clock_t Time::GetClockTicks()
     {
-        m_framerate = (uint64_t)(1.0 / m_unscaledDeltaTime);
+        return clock();
     }
-
-    if ((uint64_t)m_unscaledTime != m_second)
+    
+    const double Time::GetClockSeconds()
     {
-        m_framerateFixed = m_frameIndex - m_frameIndexFixed;
-        m_frameIndexFixed = m_frameIndex;
-        m_second = (uint64_t)m_unscaledTime;
+        return clock() / (double)CLOCKS_PER_SEC;
     }
-
-    if (m_framerate < m_framerateMin)
+    
+    Time::Time(ECS::Sequencer* sequencer, float timeScale) : m_sequencer(sequencer), m_timeScale(timeScale)
     {
-        m_framerateMin = m_framerate;
     }
-
-    if (m_framerate > m_framerateMax)
+    
+    
+    void Time::Reset()
     {
-        m_framerateMax = m_framerate;
+        m_time = 0;
+        m_unscaledTime = 0;
+    
+        m_frameIndex = 0;
+        m_frameIndexFixed = 0;
+        m_framerate = 0;
+        m_framerateMin = (uint64_t)-1;
+        m_framerateMax = 0;
+        m_framerateAvg = 0;
+        m_framerateFixed = 0;
+        m_second = 0;
     }
-
-    m_framerateAvg = (uint64_t)(m_frameIndex / m_unscaledTime);
-
-    m_sequencer->Next<Time>(this, this, 0);
+    
+    void Time::LogFrameRate()
+    {
+        PK_CORE_LOG_OVERWRITE("FPS: %4.1i, FIXED: %i, MIN: %i, MAX: %i, AVG: %i MS: %4.2f    ", m_framerate, m_framerateFixed, m_framerateMin, m_framerateMax, m_framerateAvg, m_unscaledDeltaTime * 1000.0f);
+    }
+    
+    void Time::Step(int condition)
+    {
+        auto currentSeconds = GetClockSeconds();
+    
+        m_unscaledDeltaTime = currentSeconds - m_previousSeconds;
+        m_deltaTime = m_unscaledDeltaTime * m_timeScale;
+    
+        m_unscaledTime += m_unscaledDeltaTime;
+        m_time += m_deltaTime;
+    
+        m_smoothDeltaTime = m_smoothDeltaTime + 0.5 * (m_deltaTime - m_smoothDeltaTime);
+    
+        m_previousSeconds = currentSeconds;
+    
+        ++m_frameIndex;
+    
+        if (m_unscaledDeltaTime > 0)
+        {
+            m_framerate = (uint64_t)(1.0 / m_unscaledDeltaTime);
+        }
+    
+        if ((uint64_t)m_unscaledTime != m_second)
+        {
+            m_framerateFixed = m_frameIndex - m_frameIndexFixed;
+            m_frameIndexFixed = m_frameIndex;
+            m_second = (uint64_t)m_unscaledTime;
+        }
+    
+        if (m_framerate < m_framerateMin)
+        {
+            m_framerateMin = m_framerate;
+        }
+    
+        if (m_framerate > m_framerateMax)
+        {
+            m_framerateMax = m_framerate;
+        }
+    
+        m_framerateAvg = (uint64_t)(m_frameIndex / m_unscaledTime);
+    
+        m_sequencer->Next<Time>(this, this, 0);
+    }
 }

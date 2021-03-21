@@ -1,12 +1,15 @@
 #pragma once
 
-enum class UpdateStep
+namespace PK::Core
 {
-	OpenFrame,
-	UpdateInput,
-	UpdateEngines,
-	PreRender,
-	Render,
-	PostRender,
-	CloseFrame,
-};
+	enum class UpdateStep
+	{
+		OpenFrame,
+		UpdateInput,
+		UpdateEngines,
+		PreRender,
+		Render,
+		PostRender,
+		CloseFrame,
+	};
+}

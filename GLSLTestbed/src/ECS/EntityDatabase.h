@@ -5,8 +5,12 @@
 #include "Rendering/Objects/Material.h"
 #include <hlslmath.h>
 
-namespace PKECS
+namespace PK::ECS
 {
+    using namespace PK::Math;
+    using namespace PK::Utilities;
+    using namespace PK::Core;
+
     enum class ENTITY_GROUPS
     {
         INVALID = 0,
@@ -48,7 +52,7 @@ namespace PKECS
         virtual ~IEntityView() = 0 {}
     };
     
-    #define PK_ECS_BUCKET_SIZE 32000
+    const uint PK_ECS_BUCKET_SIZE = 32000;
 
     struct ImplementerBucket
     {
