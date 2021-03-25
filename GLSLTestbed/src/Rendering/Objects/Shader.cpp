@@ -177,7 +177,7 @@ namespace PK::Rendering::Objects
 				return GL_TESS_EVALUATION_SHADER;
 			}
 		
-			if (type == "COMPUTE_SHADER")
+			if (type == "COMPUTE")
 			{
 				return GL_COMPUTE_SHADER;
 			}
@@ -343,7 +343,7 @@ namespace PK::Rendering::Objects
 	
 			if (cull == "Off") 
 			{
-				mode = GL_BACK;
+				mode = GL_FALSE;
 				enabled = false;
 				return;
 			}
@@ -663,10 +663,19 @@ namespace PK::Rendering::Objects
 			GLenum type; // type of the variable (float, vec3 or mat4, etc)
 			GLint samplerSlot = 0; // Resource slot indexer
 	
-			GLsizei maxnamelength; // maximum name length
+			GLsizei maxnamelength = 0; // maximum name length
+			GLsizei maxnamelengtht = 0; // maximum name length temp
 			GLsizei length; // name length
 	
-			glGetProgramiv(program, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxnamelength);
+			glGetProgramInterfaceiv(program, GL_UNIFORM_BLOCK, GL_MAX_NAME_LENGTH, &maxnamelengtht);
+			maxnamelength = glm::max(maxnamelength, maxnamelengtht);
+
+			glGetProgramInterfaceiv(program, GL_UNIFORM, GL_MAX_NAME_LENGTH, &maxnamelengtht);
+			maxnamelength = glm::max(maxnamelength, maxnamelengtht);
+
+			glGetProgramInterfaceiv(program, GL_SHADER_STORAGE_BLOCK, GL_MAX_NAME_LENGTH, &maxnamelengtht);
+			maxnamelength = glm::max(maxnamelength, maxnamelengtht);
+
 			glGetProgramInterfaceiv(program, GL_UNIFORM_BLOCK, GL_ACTIVE_RESOURCES, &blockCount);
 			glGetProgramInterfaceiv(program, GL_UNIFORM, GL_ACTIVE_RESOURCES, &uniformCount);
 			glGetProgramInterfaceiv(program, GL_SHADER_STORAGE_BLOCK, GL_ACTIVE_RESOURCES, &bufferCount);
@@ -680,7 +689,7 @@ namespace PK::Rendering::Objects
 				glGetProgramResourceName(program, GL_UNIFORM_BLOCK, i, maxnamelength, &length, name);
 				auto location = glGetProgramResourceIndex(program, GL_UNIFORM_BLOCK, name);
 				glUniformBlockBinding(program, location, location);
-				variablemap[StringHashID::StringToID(name)] = { (ushort)location, GL_UNIFORM_BLOCK, 0, false };
+				variablemap[StringHashID::StringToID(name)] = { (ushort)location, CG_TYPE::CONSTANT_BUFFER, 0, false };
 			}
 	
 			// Map Compute Buffers
@@ -689,7 +698,7 @@ namespace PK::Rendering::Objects
 				glGetProgramResourceName(program, GL_SHADER_STORAGE_BLOCK, i, maxnamelength, &length, name);
 				auto location = glGetProgramResourceIndex(program, GL_SHADER_STORAGE_BLOCK, name);
 				glShaderStorageBlockBinding(program, location, location);
-				variablemap[StringHashID::StringToID(name)] = { (ushort)location, GL_SHADER_STORAGE_BLOCK, 0, false };
+				variablemap[StringHashID::StringToID(name)] = { (ushort)location, CG_TYPE::COMPUTE_BUFFER, 0, false };
 			}
 	
 			// Map regular uniforms
@@ -697,6 +706,7 @@ namespace PK::Rendering::Objects
 			{
 				glGetActiveUniform(program, i, maxnamelength, &length, &size, &type, name);
 				glGetActiveUniformsiv(program, 1, &i, GL_UNIFORM_BLOCK_INDEX, &blockIndex);
+				auto cgtype = Convert::FromNativeEnum(type);
 		
 				for (auto j = 0; j < size; ++j)
 				{
@@ -720,13 +730,13 @@ namespace PK::Rendering::Objects
 						location = slot;
 					}
 		
-					variablemap[StringHashID::StringToID(name)] = { (ushort)location, type, (byte)(blockIndex + 1), false };
+					variablemap[StringHashID::StringToID(name)] = { (ushort)location, cgtype, (byte)(blockIndex + 1), false };
 		
 					// For array uniforms also map the variable name without the brackets
 					if (j == 0 && size > 1)
 					{
 						name[(int)length - 3] = '\0';
-						variablemap[StringHashID::StringToID(name)] = { (ushort)location, type, (byte)(blockIndex + 1), false };
+						variablemap[StringHashID::StringToID(name)] = { (ushort)location, cgtype, (byte)(blockIndex + 1), false };
 						name[(int)length - 3] = '[';
 					}
 				}

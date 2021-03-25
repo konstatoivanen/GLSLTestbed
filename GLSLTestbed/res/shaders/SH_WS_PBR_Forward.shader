@@ -2,7 +2,7 @@
 
 #Blend Off
 #ZTest Equal
-#ZWrite On
+#ZWrite Off
 #Cull Back
 
 #multi_compile _ PK_NORMALMAPS
@@ -16,6 +16,7 @@ struct FragmentVaryings
 {
     float2 vs_TEXCOORD0;
     float3 vs_WORLDPOSITION;
+    float4 vs_SCREENCOORD;
     #if defined(PK_NORMALMAPS)
         float3x3 vs_TSROTATION;
     #else
@@ -41,7 +42,7 @@ void main()
     varyings.vs_TEXCOORD0 = in_TEXCOORD0;
     gl_Position = WorldToClipPos(varyings.vs_WORLDPOSITION);
 
-    vs_SCREENCOORD = ComputeScreenPos(gl_Position);
+    varyings.vs_SCREENCOORD = ComputeScreenPos(gl_Position);
 
     #if defined(PK_NORMALMAPS) || defined(PK_HEIGHTMAPS)
         float3 tangent = normalize(in_TANGENT.xyz);
@@ -66,6 +67,7 @@ void main()
 };
 
 #pragma PROGRAM_FRAGMENT
+
 uniform sampler2D _AlbedoTexture;
 uniform sampler2D _PBSTexture;
 uniform sampler2D _NormalMap;
@@ -78,13 +80,12 @@ uniform float _NormalAmount = 0.5f;
 uniform float _HeightAmount = 0.1f;
 
 in FragmentVaryings varyings;
-in float4 vs_SCREENCOORD;
 
 layout(location = 0) out float4 SV_Target0;
 
 void main()
 {
-    float2 screenuv = vs_SCREENCOORD.xy / vs_SCREENCOORD.w;
+    float2 screenuv = varyings.vs_SCREENCOORD.xy / varyings.vs_SCREENCOORD.w;
     float3 worldpos = varyings.vs_WORLDPOSITION;
     float3 viewdir = normalize(pk_WorldSpaceCameraPos.xyz - worldpos);
     float2 uv = varyings.vs_TEXCOORD0;
@@ -110,6 +111,6 @@ void main()
     surf.metallic = pbsval.x * _Metallic;
     surf.roughness = pbsval.z * _Roughness;
     surf.occlusion = lerp(1.0f, pbsval.y, _Occlusion);
-    
+
     SV_Target0 = PhysicallyBasedShading(surf, viewdir, worldpos);
 };

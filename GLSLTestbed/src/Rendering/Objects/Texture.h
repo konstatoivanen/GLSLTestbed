@@ -10,7 +10,7 @@ namespace PK::Rendering::Objects
 
     struct TextureDescriptor
     {
-        uint3 resolution;
+        uint3 resolution = CG_UINT3_ZERO;
         GLenum colorFormat = GL_RGBA8;
         GLenum dimension = GL_TEXTURE_2D;
         GLenum wrapmodex = GL_REPEAT;

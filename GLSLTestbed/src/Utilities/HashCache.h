@@ -36,7 +36,7 @@ namespace PK::Utilities
 
         DEFINE_HASH_CACHE(pk_Lights)
         DEFINE_HASH_CACHE(pk_LightCount)
-        DEFINE_HASH_CACHE(pk_InstancingData)
+        DEFINE_HASH_CACHE(pk_InstancingMatrices)
         DEFINE_HASH_CACHE(pk_PerFrameConstants)
         DEFINE_HASH_CACHE(PK_ENABLE_INSTANCING)
         DEFINE_HASH_CACHE(pk_GizmoVertices)
@@ -56,6 +56,13 @@ namespace PK::Utilities
         DEFINE_HASH_CACHE(pk_ScreenNormals)
         DEFINE_HASH_CACHE(pk_ScreenOcclusion)
 
+        DEFINE_HASH_CACHE(pk_FrustumTileSizes)
+        DEFINE_HASH_CACHE(pk_FrustumTileScaleBias)
+        DEFINE_HASH_CACHE(pk_GlobalLightsList)
+        DEFINE_HASH_CACHE(pk_LightTiles)
+        DEFINE_HASH_CACHE(pk_FDepthRanges)
+        DEFINE_HASH_CACHE(pk_ClusterDispatchInfo)
+        DEFINE_HASH_CACHE(pk_VisibleClusters)
 
         #undef DEFINE_HASH_CACHE
     };

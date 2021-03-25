@@ -7,6 +7,7 @@
 #include "Core/AssetDataBase.h"
 #include "ECS/EntityDatabase.h"
 #include "Rendering/GizmoRenderer.h"
+#include "Core/ApplicationConfig.h"
 
 namespace PK::ECS::Engines
 {
@@ -16,8 +17,7 @@ namespace PK::ECS::Engines
 	class DebugEngine : public IService, public ISimpleStep, public IStep<Input>, public IStep<Rendering::GizmoRenderer>
 	{
 		public:
-			DebugEngine(AssetDatabase* assetDatabase, Time* time, EntityDatabase* entityDb);
-			~DebugEngine();
+			DebugEngine(AssetDatabase* assetDatabase, Time* time, EntityDatabase* entityDb, const ApplicationConfig& config);
 			void Step(Input* input) override;
 			void Step(int condition) override;
 			void Step(Rendering::GizmoRenderer* gizmos) override;

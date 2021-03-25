@@ -2,7 +2,7 @@
 
 #Blend Off
 #ZTest Equal
-#ZWrite On
+#ZWrite Off
 #Cull Back
 
 #include includes/PKCommon.glsl

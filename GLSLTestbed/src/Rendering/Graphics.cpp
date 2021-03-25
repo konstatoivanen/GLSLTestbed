@@ -49,8 +49,8 @@ namespace PK::Rendering::GraphicsAPI
 		DELTA_CHECK_SET(attributes, BlendEnabled, glToggle(GL_BLEND, attributes.BlendEnabled))
 		DELTA_CHECK_SET(attributes, CullEnabled, glToggle(GL_CULL_FACE, attributes.CullEnabled))
 		DELTA_CHECK_SET(attributes, ZWriteEnabled, glDepthMask(attributes.ZWriteEnabled))
-		DELTA_CHECK_SET(attributes, ZTest, glDepthFunc(attributes.ZTest))
-		DELTA_CHECK_SET(attributes, Blend, glBlendFunc(attributes.Blend.Source, attributes.Blend.Destination))
+		DELTA_CHECK_SET(attributes, ZTest, if (attributes.ZTestEnabled) glDepthFunc(attributes.ZTest))
+		DELTA_CHECK_SET(attributes, Blend, if (attributes.BlendEnabled) glBlendFunc(attributes.Blend.Source, attributes.Blend.Destination))
 		DELTA_CHECK_SET(attributes, ColorMask, glColorMask(attributes.ColorMask & (1 << 0), attributes.ColorMask & (1 << 1), attributes.ColorMask & (1 << 2), attributes.ColorMask & (1 << 3)))
 		DELTA_CHECK_SET(attributes, CullMode, glCullFace(attributes.CullMode))
 	}
@@ -183,8 +183,8 @@ namespace PK::Rendering::GraphicsAPI
 
 		auto cameraMatrix = glm::inverse(view);
 
-		auto n = projection[3][2] / (projection[2][2] - 1.0f);
-		auto f = projection[3][2] / (projection[2][2] + 1.0f);
+		auto f = -projection[3][2] / (projection[2][2] - 1.0f);
+		auto n = -projection[3][2] / (projection[2][2] + 1.0f);
 		auto vp = projection * view;
 
 		SetGlobalFloat4(hashCache->pk_ProjectionParams, { 1.0f, n, f, 1.0f / f });
@@ -549,6 +549,59 @@ namespace PK::Rendering::GraphicsAPI
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		glDrawArrays(topology, (GLint)offset, (GLsizei)count);
 	}
+
+	void DispatchCompute(const Ref<Shader>& shader, uint3 threadGroupSize)
+	{
+		shader->ResetKeywords();
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		SetPass(shader);
+		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+
+		glDispatchCompute(threadGroupSize.x, threadGroupSize.y, threadGroupSize.z);
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	}
+
+	void DispatchCompute(const Ref<Material>& material, uint3 threadGroupSize)
+	{
+		auto shader = material->GetShader().lock();
+		shader->ResetKeywords();
+		shader->SetKeywords(material->GetKeywords());
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		SetPass(shader);
+		shader->SetPropertyBlock(*material);
+		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+
+		glDispatchCompute(threadGroupSize.x, threadGroupSize.y, threadGroupSize.z);
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	}
+
+	void DispatchCompute(const Ref<Shader>& shader, uint3 threadGroupSize, const ShaderPropertyBlock& propertyBlock)
+	{
+		shader->ResetKeywords();
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		shader->SetKeywords(propertyBlock.GetKeywords());
+		SetPass(shader);
+		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+		shader->SetPropertyBlock(propertyBlock);
+
+		glDispatchCompute(threadGroupSize.x, threadGroupSize.y, threadGroupSize.z);
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	}
+
+    void DispatchComputeIndirect(const Ref<Shader>& shader, const GraphicsID& argumentsBuffer, uint offset, const ShaderPropertyBlock& propertyBlock)
+    {
+		shader->ResetKeywords();
+		shader->SetKeywords(GLOBAL_KEYWORDS);
+		shader->SetKeywords(propertyBlock.GetKeywords());
+		SetPass(shader);
+		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+		shader->SetPropertyBlock(propertyBlock);
+
+		glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, argumentsBuffer);
+		glDispatchComputeIndirect(offset);
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, 0);
+    }
 
 	#undef CURRENT_WINDOW 
 	#undef CURRENT_ATTRIBUTES 

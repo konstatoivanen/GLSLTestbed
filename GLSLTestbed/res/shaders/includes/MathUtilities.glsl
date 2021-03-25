@@ -25,76 +25,76 @@ inline half2 decode_2H4S(float source)
 }
 
 //----------NON ZERO SIGN----------//
-inline float sgn(float x)
+float sgn(float x)
 {
     return (x < 0) ? -1 : 1;
 }
 
-inline float2 sgn(float2 v)
+float2 sgn(float2 v)
 {
     return float2(sgn(v.x) , sgn(v.y));
 }
 
-inline float3 sgn(float3 v)
+float3 sgn(float3 v)
 {
     return float3(sgn(v.x), sgn(v.y), sgn(v.z));
 }
 
-inline float4 sgn(float4 v)
+float4 sgn(float4 v)
 {
     return float4(sgn(v.x), sgn(v.y), sgn(v.z), sgn(v.w));
 }
 
 //----------SQUARE LENGTH----------//
-inline float lengthSqr(float2 x)
+float lengthSqr(float2 x)
 {
     return dot(x, x);
 }
 
-inline float lengthSqr(float3 x)
+float lengthSqr(float3 x)
 {
     return dot(x, x);
 }
 
-inline float lengthSqr(float4 x)
+float lengthSqr(float4 x)
 {
     return dot(x, x);
 }
 
 //----------COMPONENT WISE MAX----------//
-inline float cmax(float2 v)
+float cmax(float2 v)
 {
     return max(v.x, v.y);
 }
 
-inline float cmax(float3 v)
+float cmax(float3 v)
 {
     return max(max(v.x, v.y), v.z);
 }
 
-inline float cmax(float4 v)
+float cmax(float4 v)
 {
     return max(max(v.x, v.y), max(v.z, v.w));
 }
 
 //----------COMPONENT WISE MIN----------//
-inline float cmin(float2 v)
+float cmin(float2 v)
 {
     return min(v.x, v.y);
 }
 
-inline float cmin(float3 v)
+float cmin(float3 v)
 {
     return min(min(v.x, v.y), v.z);
 }
 
-inline float cmin(float4 v)
+float cmin(float4 v)
 {
     return min(min(v.x, v.y), min(v.z, v.w));
 }
 
 //----------MOVE TOWARDS----------//
-inline half2 movetowards(half2 current, half2 target, float maxDelta)
+half2 movetowards(half2 current, half2 target, float maxDelta)
 {
     half2 delta = target - current;
     half2 m = length(delta);
@@ -104,7 +104,7 @@ inline half2 movetowards(half2 current, half2 target, float maxDelta)
     return delta;
 }
 
-inline half3 movetowards(half3 current, half3 target, float maxDelta)
+half3 movetowards(half3 current, half3 target, float maxDelta)
 {
     half3 delta = target - current;
     half3 m = length(delta);
@@ -115,7 +115,7 @@ inline half3 movetowards(half3 current, half3 target, float maxDelta)
 }
 
 //----------COLOR CONVERSION----------//
-inline float4 float_to_float4(float value)
+float4 float_to_float4(float value)
 {
     uint color32 = asuint(value);
     
@@ -130,7 +130,7 @@ inline float4 float_to_float4(float value)
     return color;
 }
 
-inline float fixed4_to_float(fixed4 color)
+float fixed4_to_float(fixed4 color)
 {
     uint value = 0;
     
@@ -146,17 +146,17 @@ inline float fixed4_to_float(fixed4 color)
 }
 
 //----------DIRECTION UTILITIES----------//
-inline float directionRadian(float2 direction)
+float directionRadian(float2 direction)
 {
     return acos(clamp(dot(float2(1, 0), direction), -1.0, 1.0));
 }
 
-inline half2 radianDirection(half radian)
+half2 radianDirection(half radian)
 {
     return half2(cos(radian), sin(radian));
 }
 
-inline half2 rotate(half2 dir, half radian)
+half2 rotate(half2 dir, half radian)
 {
     float _cos = cos(radian);
     float _sin = sin(radian);
@@ -164,20 +164,20 @@ inline half2 rotate(half2 dir, half radian)
 }
 
 //----------DEPTH CONVERSION----------//
-inline half depth_to_distance(float depth, float4 projectionParameters)
+half depth_to_distance(float depth, float4 projectionParameters)
 {
     half2 ab = half2(projectionParameters.z / (projectionParameters.z - projectionParameters.y), projectionParameters.z * projectionParameters.y / (projectionParameters.y - projectionParameters.z));
     return ab.y / (1.0 - depth - ab.x);
 }
 
-inline half2 depth_to_distance(float2 depth, float4 projectionParameters)
+half2 depth_to_distance(float2 depth, float4 projectionParameters)
 {
     half2 ab = half2(projectionParameters.z / (projectionParameters.z - projectionParameters.y), projectionParameters.z * projectionParameters.y / (projectionParameters.y - projectionParameters.z));
     return ab.y / (1.0 - depth - ab.x);
 }
 
 //----------UV UTILITIES----------//
-inline float2 kaleidouv(float2 uv, float divisor, float offset, float roll)
+float2 kaleidouv(float2 uv, float divisor, float offset, float roll)
 {
 		// Convert to the polar coordinate.
     float2 sc = uv - 0.5;

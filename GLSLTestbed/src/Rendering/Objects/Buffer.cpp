@@ -71,6 +71,7 @@ namespace PK::Rendering::Objects
 		glGenBuffers(1, &m_graphicsId);
 		glBindBuffer(GL_UNIFORM_BUFFER, m_graphicsId);
 		glBufferData(GL_UNIFORM_BUFFER, layout.GetStride(), nullptr, GL_STREAM_DRAW);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
 	
 	ConstantBuffer::~ConstantBuffer()
@@ -83,15 +84,17 @@ namespace PK::Rendering::Objects
 		glBindBuffer(GL_UNIFORM_BUFFER, m_graphicsId);
 		glInvalidateBufferData(GL_UNIFORM_BUFFER);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, m_data.size(), m_data.data());
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
 	
-	ComputeBuffer::ComputeBuffer(const BufferLayout& layout, uint count) : m_count(count), m_layout(layout)
+	ComputeBuffer::ComputeBuffer(const BufferLayout& layout, uint count, GLenum usage) : m_usage(usage), m_count(count), m_layout(layout)
 	{
 		auto stride = m_layout.GetStride();
 		auto size = GetSize();
 		glGenBuffers(1, &m_graphicsId);
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_graphicsId);
-		glBufferData(GL_SHADER_STORAGE_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, size, nullptr, usage);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 	}
 	
 	ComputeBuffer::~ComputeBuffer()
@@ -111,7 +114,8 @@ namespace PK::Rendering::Objects
 		
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_graphicsId);
 		glInvalidateBufferData(GL_SHADER_STORAGE_BUFFER);
-		glBufferData(GL_SHADER_STORAGE_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, size, nullptr, m_usage);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 	}
 	
 	void ComputeBuffer::ValidateSize(uint newCount)
@@ -124,18 +128,16 @@ namespace PK::Rendering::Objects
 	
 	void ComputeBuffer::MapBuffer(const void* data, size_t offset, size_t size)
 	{
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_graphicsId);
-		auto dest = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, offset, size, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
+		auto dest = glMapNamedBufferRange(m_graphicsId, offset, size, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
 		memcpy(dest, data, size);
-		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		glUnmapNamedBuffer(m_graphicsId);
 	}
 	
 	void ComputeBuffer::MapBuffer(const void* data, size_t size)
 	{
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_graphicsId);
-		auto dest = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY | GL_MAP_INVALIDATE_BUFFER_BIT);
+		auto dest = glMapNamedBuffer(m_graphicsId, GL_WRITE_ONLY | GL_MAP_INVALIDATE_BUFFER_BIT);
 		memcpy(dest, data, size);
-		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		glUnmapNamedBuffer(m_graphicsId);
 	}
 	
 	void ComputeBuffer::SubmitData(const void* data, size_t offset, size_t size)
@@ -143,17 +145,21 @@ namespace PK::Rendering::Objects
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_graphicsId);
 		glInvalidateBufferData(GL_SHADER_STORAGE_BUFFER);
 		glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, data);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 	}
+
+    void* ComputeBuffer::BeginMapBufferRange(size_t offset, size_t size)
+    {
+		return glMapNamedBufferRange(m_graphicsId, offset, size, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
+    }
 	
 	void* ComputeBuffer::BeginMapBuffer()
 	{
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_graphicsId);
-		return glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY | GL_MAP_INVALIDATE_BUFFER_BIT);
+		return glMapNamedBuffer(m_graphicsId, GL_WRITE_ONLY | GL_MAP_INVALIDATE_BUFFER_BIT);
 	}
 	
 	void ComputeBuffer::EndMapBuffer()
 	{
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_graphicsId);
-		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		glUnmapNamedBuffer(m_graphicsId);
 	}
 }

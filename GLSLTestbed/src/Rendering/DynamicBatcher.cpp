@@ -40,30 +40,36 @@ namespace PK::Rendering
             batch->mesh = mesh;
         }
     
-        Utilities::ValidateVectorSize(batch->matrices, batch->count + 1);
-        batch->matrices[batch->count++] = { localToWorld, worldToLocal };
+        Utilities::ValidateVectorSize(batch->matrices, (batch->count + 1) * 2);
+        batch->matrices[batch->count * 2 + 0] = localToWorld;
+        batch->matrices[batch->count * 2 + 1] = worldToLocal;
+        ++batch->count;
     }
     
     void DynamicBatcher::UpdateBuffers()
     {
         for (auto& batch : m_batches)
         {
+            if (batch.count <= 1)
+            {
+                continue;
+            }
+
             if (batch.instancingBuffer == nullptr)
             {
-                batch.instancingBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE::FLOAT4X4, "Matrix", 2 } }), (uint)batch.count);
+                batch.instancingBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE::FLOAT4X4, "Matrix"} }), (uint)(batch.count * 2));
             }
             else
             {
-                batch.instancingBuffer->ValidateSize((uint)batch.count);
+                batch.instancingBuffer->ValidateSize((uint)batch.count * 2);
             }
     
-            auto buffer = batch.instancingBuffer->BeginMapBuffer<float4x4>();
-            auto ptrBuff = batch.matrices.data();
+            auto buffer = batch.instancingBuffer->BeginMapBufferRange<float4x4>(0, batch.count * 2);
+            auto matrices = batch.matrices.data();
 
-            for (uint i = 0, j = 0; i < batch.count; ++i, j += 2)
+            for (uint i = 0; i < buffer.count; ++i)
             {
-                buffer[j + 0] = *ptrBuff[i].localToWorld;
-                buffer[j + 1] = *ptrBuff[i].worldToLocal;
+                buffer[i] = *matrices[i];
             }
 
             batch.instancingBuffer->EndMapBuffer();
@@ -72,7 +78,7 @@ namespace PK::Rendering
     
     void DynamicBatcher::Execute(uint32_t renderQueueIndex)
     {
-        auto pk_InstancingData = HashCache::Get()->pk_InstancingData;
+        auto pk_InstancingData = HashCache::Get()->pk_InstancingMatrices;
         auto PK_ENABLE_INSTANCING = HashCache::Get()->PK_ENABLE_INSTANCING;
     
         for (auto& batch : m_batches)
@@ -91,14 +97,13 @@ namespace PK::Rendering
                 continue;
             }
     
-            auto& matrices = batch.matrices[0];
-            GraphicsAPI::DrawMesh(batch.mesh.lock(), batch.submesh, batch.material.lock(), *matrices.localToWorld, *matrices.worldToLocal);
+            GraphicsAPI::DrawMesh(batch.mesh.lock(), batch.submesh, batch.material.lock(), *batch.matrices[0], *batch.matrices[1]);
         }
     }
     
     void DynamicBatcher::Execute(uint32_t renderQueueIndex, Ref<Material>& overrideMaterial)
     {
-        auto pk_InstancingData = HashCache::Get()->pk_InstancingData;
+        auto pk_InstancingData = HashCache::Get()->pk_InstancingMatrices;
         auto PK_ENABLE_INSTANCING = HashCache::Get()->PK_ENABLE_INSTANCING;
     
         for (auto& batch : m_batches)
@@ -117,14 +122,13 @@ namespace PK::Rendering
                 continue;
             }
 
-            auto& matrices = batch.matrices[0];
-            GraphicsAPI::DrawMesh(batch.mesh.lock(), batch.submesh, overrideMaterial, *matrices.localToWorld, *matrices.worldToLocal);
+            GraphicsAPI::DrawMesh(batch.mesh.lock(), batch.submesh, overrideMaterial, *batch.matrices[0], *batch.matrices[1]);
         }
     }
 
     void DynamicBatcher::Execute(uint32_t renderQueueIndex, Ref<Shader>& overrideShader)
     {
-        auto pk_InstancingData = HashCache::Get()->pk_InstancingData;
+        auto pk_InstancingData = HashCache::Get()->pk_InstancingMatrices;
         auto PK_ENABLE_INSTANCING = HashCache::Get()->PK_ENABLE_INSTANCING;
 
         for (auto& batch : m_batches)
@@ -143,8 +147,7 @@ namespace PK::Rendering
                 continue;
             }
 
-            auto& matrices = batch.matrices[0];
-            GraphicsAPI::DrawMesh(batch.mesh.lock(), batch.submesh, overrideShader, *matrices.localToWorld, *matrices.worldToLocal);
+            GraphicsAPI::DrawMesh(batch.mesh.lock(), batch.submesh, overrideShader, *batch.matrices[0], *batch.matrices[1]);
         }
     }
 }

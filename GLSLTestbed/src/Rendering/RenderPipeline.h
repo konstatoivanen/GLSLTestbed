@@ -12,6 +12,7 @@
 #include "Rendering/FrustumCuller.h"
 #include "Rendering/PostProcessing/FilterBloom.h"
 #include "Rendering/PostProcessing/FilterAO.h"
+#include "Rendering/LightsManager.h"
 
 namespace PK::Rendering
 {
@@ -32,13 +33,13 @@ namespace PK::Rendering
             PK::ECS::EntityDatabase* m_entityDb;
             FrustumCuller m_frustrumCuller;
             DynamicBatcher m_dynamicBatcher;
+            LightsManager m_lightsManager;
             PostProcessing::FilterBloom m_filterBloom;
             PostProcessing::FilterAO m_filterAO;
     
             Utilities::Ref<RenderTexture> m_PreZRenderTarget;
             Utilities::Ref<RenderTexture> m_HDRRenderTarget;
             Utilities::Ref<ConstantBuffer> m_constantsPerFrame;
-            Utilities::Ref<ComputeBuffer> m_lightsBuffer;
             Utilities::Weak<Shader> m_depthNormalsShader;
             Utilities::Weak<Shader> m_OEMBackgroundShader;
             Utilities::Weak<TextureXD> m_OEMTexture;

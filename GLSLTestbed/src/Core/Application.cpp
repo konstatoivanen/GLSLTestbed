@@ -61,7 +61,7 @@ namespace PK::Core
 		auto renderPipeline = m_services->Create<RenderPipeline>(assetDatabase, entityDb, config);
 		auto engineEditorCamera = m_services->Create<ECS::Engines::EngineEditorCamera>(time, config);
 		auto engineUpdateTransforms = m_services->Create<ECS::Engines::EngineUpdateTransforms>(entityDb);
-		auto engineDebug = m_services->Create<ECS::Engines::DebugEngine>(assetDatabase, time, entityDb);
+		auto engineDebug = m_services->Create<ECS::Engines::DebugEngine>(assetDatabase, time, entityDb, config);
 		auto gizmoRenderer = m_services->Create<GizmoRenderer>(sequencer, assetDatabase, config.EnableGizmos);
 		
 		sequencer->SetSteps(

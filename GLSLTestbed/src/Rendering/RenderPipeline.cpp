@@ -25,28 +25,6 @@ namespace PK::Rendering
 		GraphicsAPI::SetGlobalFloat4(hashCache->pk_SceneOEM_ST, { 0, 0, 1, 1 });
 		GraphicsAPI::SetGlobalFloat(hashCache->pk_SceneOEM_Exposure, exposure);
 	}
-
-	static void UpdateLightsBuffer(ECS::EntityDatabase* entityDb, FrustumCuller& culler, Ref<ComputeBuffer>& lightsBuffer)
-	{
-		auto cullingResults = culler.GetCullingResults((int)ECS::Components::RenderHandleType::PointLight);
-	
-		if (cullingResults.count > 0)
-		{
-			lightsBuffer->ValidateSize((uint)cullingResults.count);
-	
-			auto buffer = lightsBuffer->BeginMapBuffer<Structs::PKPointLight>();
-	
-			for (size_t i = 0; i < cullingResults.count; ++i)
-			{
-				auto* view = entityDb->Query<ECS::EntityViews::PointLightRenderable>(ECS::EGID(cullingResults[i], (uint)ECS::ENTITY_GROUPS::ACTIVE));
-				buffer[i] = { view->pointLight->color, float4(view->transform->position, view->pointLight->radius) };
-			}
-	
-			lightsBuffer->EndMapBuffer();
-			GraphicsAPI::SetGlobalComputeBuffer(HashCache::Get()->pk_Lights, lightsBuffer->GetGraphicsID());
-			GraphicsAPI::SetGlobalInt(HashCache::Get()->pk_LightCount, (int)cullingResults.count);
-		}
-	}
 	
 	static void UpdateDynamicBatches(ECS::EntityDatabase* entityDb, FrustumCuller& culler, DynamicBatcher& batcher)
 	{
@@ -80,12 +58,13 @@ namespace PK::Rendering
 			assetDatabase->Find<Shader>("SH_VS_FilterAO"),
 			config.AmbientOcclusionIntensity, 
 			config.AmbientOcclusionRadius, 
-			config.AmbientOcclusionDownsample)
+			config.AmbientOcclusionDownsample),
+		m_lightsManager(assetDatabase)
 	{
 		m_entityDb = entityDb;
 		m_context.BlitQuad = MeshUtility::GetQuad2D({ -1.0f,-1.0f }, { 1.0f, 1.0f });
 		m_context.BlitShader = assetDatabase->Find<Shader>("SH_VS_Internal_Blit");
-	
+
 		m_depthNormalsShader = assetDatabase->Find<Shader>("SH_WS_DepthNormals");
 		m_OEMBackgroundShader = assetDatabase->Find<Shader>("SH_VS_IBLBackground");
 		m_OEMTexture = assetDatabase->Find<TextureXD>(config.FileBackgroundTexture.c_str());
@@ -123,12 +102,6 @@ namespace PK::Rendering
 			{CG_TYPE::FLOAT4X4, "pk_MATRIX_VP"},
 			{CG_TYPE::FLOAT4X4, "pk_MATRIX_I_VP"},
 		}));
-	
-		m_lightsBuffer = CreateRef<ComputeBuffer>(BufferLayout(
-		{
-			{CG_TYPE::FLOAT4, "COLOR"},
-			{CG_TYPE::FLOAT4, "DIRECTION"}
-		}), 32);
 	}
 	
 	void RenderPipeline::Step(Time* timeRef)
@@ -167,13 +140,18 @@ namespace PK::Rendering
 		GraphicsAPI::SetGlobalConstantBuffer(HashCache::Get()->pk_PerFrameConstants, m_constantsPerFrame->GetGraphicsID());
 		SetOEMTextures(m_OEMTexture.lock()->GetGraphicsID(), 1, m_OEMExposure);
 	
+		auto resolution = GraphicsAPI::GetActiveWindowResolution();
+
 		m_frustrumCuller.Update(m_entityDb, GraphicsAPI::GetActiveViewProjectionMatrix());
 	
-		UpdateLightsBuffer(m_entityDb, m_frustrumCuller, m_lightsBuffer);
+		auto projectionParams = *m_constantsPerFrame->GetPropertyPtr<float4>(HashCache::Get()->pk_ProjectionParams);
+
 		UpdateDynamicBatches(m_entityDb, m_frustrumCuller, m_dynamicBatcher);
 	
-		m_HDRRenderTarget->ValidateResolution(uint3(GraphicsAPI::GetActiveWindowResolution(), 0));
-		m_PreZRenderTarget->ValidateResolution(uint3(GraphicsAPI::GetActiveWindowResolution(), 0));
+		m_HDRRenderTarget->ValidateResolution(uint3(resolution, 0));
+		m_PreZRenderTarget->ValidateResolution(uint3(resolution, 0));
+
+		m_lightsManager.Update(m_entityDb, m_frustrumCuller.GetCullingResults((int)ECS::Components::RenderHandleType::PointLight), resolution, projectionParams.y, projectionParams.z);
 	}
 	
 	void RenderPipeline::OnRender()
@@ -183,6 +161,11 @@ namespace PK::Rendering
 
 		auto depthNormals = m_depthNormalsShader.lock();
 		m_dynamicBatcher.Execute(0, depthNormals);
+
+		GraphicsAPI::SetGlobalTexture(HashCache::Get()->pk_ScreenDepth, m_PreZRenderTarget->GetDepthBuffer().lock()->GetGraphicsID());
+		GraphicsAPI::SetGlobalTexture(HashCache::Get()->pk_ScreenNormals, m_PreZRenderTarget->GetColorBuffer(0).lock()->GetGraphicsID());
+		
+		m_lightsManager.UpdateLightTiles(m_PreZRenderTarget->GetResolution2D());
 
 		m_filterAO.Execute(m_PreZRenderTarget, nullptr);
 

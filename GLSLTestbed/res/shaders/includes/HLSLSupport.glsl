@@ -26,10 +26,13 @@
 #define short3 ivec3
 #define short4 ivec4
 
-#define int int
-#define int2 int2
-#define int3 int3
-#define int4 int4
+#define int2 ivec2
+#define int3 ivec3
+#define int4 ivec4
+
+#define uint2 uvec2
+#define uint3 uvec3
+#define uint4 uvec4
 
 #define half2x2 mat2
 #define half3x3 mat3
@@ -82,6 +85,10 @@
 #define PK_DECLARE_BUFFER(ValueType, BufferName) layout(std430) buffer BufferName { ValueType BufferName##_Data[]; }
 
 #define PK_BUFFER_DATA(BufferName, index) BufferName##_Data[index]
+
+#define PK_DECLARE_ATOMIC_VARIABLE(ValueType, BufferName) layout(std430) buffer BufferName { ValueType BufferName##_Data; }
+
+#define PK_ATOMIC_DATA(BufferName) BufferName##_Data
 
 #define PK_INSTANCE_ID gl_InstanceID
 #define PK_VERTEX_ID gl_VertexID

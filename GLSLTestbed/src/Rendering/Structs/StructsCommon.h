@@ -2,6 +2,18 @@
 
 namespace PK::Rendering::Structs
 {
+    struct FrustumTileAABB
+    {
+        float4 minPoint;
+        float4 maxPoint;
+    };
+
+    struct LightTile
+    {
+        uint offset;
+        uint count;
+    };
+
     struct Vertex_Simple
     {
         float3 position;

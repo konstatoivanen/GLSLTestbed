@@ -57,9 +57,9 @@ PK_DECLARE_CBUFFER(pk_PerFrameConstants)
         float4x4 worldToLocal;
     };
 
-    PK_DECLARE_BUFFER(InstanceMatrices, pk_InstancingData);
-    #define pk_MATRIX_M PK_BUFFER_DATA(pk_InstancingData, PK_INSTANCE_ID).localToWorld
-    #define pk_MATRIX_I_M PK_BUFFER_DATA(pk_InstancingData, PK_INSTANCE_ID).worldToLocal
+    PK_DECLARE_BUFFER(InstanceMatrices, pk_InstancingMatrices);
+    #define pk_MATRIX_M PK_BUFFER_DATA(pk_InstancingMatrices, PK_INSTANCE_ID).localToWorld
+    #define pk_MATRIX_I_M PK_BUFFER_DATA(pk_InstancingMatrices, PK_INSTANCE_ID).worldToLocal
 #else
     // Current model matrix.
     uniform float4x4 pk_MATRIX_M;
@@ -73,7 +73,10 @@ float4 HDREncode(float4 color) { return float4(color.rgb / HDRFactor, color.a); 
 
 float4 HDRDecode(float4 hdr) { return float4(hdr.rgb * HDRFactor, hdr.a); }
 
-float LinearizeDepth(float z) { return 1.0f / (pk_MATRIX_I_P[2][3] * z + pk_MATRIX_I_P[3][3]); }
+float LinearizeDepth(float z) 
+{ 
+    return 1.0f / (pk_MATRIX_I_P[2][3] * (z * 2.0f - 1.0f) + pk_MATRIX_I_P[3][3]);
+} 
 
 float4 ComputeScreenPos(float4 clippos) 
 {
@@ -118,7 +121,7 @@ float3 ClipToViewPos(float3 clippos)
     float3 v;
 	v.x = pk_MATRIX_I_P[0][0] * clippos.x;
 	v.y = pk_MATRIX_I_P[1][1] * clippos.y;
-	v.z = 1.0f / (pk_MATRIX_I_P[2][3] * clippos.z + pk_MATRIX_I_P[3][3]);
+	v.z = LinearizeDepth(clippos.z);
 	v.xy *= v.z;
     return v;
 }
@@ -126,5 +129,18 @@ float3 ClipToViewPos(float3 clippos)
 float3 ClipToViewPos(float2 uv, float linearDeth)
 {
     return float3((uv * 2 - 1) * float2(pk_MATRIX_I_P[0][0], pk_MATRIX_I_P[1][1]), 1) * linearDeth;
-}        
+}      
+
+float3 ScreenToViewPos(float3 screenpos) 
+{
+    float2 texCoord = screenpos.xy / pk_ScreenParams.xy;
+    return ClipToViewPos(float3(texCoord.xy * 2.0f - 1.0f, screenpos.z));
+}
+
+float3 ScreenToViewPos(float2 screenpos, float linearDepth) 
+{
+    float2 texCoord = screenpos.xy / pk_ScreenParams.xy;
+    return ClipToViewPos(texCoord.xy, linearDepth);
+}
+
 #endif

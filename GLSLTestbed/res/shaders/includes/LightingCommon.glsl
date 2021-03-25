@@ -1,6 +1,12 @@
 #pragma once
 #include HLSLSupport.glsl
 
+struct LightTile 
+{
+    uint offset;
+    uint count;
+};
+
 struct PKRawPointLight
 {
     float4 color;
@@ -53,5 +59,9 @@ PKIndirect EmptyIndirect()
     return PKIndirect(float3(0,0,0), float3(0,0,0));
 }
 
+uniform float4 pk_FrustumTileSizes;
+uniform float2 pk_FrustumTileScaleBias;
 uniform int pk_LightCount;
 PK_DECLARE_BUFFER(PKRawPointLight, pk_Lights);
+PK_DECLARE_BUFFER(uint, pk_GlobalLightsList);
+PK_DECLARE_BUFFER(uint, pk_LightTiles);

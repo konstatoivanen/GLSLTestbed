@@ -189,7 +189,8 @@ namespace PK::Math
         ushort Size(CG_TYPE type);
         ushort Components(CG_TYPE type);
         ushort BaseType(CG_TYPE type);
-        ushort NativeEnum(CG_TYPE type);
+        ushort ToNativeEnum(CG_TYPE type);
+        CG_TYPE FromNativeEnum(ushort type);
         std::string ToString(CG_TYPE type);
         CG_TYPE FromString(const char* string);
     };

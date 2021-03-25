@@ -41,7 +41,7 @@ namespace PK::ECS::Engines
 		return egid;
 	}
 	
-	static void CreatePointLight(EntityDatabase* entityDb, PK::Core::AssetDatabase* assetDatabase, const float3& position, const color& color, int index)
+	static void CreatePointLight(EntityDatabase* entityDb, PK::Core::AssetDatabase* assetDatabase, const float3& position, const color& color)
 	{
 		auto egid = EGID(entityDb->ReserveEntityId(), (uint)ENTITY_GROUPS::ACTIVE);
 		auto implementer = entityDb->ResereveImplementer<Implementers::PointLightImplementer>();
@@ -73,7 +73,7 @@ namespace PK::ECS::Engines
 	
 		auto mesh = assetDatabase->Find<Mesh>("Primitive_Sphere").lock();
 		auto shader = assetDatabase->Find<Shader>("SH_WS_Unlit_Color").lock();
-		auto material = assetDatabase->RegisterProcedural("M_Point_Light_" + std::to_string(index), CreateRef<Material>(shader));
+		auto material = assetDatabase->RegisterProcedural("M_Point_Light_" + std::to_string(egid.entityID()), CreateRef<Material>(shader));
 		material.lock()->SetFloat4(StringHashID::StringToID("_Color"), hdrColor);
 		
 		auto meshEgid = CreateMeshRenderable(entityDb, position, CG_FLOAT3_ZERO, 0.2f, mesh, material);
@@ -81,7 +81,7 @@ namespace PK::ECS::Engines
 		lightSphereView->transformMesh = meshView->transform;
 	}
 	
-	DebugEngine::DebugEngine(AssetDatabase* assetDatabase, Time* time, EntityDatabase* entityDb)
+	DebugEngine::DebugEngine(AssetDatabase* assetDatabase, Time* time, EntityDatabase* entityDb, const ApplicationConfig& config)
 	{
 		m_entityDb = entityDb;
 		m_assetDatabase = assetDatabase;
@@ -100,7 +100,7 @@ namespace PK::ECS::Engines
 	
 		auto minpos = float3(-40, -5, -40);
 		auto maxpos = float3(40, 0, 40);
-	
+
 		CreateMeshRenderable(entityDb, float3(0,-5,0), { 90, 0, 0 }, 40.0f, planeMesh, materialWood);
 	
 		for (auto i = 0; i < 256; ++i)
@@ -113,14 +113,10 @@ namespace PK::ECS::Engines
 			CreateMeshRenderable(entityDb, Functions::RandomRangeFloat3(minpos, maxpos), Functions::RandomEuler(), 1.0f, sphereMesh, materialGravel);
 		}
 	
-		for (auto i = 0; i < 4; ++i)
+		for (uint i = 0; i < config.LightCount; ++i)
 		{
-			CreatePointLight(entityDb, assetDatabase, Functions::RandomRangeFloat3(minpos, maxpos), Functions::HueToRGB(Functions::RandomRangeFloat(0.5f, 1.0f)) * Functions::RandomRangeFloat(2.0f, 10.0f), i);
+			CreatePointLight(entityDb, assetDatabase, Functions::RandomRangeFloat3(minpos, maxpos), Functions::HueToRGB(Functions::RandomRangeFloat(0.0f, 1.0f)) * Functions::RandomRangeFloat(1.0f, 2.0f));
 		}
-	}
-	
-	DebugEngine::~DebugEngine()
-	{
 	}
 	
 	void DebugEngine::Step(Input* input)
@@ -153,17 +149,17 @@ namespace PK::ECS::Engines
 	
 	void DebugEngine::Step(int condition)
 	{
+		return;
 		auto lights = m_entityDb->Query<EntityViews::LightSphere>((int)ENTITY_GROUPS::ACTIVE);
 		auto time = Application::GetService<Time>()->GetTime();
 	
 		for (auto i = 0; i < lights.count; ++i)
 		{
-			auto ypos = sin(time + ((float)i / lights.count)) * 4;
+			auto ypos = sin(time + ((float)i * 4 / lights.count)) * 4;
 			lights[i].transformLight->position.y = ypos;
 			lights[i].transformMesh->position.y = ypos;
 		}
 	
-		return;
 		auto meshes = m_entityDb->Query<EntityViews::MeshRenderable>((int)ENTITY_GROUPS::ACTIVE);
 	
 		for (auto i = 0; i < meshes.count; ++i)
@@ -176,21 +172,40 @@ namespace PK::ECS::Engines
 	{
 		auto aspect = Application::GetWindow().GetAspect();
 		auto proj = Functions::GetPerspective(50.0f, aspect, 0.1f, 50.0f);
-		auto view = Functions::GetMatrixInvTRS(CG_FLOAT3_ZERO, glm::quat(float3(0, Application::GetService<Time>()->GetTime(), 0)), CG_FLOAT3_ONE);
+		// auto view = Functions::GetMatrixInvTRS(CG_FLOAT3_ZERO, glm::quat(float3(0, Application::GetService<Time>()->GetTime(), 0)), CG_FLOAT3_ONE);
+		auto view = Functions::GetMatrixInvTRS(CG_FLOAT3_ZERO, CG_QUATERNION_IDENTITY, CG_FLOAT3_ONE);
 		auto vp = proj * view;
 	
-		gizmos->SetColor(CG_COLOR_GREEN);
+		gizmos->SetColor(CG_COLOR_RED);
 		gizmos->DrawFrustrum(vp);
 		
-		FrustrumPlanes frustrum;
-		Functions::ExtractFrustrumPlanes(vp, &frustrum, true);
-	
+		auto znear = 0.1f;
+		auto zfar = 50.0f;
+		auto range = 50.0f - 0.1f;
+		auto istep = range / 24;
+
+		for (int i = 0; i < 24; ++i)
+		{
+			float n = znear * pow(zfar / znear, (float)i / 24);
+			float f = znear * pow(zfar / znear, (float)(i + 1) / 24);
+
+			auto proj = Functions::GetOffsetPerspective(-1, 1, -1, 1, 50.0f, aspect, n, f);
+			vp = proj * view;
+			gizmos->DrawFrustrum(vp);
+		}
+
 		auto cullables = m_entityDb->Query<EntityViews::BaseRenderable>((int)ENTITY_GROUPS::ACTIVE);
 	
+		gizmos->SetColor(CG_COLOR_GREEN);
+
 		for (auto i = 0; i < cullables.count; ++i)
 		{
+			if (cullables[i].handle->type != Components::RenderHandleType::PointLight)
+			{
+				continue;
+			}
+
 			const auto& bounds = cullables[i].bounds->worldAABB;
-			gizmos->SetColor(Functions::IntersectPlanesAABB(frustrum.planes, 6, bounds) ? CG_COLOR_GREEN : CG_COLOR_BLACK);
 			gizmos->DrawWireBounds(bounds);
 		}
 	}

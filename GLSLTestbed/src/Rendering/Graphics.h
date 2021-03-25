@@ -115,4 +115,12 @@ namespace PK::Rendering::GraphicsAPI
 	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
 
 	void DrawProcedural(const Ref<Shader>& shader, GLenum topology, size_t offset, size_t count);
+
+	void DispatchCompute(const Ref<Shader>& shader, uint3 threadGroupSize);
+	void DispatchCompute(const Ref<Material>& material, uint3 threadGroupSize);
+	void DispatchCompute(const Ref<Shader>& shader, uint3 threadGroupSize, const ShaderPropertyBlock& propertyBlock);
+
+	void DispatchComputeIndirect(const Ref<Shader>& shader, const GraphicsID& argumentsBuffer, uint offset);
+	void DispatchComputeIndirect(const Ref<Material>& material, const GraphicsID& argumentsBuffer, uint offset);
+	void DispatchComputeIndirect(const Ref<Shader>& shader, const GraphicsID& argumentsBuffer, uint offset, const ShaderPropertyBlock& propertyBlock);
 }

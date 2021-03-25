@@ -72,27 +72,50 @@ namespace PK::Math
 		return (ushort)CG_TYPE::INVALID;
 	}
 	
-	ushort Convert::NativeEnum(CG_TYPE type)
+	ushort Convert::ToNativeEnum(CG_TYPE type)
 	{
 		switch (type)
 		{
 			case CG_TYPE::FLOAT: return GL_FLOAT;
-			case CG_TYPE::FLOAT2: return GL_FLOAT;
-			case CG_TYPE::FLOAT3: return GL_FLOAT;
-			case CG_TYPE::FLOAT4: return GL_FLOAT;
-			case CG_TYPE::FLOAT2X2: return GL_FLOAT;
-			case CG_TYPE::FLOAT3X3: return GL_FLOAT;
-			case CG_TYPE::FLOAT4X4: return GL_FLOAT;
+			case CG_TYPE::FLOAT2: return GL_FLOAT_VEC2;
+			case CG_TYPE::FLOAT3: return GL_FLOAT_VEC3;
+			case CG_TYPE::FLOAT4: return GL_FLOAT_VEC4;
+			case CG_TYPE::FLOAT2X2: return GL_FLOAT_MAT2;
+			case CG_TYPE::FLOAT3X3: return GL_FLOAT_MAT3;
+			case CG_TYPE::FLOAT4X4: return GL_FLOAT_MAT4;
 			case CG_TYPE::INT: return GL_INT;
-			case CG_TYPE::INT2: return GL_INT;
-			case CG_TYPE::INT3: return GL_INT;
-			case CG_TYPE::INT4: return GL_INT;
+			case CG_TYPE::INT2: return GL_INT_VEC2;
+			case CG_TYPE::INT3: return GL_INT_VEC3;
+			case CG_TYPE::INT4: return GL_INT_VEC4;
 			case CG_TYPE::TEXTURE: return GL_TEXTURE;
 			case CG_TYPE::CONSTANT_BUFFER: return GL_UNIFORM_BUFFER;
 			case CG_TYPE::COMPUTE_BUFFER: return GL_SHADER_STORAGE_BUFFER;
 		}
 	
 		return (ushort)CG_TYPE::INVALID;
+	}
+
+	CG_TYPE Convert::FromNativeEnum(ushort type)
+	{
+		switch (type)
+		{
+			case GL_FLOAT: return CG_TYPE::FLOAT;
+			case GL_FLOAT_VEC2: return CG_TYPE::FLOAT2;
+			case GL_FLOAT_VEC3: return CG_TYPE::FLOAT3;
+			case GL_FLOAT_VEC4: return CG_TYPE::FLOAT4;
+			case GL_FLOAT_MAT2: return CG_TYPE::FLOAT2X2;
+			case GL_FLOAT_MAT3: return CG_TYPE::FLOAT3X3;
+			case GL_FLOAT_MAT4: return CG_TYPE::FLOAT4X4;
+			case GL_INT: return CG_TYPE::INT;
+			case GL_INT_VEC2: return CG_TYPE::INT2;
+			case GL_INT_VEC3: return CG_TYPE::INT3;
+			case GL_INT_VEC4: return CG_TYPE::INT4;
+			case GL_TEXTURE: return CG_TYPE::TEXTURE;
+			case GL_UNIFORM_BUFFER: return CG_TYPE::CONSTANT_BUFFER;
+			case GL_SHADER_STORAGE_BUFFER: return CG_TYPE::COMPUTE_BUFFER;
+		}
+
+		return CG_TYPE::INVALID;
 	}
 	
 	std::string Convert::ToString(CG_TYPE type)

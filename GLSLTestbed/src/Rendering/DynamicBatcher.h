@@ -1,6 +1,7 @@
 #pragma once
 #include "Rendering/Objects/Material.h"
 #include "Rendering/Objects/Mesh.h"
+#include "Rendering/Objects/Mesh.h"
 
 namespace PK::Rendering
 {
@@ -11,20 +12,14 @@ namespace PK::Rendering
     // @TODO Consider using persistently mapped triple buffering instead
     class DynamicBatcher
     {
-        struct DrawMatrices
-        {
-            float4x4* localToWorld;
-            float4x4* worldToLocal;
-        };
-
         struct DynamicBatch
         {
             Weak<Material> material;
             Weak<Mesh> mesh;
-            uint submesh;
+            uint submesh = 0;
             Ref<ComputeBuffer> instancingBuffer;
-            std::vector<DrawMatrices> matrices;
-            size_t count;
+            std::vector<float4x4*> matrices;
+            size_t count = 0;
         };
     
         public:

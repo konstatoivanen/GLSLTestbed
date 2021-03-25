@@ -21,6 +21,8 @@ namespace PK::Core
 		float CameraZFar;
 		
 		float TimeScale;
+
+		uint LightCount;
 	
 		float TonemapExposure;
 		float BloomIntensity;

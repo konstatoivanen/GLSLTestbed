@@ -52,7 +52,7 @@ namespace PK::Rendering::Objects
 	class ComputeBuffer : public GraphicsObject
 	{
 		public:
-			ComputeBuffer(const BufferLayout& layout, uint count);
+			ComputeBuffer(const BufferLayout& layout, uint count, GLenum usage = GL_DYNAMIC_DRAW);
 			~ComputeBuffer();
 			void Resize(uint newCount);
 			void ValidateSize(uint newCount);
@@ -61,11 +61,22 @@ namespace PK::Rendering::Objects
 			void SubmitData(const void* data, size_t offset, size_t size);
 			
 			void* BeginMapBuffer();
+			void* BeginMapBufferRange(size_t offset, size_t size);
 	
 			template<typename T>
 			Core::BufferView<T> BeginMapBuffer()
 			{
 				return { reinterpret_cast<T*>(BeginMapBuffer()), GetSize() / sizeof(T) };
+			}
+
+			template<typename T>
+			Core::BufferView<T> BeginMapBufferRange(size_t offset, size_t count)
+			{
+				auto tsize = sizeof(T);
+				auto tcount = (uint)(m_count / (tsize / (float)GetStride()));
+				PK_CORE_ASSERT(count <= tcount, "Map buffer range exceeds buffer bounds");
+
+				return { reinterpret_cast<T*>(BeginMapBufferRange(offset * tsize, count * tsize)), count };
 			}
 	
 			void EndMapBuffer();
@@ -76,5 +87,6 @@ namespace PK::Rendering::Objects
 		private:
 			BufferLayout m_layout;
 			size_t m_count;
+			GLenum m_usage;
 	};
 }

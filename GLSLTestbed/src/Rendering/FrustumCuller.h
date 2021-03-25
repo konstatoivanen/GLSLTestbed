@@ -8,7 +8,7 @@ namespace PK::Rendering
 {
     using namespace PK::Math;
 
-    class FrustumCuller
+    class FrustumCuller : PK::Core::NoCopy
     {
         struct CullingResults
         {

@@ -35,6 +35,8 @@ namespace PK::Core
 		CameraZNear = TryParse(properties["CameraZNear"], 0.1f);
 		CameraZFar = TryParse(properties["CameraZFar"], 200.0f);
 		TimeScale = TryParse(properties["TimeScale"], 1.0f); 
+
+		LightCount = TryParse(properties["LightCount"], 256);
 	
 		TonemapExposure = TryParse(properties["TonemapExposure"], 1.0f);
 		BloomIntensity = TryParse(properties["BloomIntensity"], 0.0f);

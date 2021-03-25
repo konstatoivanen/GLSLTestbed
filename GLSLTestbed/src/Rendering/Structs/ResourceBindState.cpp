@@ -52,7 +52,7 @@ namespace PK::Rendering::Structs
     void ResourceBindState::BindBuffers(CG_TYPE type, ushort location, const GraphicsID* graphicsIds, ushort count)
     {
         auto bindings = GetBindings(type, location, count);
-        auto nativeType = Convert::NativeEnum(type);
+        auto nativeType = Convert::ToNativeEnum(type);
     
         for (ushort i = 0; i < count; ++i)
         {

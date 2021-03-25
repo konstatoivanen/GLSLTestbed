@@ -59,9 +59,6 @@ namespace PK::Rendering::PostProcessing
         auto divisor = m_downsample ? 2 : 1;
     
         ValidateRenderTextures(descriptor, m_renderTargets, divisor);
-    
-        m_properties.SetTexture(HashCache::Get()->pk_ScreenDepth, source->GetDepthBuffer().lock()->GetGraphicsID());
-        m_properties.SetTexture(HashCache::Get()->pk_ScreenNormals, source->GetColorBuffer(0).lock()->GetGraphicsID());
 
         m_properties.SetKeywords({ m_passKeywords[0] });
         GraphicsAPI::Blit(m_renderTargets[0], shader, m_properties);

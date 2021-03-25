@@ -5,8 +5,8 @@ namespace PK::Rendering::Structs
 {
 	struct BlendMode
 	{
-		GLenum Source;
-		GLenum Destination;
+		GLenum Source = GL_ZERO;
+		GLenum Destination = GL_ONE;
 	};
 	
 	inline bool operator==(const BlendMode& lhs, const BlendMode& rhs) { return lhs.Source == rhs.Source && lhs.Destination == rhs.Destination; }
@@ -18,8 +18,8 @@ namespace PK::Rendering::Structs
 		bool ZTestEnabled;
 		bool BlendEnabled;
 		bool CullEnabled;
-		GLenum ZTest;
-		GLenum CullMode;
+		GLenum ZTest = GL_FALSE;
+		GLenum CullMode = GL_FALSE;
 		BlendMode Blend;
 		unsigned char ColorMask;
 	};

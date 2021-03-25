@@ -13,7 +13,7 @@ namespace PK::Rendering::Objects
 	struct ShaderPropertyInfo
 	{
 		ushort location;
-		GLenum type;
+		CG_TYPE type;
 		byte cbufferId;
 		bool isMaterialElement;
 	};

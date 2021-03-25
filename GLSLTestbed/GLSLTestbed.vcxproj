@@ -169,6 +169,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="src\ECS\Contextual\Implementers\Implementers.h" />
     <ClInclude Include="src\Core\BufferView.h" />
     <ClInclude Include="src\ECS\EntityDatabase.h" />
+    <ClInclude Include="src\Rendering\BufferPool.h" />
     <ClInclude Include="src\Rendering\DynamicBatcher.h" />
     <ClInclude Include="src\Rendering\FrustumCuller.h" />
     <ClInclude Include="src\Rendering\GizmoRenderer.h" />
@@ -497,6 +498,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="include\yaml-cpp\stlemitter.h" />
     <ClInclude Include="include\yaml-cpp\traits.h" />
     <ClInclude Include="include\yaml-cpp\yaml.h" />
+    <ClInclude Include="src\Rendering\LightsManager.h" />
     <ClInclude Include="src\Rendering\Objects\Material.h" />
     <ClInclude Include="src\ECS\Contextual\Engines\DebugEngine.h" />
     <ClInclude Include="src\ECS\Contextual\Engines\EngineEditorCamera.h" />
@@ -696,9 +698,13 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\materials\M_Metal_Rust.material" />
     <None Include="res\materials\M_Wood_Floor.material" />
     <None Include="res\models\cornell_box.mtl" />
+    <None Include="res\shaders\CS_ClusteredCullClusters.shader" />
+    <None Include="res\shaders\CS_ClusteredDepthMinMax.shader" />
+    <None Include="res\shaders\CS_ClusteredLightAssignment.shader" />
     <None Include="res\shaders\includes\BlitCommon.glsl">
       <DeploymentContent>true</DeploymentContent>
     </None>
+    <None Include="res\shaders\includes\ClusteringCommon.glsl" />
     <None Include="res\shaders\includes\Lighting.glsl">
       <DeploymentContent>true</DeploymentContent>
     </None>
@@ -746,6 +752,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ECS\Contextual\Engines\EngineUpdateTransforms.cpp" />
+    <ClCompile Include="src\Rendering\BufferPool.cpp" />
     <ClCompile Include="src\Rendering\DynamicBatcher.cpp" />
     <ClCompile Include="src\Rendering\FrustumCuller.cpp" />
     <ClCompile Include="src\Rendering\GizmoRenderer.cpp" />
@@ -765,6 +772,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\Rendering\LightsManager.cpp" />
     <ClCompile Include="src\Rendering\Objects\Material.cpp" />
     <ClCompile Include="src\ECS\Contextual\Engines\DebugEngine.cpp" />
     <ClCompile Include="src\ECS\Contextual\Engines\EngineEditorCamera.cpp" />
@@ -806,6 +814,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <Text Include="res\ApplicationConfig.cfg">
       <DeploymentContent>true</DeploymentContent>
     </Text>
+    <Text Include="res\shaders\CS_ClusteredDepthReset.shader" />
     <Text Include="res\shaders\includes\LightingCommon.glsl" />
     <Text Include="res\shaders\SH_WS_Unlit_Color.shader" />
     <Text Include="res\shaders\SH_VS_FilterBloom.shader" />

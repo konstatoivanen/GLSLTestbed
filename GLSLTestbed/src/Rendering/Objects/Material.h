@@ -19,7 +19,7 @@ namespace PK::Rendering::Objects
             const uint32_t GetRenderQueueIndex() const { return m_renderQueueIndex; }
 
         private:
-            uint32_t m_renderQueueIndex;
+            uint32_t m_renderQueueIndex = 0;
             Weak<Shader> m_shader;
     };
 }
