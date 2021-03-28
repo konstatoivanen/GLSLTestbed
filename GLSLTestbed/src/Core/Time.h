@@ -2,6 +2,7 @@
 #include "Core/ServiceRegister.h"
 #include "ECS/Sequencer.h"
 #include <ctime>
+#include <chrono>
 
 namespace PK::Core
 {
@@ -36,6 +37,7 @@ namespace PK::Core
         private:
             ECS::Sequencer* m_sequencer;
     
+            std::chrono::time_point<std::chrono::steady_clock, std::chrono::duration<double>> m_frameStart;
             uint64_t m_frameIndex = 0;
             uint64_t m_frameIndexFixed = 0;
             uint64_t m_framerate = 0;
@@ -44,7 +46,6 @@ namespace PK::Core
             uint64_t m_framerateAvg = 0;
             uint64_t m_framerateFixed = 0;
             uint64_t m_second = 0;
-            double m_previousSeconds = 0.0;
             double m_timeScale = 0.0;
             double m_time = 0.0;
             double m_unscaledTime = 0.0;

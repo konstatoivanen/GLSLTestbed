@@ -43,6 +43,10 @@ namespace PK::Rendering::GraphicsAPI
 	void SetGlobalInt2(uint32_t hashId, const int2* values, uint32_t count = 1);
 	void SetGlobalInt3(uint32_t hashId, const int3* values, uint32_t count = 1);
 	void SetGlobalInt4(uint32_t hashId, const int4* values, uint32_t count = 1); 
+	void SetGlobalUInt(uint32_t hashId, const uint* values, uint32_t count = 1);
+	void SetGlobalUInt2(uint32_t hashId, const uint2* values, uint32_t count = 1);
+	void SetGlobalUInt3(uint32_t hashId, const uint3* values, uint32_t count = 1);
+	void SetGlobalUInt4(uint32_t hashId, const uint4* values, uint32_t count = 1);
 	void SetGlobalTexture(uint32_t hashId, const GraphicsID* textureIds, uint32_t count = 1);
 	void SetGlobalConstantBuffer(uint32_t hashId, const GraphicsID* bufferIds, uint32_t count = 1);
 	void SetGlobalComputeBuffer(uint32_t hashId, const GraphicsID* bufferIds, uint32_t count = 1);
@@ -58,6 +62,10 @@ namespace PK::Rendering::GraphicsAPI
 	void SetGlobalInt2(uint32_t hashId, const int2& value);
 	void SetGlobalInt3(uint32_t hashId, const int3& value);
 	void SetGlobalInt4(uint32_t hashId, const int4& value);
+	void SetGlobalUInt(uint32_t hashId, uint value);
+	void SetGlobalUInt2(uint32_t hashId, const uint2& value);
+	void SetGlobalUInt3(uint32_t hashId, const uint3& value);
+	void SetGlobalUInt4(uint32_t hashId, const uint4& value);
 	void SetGlobalTexture(uint32_t hashId, GraphicsID textureId);
 	void SetGlobalConstantBuffer(uint32_t hashId, GraphicsID bufferId);
 	void SetGlobalComputeBuffer(uint32_t hashId, GraphicsID bufferId);
@@ -69,7 +77,7 @@ namespace PK::Rendering::GraphicsAPI
 	void SetModelMatrix(const float4x4& matrix);
 	void SetModelMatrix(const float4x4& matrix, const float4x4& invMatrix);
 	void SetRenderTarget(const Ref<RenderTexture>& renderTexture);
-	void SetRenderBuffer(const Ref<RenderBuffer>& renderBuffer, GLenum attachment);
+	void SetRenderBuffer(const GraphicsID renderTarget, const Ref<RenderBuffer>& renderBuffer, GLenum attachment);
 	void SetPass(const Ref<Shader>& shader, uint32_t pass = 0);
 	void SetVertexBuffer(const Ref<VertexBuffer>& buffer);
 	void SetIndexBuffer(const Ref<IndexBuffer>& buffer);
@@ -94,25 +102,25 @@ namespace PK::Rendering::GraphicsAPI
 	
 	void CopyRenderTexture(const Ref<RenderTexture>& source, const Ref<RenderTexture>& destination, GLbitfield mask, GLenum filter);
 
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh);
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader);
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader, const float4x4& matrix);
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader, const float4x4& matrix, const float4x4& invMatrix);
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock);
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock);
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh);
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Shader>& shader);
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Shader>& shader, const float4x4& matrix);
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Shader>& shader, const float4x4& matrix, const float4x4& invMatrix);
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock);
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Shader>& shader, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock);
 
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material);
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const float4x4& matrix);
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const float4x4& matrix, const float4x4& invMatrix);
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock);
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Material>& material);
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Material>& material, const float4x4& matrix);
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Material>& material, const float4x4& matrix, const float4x4& invMatrix);
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Material>& material, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock);
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count);
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Shader>& shader);
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock);
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, int submesh, uint count);
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, int submesh, uint count, const Ref<Shader>& shader);
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, int submesh, uint count, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock);
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Material>& material);
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, int submesh, uint count, const Ref<Material>& material);
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, int submesh, uint count, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
 
 	void DrawProcedural(const Ref<Shader>& shader, GLenum topology, size_t offset, size_t count);
 

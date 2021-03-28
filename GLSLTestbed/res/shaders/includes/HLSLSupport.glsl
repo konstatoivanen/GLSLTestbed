@@ -84,13 +84,18 @@
 
 #define PK_DECLARE_BUFFER(ValueType, BufferName) layout(std430) buffer BufferName { ValueType BufferName##_Data[]; }
 
+#define PK_DECLARE_READONLY_BUFFER(ValueType, BufferName) layout(std430) readonly buffer BufferName { ValueType BufferName##_Data[]; }
+
+#define PK_DECLARE_WRITEONLY_BUFFER(ValueType, BufferName) layout(std430) writeonly buffer BufferName { ValueType BufferName##_Data[]; }
+
+#define PK_DECLARE_RESTRICTED_BUFFER(ValueType, BufferName) layout(std430) restrict buffer BufferName { ValueType BufferName##_Data[]; }
+
 #define PK_BUFFER_DATA(BufferName, index) BufferName##_Data[index]
 
 #define PK_DECLARE_ATOMIC_VARIABLE(ValueType, BufferName) layout(std430) buffer BufferName { ValueType BufferName##_Data; }
 
 #define PK_ATOMIC_DATA(BufferName) BufferName##_Data
 
-#define PK_INSTANCE_ID gl_InstanceID
 #define PK_VERTEX_ID gl_VertexID
 
 #endif

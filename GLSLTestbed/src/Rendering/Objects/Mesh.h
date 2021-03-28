@@ -26,7 +26,7 @@ namespace PK::Rendering::Objects
 		
 			const std::vector<Ref<VertexBuffer>>& GetVertexBuffers() const { return m_vertexBuffers; }
 			const Ref<IndexBuffer>& GetIndexBuffer() const { return m_indexBuffer; }
-			const IndexRange GetSubmeshIndexRange(uint submesh) const;
+			const IndexRange GetSubmeshIndexRange(int submesh) const;
 			const uint GetSubmeshCount() const { return glm::max(1, (int)m_indexRanges.size()); }
 	
 		private:

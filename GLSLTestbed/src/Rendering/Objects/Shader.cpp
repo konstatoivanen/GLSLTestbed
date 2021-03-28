@@ -99,6 +99,10 @@ namespace PK::Rendering::Objects
 				case CG_TYPE::INT2: glUniform2iv(prop.location, count, propertyBlock.GetElementPtr<int>(info)); break;
 				case CG_TYPE::INT3: glUniform3iv(prop.location, count, propertyBlock.GetElementPtr<int>(info)); break;
 				case CG_TYPE::INT4: glUniform4iv(prop.location, count, propertyBlock.GetElementPtr<int>(info)); break;
+				case CG_TYPE::UINT:  glUniform1uiv(prop.location, count, propertyBlock.GetElementPtr<uint>(info)); break;
+				case CG_TYPE::UINT2: glUniform2uiv(prop.location, count, propertyBlock.GetElementPtr<uint>(info)); break;
+				case CG_TYPE::UINT3: glUniform3uiv(prop.location, count, propertyBlock.GetElementPtr<uint>(info)); break;
+				case CG_TYPE::UINT4: glUniform4uiv(prop.location, count, propertyBlock.GetElementPtr<uint>(info)); break;
 				case CG_TYPE::TEXTURE: GraphicsAPI::BindTextures(prop.location, propertyBlock.GetElementPtr<GraphicsID>(info), count); break;
 				case CG_TYPE::CONSTANT_BUFFER: GraphicsAPI::BindBuffers(CG_TYPE::CONSTANT_BUFFER, prop.location, propertyBlock.GetElementPtr<GraphicsID>(info), count); break;
 				case CG_TYPE::COMPUTE_BUFFER: GraphicsAPI::BindBuffers(CG_TYPE::COMPUTE_BUFFER, prop.location, propertyBlock.GetElementPtr<GraphicsID>(info), count); break;
@@ -335,13 +339,7 @@ namespace PK::Rendering::Objects
 		
 		static void GetCullModeFromString(const std::string& cull, GLenum& mode, bool& enabled)
 		{
-			if (cull.empty())
-			{
-				enabled = false;
-				return;
-			}
-	
-			if (cull == "Off") 
+			if (cull.empty() || cull == "Off")
 			{
 				mode = GL_FALSE;
 				enabled = false;

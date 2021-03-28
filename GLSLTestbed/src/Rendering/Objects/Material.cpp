@@ -10,302 +10,86 @@ namespace YAML
 	using namespace PK::Rendering::Objects;
 	using namespace PK::Math;
 
-	template<>
-	struct convert<float2>
-	{
-		static Node encode(const float2& rhs)
-		{
-			Node node;
-			node.push_back(rhs.x);
-			node.push_back(rhs.y);
-			node.SetStyle(EmitterStyle::Flow);
-			return node;
-		}
+	#define DECLARE_VECTOR_CONVERTER(type, count)				\
+	template<>													\
+	struct convert<type##count>									\
+	{															\
+		static Node encode(const type##count & rhs)				\
+		{														\
+			Node node;											\
+			for (auto i = 0; i < count; ++i)					\
+			{													\
+				node.push_back(rhs[i]);							\
+			}													\
+			node.SetStyle(EmitterStyle::Flow);					\
+			return node;										\
+		}														\
+																\
+		static bool decode(const Node& node, type##count & rhs)	\
+		{														\
+			if (!node.IsSequence() || node.size() != count)		\
+			{													\
+				return false;									\
+			}													\
+																\
+			for (auto i = 0; i < count; ++i)					\
+			{													\
+				rhs[i] = node[i].as<type>();					\
+			}													\
+																\
+			return true;										\
+		}														\
+	};															\
 
-		static bool decode(const Node& node, float2& rhs)
-		{
-			if (!node.IsSequence() || node.size() != 2)
-			{
-				return false;
-			}
+	#define DECLARE_MATRIX_CONVERTER(type, count)							\
+	template<>																\
+	struct convert<type##count##x##count>									\
+	{																		\
+		static Node encode(const type##count##x##count & rhs)				\
+		{																	\
+			Node node;														\
+			for (auto i = 0; i < count; ++i)								\
+			for (auto j = 0; j < count; ++j)								\
+			{																\
+				node.push_back(rhs[i][j]);									\
+			}																\
+			node.SetStyle(EmitterStyle::Flow);								\
+			return node;													\
+		}																	\
+																			\
+		static bool decode(const Node& node, type##count##x##count & rhs)	\
+		{																	\
+			if (!node.IsSequence() || node.size() != count * count)			\
+			{																\
+				return false;												\
+			}																\
+																			\
+			for (auto i = 0; i < count; ++i)								\
+			for (auto j = 0; j < count; ++j)								\
+			{																\
+				rhs[i][j] = node[i * count + j].as<type>();					\
+			}																\
+																			\
+			return true;													\
+		}																	\
+	};																		\
 
-			rhs.x = node[0].as<float>();
-			rhs.y = node[1].as<float>();
-			return true;
-		}
-	};
+	DECLARE_VECTOR_CONVERTER(float, 2)
+	DECLARE_VECTOR_CONVERTER(float, 3)
+	DECLARE_VECTOR_CONVERTER(float, 4)
+	DECLARE_VECTOR_CONVERTER(int, 2)
+	DECLARE_VECTOR_CONVERTER(int, 3)
+	DECLARE_VECTOR_CONVERTER(int, 4)
+	DECLARE_VECTOR_CONVERTER(uint, 2)
+	DECLARE_VECTOR_CONVERTER(uint, 3)
+	DECLARE_VECTOR_CONVERTER(uint, 4)
 
-	template<>
-	struct convert<float3>
-	{
-		static Node encode(const float3& rhs)
-		{
-			Node node;
-			node.push_back(rhs.x);
-			node.push_back(rhs.y);
-			node.push_back(rhs.z);
-			node.SetStyle(EmitterStyle::Flow);
-			return node;
-		}
+	DECLARE_MATRIX_CONVERTER(float, 2)
+	DECLARE_MATRIX_CONVERTER(float, 3)
+	DECLARE_MATRIX_CONVERTER(float, 4)
 
-		static bool decode(const Node& node, float3& rhs)
-		{
-			if (!node.IsSequence() || node.size() != 3)
-			{
-				return false;
-			}
-
-			rhs.x = node[0].as<float>();
-			rhs.y = node[1].as<float>();
-			rhs.z = node[2].as<float>();
-			return true;
-		}
-	};
-
-	template<>
-	struct convert<float4>
-	{
-		static Node encode(const float4& rhs)
-		{
-			Node node;
-			node.push_back(rhs.x);
-			node.push_back(rhs.y);
-			node.push_back(rhs.z);
-			node.push_back(rhs.w);
-			node.SetStyle(EmitterStyle::Flow);
-			return node;
-		}
-
-		static bool decode(const Node& node, float4& rhs)
-		{
-			if (!node.IsSequence() || node.size() != 4)
-			{
-				return false;
-			}
-
-			rhs.x = node[0].as<float>();
-			rhs.y = node[1].as<float>();
-			rhs.z = node[2].as<float>();
-			rhs.w = node[3].as<float>();
-			return true;
-		}
-	};
-
-	template<>
-	struct convert<float2x2>
-	{
-		static Node encode(const float2x2& rhs)
-		{
-			Node node;
-			node.push_back(rhs[0].x);
-			node.push_back(rhs[0].y);
-
-			node.push_back(rhs[1].x);
-			node.push_back(rhs[1].y);
-			node.SetStyle(EmitterStyle::Flow);
-			return node;
-		}
-
-		static bool decode(const Node& node, float2x2& rhs)
-		{
-			if (!node.IsSequence() || node.size() != 4)
-			{
-				return false;
-			}
-
-			rhs[0].x = node[0].as<float>();
-			rhs[0].y = node[1].as<float>();
-
-			rhs[1].x = node[2].as<float>();
-			rhs[1].y = node[3].as<float>();
-			return true;
-		}
-	};
-
-	template<>
-	struct convert<float3x3>
-	{
-		static Node encode(const float3x3& rhs)
-		{
-			Node node;
-			node.push_back(rhs[0].x);
-			node.push_back(rhs[0].y);
-			node.push_back(rhs[0].z);
-
-			node.push_back(rhs[1].x);
-			node.push_back(rhs[1].y);
-			node.push_back(rhs[1].z);
-
-			node.push_back(rhs[2].x);
-			node.push_back(rhs[2].y);
-			node.push_back(rhs[2].z);
-
-			node.SetStyle(EmitterStyle::Flow);
-			return node;
-		}
-
-		static bool decode(const Node& node, float3x3& rhs)
-		{
-			if (!node.IsSequence() || node.size() != 9)
-			{
-				return false;
-			}
-
-			rhs[0].x = node[0].as<float>();
-			rhs[0].y = node[1].as<float>();
-			rhs[0].z = node[2].as<float>();
-
-			rhs[1].x = node[3].as<float>();
-			rhs[1].y = node[4].as<float>();
-			rhs[1].z = node[5].as<float>();
-
-			rhs[2].x = node[6].as<float>();
-			rhs[2].y = node[7].as<float>();
-			rhs[2].z = node[8].as<float>();
-			return true;
-		}
-	};
-
-	template<>
-	struct convert<float4x4>
-	{
-		static Node encode(const float4x4& rhs)
-		{
-			Node node;
-			node.push_back(rhs[0].x);
-			node.push_back(rhs[0].y);
-			node.push_back(rhs[0].z);
-			node.push_back(rhs[0].w);
-
-			node.push_back(rhs[1].x);
-			node.push_back(rhs[1].y);
-			node.push_back(rhs[1].z);
-			node.push_back(rhs[1].w);
-
-			node.push_back(rhs[2].x);
-			node.push_back(rhs[2].y);
-			node.push_back(rhs[2].z);
-			node.push_back(rhs[2].w);
-
-			node.push_back(rhs[3].x);
-			node.push_back(rhs[3].y);
-			node.push_back(rhs[3].z);
-			node.push_back(rhs[3].w);
-
-			node.SetStyle(EmitterStyle::Flow);
-			return node;
-		}
-
-		static bool decode(const Node& node, float4x4& rhs)
-		{
-			if (!node.IsSequence() || node.size() != 16)
-			{
-				return false;
-			}
-
-			rhs[0].x = node[0].as<float>();
-			rhs[0].y = node[1].as<float>();
-			rhs[0].z = node[2].as<float>();
-			rhs[0].w = node[3].as<float>();
-
-			rhs[1].x = node[4].as<float>();
-			rhs[1].y = node[5].as<float>();
-			rhs[1].z = node[6].as<float>();
-			rhs[1].w = node[7].as<float>();
-
-			rhs[2].x = node[8].as<float>();
-			rhs[2].y = node[9].as<float>();
-			rhs[2].z = node[10].as<float>();
-			rhs[2].w = node[11].as<float>();
-
-			rhs[3].x = node[12].as<float>();
-			rhs[3].y = node[13].as<float>();
-			rhs[3].z = node[14].as<float>();
-			rhs[3].w = node[15].as<float>();
-			return true;
-		}
-	};
-
-	template<>
-	struct convert<int2>
-	{
-		static Node encode(const int2& rhs)
-		{
-			Node node;
-			node.push_back(rhs.x);
-			node.push_back(rhs.y);
-			node.SetStyle(EmitterStyle::Flow);
-			return node;
-		}
-
-		static bool decode(const Node& node, int2& rhs)
-		{
-			if (!node.IsSequence() || node.size() != 2)
-			{
-				return false;
-			}
-
-			rhs.x = node[0].as<int>();
-			rhs.y = node[1].as<int>();
-			return true;
-		}
-	};
-
-	template<>
-	struct convert<int3>
-	{
-		static Node encode(const int3& rhs)
-		{
-			Node node;
-			node.push_back(rhs.x);
-			node.push_back(rhs.y);
-			node.push_back(rhs.z);
-			node.SetStyle(EmitterStyle::Flow);
-			return node;
-		}
-
-		static bool decode(const Node& node, int3& rhs)
-		{
-			if (!node.IsSequence() || node.size() != 3)
-			{
-				return false;
-			}
-
-			rhs.x = node[0].as<int>();
-			rhs.y = node[1].as<int>();
-			rhs.z = node[2].as<int>();
-			return true;
-		}
-	};
-
-	template<>
-	struct convert<int4>
-	{
-		static Node encode(const int4& rhs)
-		{
-			Node node;
-			node.push_back(rhs.x);
-			node.push_back(rhs.y);
-			node.push_back(rhs.z);
-			node.push_back(rhs.w);
-			node.SetStyle(EmitterStyle::Flow);
-			return node;
-		}
-
-		static bool decode(const Node& node, int4& rhs)
-		{
-			if (!node.IsSequence() || node.size() != 4)
-			{
-				return false;
-			}
-
-			rhs.x = node[0].as<int>();
-			rhs.y = node[1].as<int>();
-			rhs.z = node[2].as<int>();
-			rhs.w = node[3].as<int>();
-			return true;
-		}
-	};
+	#undef DECLARE_VECTOR_CONVERTER
+	#undef DECLARE_MATRIX_CONVERTER
 
 	template<>
 	struct convert<Weak<TextureXD>>

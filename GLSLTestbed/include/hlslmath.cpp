@@ -14,10 +14,14 @@ namespace PK::Math
 			case CG_TYPE::FLOAT2X2: return CG_TYPE_SIZE_FLOAT2X2;
 			case CG_TYPE::FLOAT3X3: return CG_TYPE_SIZE_FLOAT3X3;
 			case CG_TYPE::FLOAT4X4: return CG_TYPE_SIZE_FLOAT4X4;
-			case CG_TYPE::INT: return CG_TYPE_SIZE_INT;
-			case CG_TYPE::INT2: return CG_TYPE_SIZE_INT2;
-			case CG_TYPE::INT3: return CG_TYPE_SIZE_INT3;
-			case CG_TYPE::INT4: return CG_TYPE_SIZE_INT4;
+			case CG_TYPE::INT: 
+			case CG_TYPE::UINT: return CG_TYPE_SIZE_INT;
+			case CG_TYPE::INT2:
+			case CG_TYPE::UINT2: return CG_TYPE_SIZE_INT2;
+			case CG_TYPE::INT3:
+			case CG_TYPE::UINT3: return CG_TYPE_SIZE_INT3;
+			case CG_TYPE::INT4: 
+			case CG_TYPE::UINT4: return CG_TYPE_SIZE_INT4;
 			case CG_TYPE::TEXTURE: return CG_TYPE_SIZE_TEXTURE;
 			case CG_TYPE::CONSTANT_BUFFER: return CG_TYPE_SIZE_CONSTANT_BUFFER;
 			case CG_TYPE::COMPUTE_BUFFER: return CG_TYPE_SIZE_COMPUTE_BUFFER;
@@ -37,10 +41,14 @@ namespace PK::Math
 			case CG_TYPE::FLOAT2X2: return CG_TYPE_COMPONENTS_FLOAT2X2;
 			case CG_TYPE::FLOAT3X3: return CG_TYPE_COMPONENTS_FLOAT3X3;
 			case CG_TYPE::FLOAT4X4: return CG_TYPE_COMPONENTS_FLOAT4X4;
-			case CG_TYPE::INT: return CG_TYPE_COMPONENTS_INT;
-			case CG_TYPE::INT2: return CG_TYPE_COMPONENTS_INT2;
-			case CG_TYPE::INT3: return CG_TYPE_COMPONENTS_INT3;
-			case CG_TYPE::INT4: return CG_TYPE_COMPONENTS_INT4;
+			case CG_TYPE::INT: 
+			case CG_TYPE::UINT: return CG_TYPE_COMPONENTS_INT;
+			case CG_TYPE::INT2: 
+			case CG_TYPE::UINT2: return CG_TYPE_COMPONENTS_INT2;
+			case CG_TYPE::INT3: 
+			case CG_TYPE::UINT3: return CG_TYPE_COMPONENTS_INT3;
+			case CG_TYPE::INT4: 
+			case CG_TYPE::UINT4: return CG_TYPE_COMPONENTS_INT4;
 			case CG_TYPE::TEXTURE: return CG_TYPE_COMPONENTS_TEXTURE;
 			case CG_TYPE::CONSTANT_BUFFER: return CG_TYPE_COMPONENTS_CONSTANT_BUFFER;
 			case CG_TYPE::COMPUTE_BUFFER: return CG_TYPE_COMPONENTS_COMPUTE_BUFFER;
@@ -64,6 +72,10 @@ namespace PK::Math
 			case CG_TYPE::INT2: return GL_INT;
 			case CG_TYPE::INT3: return GL_INT;
 			case CG_TYPE::INT4: return GL_INT;
+			case CG_TYPE::UINT: return GL_UNSIGNED_INT;
+			case CG_TYPE::UINT2: return GL_UNSIGNED_INT;
+			case CG_TYPE::UINT3: return GL_UNSIGNED_INT;
+			case CG_TYPE::UINT4: return GL_UNSIGNED_INT;
 			case CG_TYPE::TEXTURE: return GL_INT;
 			case CG_TYPE::CONSTANT_BUFFER: return GL_INT;
 			case CG_TYPE::COMPUTE_BUFFER: return GL_INT;
@@ -87,6 +99,10 @@ namespace PK::Math
 			case CG_TYPE::INT2: return GL_INT_VEC2;
 			case CG_TYPE::INT3: return GL_INT_VEC3;
 			case CG_TYPE::INT4: return GL_INT_VEC4;
+			case CG_TYPE::UINT: return GL_UNSIGNED_INT;
+			case CG_TYPE::UINT2: return GL_UNSIGNED_INT_VEC2;
+			case CG_TYPE::UINT3: return GL_UNSIGNED_INT_VEC3;
+			case CG_TYPE::UINT4: return GL_UNSIGNED_INT_VEC4;
 			case CG_TYPE::TEXTURE: return GL_TEXTURE;
 			case CG_TYPE::CONSTANT_BUFFER: return GL_UNIFORM_BUFFER;
 			case CG_TYPE::COMPUTE_BUFFER: return GL_SHADER_STORAGE_BUFFER;
@@ -110,6 +126,10 @@ namespace PK::Math
 			case GL_INT_VEC2: return CG_TYPE::INT2;
 			case GL_INT_VEC3: return CG_TYPE::INT3;
 			case GL_INT_VEC4: return CG_TYPE::INT4;
+			case GL_UNSIGNED_INT: return CG_TYPE::UINT;
+			case GL_UNSIGNED_INT_VEC2: return CG_TYPE::UINT2;
+			case GL_UNSIGNED_INT_VEC3: return CG_TYPE::UINT3;
+			case GL_UNSIGNED_INT_VEC4: return CG_TYPE::UINT4;
 			case GL_TEXTURE: return CG_TYPE::TEXTURE;
 			case GL_UNIFORM_BUFFER: return CG_TYPE::CONSTANT_BUFFER;
 			case GL_SHADER_STORAGE_BUFFER: return CG_TYPE::COMPUTE_BUFFER;
@@ -133,6 +153,10 @@ namespace PK::Math
 			case CG_TYPE::INT2: return "INT2";
 			case CG_TYPE::INT3: return "INT3";
 			case CG_TYPE::INT4: return "INT4";
+			case CG_TYPE::UINT: return "UINT";
+			case CG_TYPE::UINT2: return "UINT2";
+			case CG_TYPE::UINT3: return "UINT3";
+			case CG_TYPE::UINT4: return "UINT4";
 			case CG_TYPE::TEXTURE: return "TEXTURE";
 			case CG_TYPE::CONSTANT_BUFFER: return "CONSTANT_BUFFER";
 			case CG_TYPE::COMPUTE_BUFFER: return "COMPUTE_BUFFER";
@@ -154,6 +178,10 @@ namespace PK::Math
 		if (strcmp(string, "INT2") == 0) return CG_TYPE::INT2;
 		if (strcmp(string, "INT3") == 0) return CG_TYPE::INT3;
 		if (strcmp(string, "INT4") == 0) return CG_TYPE::INT4;
+		if (strcmp(string, "UINT") == 0) return CG_TYPE::UINT;
+		if (strcmp(string, "UINT2") == 0) return CG_TYPE::UINT2;
+		if (strcmp(string, "UINT3") == 0) return CG_TYPE::UINT3;
+		if (strcmp(string, "UINT4") == 0) return CG_TYPE::UINT4;
 		if (strcmp(string, "TEXTURE") == 0) return CG_TYPE::TEXTURE;
 		if (strcmp(string, "CONSTANT_BUFFER") == 0) return CG_TYPE::CONSTANT_BUFFER;
 		if (strcmp(string, "COMPUTE_BUFFER") == 0) return CG_TYPE::COMPUTE_BUFFER;

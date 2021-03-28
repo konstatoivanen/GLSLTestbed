@@ -24,10 +24,14 @@ namespace PK::Math
         INT2 = 9,
         INT3 = 10,
         INT4 = 11,
-        TEXTURE = 12,
-        CONSTANT_BUFFER = 13,
-        COMPUTE_BUFFER = 14,
-        VERTEX_ARRAY = 15,
+        UINT = 12,
+        UINT2 = 13,
+        UINT3 = 14,
+        UINT4 = 15,
+        TEXTURE = 16,
+        CONSTANT_BUFFER = 17,
+        COMPUTE_BUFFER = 18,
+        VERTEX_ARRAY = 19,
         INVALID = 0xFFFF
     };
     

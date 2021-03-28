@@ -1,6 +1,7 @@
 #include "PreCompiledHeader.h"
 #include "Utilities/Log.h"
 #include "Core/Input.h"
+#include "Core/UpdateStep.h"
 #include "Rendering/Graphics.h"
 
 namespace PK::Core
@@ -94,24 +95,35 @@ namespace PK::Core
 	
 	void Input::Step(int condition)
 	{
-		for (auto& statecur : m_inputStateCurrent)
+		auto step = (PK::Core::UpdateStep)condition;
+
+		switch (step)
 		{
-			auto& statepre = m_inputStatePrevious[statecur.first];
-			statepre.scancode = statecur.second.scancode;
-			statepre.action = statecur.second.action;
-			statepre.mods = statecur.second.mods;
+			case PK::Core::UpdateStep::CloseFrame: 
+			{
+				for (auto& statecur : m_inputStateCurrent)
+				{
+					auto& statepre = m_inputStatePrevious[statecur.first];
+					statepre.scancode = statecur.second.scancode;
+					statepre.action = statecur.second.action;
+					statepre.mods = statecur.second.mods;
+				}
+			}
+			break;
+
+			case PK::Core::UpdateStep::UpdateInput:
+			{
+				auto mousecur = GetMousePosition();
+				m_mouseDelta = mousecur - m_mousePrev;
+				m_mousePrev = mousecur;
+
+				m_mouseScroll = m_mouseScrollRaw;
+				m_mouseScrollRaw = { 0, 0 };
+
+				m_sequencer->Next(this, this, 0);
+			}
+			break;
 		}
-	
-		glfwPollEvents();
-	
-		auto mousecur = GetMousePosition();
-		m_mouseDelta = mousecur - m_mousePrev;
-		m_mousePrev = mousecur;
-	
-		m_mouseScroll = m_mouseScrollRaw;
-		m_mouseScrollRaw = { 0, 0 };
-	
-		m_sequencer->Next(this, this, 0);
 	}
 	
 	std::string Input::KeyToString(KeyCode keycode)

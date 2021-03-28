@@ -127,6 +127,10 @@ namespace PK::Rendering::GraphicsAPI
 	void SetGlobalInt2(uint32_t hashId, const int2* values, uint32_t count) { GLOBAL_PROPERTIES.SetInt2(hashId, values, count); }
 	void SetGlobalInt3(uint32_t hashId, const int3* values, uint32_t count) { GLOBAL_PROPERTIES.SetInt3(hashId, values, count); }
 	void SetGlobalInt4(uint32_t hashId, const int4* values, uint32_t count) { GLOBAL_PROPERTIES.SetInt4(hashId, values, count); }
+	void SetGlobalUInt(uint32_t hashId, const uint* values, uint32_t count) { GLOBAL_PROPERTIES.SetUInt(hashId, values, count); }
+	void SetGlobalUInt2(uint32_t hashId, const uint2* values, uint32_t count) { GLOBAL_PROPERTIES.SetUInt2(hashId, values, count); }
+	void SetGlobalUInt3(uint32_t hashId, const uint3* values, uint32_t count) { GLOBAL_PROPERTIES.SetUInt3(hashId, values, count); }
+	void SetGlobalUInt4(uint32_t hashId, const uint4* values, uint32_t count) { GLOBAL_PROPERTIES.SetUInt4(hashId, values, count); }
 	void SetGlobalTexture(uint32_t hashId, const GraphicsID* textureIds, uint32_t count) { GLOBAL_PROPERTIES.SetTexture(hashId, textureIds, count); }
 	void SetGlobalConstantBuffer(uint32_t hashId, const GraphicsID* bufferIds, uint32_t count) { GLOBAL_PROPERTIES.SetConstantBuffer(hashId, bufferIds, count); }
 	void SetGlobalComputeBuffer(uint32_t hashId, const GraphicsID* bufferIds, uint32_t count) { GLOBAL_PROPERTIES.SetComputeBuffer(hashId, bufferIds, count); }
@@ -142,6 +146,10 @@ namespace PK::Rendering::GraphicsAPI
 	void SetGlobalInt2(uint32_t hashId, const int2& value) { GLOBAL_PROPERTIES.SetInt2(hashId, value); }
 	void SetGlobalInt3(uint32_t hashId, const int3& value) { GLOBAL_PROPERTIES.SetInt3(hashId, value); }
 	void SetGlobalInt4(uint32_t hashId, const int4& value) { GLOBAL_PROPERTIES.SetInt4(hashId, value); }
+	void SetGlobalUInt(uint32_t hashId, uint value) { GLOBAL_PROPERTIES.SetUInt(hashId, value); }
+	void SetGlobalUInt2(uint32_t hashId, const uint2& value) { GLOBAL_PROPERTIES.SetUInt2(hashId, value); }
+	void SetGlobalUInt3(uint32_t hashId, const uint3& value) { GLOBAL_PROPERTIES.SetUInt3(hashId, value); }
+	void SetGlobalUInt4(uint32_t hashId, const uint4& value) { GLOBAL_PROPERTIES.SetUInt4(hashId, value); }
 	void SetGlobalTexture(uint32_t hashId, GraphicsID textureId) { GLOBAL_PROPERTIES.SetTexture(hashId, textureId); }
 	void SetGlobalConstantBuffer(uint32_t hashId, GraphicsID bufferId) { GLOBAL_PROPERTIES.SetConstantBuffer(hashId, bufferId); }
 	void SetGlobalComputeBuffer(uint32_t hashId, GraphicsID bufferId) { GLOBAL_PROPERTIES.SetComputeBuffer(hashId, bufferId); }
@@ -213,23 +221,30 @@ namespace PK::Rendering::GraphicsAPI
 	
 	void SetRenderTarget(const Ref<RenderTexture>& renderTexture)
 	{
+		auto& target = ACTIVE_RENDERTARGET;
+
+		if (target == renderTexture)
+		{
+			return;
+		}
+
 		if (renderTexture != nullptr)
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, renderTexture->GetGraphicsID());
-			ACTIVE_RENDERTARGET = renderTexture;
+			target = renderTexture;
 			SetViewPort(0, 0, renderTexture->GetWidth(), renderTexture->GetHeight());
 			return;
 		}
 	
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		ACTIVE_RENDERTARGET = nullptr;
+		target = nullptr;
 		auto resolution = GetActiveWindowResolution();
 		SetViewPort(0, 0, resolution.x, resolution.y);
 	}
 	
-	void SetRenderBuffer(const Ref<RenderBuffer>& renderBuffer, GLenum attachment)
+	void SetRenderBuffer(const GraphicsID renderTarget, const Ref<RenderBuffer>& renderBuffer, GLenum attachment)
 	{
-		glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, renderBuffer->GetDimension(), renderBuffer->GetGraphicsID(), 0);
+		glNamedFramebufferTexture(renderTarget, attachment, renderBuffer->GetGraphicsID(), 0);
 	}
 	
 	void SetPass(const Ref<Shader>& shader, uint32_t pass)
@@ -359,14 +374,14 @@ namespace PK::Rendering::GraphicsAPI
 	}
 
 
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh)
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh)
 	{
 		RESOURCE_BINDINGS.BindMesh(mesh->GetGraphicsID());
 		auto indexRange = mesh->GetSubmeshIndexRange(submesh);
 		glDrawElements(GL_TRIANGLES, indexRange.count, GL_UNSIGNED_INT, (GLvoid*)(size_t)(indexRange.offset * sizeof(GLuint)));
 	}
 	
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader)
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Shader>& shader)
 	{
 		shader->ResetKeywords();
 		shader->SetKeywords(GLOBAL_KEYWORDS);
@@ -375,7 +390,7 @@ namespace PK::Rendering::GraphicsAPI
 		DrawMesh(mesh, submesh);
 	}
 	
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader, const float4x4& matrix)
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Shader>& shader, const float4x4& matrix)
 	{
 		shader->ResetKeywords();
 		shader->SetKeywords(GLOBAL_KEYWORDS);
@@ -385,7 +400,7 @@ namespace PK::Rendering::GraphicsAPI
 		DrawMesh(mesh, submesh);
 	}
 
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader, const float4x4& matrix, const float4x4& invMatrix)
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Shader>& shader, const float4x4& matrix, const float4x4& invMatrix)
 	{
 		shader->ResetKeywords();
 		shader->SetKeywords(GLOBAL_KEYWORDS);
@@ -395,7 +410,7 @@ namespace PK::Rendering::GraphicsAPI
 		DrawMesh(mesh, submesh);
 	}
 	
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock)
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock)
 	{
 		shader->ResetKeywords();
 		shader->SetKeywords(GLOBAL_KEYWORDS);
@@ -406,7 +421,7 @@ namespace PK::Rendering::GraphicsAPI
 		DrawMesh(mesh, submesh);
 	}
 	
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Shader>& shader, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock)
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Shader>& shader, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock)
 	{
 		shader->ResetKeywords();
 		shader->SetKeywords(GLOBAL_KEYWORDS);
@@ -419,7 +434,7 @@ namespace PK::Rendering::GraphicsAPI
 	}
 
 
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material)
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Material>& material)
 	{
 		auto shader = material->GetShader().lock();
 		shader->ResetKeywords();
@@ -431,7 +446,7 @@ namespace PK::Rendering::GraphicsAPI
 		DrawMesh(mesh, submesh);
 	}
 
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const float4x4& matrix)
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Material>& material, const float4x4& matrix)
 	{
 		auto shader = material->GetShader().lock();
 		shader->ResetKeywords();
@@ -444,7 +459,7 @@ namespace PK::Rendering::GraphicsAPI
 		DrawMesh(mesh, submesh);
 	}
 
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const float4x4& matrix, const float4x4& invMatrix)
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Material>& material, const float4x4& matrix, const float4x4& invMatrix)
 	{
 		auto shader = material->GetShader().lock();
 		shader->ResetKeywords();
@@ -457,7 +472,7 @@ namespace PK::Rendering::GraphicsAPI
 		DrawMesh(mesh, submesh);
 	}
 
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock)
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock)
 	{
 		auto shader = material->GetShader().lock();
 		shader->ResetKeywords();
@@ -471,7 +486,7 @@ namespace PK::Rendering::GraphicsAPI
 		DrawMesh(mesh, submesh);
 	}
 
-	void DrawMesh(const Ref<Mesh>& mesh, uint submesh, const Ref<Material>& material, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock)
+	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Material>& material, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock)
 	{
 		auto shader = material->GetShader().lock();
 		shader->ResetKeywords();
@@ -487,14 +502,14 @@ namespace PK::Rendering::GraphicsAPI
 	}
 
 
-    void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count)
+    void DrawMeshInstanced(const Ref<Mesh>& mesh, int submesh, uint count)
     {
 		RESOURCE_BINDINGS.BindMesh(mesh->GetGraphicsID());
 		auto indexRange = mesh->GetSubmeshIndexRange(submesh);
 		glDrawElementsInstanced(GL_TRIANGLES, indexRange.count, GL_UNSIGNED_INT, (GLvoid*)(size_t)(indexRange.offset * sizeof(GLuint)), count);
     }
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Shader>& shader)
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, int submesh, uint count, const Ref<Shader>& shader)
 	{
 		shader->ResetKeywords();
 		shader->SetKeywords(GLOBAL_KEYWORDS);
@@ -503,7 +518,7 @@ namespace PK::Rendering::GraphicsAPI
 		DrawMeshInstanced(mesh, submesh, count);
 	}
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock)
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, int submesh, uint count, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock)
 	{
 		shader->ResetKeywords();
 		shader->SetKeywords(GLOBAL_KEYWORDS);
@@ -515,7 +530,7 @@ namespace PK::Rendering::GraphicsAPI
 	}
 
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Material>& material)
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, int submesh, uint count, const Ref<Material>& material)
 	{
 		auto shader = material->GetShader().lock();
 		shader->ResetKeywords();
@@ -527,7 +542,7 @@ namespace PK::Rendering::GraphicsAPI
 		DrawMeshInstanced(mesh, submesh, count);
 	}
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, uint submesh, uint count, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock)
+	void DrawMeshInstanced(const Ref<Mesh>& mesh, int submesh, uint count, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock)
 	{
 		auto shader = material->GetShader().lock();
 		shader->ResetKeywords();

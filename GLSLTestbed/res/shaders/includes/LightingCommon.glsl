@@ -3,8 +3,8 @@
 
 struct LightTile 
 {
-    uint offset;
-    uint count;
+    uint start;
+    uint end;
 };
 
 struct PKRawPointLight
@@ -32,12 +32,6 @@ struct PKIndirect
     float3 specular;
 };
 
-struct PKGI
-{
-    PKLight light;
-    PKIndirect indirect;
-};
-
 struct SurfaceData
 {
     float3 albedo;      
@@ -59,9 +53,13 @@ PKIndirect EmptyIndirect()
     return PKIndirect(float3(0,0,0), float3(0,0,0));
 }
 
-uniform float4 pk_FrustumTileSizes;
-uniform float2 pk_FrustumTileScaleBias;
 uniform int pk_LightCount;
-PK_DECLARE_BUFFER(PKRawPointLight, pk_Lights);
-PK_DECLARE_BUFFER(uint, pk_GlobalLightsList);
-PK_DECLARE_BUFFER(uint, pk_LightTiles);
+PK_DECLARE_READONLY_BUFFER(PKRawPointLight, pk_Lights);
+
+#if defined(SHADER_STAGE_COMPUTE)
+    PK_DECLARE_WRITEONLY_BUFFER(uint, pk_GlobalLightsList);
+    PK_DECLARE_WRITEONLY_BUFFER(uint, pk_LightTiles);
+#else
+    PK_DECLARE_READONLY_BUFFER(uint, pk_GlobalLightsList);
+    PK_DECLARE_READONLY_BUFFER(uint, pk_LightTiles);
+#endif

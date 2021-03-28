@@ -18,8 +18,8 @@ namespace PK::ECS::Engines
 	
 	    private:
 			Time* m_time = nullptr;
-			float3 m_position = { 0, 0, 0 };
-			float3 m_eulerAngles = CG_FLOAT3_ZERO;
+			float3 m_position = { 0, 40, 0 };
+			float3 m_eulerAngles = { 90 * CG_FLOAT_DEG2RAD, 0, 0 };
 			quaternion m_rotation = CG_QUATERNION_IDENTITY;
 			float m_fieldOfView = 60.0f;
 			float m_zNear = 0.1f;

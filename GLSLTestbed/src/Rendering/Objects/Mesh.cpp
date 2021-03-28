@@ -96,14 +96,14 @@ namespace PK::Rendering::Objects
 		m_indexBuffer = indexBuffer;
 	}
 	
-	const Structs::IndexRange Mesh::GetSubmeshIndexRange(uint submesh) const
+	const Structs::IndexRange Mesh::GetSubmeshIndexRange(int submesh) const
 	{
-		if (m_indexRanges.empty())
+		if (submesh < 0 || m_indexRanges.empty())
 		{
 			return { 0, m_indexBuffer->GetCount() };
 		}
 	
-		auto idx = glm::min(submesh, (uint)m_indexRanges.size());
+		auto idx = glm::min((uint)submesh, (uint)m_indexRanges.size());
 		return m_indexRanges.at(idx);
 	}
 	

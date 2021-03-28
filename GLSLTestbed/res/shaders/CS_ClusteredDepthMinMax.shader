@@ -1,7 +1,5 @@
 #version 460
-
 #pragma PROGRAM_COMPUTE
-#include includes/LightingCommon.glsl
 #include includes/Reconstruction.glsl
 #include includes/ClusteringCommon.glsl
 
@@ -13,10 +11,7 @@ void main()
     pxcoord.y = min(pxcoord.y, uint(pk_ScreenParams.y - 1));
 
     float depth = LinearizeDepth(texelFetch(pk_ScreenDepth, int2(pxcoord), 0).r);
-
-    uint zTile = min(23, uint(max(log2(depth) * pk_FrustumTileScaleBias.x + pk_FrustumTileScaleBias.y, 0.0)));
-    uint3 tiles = uint3(uint2(pxcoord / pk_FrustumTileSizes[3]), zTile);
-    uint tileIndex  = uint(tiles.x + TILE_GRID_X * tiles.y + (TILE_GRID_X * TILE_GRID_Y) * tiles.z);
+    uint tileIndex = GetTileIndex(pxcoord, depth);
 
     uint encodedDepth = floatBitsToUint(depth);
 

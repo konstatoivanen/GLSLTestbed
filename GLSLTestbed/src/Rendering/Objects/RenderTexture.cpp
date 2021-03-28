@@ -53,7 +53,6 @@ namespace PK::Rendering::Objects
 		m_colorBuffers.clear();
 		
 		glCreateFramebuffers(1, &m_graphicsId);
-		glBindFramebuffer(GL_FRAMEBUFFER, m_graphicsId);
 	
 		if (colorCount > 0)
 		{
@@ -62,7 +61,8 @@ namespace PK::Rendering::Objects
 			for (auto i = 0; i < colorCount; ++i)
 			{
 				RenderBuffer::Validate(m_colorBuffers[i], ConvertDescriptor(descriptor, descriptor.colorFormats.at(i)));
-				GraphicsAPI::SetRenderBuffer(m_colorBuffers[i], GL_COLOR_ATTACHMENT0 + i);
+				// glFramebufferTexture2D
+				GraphicsAPI::SetRenderBuffer(m_graphicsId, m_colorBuffers[i], GL_COLOR_ATTACHMENT0 + i);
 				m_bufferAttachments[i] = GL_COLOR_ATTACHMENT0 + i;
 			}
 		}
@@ -70,22 +70,14 @@ namespace PK::Rendering::Objects
 		if (descriptor.depthFormat != GL_NONE)
 		{
 			RenderBuffer::Validate(m_depthBuffer, ConvertDescriptor(descriptor, descriptor.depthFormat));
-			GraphicsAPI::SetRenderBuffer(m_depthBuffer, GL_DEPTH_STENCIL_ATTACHMENT);
+			GraphicsAPI::SetRenderBuffer(m_graphicsId, m_depthBuffer, GL_DEPTH_STENCIL_ATTACHMENT);
 			m_bufferAttachments[colorCount] = GL_DEPTH_STENCIL_ATTACHMENT;
 			++m_bufferAttachmentCount;
 		}
 	
-		if (colorCount > 0)
-		{
-			glDrawBuffers((GLsizei)colorCount, m_bufferAttachments);
-		}
-		else
-		{
-			glDrawBuffer(GL_NONE);
-		}
+		ResetDrawTargets();
 	
 		PK_CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!");
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 	
 	void RenderTexture::ValidateResolution(const uint3& resolution)

@@ -1,5 +1,6 @@
 #pragma once
 #include HLSLSupport.glsl
+#include ClusterIndexing.glsl
 
 struct ClusterDispatchInfo
 {
@@ -17,13 +18,9 @@ struct TileDepth
 };
 
 PK_DECLARE_BUFFER(TileDepth, pk_FDepthRanges);
-PK_DECLARE_BUFFER(uint, pk_VisibleClusters);
+PK_DECLARE_RESTRICTED_BUFFER(uint, pk_VisibleClusters);
 PK_DECLARE_ATOMIC_VARIABLE(ClusterDispatchInfo, pk_ClusterDispatchInfo);
 
-#define TILE_GRID_X 16
-#define TILE_GRID_Y 9
-#define TILE_GRID_Z 24
-#define TILE_MAX_COUNT (16 * 9 * 24)
-#define TILE_MAX_LIGHT_COUNT 128
-#define TILE_BATCH_SIZE 32
+#define CLUSTER_TILE_MAX_LIGHT_COUNT 128
+#define CLUSTER_TILE_BATCH_SIZE 32
 #define DEPTH_BATCH_SIZE_PX 16

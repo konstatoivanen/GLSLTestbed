@@ -73,9 +73,9 @@ namespace PK::Core
 					{ (int)UpdateStep::UpdateInput,		{ input } },
 					{ (int)UpdateStep::UpdateEngines,	{ PK_STEP_S(engineDebug), PK_STEP_S(engineUpdateTransforms) }},
 					{ (int)UpdateStep::PreRender,		{ PK_STEP_S(renderPipeline) }},
-					{ (int)UpdateStep::Render,			{ PK_STEP_S(renderPipeline) }},
-					{ (int)UpdateStep::PostRender,		{ PK_STEP_S(gizmoRenderer), PK_STEP_S(renderPipeline)}},
-					{ (int)UpdateStep::CloseFrame,		{ PK_STEP_S(renderPipeline) }},
+					{ (int)UpdateStep::Render,			{ PK_STEP_S(renderPipeline), PK_STEP_S(gizmoRenderer) }},
+					{ (int)UpdateStep::PostRender,		{ PK_STEP_S(renderPipeline) }},
+					{ (int)UpdateStep::CloseFrame,		{ PK_STEP_S(renderPipeline), input, time }},
 				}
 			},
 			{ input, { PK_STEP_T(engineDebug, Input), PK_STEP_T(engineEditorCamera, Input) } },
@@ -110,6 +110,8 @@ namespace PK::Core
 	
 		while (m_window->IsAlive() && m_Running)
 		{
+			m_window->PollEvents();
+
 			if (m_window->IsMinimized())
 			{
 				continue;

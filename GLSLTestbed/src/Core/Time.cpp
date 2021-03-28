@@ -3,6 +3,7 @@
 #include "Core/Time.h"
 #include <ctime>
 #include <cstdlib>
+#include <Core/UpdateStep.h>
 
 namespace PK::Core
 {
@@ -43,44 +44,54 @@ namespace PK::Core
     
     void Time::Step(int condition)
     {
-        auto currentSeconds = GetClockSeconds();
-    
-        m_unscaledDeltaTime = currentSeconds - m_previousSeconds;
-        m_deltaTime = m_unscaledDeltaTime * m_timeScale;
-    
-        m_unscaledTime += m_unscaledDeltaTime;
-        m_time += m_deltaTime;
-    
-        m_smoothDeltaTime = m_smoothDeltaTime + 0.5 * (m_deltaTime - m_smoothDeltaTime);
-    
-        m_previousSeconds = currentSeconds;
-    
-        ++m_frameIndex;
-    
-        if (m_unscaledDeltaTime > 0)
+        auto step = (PK::Core::UpdateStep)condition;
+
+        switch (step)
         {
-            m_framerate = (uint64_t)(1.0 / m_unscaledDeltaTime);
+            case PK::Core::UpdateStep::OpenFrame: 
+            {
+                m_frameStart = std::chrono::steady_clock::now(); 
+                m_sequencer->Next<Time>(this, this, 0);
+            }
+            break;
+            case PK::Core::UpdateStep::CloseFrame:
+            {
+                std::chrono::time_point<std::chrono::steady_clock, std::chrono::duration<double>> frameEnd = std::chrono::steady_clock::now();
+                m_unscaledDeltaTime = (frameEnd - m_frameStart).count();
+                m_deltaTime = m_unscaledDeltaTime * m_timeScale;
+
+                m_unscaledTime += m_unscaledDeltaTime;
+                m_time += m_deltaTime;
+
+                m_smoothDeltaTime = m_smoothDeltaTime + 0.5 * (m_deltaTime - m_smoothDeltaTime);
+
+                ++m_frameIndex;
+
+                if (m_unscaledDeltaTime > 0)
+                {
+                    m_framerate = (uint64_t)(1.0 / m_unscaledDeltaTime);
+                }
+
+                if ((uint64_t)m_unscaledTime != m_second)
+                {
+                    m_framerateFixed = m_frameIndex - m_frameIndexFixed;
+                    m_frameIndexFixed = m_frameIndex;
+                    m_second = (uint64_t)m_unscaledTime;
+                }
+
+                if (m_framerate < m_framerateMin)
+                {
+                    m_framerateMin = m_framerate;
+                }
+
+                if (m_framerate > m_framerateMax)
+                {
+                    m_framerateMax = m_framerate;
+                }
+
+                m_framerateAvg = (uint64_t)(m_frameIndex / m_unscaledTime);
+            }
+            break;
         }
-    
-        if ((uint64_t)m_unscaledTime != m_second)
-        {
-            m_framerateFixed = m_frameIndex - m_frameIndexFixed;
-            m_frameIndexFixed = m_frameIndex;
-            m_second = (uint64_t)m_unscaledTime;
-        }
-    
-        if (m_framerate < m_framerateMin)
-        {
-            m_framerateMin = m_framerate;
-        }
-    
-        if (m_framerate > m_framerateMax)
-        {
-            m_framerateMax = m_framerate;
-        }
-    
-        m_framerateAvg = (uint64_t)(m_frameIndex / m_unscaledTime);
-    
-        m_sequencer->Next<Time>(this, this, 0);
     }
 }

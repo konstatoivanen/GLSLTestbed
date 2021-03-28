@@ -1,5 +1,6 @@
 #pragma once
 #include PKCommon.glsl
+#include ClusterIndexing.glsl
 #include LightingCommon.glsl
 #include LightingBRDF.glsl
 
@@ -8,6 +9,10 @@ uniform sampler2D pk_SceneOEM_HDR;
 uniform float4 pk_SceneOEM_ST;
 uniform float pk_SceneOEM_RVS[4];
 uniform float pk_SceneOEM_Exposure;
+
+#define SRC_METALLIC x
+#define SRC_OCCLUSION y
+#define SRC_ROUGHNESS z
 
 float2 OctaEncode(float3 n)
 {
@@ -61,36 +66,20 @@ float3 SampleEnv(float2 uv, float roughness)
     return HDRDecode(env).rgb * pk_SceneOEM_Exposure;
 }
 
-uint GetTileIndex()
+LightTile GetLightTile(uint index)
 {
-    // Source: http://www.aortiz.me/2018/12/21/CG.html
     #if defined(SHADER_STAGE_FRAGMENT)
-        uint zTile = uint(max(log2(LinearizeDepth(gl_FragCoord.z)) * pk_FrustumTileScaleBias.x + pk_FrustumTileScaleBias.y, 0.0));
-        uint3 tiles = uint3( uint2( gl_FragCoord.xy / pk_FrustumTileSizes[3] ), zTile);
-        return  uint(tiles.x + pk_FrustumTileSizes.x * tiles.y + (pk_FrustumTileSizes.x * pk_FrustumTileSizes.y) * tiles.z); 
+        uint data = PK_BUFFER_DATA(pk_LightTiles, index);
+        uint offset = data & 0xFFFFFF;
+        return LightTile(offset, offset + (data >> 24));
     #else
-        return 0;
+        return LightTile(0,0);
     #endif
 }
 
 LightTile GetLightTile()
 {
-    #if defined(SHADER_STAGE_FRAGMENT)
-        uint data = PK_BUFFER_DATA(pk_LightTiles, GetTileIndex());
-        return LightTile(data & 0xFFFFFF, data >> 24);
-    #else
-        return LightTile(0,0);
-    #endif
-}
-
-LightTile GetLightTile(uint index)
-{
-    #if defined(SHADER_STAGE_FRAGMENT)
-        uint data = PK_BUFFER_DATA(pk_LightTiles, index);
-        return LightTile(data & 0xFFFFFF, data >> 24);
-    #else
-        return LightTile(0,0);
-    #endif
+    return GetLightTile(GetTileIndexFragment());
 }
 
 PKRawPointLight GetLight(uint index)
@@ -99,10 +88,18 @@ PKRawPointLight GetLight(uint index)
     return PK_BUFFER_DATA(pk_Lights, linearIndex);
 }
 
-
 float SampleScreenSpaceOcclusion(float2 uv)
 {
     return 1.0f - tex2D(pk_ScreenOcclusion, uv).r;
+}
+
+float SampleScreenSpaceOcclusion()
+{
+    #if defined(SHADER_STAGE_FRAGMENT)
+        return 1.0f - tex2D(pk_ScreenOcclusion, (gl_FragCoord.xy / pk_ScreenParams.xy)).r;
+    #else
+        return 1.0f;
+    #endif
 }
 
 PKLight TransformPointLight(in PKRawPointLight raw, in float3 worldpos)
@@ -135,26 +132,25 @@ float4 PhysicallyBasedShading(SurfaceData surf, float3 viewdir, float3 worldpos)
         surf.alpha = reflectivity + surf.alpha * (1.0f - reflectivity);
     #endif
 
-    PKGI gi;
-
     float2 specUV = OctaUV(reflect(-viewdir, surf.normal));
     float2 diffUV = OctaUV(surf.normal);
 
-    gi.indirect.diffuse.xyz  = SampleEnv(diffUV, 1.0f);
-    gi.indirect.specular.xyz = SampleEnv(specUV, surf.roughness);
+    PKIndirect indirect;
+    indirect.diffuse.xyz  = SampleEnv(diffUV, 1.0f);
+    indirect.specular.xyz = SampleEnv(specUV, surf.roughness);
+
+    INIT_BRDF_CACHE(surf.albedo, specColor, surf.normal, viewdir, reflectivity, surf.roughness);
     
-    float3 color = BRDF_PBS_DEFAULT(surf.albedo, specColor, reflectivity, surf.roughness, surf.normal, viewdir, gi.light, gi.indirect);
+    float3 color = BRDF_PBS_DEFAULT_INDIRECT(indirect);
 
     color *= surf.occlusion;
 
-    gi.indirect = EmptyIndirect();
-
     LightTile tile = GetLightTile();
-    
-    for (uint i = 0; i < tile.count; ++i)
+
+    for (uint i = tile.start; i < tile.end; ++i)
     {
-        gi.light = TransformPointLight(GetLight(tile.offset + i), worldpos);
-        color += BRDF_PBS_DEFAULT(surf.albedo, specColor, reflectivity, surf.roughness, surf.normal, viewdir, gi.light, gi.indirect);
+        PKLight light = TransformPointLight(GetLight(i), worldpos);
+        color += BRDF_PBS_DEFAULT_DIRECT(light);
     }
 
     return float4(color, surf.alpha);

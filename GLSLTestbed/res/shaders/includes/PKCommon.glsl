@@ -3,6 +3,7 @@
 #define PK_COMMON
 
 #include HLSLSupport.glsl
+#include Instancing.glsl
 
 #define PK_PI            3.14159265359f
 #define PK_TWO_PI        6.28318530718f
@@ -50,14 +51,14 @@ PK_DECLARE_CBUFFER(pk_PerFrameConstants)
     float4x4 pk_MATRIX_I_VP;
 };
 
-#if defined(PK_ENABLE_INSTANCING) && defined(SHADER_STAGE_VERTEX)
+#if defined(PK_ENABLE_INSTANCING)
     struct InstanceMatrices
     {
         float4x4 localToWorld;
         float4x4 worldToLocal;
     };
 
-    PK_DECLARE_BUFFER(InstanceMatrices, pk_InstancingMatrices);
+    PK_DECLARE_READONLY_BUFFER(InstanceMatrices, pk_InstancingMatrices);
     #define pk_MATRIX_M PK_BUFFER_DATA(pk_InstancingMatrices, PK_INSTANCE_ID).localToWorld
     #define pk_MATRIX_I_M PK_BUFFER_DATA(pk_InstancingMatrices, PK_INSTANCE_ID).worldToLocal
 #else

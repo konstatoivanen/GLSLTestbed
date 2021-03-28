@@ -171,7 +171,7 @@ namespace PK::ECS::Engines
 	void DebugEngine::Step(Rendering::GizmoRenderer* gizmos)
 	{
 		auto aspect = Application::GetWindow().GetAspect();
-		auto proj = Functions::GetPerspective(50.0f, aspect, 0.1f, 50.0f);
+		auto proj = Functions::GetPerspective(50.0f, aspect, 0.1f, 4.0f);
 		// auto view = Functions::GetMatrixInvTRS(CG_FLOAT3_ZERO, glm::quat(float3(0, Application::GetService<Time>()->GetTime(), 0)), CG_FLOAT3_ONE);
 		auto view = Functions::GetMatrixInvTRS(CG_FLOAT3_ZERO, CG_QUATERNION_IDENTITY, CG_FLOAT3_ONE);
 		auto vp = proj * view;
@@ -179,10 +179,8 @@ namespace PK::ECS::Engines
 		gizmos->SetColor(CG_COLOR_RED);
 		gizmos->DrawFrustrum(vp);
 		
-		auto znear = 0.1f;
-		auto zfar = 50.0f;
-		auto range = 50.0f - 0.1f;
-		auto istep = range / 24;
+		auto znear = 4.0f;
+		auto zfar = 200.0f;
 
 		for (int i = 0; i < 24; ++i)
 		{
@@ -194,6 +192,7 @@ namespace PK::ECS::Engines
 			gizmos->DrawFrustrum(vp);
 		}
 
+		return;
 		auto cullables = m_entityDb->Query<EntityViews::BaseRenderable>((int)ENTITY_GROUPS::ACTIVE);
 	
 		gizmos->SetColor(CG_COLOR_GREEN);

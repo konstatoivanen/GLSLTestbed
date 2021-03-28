@@ -11,22 +11,18 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 void main()
 {
     #if defined(PASS_CLUSTERS)
-        uint tileIndex = gl_WorkGroupID.x + gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.z * (gl_NumWorkGroups.x * gl_NumWorkGroups.y);
-
-        PK_BUFFER_DATA(pk_LightTiles, tileIndex) = 0;
+        uint tileIndex = CoordToTile(gl_WorkGroupID.xyz);
 
         TileDepth tileDepth = PK_BUFFER_DATA(pk_FDepthRanges, tileIndex);
 
         float minDepth = uintBitsToFloat(tileDepth.depthmin);
         float maxDepth = uintBitsToFloat(tileDepth.depthmax);
         
-        float pnear = pk_ProjectionParams.y;
-        float pfar = pk_ProjectionParams.z;
+        // Move to cluster indexing
+        float near = ZCoordToLinearDepth(gl_WorkGroupID.z);
+        float far = ZCoordToLinearDepth(gl_WorkGroupID.z + 1);
         
-        float near = pnear * pow(pfar / pnear, gl_WorkGroupID.z / float(gl_NumWorkGroups.z));
-        float far = pnear * pow(pfar / pnear, (gl_WorkGroupID.z + 1) / float(gl_NumWorkGroups.z));
-        
-        float2 screenmin = float2(gl_WorkGroupID.xy) * pk_FrustumTileSizes[3];
+        float2 screenmin = gl_WorkGroupID.xy * CLUSTER_SIZE_PX;
         
         uint count = minDepth < far && maxDepth > near && Less(screenmin, pk_ScreenParams.xy) ? 1 : 0;
 
@@ -40,11 +36,11 @@ void main()
     #else
         ClusterDispatchInfo info = PK_ATOMIC_DATA(pk_ClusterDispatchInfo);
         info.lightIndexCount = 0;
-        info.groupsX = uint(ceil(info.clusterCount / float(TILE_BATCH_SIZE)));
+        info.groupsX = uint(ceil(info.clusterCount / float(CLUSTER_TILE_BATCH_SIZE)));
         info.groupsY = 1;
         info.groupsZ = 1;
 
-        PK_BUFFER_DATA(pk_VisibleClusters, info.clusterCount) = TILE_MAX_COUNT;
+        PK_BUFFER_DATA(pk_VisibleClusters, info.clusterCount) = CLUSTER_TILE_COUNT_MAX;
         PK_ATOMIC_DATA(pk_ClusterDispatchInfo) = info;
     #endif
 }

@@ -60,20 +60,20 @@ void PK::Rendering::LightsManager::Update(PK::ECS::EntityDatabase* entityDb, Cor
 	buffer[visibleLights.count] = { CG_COLOR_CLEAR, CG_FLOAT4_ZERO };
 	m_lightsBuffer->EndMapBuffer();
 
-	//Setting up tile size on both X and Y 
-	auto sizeX = (unsigned int)std::ceilf(resolution.x / (float)GridSizeX);
-
-	auto tileSizes = float4(GridSizeX, GridSizeY, GridSizeZ, sizeX);
-
-	float scale = (float)GridSizeZ / glm::log2(zfar / znear);
-	float bias = -(float)GridSizeZ * glm::log2(znear) / log2(zfar / znear);
+	float frustuminfo[5] = 
+	{ 
+		(float)GridSizeZ / glm::log2(zfar / znear),
+		-(float)GridSizeZ * glm::log2(znear) / log2(zfar / znear), 
+		std::ceilf(resolution.x / (float)GridSizeX), 
+		znear,
+		zfar / znear 
+	};
 
 	auto hashCache = HashCache::Get();
 
 	GraphicsAPI::SetGlobalInt(hashCache->pk_LightCount, (int)visibleLights.count);
 	GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_Lights, m_lightsBuffer->GetGraphicsID());
-	GraphicsAPI::SetGlobalFloat4(hashCache->pk_FrustumTileSizes, tileSizes);
-	GraphicsAPI::SetGlobalFloat2(hashCache->pk_FrustumTileScaleBias, float2(scale,bias));
+	GraphicsAPI::SetGlobalFloat(hashCache->pk_ClusterFrustumInfo, frustuminfo, 5);
 	GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_GlobalLightsList, m_globalLightsList->GetGraphicsID());
 	GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_LightTiles, m_lightTiles->GetGraphicsID());
 	m_properties.SetComputeBuffer(hashCache->pk_FDepthRanges, m_depthTiles->GetGraphicsID());

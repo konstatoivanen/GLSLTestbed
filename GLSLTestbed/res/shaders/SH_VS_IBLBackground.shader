@@ -10,7 +10,9 @@ out float3 vs_TEXCOORD0;
 void main()
 {
 	gl_Position = in_POSITION0;
-	vs_TEXCOORD0 = mul(pk_MATRIX_I_VP, float4(in_POSITION0.xy, 1.0f, 1.0f)).xyz;
+	float3 vpos = mul(pk_MATRIX_I_P, float4(in_POSITION0.xy, 1.0f, 1.0f)).xyz;
+
+	vs_TEXCOORD0 = mul(pk_MATRIX_I_V, float4(vpos, 0.0f)).xyz;
 };
 
 #pragma PROGRAM_FRAGMENT

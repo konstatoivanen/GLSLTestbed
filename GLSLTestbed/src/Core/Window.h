@@ -30,6 +30,7 @@ namespace PK::Core
 			bool IsVSync() const { return m_properties.vsync; }
 			void SetVSync(bool enabled);
 			void SetActive();
+			void PollEvents() const { glfwPollEvents(); }
 			GLFWwindow* GetNativeWindow() const { return m_window; }
 		
 		public:

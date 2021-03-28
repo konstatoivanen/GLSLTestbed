@@ -56,8 +56,7 @@ namespace PK::Utilities
         DEFINE_HASH_CACHE(pk_ScreenNormals)
         DEFINE_HASH_CACHE(pk_ScreenOcclusion)
 
-        DEFINE_HASH_CACHE(pk_FrustumTileSizes)
-        DEFINE_HASH_CACHE(pk_FrustumTileScaleBias)
+        DEFINE_HASH_CACHE(pk_ClusterFrustumInfo)
         DEFINE_HASH_CACHE(pk_GlobalLightsList)
         DEFINE_HASH_CACHE(pk_LightTiles)
         DEFINE_HASH_CACHE(pk_FDepthRanges)

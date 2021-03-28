@@ -1635,6 +1635,8 @@
     <None Include="res\shaders\CS_ClusteredDepthMinMax.shader" />
     <None Include="res\shaders\CS_ClusteredCullClusters.shader" />
     <None Include="res\shaders\includes\ClusteringCommon.glsl" />
+    <None Include="res\shaders\includes\ClusterIndexing.glsl" />
+    <None Include="res\shaders\includes\Instancing.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">
