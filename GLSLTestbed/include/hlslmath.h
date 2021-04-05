@@ -7,10 +7,9 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-// @TODO Replace with enums
 namespace PK::Math
 {
-    enum class CG_TYPE
+    enum class CG_TYPE : uint16_t
     {
         NONE = 0,
         FLOAT = 1,
@@ -28,10 +27,11 @@ namespace PK::Math
         UINT2 = 13,
         UINT3 = 14,
         UINT4 = 15,
-        TEXTURE = 16,
-        CONSTANT_BUFFER = 17,
-        COMPUTE_BUFFER = 18,
-        VERTEX_ARRAY = 19,
+        SAMPLER = 16,
+        TEXTURE = 17,
+        CONSTANT_BUFFER = 18,
+        COMPUTE_BUFFER = 19,
+        VERTEX_ARRAY = 20,
         INVALID = 0xFFFF
     };
     
@@ -46,6 +46,7 @@ namespace PK::Math
     const unsigned short CG_TYPE_SIZE_INT2 = 8;			// 4 * 2
     const unsigned short CG_TYPE_SIZE_INT3 = 12;		// 4 * 3
     const unsigned short CG_TYPE_SIZE_INT4 = 16;		// 4 * 4
+    const unsigned short CG_TYPE_SIZE_SAMPLER = 8;
     const unsigned short CG_TYPE_SIZE_TEXTURE = 4;
     const unsigned short CG_TYPE_SIZE_CONSTANT_BUFFER = 4;
     const unsigned short CG_TYPE_SIZE_COMPUTE_BUFFER = 4;
@@ -61,6 +62,7 @@ namespace PK::Math
     const unsigned short CG_TYPE_COMPONENTS_INT2 = 2;
     const unsigned short CG_TYPE_COMPONENTS_INT3 = 3;
     const unsigned short CG_TYPE_COMPONENTS_INT4 = 4;
+    const unsigned short CG_TYPE_COMPONENTS_SAMPLER = 1;
     const unsigned short CG_TYPE_COMPONENTS_TEXTURE = 1;
     const unsigned short CG_TYPE_COMPONENTS_CONSTANT_BUFFER = 1;
     const unsigned short CG_TYPE_COMPONENTS_COMPUTE_BUFFER = 1;
@@ -195,6 +197,7 @@ namespace PK::Math
         ushort BaseType(CG_TYPE type);
         ushort ToNativeEnum(CG_TYPE type);
         CG_TYPE FromNativeEnum(ushort type);
+        CG_TYPE FromNativeString(const char* string);
         std::string ToString(CG_TYPE type);
         CG_TYPE FromString(const char* string);
     };
@@ -202,7 +205,9 @@ namespace PK::Math
     namespace Functions
     {
         float4x4 GetMatrixTRS(const float3& position, const quaternion& rotation, const float3& scale);
+        float4x4 GetMatrixTRS(const float3& position, const float3& euler, const float3& scale);
         float4x4 GetMatrixInvTRS(const float3& position, const quaternion& rotation, const float3& scale);
+        float4x4 GetMatrixInvTRS(const float3& position, const float3& euler, const float3& scale);
         float4x4 GetMatrixTR(const float3& position, const quaternion& rotation);
         float4x4 GetPerspective(float fov, float aspect, float nearClip, float farClip);
         inline float GetSizePerDepth(float fovy) { return (float)tan(fovy * 0.5f * CG_FLOAT_DEG2RAD); }
@@ -234,6 +239,8 @@ namespace PK::Math
         inline BoundingBox CreateBoundsCenterExtents(const float3& center, const float3& extents) { return BoundingBox(center - extents, center + extents); }
     
         bool IntersectPlanesAABB(const float4* planes, int planeCount, const BoundingBox& aabb);
+        bool IntersectAABB(const BoundingBox& a, const BoundingBox& b);
+        bool IntersectSphere(const float3& center, float radius, const BoundingBox& b);
         void BoundsEncapsulate(BoundingBox* bounds, const BoundingBox& other);
         int BoundsLongestAxis(const BoundingBox& bounds);
         int BoundsShortestAxis(const BoundingBox& bounds);

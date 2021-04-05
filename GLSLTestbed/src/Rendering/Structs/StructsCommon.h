@@ -28,10 +28,14 @@ namespace PK::Rendering::Structs
         float2 texcoord;
     };
     
-    struct PKPointLight
+    struct PKRawLight
     {
         float4 color;
         float4 position;
+        uint shadowmap_index;
+        uint shadowmap_proj_index;
+        uint light_cookie_index;
+        uint light_type;
     };
 
     struct IndexRange

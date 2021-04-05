@@ -29,18 +29,28 @@ namespace PK::ECS::Components
         virtual ~Bounds() = 0 {}
     };
     
-    enum class RenderHandleType
+    enum class RenderHandleFlags : ushort
     {
-        MeshRenderer,
-        SkinnedMeshRenderer,
-        PointLight
+        Renderer = 1 << 0,
+        Light = 1 << 1,
+        Static = 1 << 2,
+        Dynamic = 1 << 3,
+        ShadowCaster = 1 << 4,
+        LightPoint = 1 << 5,
+        LightSpot = 1 << 6,
+        LightDirectional = 1 << 7
     };
+
+    inline RenderHandleFlags operator|(RenderHandleFlags a, RenderHandleFlags b)
+    {
+        return static_cast<RenderHandleFlags>(static_cast<ushort>(a) | static_cast<ushort>(b));
+    }
 
     struct RenderableHandle
     {
         bool isVisible = false;
         bool isCullable = true;
-        RenderHandleType type = RenderHandleType::MeshRenderer;
+        RenderHandleFlags flags = RenderHandleFlags::Renderer;
         float viewSize = 1.0f;
         virtual ~RenderableHandle() = 0 {}
     };

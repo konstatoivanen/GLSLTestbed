@@ -29,6 +29,11 @@ uint2 ScreenToCoord2D(float2 screenpos)
     return uint2(screenpos / CLUSTER_SIZE_PX);
 }
 
+uint TileToZCoord(uint index)
+{
+    return (index / CLUSTER_TILE_COUNT_XY);
+}
+
 uint2 TileToCoord2D(uint index)
 {
     return uint2(index % CLUSTER_TILE_COUNT_X, (index / CLUSTER_TILE_COUNT_X) % CLUSTER_TILE_COUNT_Y);
@@ -52,7 +57,7 @@ uint GetTileIndexFragment()
     #if defined(SHADER_STAGE_FRAGMENT)
         uint zTile = uint(max(log2(LinearizeDepth(gl_FragCoord.z)) * CLUSTER_DEPTH_SCALE + CLUSTER_DEPTH_BIAS, 0.0));
         uint3 tiles = uint3( uint2( gl_FragCoord.xy / CLUSTER_SIZE_PX), zTile);
-        return  uint(tiles.x + CLUSTER_TILE_COUNT_X * tiles.y + CLUSTER_TILE_COUNT_XY * tiles.z); 
+        return uint(tiles.x + CLUSTER_TILE_COUNT_X * tiles.y + CLUSTER_TILE_COUNT_XY * tiles.z); 
     #else
         return 0;
     #endif

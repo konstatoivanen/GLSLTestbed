@@ -1,14 +1,16 @@
 #pragma once
 #include "PrecompiledHeader.h"
+#include "Utilities/StringHashID.h"
 #include <hlslmath.h>
 
 namespace PK::Rendering::Structs
 {
 	using namespace PK::Math;
+	using namespace PK::Utilities;
 
 	struct BufferElement
 	{
-		std::string Name;
+		uint32_t NameHashId;
 		CG_TYPE Type;
 		ushort Size;
 		size_t Offset;
@@ -16,7 +18,7 @@ namespace PK::Rendering::Structs
 	
 		BufferElement() = default;
 	
-		BufferElement(CG_TYPE type, const std::string& name, ushort count = 1, bool normalized = false) : Name(name), Type(type), Size(Convert::Size(type)* count), Offset(0), Normalized(normalized)
+		BufferElement(CG_TYPE type, const std::string& name, ushort count = 1, bool normalized = false) : NameHashId(StringHashID::StringToID(name)), Type(type), Size(Convert::Size(type)* count), Offset(0), Normalized(normalized)
 		{
 		}
 	};
@@ -37,6 +39,7 @@ namespace PK::Rendering::Structs
 			}
 		
 			uint GetStride() const { return m_stride; }
+			uint GetPaddedStride() const { return m_paddedStride; }
 			const std::vector<BufferElement>& GetElements() const { return m_elements; }
 		
 			std::vector<BufferElement>::iterator begin() { return m_elements.begin(); }
@@ -50,5 +53,6 @@ namespace PK::Rendering::Structs
 		private:
 			std::vector<BufferElement> m_elements;
 			uint m_stride = 0;
+			uint m_paddedStride = 0;
 	};
 }

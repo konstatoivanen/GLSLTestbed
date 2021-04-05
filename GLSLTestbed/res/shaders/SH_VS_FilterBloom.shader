@@ -58,6 +58,15 @@ float3 Saturation(float3 color, float amount)
 	return lerp_true(grayscale.xxx, color, 0.8f);
 }
 
+float3 LinearToGamma(float3 color)
+{
+	//Source: http://chilliant.blogspot.com.au/2012/08/srgb-approximations-for-hlsl.html?m=1
+	float3 S1 = sqrt(color);
+	float3 S2 = sqrt(S1);
+	float3 S3 = sqrt(S2);
+	return 0.662002687 * S1 + 0.684122060 * S2 - 0.323583601 * S3 - 0.0225411470 * color;
+}
+
 //----------VERTEX PROGRAMS----------//
 float2 VertexSimple(float2 texcoord)
 {
@@ -132,6 +141,7 @@ float4 FragmentComposite(float2 uv)
 
 	color = Saturation(color, 0.8f);
 	color = TonemapHejlDawson(color, _Tonemap_Exposure);
+	color = LinearToGamma(color);
 
 	return float4(color, 1.0f);
 }

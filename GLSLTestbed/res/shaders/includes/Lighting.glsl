@@ -4,39 +4,54 @@
 #include LightingCommon.glsl
 #include LightingBRDF.glsl
 
+uniform sampler2D pk_ShadowmapAtlas;
 uniform sampler2D pk_ScreenOcclusion;
 uniform sampler2D pk_SceneOEM_HDR;
-uniform float4 pk_SceneOEM_ST;
-uniform float pk_SceneOEM_RVS[4];
 uniform float pk_SceneOEM_Exposure;
 
 #define SRC_METALLIC x
 #define SRC_OCCLUSION y
 #define SRC_ROUGHNESS z
+//#define SHADOW_USE_LBR 
+#define SHADOW_LBR 0.1f
+#define SHADOWMAP_TILE_SIZE 512
+#define SHADOWMAP_ATLAS_SIZE 4096
+#define SHADOWMAP_TILES_PER_AXIS 8
+
+// Source: https://de45xmedrsdbp.cloudfront.net/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
+float GetAttenuation(float ldist, float lradius) { return pow2(saturate(1.0f - pow4(ldist/lradius))) / (pow2(ldist) + 1.0f); }
+
+#if defined(SHADOW_USE_LBR)
+    float LBR(float shadow) { return smoothstep(SHADOW_LBR, 1.0f, shadow);}
+#else
+    #define LBR(shadow) (shadow)
+#endif
+
+float3 GetShadowMapTileST(uint index)
+{
+    return float3(
+    uint(index % SHADOWMAP_TILES_PER_AXIS) / float(SHADOWMAP_TILES_PER_AXIS), 
+    uint(index / SHADOWMAP_TILES_PER_AXIS) / float(SHADOWMAP_TILES_PER_AXIS), 
+    1.0f / SHADOWMAP_TILES_PER_AXIS);
+}
+
+float2 OctaWrap(float2 v)
+{
+    return (1.0 - abs(v.yx)) * float2(v.x >= 0.0 ? 1.0 : -1.0, v.y >= 0.0 ? 1.0 : -1.0);
+}
 
 float2 OctaEncode(float3 n)
 {
-    float4 a;
-    float2 b;
-    bool3 c;
-
-    a.x = abs(n.y) + abs(n.x);
-    a.x = a.x + abs(n.z);
-    a.xyz = n.yxz / a.xxx;
-    b.xy = -abs(a.zy) + 1.0f;
-    c.xyz = greaterThanEqual(a.xyz, float3(0.0, 0.0, 0.0)).xyz;
-    a.x = (c.y) ? 1.0f : -1.0f;
-    a.w = (c.z) ? 1.0f : -1.0f;
-    a.xw = a.xw * b.xy;
-    a.xy = (c.x) ? a.yz : a.xw;
-    return a.xy * 0.5f + 0.5f;
+    n /= (abs(n.x) + abs(n.y) + abs(n.z));
+    n.xz = n.y >= 0.0 ? n.xz : OctaWrap(n.xz);
+    n.xz = n.xz * 0.5 + 0.5;
+    return n.xz;
 }
 
+//Source: https://twitter.com/Stubbesaurus/status/937994790553227264
 float3 OctaDecode(float2 f)
 {
     f = f * 2.0f - 1.0f;
-
-    // https://twitter.com/Stubbesaurus/status/937994790553227264
     float3 n = float3(f.x, 1.0f - abs(f.x) - abs(f.y), f.y);
     float t = max(-n.y, 0.0);
     n.x += n.x >= 0.0f ? -t : t;
@@ -44,26 +59,44 @@ float3 OctaDecode(float2 f)
     return normalize(n);
 }
 
-float2 OctaUV(float3 reflection)
+float2 OctaUV(float3 offset, float3 reflection)
 {
-    float2 reflUV = OctaEncode(reflection);
-    reflUV = pk_SceneOEM_ST.xy + reflUV * pk_SceneOEM_ST.z;
-    return reflUV;
+    return offset.xy + OctaEncode(reflection) * offset.z;
 }
 
-float2 OctaUV(float2 offset, float3 reflection)
+float2 OctaUV(float3 reflection)
 {
-    float2 reflUV = OctaEncode(reflection);
-    reflUV = offset + reflUV * pk_SceneOEM_ST.z;
-    return reflUV;
+    return OctaEncode(reflection);
 }
+
 
 float3 SampleEnv(float2 uv, float roughness)
 {
-    //float v0 = saturate((roughness - pk_SceneOEM_RVS[0]) / (pk_SceneOEM_RVS[1] - pk_SceneOEM_RVS[0]));
-    //float v1 = saturate((roughness - pk_SceneOEM_RVS[1]) / (pk_SceneOEM_RVS[2] - pk_SceneOEM_RVS[1]));
     float4 env = tex2DLod(pk_SceneOEM_HDR, uv, roughness * 4);
-    return HDRDecode(env).rgb * pk_SceneOEM_Exposure;
+    return HDRDecode(env) * pk_SceneOEM_Exposure;
+}
+
+float SampleLightShadowmap(uint index, float3 direction, float lightDistance)
+{
+    float3 shadowST = GetShadowMapTileST(index);
+    float2 shadowval = tex2D(pk_ShadowmapAtlas, OctaUV(shadowST, direction)).xy;
+    float variance = shadowval.y - shadowval.x * shadowval.x;
+    float difference = lightDistance - shadowval.x;
+    return difference > 0.01f ? LBR(variance / (variance + difference * difference)) : 1.0f;
+}
+
+float SampleScreenSpaceOcclusion(float2 uv)
+{
+    return 1.0f - tex2D(pk_ScreenOcclusion, uv).r;
+}
+
+float SampleScreenSpaceOcclusion()
+{
+    #if defined(SHADER_STAGE_FRAGMENT)
+        return 1.0f - tex2D(pk_ScreenOcclusion, (gl_FragCoord.xy / pk_ScreenParams.xy)).r;
+    #else
+        return 1.0f;
+    #endif
 }
 
 LightTile GetLightTile(uint index)
@@ -82,34 +115,22 @@ LightTile GetLightTile()
     return GetLightTile(GetTileIndexFragment());
 }
 
-PKRawPointLight GetLight(uint index)
+PKLight GetSurfaceLight(uint index, in float3 worldpos)
 {
     uint linearIndex = PK_BUFFER_DATA(pk_GlobalLightsList, index);
-    return PK_BUFFER_DATA(pk_Lights, linearIndex);
-}
+    PKRawLight raw = PK_BUFFER_DATA(pk_Lights, linearIndex);
 
-float SampleScreenSpaceOcclusion(float2 uv)
-{
-    return 1.0f - tex2D(pk_ScreenOcclusion, uv).r;
-}
+    float3 vector = raw.position.xyz - worldpos;
+    float lindist = sqrt(dot(vector, vector));
+    float atten = GetAttenuation(lindist, raw.position.w);
+    vector /= lindist;
 
-float SampleScreenSpaceOcclusion()
-{
-    #if defined(SHADER_STAGE_FRAGMENT)
-        return 1.0f - tex2D(pk_ScreenOcclusion, (gl_FragCoord.xy / pk_ScreenParams.xy)).r;
-    #else
-        return 1.0f;
-    #endif
-}
+    atten *= SampleLightShadowmap(raw.shadowmap_index, -vector, lindist);
 
-PKLight TransformPointLight(in PKRawPointLight raw, in float3 worldpos)
-{
-    float3 vector =  raw.position.xyz - worldpos;
-    float sqrdist = dot(vector, vector);
-    float atten = max(1.0f - sqrdist / (raw.position.w * raw.position.w), 0.0);
     PKLight l;
     l.color = raw.color.xyz * atten;
-    l.direction = vector / sqrt(sqrdist);
+    l.direction = vector;
+
     return l;
 }
 
@@ -149,7 +170,7 @@ float4 PhysicallyBasedShading(SurfaceData surf, float3 viewdir, float3 worldpos)
 
     for (uint i = tile.start; i < tile.end; ++i)
     {
-        PKLight light = TransformPointLight(GetLight(i), worldpos);
+        PKLight light = GetSurfaceLight(i, worldpos);
         color += BRDF_PBS_DEFAULT_DIRECT(light);
     }
 

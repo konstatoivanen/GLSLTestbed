@@ -21,6 +21,8 @@ namespace PK::Rendering::Structs
 			void SetKeyword(uint32_t hashId, bool value);
 			void SetKeywords(std::initializer_list<uint32_t> hashIds);
 	
+			void CopyBufferLayout(const BufferLayout& layout, char* destination);
+
 	        void Clear() override;
 	
 			const std::vector<uint32_t>& GetKeywords() const { return m_keywords; }

@@ -5,13 +5,21 @@ namespace PK::Rendering::Structs
 {
 	void BufferLayout::CalculateOffsetsAndStride()
 	{
+		auto maxSize = 0;
 		m_stride = 0;
 	
 		for (auto& element : m_elements)
 		{
 			element.Offset = m_stride;
 			m_stride += element.Size;
+
+			if (element.Size > maxSize)
+			{
+				maxSize = element.Size;
+			}
 		}
+
+		m_paddedStride = maxSize * (uint)glm::ceil(m_stride / (float)maxSize);
 	}
 }
 
@@ -89,7 +97,7 @@ namespace PK::Rendering::Objects
 	
 	ComputeBuffer::ComputeBuffer(const BufferLayout& layout, uint count, GLenum usage) : m_usage(usage), m_count(count), m_layout(layout)
 	{
-		auto stride = m_layout.GetStride();
+		auto stride = m_layout.GetPaddedStride();
 		auto size = GetSize();
 		glGenBuffers(1, &m_graphicsId);
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_graphicsId);

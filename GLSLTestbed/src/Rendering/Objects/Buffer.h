@@ -81,8 +81,9 @@ namespace PK::Rendering::Objects
 	
 			void EndMapBuffer();
 			
-			size_t GetSize() const { return m_count * m_layout.GetStride(); }
-			size_t GetStride() const { return m_layout.GetStride(); }
+			const BufferLayout& GetLayout() const { return m_layout; }
+			size_t GetSize() const { return m_count * m_layout.GetPaddedStride(); }
+			size_t GetStride() const { return m_layout.GetPaddedStride(); }
 			size_t GetCount() const { return m_count; }
 		private:
 			BufferLayout m_layout;

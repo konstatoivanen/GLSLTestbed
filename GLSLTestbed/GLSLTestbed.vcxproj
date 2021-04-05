@@ -170,8 +170,8 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="src\Core\BufferView.h" />
     <ClInclude Include="src\ECS\EntityDatabase.h" />
     <ClInclude Include="src\Rendering\BufferPool.h" />
-    <ClInclude Include="src\Rendering\DynamicBatcher.h" />
-    <ClInclude Include="src\Rendering\FrustumCuller.h" />
+    <ClInclude Include="src\Rendering\Batching.h" />
+    <ClInclude Include="src\Rendering\Culling.h" />
     <ClInclude Include="src\Rendering\GizmoRenderer.h" />
     <ClInclude Include="include\GLAD\glad.h" />
     <ClInclude Include="include\GLAD\khrplatform.h" />
@@ -713,6 +713,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\includes\LightingBRDF.glsl" />
     <None Include="res\shaders\includes\Noise.glsl" />
     <None Include="res\shaders\includes\Reconstruction.glsl" />
+    <None Include="res\shaders\SH_VS_ClusterDebug.shader" />
     <None Include="res\shaders\SH_VS_FilterAO.shader" />
     <None Include="res\shaders\SH_VS_IBLBackground.shader">
       <DeploymentContent>true</DeploymentContent>
@@ -724,6 +725,9 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\includes\Test.glsl">
       <DeploymentContent>true</DeploymentContent>
     </None>
+    <None Include="res\shaders\SH_VS_ShadowmapAtlas.shader" />
+    <None Include="res\shaders\SH_VS_ShadowmapBlurCube.shader" />
+    <None Include="res\shaders\SH_VS_ShadowmapCube.shader" />
     <None Include="res\shaders\SH_WS_DepthNormals.shader" />
     <None Include="res\textures\T_Bloom_LensDirt.ktx" />
     <None Include="res\textures\T_Gravel_D.ktx" />
@@ -739,6 +743,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\textures\T_Metal_Rust_MAOR.ktx" />
     <None Include="res\textures\T_Metal_Rust_N.ktx" />
     <None Include="res\textures\T_OEM_Mountains.ktx" />
+    <None Include="res\textures\T_OEM_Mountains2.ktx" />
     <None Include="res\textures\T_OEM_Night.ktx" />
     <None Include="res\textures\T_OEM_Park.ktx" />
     <None Include="res\textures\T_OEM_Quarry.ktx" />
@@ -755,8 +760,8 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
   <ItemGroup>
     <ClCompile Include="src\ECS\Contextual\Engines\EngineUpdateTransforms.cpp" />
     <ClCompile Include="src\Rendering\BufferPool.cpp" />
-    <ClCompile Include="src\Rendering\DynamicBatcher.cpp" />
-    <ClCompile Include="src\Rendering\FrustumCuller.cpp" />
+    <ClCompile Include="src\Rendering\Batching.cpp" />
+    <ClCompile Include="src\Rendering\Culling.cpp" />
     <ClCompile Include="src\Rendering\GizmoRenderer.cpp" />
     <ClCompile Include="include\GLAD\glad.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>

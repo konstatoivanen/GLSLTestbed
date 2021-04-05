@@ -26,7 +26,7 @@ void main()
     float near = uintBitsToFloat(tileDepth.depthmin);
     float far = uintBitsToFloat(tileDepth.depthmax);
 
-    float2 invstep = 1.0f / float2(CLUSTER_TILE_COUNT_X, CLUSTER_TILE_COUNT_Y);
+    float2 invstep = 1.0f / float2(CLUSTER_TILE_COUNT_X, CLUSTER_TILE_COUNT_X * (pk_ScreenParams.y / pk_ScreenParams.x));
     float4 screenminmax = float4(tileCoord.xy * invstep, (tileCoord.xy + 1.0f) * invstep);
 
     float3 min00 = ClipToViewPos(screenminmax.xy, near);

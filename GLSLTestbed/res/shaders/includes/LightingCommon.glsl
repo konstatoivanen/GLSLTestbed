@@ -7,17 +7,14 @@ struct LightTile
     uint end;
 };
 
-struct PKRawPointLight
+struct PKRawLight
 {
     float4 color;
     float4 position;
-};
-
-struct PKRawSpotLight
-{
-    float4 color;
-    float4 position;
-    float4 direction;
+    uint shadowmap_index;
+    uint shadowmap_proj_index;
+    uint light_cookie_index;
+    uint light_type;
 };
 
 struct PKLight
@@ -54,7 +51,7 @@ PKIndirect EmptyIndirect()
 }
 
 uniform int pk_LightCount;
-PK_DECLARE_READONLY_BUFFER(PKRawPointLight, pk_Lights);
+PK_DECLARE_READONLY_BUFFER(PKRawLight, pk_Lights);
 
 #if defined(SHADER_STAGE_COMPUTE)
     PK_DECLARE_WRITEONLY_BUFFER(uint, pk_GlobalLightsList);

@@ -26,6 +26,7 @@ namespace PK::Core
 		EnableConsole = TryParse(properties["EnableConsole"], false);
 		EnableVsync = TryParse(properties["EnableVsync"], false);
 		EnableGizmos = TryParse(properties["EnableGizmos"], false);
+		EnableLightingDebug = TryParse(properties["EnableLightingDebug"], false);
 		EnableOrthoGraphic = TryParse(properties["EnableOrthoGraphic"], false);
 		WindowWidth = TryParse(properties["WindowWidth"], 512);
 		WindowHeight = TryParse(properties["WindowHeight"], 512);
@@ -35,6 +36,8 @@ namespace PK::Core
 		CameraZNear = TryParse(properties["CameraZNear"], 0.1f);
 		CameraZFar = TryParse(properties["CameraZFar"], 200.0f);
 		TimeScale = TryParse(properties["TimeScale"], 1.0f); 
+
+		RandomSeed = TryParse(properties["RandomSeed"], 0u);
 
 		LightCount = TryParse(properties["LightCount"], 256);
 	

@@ -41,7 +41,7 @@ namespace PK::Rendering::PostProcessing
         }
     }
     
-    void FilterBloom::Execute(Ref<RenderTexture> source, Ref<RenderTexture> destination)
+    void FilterBloom::Execute(const RenderTexture* source, const RenderTexture* destination)
     {
         auto descriptor = source->GetCompoundDescriptor();
         descriptor.depthFormat = GL_NONE;
@@ -59,7 +59,7 @@ namespace PK::Rendering::PostProcessing
         m_properties.SetFloat(hashCache->_Tonemap_Exposure, m_exposure);
         m_properties.SetTexture(hashCache->_Bloom_DirtTexture, m_lensDirtTexture.lock()->GetGraphicsID());
     
-        auto shader = m_shader.lock();
+        auto shader = m_shader.lock().get();
     
         const float blurSize = 4.0f;
     
@@ -70,11 +70,11 @@ namespace PK::Rendering::PostProcessing
     
         for (int i = 0; i < 6; ++i)
         {
-            auto fbo = m_blurTextures[textureIdx++];
+            auto fbo = m_blurTextures[textureIdx++].get();
     
             m_properties.SetKeywords({ m_passKeywords[1] });
             fbo->SetDrawTargets({ GL_COLOR_ATTACHMENT0 });
-            GraphicsAPI::Blit(downsampled->GetColorBuffer(downsampledIdx).lock(), fbo, shader, m_properties);
+            GraphicsAPI::Blit(downsampled->GetColorBufferPtr(downsampledIdx), fbo, shader, m_properties);
     
             auto spread = i == 2 ? 0.75f : (i > 1 ? 1.0f : 0.5f);
     
@@ -85,23 +85,22 @@ namespace PK::Rendering::PostProcessing
                 // vertical blur
                 m_properties.SetKeywords({ m_passKeywords[2] });
                 fbo->SetDrawTargets({ GL_COLOR_ATTACHMENT2 });
-                GraphicsAPI::Blit(fbo->GetColorBuffer(j == 0 ? 0 : 1).lock(), fbo, shader, m_properties);
+                GraphicsAPI::Blit(fbo->GetColorBufferPtr(j == 0 ? 0 : 1), fbo, shader, m_properties);
     
                 // horizontal blur
                 m_properties.SetKeywords({ m_passKeywords[3] });
                 fbo->SetDrawTargets({ GL_COLOR_ATTACHMENT1 });
-                GraphicsAPI::Blit(fbo->GetColorBuffer(2).lock(), fbo, shader, m_properties);
+                GraphicsAPI::Blit(fbo->GetColorBufferPtr(2), fbo, shader, m_properties);
             }
     
             downsampled = fbo;
             downsampledIdx = 1;
-            m_bloomLayers[i] = fbo->GetColorBuffer(1).lock()->GetGraphicsID();
+            m_bloomLayers[i] = fbo->GetColorBufferPtr(1)->GetGraphicsID();
         }
     
         m_properties.SetTexture(hashCache->_Bloom_Textures, m_bloomLayers, 6);
-    
-        //Pass 0
+
         m_properties.SetKeywords({ m_passKeywords[0] });
-        GraphicsAPI::Blit(source->GetColorBuffer(0).lock(), destination, shader, m_properties);
+        GraphicsAPI::Blit(source->GetColorBufferPtr(0), destination, shader, m_properties);
     }
 }

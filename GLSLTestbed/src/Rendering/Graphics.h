@@ -26,8 +26,8 @@ namespace PK::Rendering::GraphicsAPI
 	uint2 GetWindowResolution(GLFWwindow* window);
 	uint2 GetActiveWindowResolution();
 	float4x4 GetActiveViewProjectionMatrix();
-	Ref<RenderTexture>& GetActiveRenderTarget();
-	Ref<RenderTexture> GetBackBuffer();
+	const RenderTexture* GetActiveRenderTarget();
+	const RenderTexture* GetBackBuffer();
 	int GetActiveShaderProgramId();
 
 	void ResetResourceBindings();
@@ -76,59 +76,58 @@ namespace PK::Rendering::GraphicsAPI
 	void SetViewProjectionMatrices(const float4x4& view, const float4x4& projection);
 	void SetModelMatrix(const float4x4& matrix);
 	void SetModelMatrix(const float4x4& matrix, const float4x4& invMatrix);
-	void SetRenderTarget(const Ref<RenderTexture>& renderTexture);
-	void SetRenderBuffer(const GraphicsID renderTarget, const Ref<RenderBuffer>& renderBuffer, GLenum attachment);
-	void SetPass(const Ref<Shader>& shader, uint32_t pass = 0);
-	void SetVertexBuffer(const Ref<VertexBuffer>& buffer);
-	void SetIndexBuffer(const Ref<IndexBuffer>& buffer);
+	void SetRenderTarget(const RenderTexture* renderTexture);
+	void SetRenderBuffer(const GraphicsID renderTarget, const RenderBuffer* renderBuffer, GLenum attachment);
+	void SetPass(Shader* shader, uint32_t pass = 0);
+	void SetVertexBuffer(const VertexBuffer* buffer);
+	void SetIndexBuffer(const IndexBuffer* buffer);
 
 	void BindTextures(ushort location, const GraphicsID* graphicsIds, ushort count);
 	void BindBuffers(CG_TYPE type, ushort location, const GraphicsID* graphicsIds, ushort count);
 
-	void Blit(const Ref<Shader>& shader);
-	void Blit(const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock);
-	void Blit(const Ref<RenderTexture>& destination, const Ref<Shader>& shader);
-	void Blit(const Ref<RenderTexture>& destination, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock);
-	void Blit(const Ref<Texture>& source, const Ref<RenderTexture>& destination);
-	void Blit(const Ref<Texture>& source, const Ref<RenderTexture>& destination, const Ref<Shader>& shader);
-	void Blit(const Ref<Texture>& source, const Ref<RenderTexture>& destination, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock);
+	void Blit(Shader* shader);
+	void Blit(Shader* shader, const ShaderPropertyBlock& propertyBlock);
+	void Blit(const RenderTexture* destination, Shader* shader);
+	void Blit(const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock);
+	void Blit(const Texture* source, const RenderTexture* destination);
+	void Blit(const Texture* source, const RenderTexture* destination, Shader* shader);
+	void Blit(const Texture* source, const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock);
 
-	void Blit(const Ref<Material>& material);
-	void Blit(const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
-	void Blit(const Ref<RenderTexture>& destination, const Ref<Material>& material);
-	void Blit(const Ref<RenderTexture>& destination, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
-	void Blit(const Ref<Texture>& source, const Ref<RenderTexture>& destination, const Ref<Material>& material);
-	void Blit(const Ref<Texture>& source, const Ref<RenderTexture>& destination, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
+	void Blit(const Material* material);
+	void Blit(const Material* material, const ShaderPropertyBlock& propertyBlock);
+	void Blit(const RenderTexture* destination, const Material* material);
+	void Blit(const RenderTexture* destination, const Material* material, const ShaderPropertyBlock& propertyBlock);
+	void Blit(const Texture* source, const RenderTexture* destination, const Material* material);
+	void Blit(const Texture* source, const RenderTexture* destination, const Material* material, const ShaderPropertyBlock& propertyBlock);
 	
-	void CopyRenderTexture(const Ref<RenderTexture>& source, const Ref<RenderTexture>& destination, GLbitfield mask, GLenum filter);
+	void CopyRenderTexture(const RenderTexture* source, const RenderTexture* destination, GLbitfield mask, GLenum filter);
 
-	void DrawMesh(const Ref<Mesh>& mesh, int submesh);
-	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Shader>& shader);
-	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Shader>& shader, const float4x4& matrix);
-	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Shader>& shader, const float4x4& matrix, const float4x4& invMatrix);
-	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock);
-	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Shader>& shader, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock);
+	void DrawMesh(const Mesh* mesh, int submesh);
+	void DrawMesh(const Mesh* mesh, int submesh, Shader* shader);
+	void DrawMesh(const Mesh* mesh, int submesh, Shader* shader, const float4x4& matrix);
+	void DrawMesh(const Mesh* mesh, int submesh, Shader* shader, const float4x4& matrix, const float4x4& invMatrix);
+	void DrawMesh(const Mesh* mesh, int submesh, Shader* shader, const ShaderPropertyBlock& propertyBlock);
+	void DrawMesh(const Mesh* mesh, int submesh, Shader* shader, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock);
 
-	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Material>& material);
-	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Material>& material, const float4x4& matrix);
-	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Material>& material, const float4x4& matrix, const float4x4& invMatrix);
-	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
-	void DrawMesh(const Ref<Mesh>& mesh, int submesh, const Ref<Material>& material, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock);
+	void DrawMesh(const Mesh* mesh, int submesh, const Material* material);
+	void DrawMesh(const Mesh* mesh, int submesh, const Material* material, const float4x4& matrix);
+	void DrawMesh(const Mesh* mesh, int submesh, const Material* material, const float4x4& matrix, const float4x4& invMatrix);
+	void DrawMesh(const Mesh* mesh, int submesh, const Material* material, const ShaderPropertyBlock& propertyBlock);
+	void DrawMesh(const Mesh* mesh, int submesh, const Material* material, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock);
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, int submesh, uint count);
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, int submesh, uint count, const Ref<Shader>& shader);
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, int submesh, uint count, const Ref<Shader>& shader, const ShaderPropertyBlock& propertyBlock);
+	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count);
+	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, Shader* shader);
+	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, Shader* shader, const ShaderPropertyBlock& propertyBlock);
+	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, const Material* material);
+	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, const Material* material, const ShaderPropertyBlock& propertyBlock);
 
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, int submesh, uint count, const Ref<Material>& material);
-	void DrawMeshInstanced(const Ref<Mesh>& mesh, int submesh, uint count, const Ref<Material>& material, const ShaderPropertyBlock& propertyBlock);
+	void DrawProcedural(Shader* shader, GLenum topology, size_t offset, size_t count);
 
-	void DrawProcedural(const Ref<Shader>& shader, GLenum topology, size_t offset, size_t count);
+	void DispatchCompute(Shader* shader, uint3 threadGroupSize);
+	void DispatchCompute(const Material* material, uint3 threadGroupSize);
+	void DispatchCompute(Shader* shader, uint3 threadGroupSize, const ShaderPropertyBlock& propertyBlock);
 
-	void DispatchCompute(const Ref<Shader>& shader, uint3 threadGroupSize);
-	void DispatchCompute(const Ref<Material>& material, uint3 threadGroupSize);
-	void DispatchCompute(const Ref<Shader>& shader, uint3 threadGroupSize, const ShaderPropertyBlock& propertyBlock);
-
-	void DispatchComputeIndirect(const Ref<Shader>& shader, const GraphicsID& argumentsBuffer, uint offset);
-	void DispatchComputeIndirect(const Ref<Material>& material, const GraphicsID& argumentsBuffer, uint offset);
-	void DispatchComputeIndirect(const Ref<Shader>& shader, const GraphicsID& argumentsBuffer, uint offset, const ShaderPropertyBlock& propertyBlock);
+	void DispatchComputeIndirect(Shader* shader, const GraphicsID& argumentsBuffer, uint offset);
+	void DispatchComputeIndirect(const Material* material, const GraphicsID& argumentsBuffer, uint offset);
+	void DispatchComputeIndirect(Shader* shader, const GraphicsID& argumentsBuffer, uint offset, const ShaderPropertyBlock& propertyBlock);
 }

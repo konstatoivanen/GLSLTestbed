@@ -9,10 +9,13 @@ namespace PK::Core
 		bool EnableConsole;
 		bool EnableVsync;
 		bool EnableGizmos;
+		bool EnableLightingDebug;
 	
 		int	WindowWidth;
 		int	WindowHeight;
 		
+		uint RandomSeed;
+
 		bool EnableOrthoGraphic;
 		float CameraSpeed;
 		float CameraFov;

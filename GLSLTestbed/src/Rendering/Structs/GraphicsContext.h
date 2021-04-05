@@ -16,7 +16,7 @@ namespace PK::Rendering::Structs
         ShaderPropertyBlock ShaderProperties;
         FixedStateAttributes FixedStateAttributes;
         ResourceBindState ResourceBindState;
-        Ref<RenderTexture> ActiveRenderTarget;
+        const RenderTexture* ActiveRenderTarget;
         Ref<ShaderVariant> ActiveShader;
         Ref<Mesh> BlitQuad;
         Weak<Shader> BlitShader;

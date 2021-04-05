@@ -28,6 +28,40 @@ namespace PK::Rendering::Structs
 		m_keywords.resize(hashIds.size());
 		memcpy(m_keywords.data(), hashIds.begin(), sizeof(uint32_t) * hashIds.size());
     }
+
+	void ShaderPropertyBlock::CopyBufferLayout(const BufferLayout& layout, char* destination)
+	{
+		for (auto& element : layout)
+		{
+			if (m_properties.count(element.NameHashId) < 1)
+			{
+				continue;
+			}
+
+			auto& prop = m_properties.at(element.NameHashId);
+			auto valueptr = GetElementPtr<void>(prop);
+
+			if (prop.type == CG_TYPE::TEXTURE)
+			{
+				PK_CORE_ASSERT(element.Type == CG_TYPE::SAMPLER, "Trying to map an incompatible type!");
+
+				auto graphicsId = *reinterpret_cast<const GraphicsID*>(valueptr);
+				auto handle = glGetTextureHandleARB(graphicsId);
+
+				if (!glIsTextureHandleResidentARB(handle))
+				{
+					glMakeTextureHandleResidentARB(handle);
+				}
+
+				memcpy(destination + element.Offset, &handle, sizeof(GLuint64));
+				continue;
+			}
+
+			PK_CORE_ASSERT(element.Type == prop.type, "Trying to map an incompatible type!");
+			PK_CORE_ASSERT(element.Size == prop.size, "Trying to map a property of differing size!");
+			memcpy(destination + element.Offset, valueptr, element.Size);
+		}
+	}
 	
 	void ShaderPropertyBlock::Clear()
 	{

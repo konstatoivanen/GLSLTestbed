@@ -35,7 +35,7 @@ namespace PK::Rendering::Objects
 		PK_CORE_ASSERT(vertexBuffer->GetLayout().GetElements().size(), "Vertex Buffer has no layout!");
 	
 		glBindVertexArray(m_graphicsId);
-		GraphicsAPI::SetVertexBuffer(vertexBuffer);
+		GraphicsAPI::SetVertexBuffer(vertexBuffer.get());
 	
 		const auto& layout = vertexBuffer->GetLayout();
 	
@@ -92,7 +92,7 @@ namespace PK::Rendering::Objects
 	void Mesh::SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer)
 	{
 		glBindVertexArray(m_graphicsId);
-		GraphicsAPI::SetIndexBuffer(indexBuffer);
+		GraphicsAPI::SetIndexBuffer(indexBuffer.get());
 		m_indexBuffer = indexBuffer;
 	}
 	

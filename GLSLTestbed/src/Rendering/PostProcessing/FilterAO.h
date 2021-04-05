@@ -11,7 +11,7 @@ namespace PK::Rendering::PostProcessing
     {
         public:
             FilterAO(Weak<Shader> shader, float intensity, float radius, bool downsample);
-            void Execute(Ref<RenderTexture> source, Ref<RenderTexture> destination) override;
+            void Execute(const RenderTexture* source, const RenderTexture* destination) override;
 
         private:
             float m_intensity;

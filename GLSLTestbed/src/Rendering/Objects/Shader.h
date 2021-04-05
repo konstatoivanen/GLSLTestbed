@@ -15,7 +15,14 @@ namespace PK::Rendering::Objects
 		ushort location;
 		CG_TYPE type;
 		byte cbufferId;
-		bool isMaterialElement;
+		bool isInstanced;
+	};
+
+	struct ShaderInstancingInfo
+	{
+		bool supportsInstancing;
+		bool hasInstancedProperties;
+		BufferLayout propertyLayout;
 	};
 	
 	class ShaderVariantMap
@@ -23,7 +30,7 @@ namespace PK::Rendering::Objects
 		public:
 			void Reset();
 			void SetKeywords(const uint32_t* hashIds, size_t count);
-			uint32_t GetActiveIndex();
+			uint32_t GetActiveIndex() const;
 	
 			uint32_t variantcount = 0;
 			uint32_t directivecount = 0;
@@ -49,6 +56,7 @@ namespace PK::Rendering::Objects
 		public:
 			~Shader();
 			const FixedStateAttributes& GetFixedStateAttributes() const { return m_stateAttributes; }
+			const ShaderInstancingInfo& GetInstancingInfo() const { return m_instancingInfo; }
 			const uint32_t GetRenderQueueIndex() const { return m_renderQueueIndex; }
 			const Ref<ShaderVariant>& GetActiveVariant();
 	
@@ -63,5 +71,6 @@ namespace PK::Rendering::Objects
 			std::vector<Ref<ShaderVariant>> m_variants;
 			ShaderVariantMap m_variantMap = ShaderVariantMap();
 			FixedStateAttributes m_stateAttributes = FixedStateAttributes();
+			ShaderInstancingInfo m_instancingInfo = ShaderInstancingInfo();
 	};
 }

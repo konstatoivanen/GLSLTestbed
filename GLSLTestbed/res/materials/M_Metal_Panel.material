@@ -31,3 +31,6 @@ Material:
         _HeightAmount:
             Type: FLOAT
             Value: 0.005
+        _NormalAmount:
+            Type: FLOAT
+            Value: 0.4

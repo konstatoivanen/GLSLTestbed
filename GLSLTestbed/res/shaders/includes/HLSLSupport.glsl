@@ -46,6 +46,11 @@
 #define double3x3 mat3
 #define double4x4 mat4
 
+float pow2(float x) { return x * x; }
+float pow3(float x) { return x * x * x; }
+float pow4(float x) { return x * x * x * x; }
+float pow5(float x) { return x * x * x * x * x; }
+
 #define saturate(v) clamp(v, 0.0, 1.0)
 
 #define lerp(a,b,v) mix(a,b,v)
@@ -54,13 +59,13 @@
 
 #define mul(a,b) (a * b)
 
-#define pow2(x) ((x) * (x))
+#define POW2(x) ((x) * (x))
 
-#define pow3(x) ((x) * (x) * (x))
+#define POW3(x) ((x) * (x) * (x))
 
-#define pow4(x) ((x) * (x) * (x) * (x))
+#define POW4(x) ((x) * (x) * (x) * (x))
 
-#define pow5(x) ((x) * (x) * (x) * (x) * (x))
+#define POW5(x) ((x) * (x) * (x) * (x) * (x))
 
 #define mod(x,y) ((x) - (y) * floor((x) / (y)))
 

@@ -11,7 +11,7 @@ namespace PK::Rendering::PostProcessing
     {
         public:
             FilterBloom(Weak<Shader> shader, Weak<TextureXD> lensDirt, float exposure, float intensity, float lensDirtIntensity);
-            void Execute(Ref<RenderTexture> source, Ref<RenderTexture> destination) override;
+            void Execute(const RenderTexture* source, const RenderTexture* destination) override;
     
         private:
             float m_exposure;

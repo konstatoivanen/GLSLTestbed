@@ -18,7 +18,7 @@ namespace PK::Rendering::Structs
 		for (const auto& element : layout)
 		{
 			PK_CORE_ASSERT(Convert::Size(element.Type) % elementStride == 0, "Property block doesnt support elements that are not of ")
-			m_properties[StringHashID::StringToID(element.Name)] = { element.Type, element.Size, m_currentByteOffset };
+			m_properties[element.NameHashId] = { element.Type, element.Size, m_currentByteOffset };
 			m_currentByteOffset += element.Size;
 		}
 	}

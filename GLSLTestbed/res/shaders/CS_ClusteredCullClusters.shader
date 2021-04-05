@@ -18,7 +18,6 @@ void main()
         float minDepth = uintBitsToFloat(tileDepth.depthmin);
         float maxDepth = uintBitsToFloat(tileDepth.depthmax);
         
-        // Move to cluster indexing
         float near = ZCoordToLinearDepth(gl_WorkGroupID.z);
         float far = ZCoordToLinearDepth(gl_WorkGroupID.z + 1);
         

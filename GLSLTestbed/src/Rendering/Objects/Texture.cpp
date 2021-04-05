@@ -34,7 +34,6 @@ namespace PK::Rendering::Objects
     
     void Texture::CreateTextureStorage(GraphicsID& graphicsId, const TextureDescriptor& descriptor)
     {
-        // Add support for dimensions later
         glCreateTextures(descriptor.dimension, 1, &graphicsId);
         
         switch (descriptor.dimension)
@@ -60,11 +59,12 @@ namespace PK::Rendering::Objects
                 glTexStorage3DMultisample(graphicsId, descriptor.msaaSamples, descriptor.colorFormat, descriptor.resolution.x, descriptor.resolution.y, descriptor.resolution.z, GL_FALSE);
                 return;
         }
-    
+
         glTextureParameteri(graphicsId, GL_TEXTURE_MIN_FILTER, descriptor.filtermin);
         glTextureParameteri(graphicsId, GL_TEXTURE_MAG_FILTER, descriptor.filtermag);
         glTextureParameteri(graphicsId, GL_TEXTURE_WRAP_S, descriptor.wrapmodex);
         glTextureParameteri(graphicsId, GL_TEXTURE_WRAP_T, descriptor.wrapmodey);
+        glTextureParameteri(graphicsId, GL_TEXTURE_WRAP_R, descriptor.wrapmodez);
     }
     
     GLenum Texture::GetFormatChannels(GLenum format)
@@ -99,6 +99,11 @@ namespace PK::Rendering::Objects
                 return GL_RGBA;
             case GL_DEPTH24_STENCIL8:
                 return GL_DEPTH_STENCIL;
+            case GL_DEPTH_COMPONENT16:
+            case GL_DEPTH_COMPONENT24:
+            case GL_DEPTH_COMPONENT32:
+            case GL_DEPTH_COMPONENT32F:
+                return GL_DEPTH_COMPONENT;
         }
     
         PK_CORE_ERROR("UNSUPPORTED TEXTURE FORMAT");
@@ -141,6 +146,14 @@ namespace PK::Rendering::Objects
                 return GL_UNSIGNED_INT;
             case GL_DEPTH24_STENCIL8:
                 return GL_UNSIGNED_INT_24_8;
+            case GL_DEPTH_COMPONENT16:
+                return GL_UNSIGNED_SHORT;
+            case GL_DEPTH_COMPONENT24:
+                return GL_UNSIGNED_INT_24_8;
+            case GL_DEPTH_COMPONENT32:
+                return GL_UNSIGNED_INT;
+            case GL_DEPTH_COMPONENT32F:
+                return GL_FLOAT;
         }
     
         PK_CORE_ERROR("UNSUPPORTED TEXTURE FORMAT");
@@ -177,6 +190,10 @@ namespace PK::Rendering::Objects
             case GL_RGBA32F: return 128;  //4 * 32
     
             case GL_DEPTH24_STENCIL8: return 32;
+            case GL_DEPTH_COMPONENT16: return 16;
+            case GL_DEPTH_COMPONENT24: return 32;
+            case GL_DEPTH_COMPONENT32: return 32;
+            case GL_DEPTH_COMPONENT32F: return 32;
         }
     
         PK_CORE_ERROR("UNSUPPORTED TEXTURE FORMAT");
@@ -191,6 +208,7 @@ namespace PK::Rendering::Objects
             case GL_RGB: return 3;
             case GL_RGBA: return 4;
             case GL_DEPTH_STENCIL: return 1;
+            case GL_DEPTH_COMPONENT: return 1;
         }
     
         PK_CORE_ERROR("UNSUPPORTED CHANNEL FORMAT");
@@ -208,6 +226,7 @@ namespace PK::Rendering::Objects
         desc->colorFormat = tex1->glInternalformat;
         desc->wrapmodex = GL_CLAMP_TO_EDGE;
         desc->wrapmodey = GL_CLAMP_TO_EDGE;
+        desc->wrapmodez = GL_CLAMP_TO_EDGE;
         desc->filtermin = GL_NEAREST;
         desc->filtermag = GL_LINEAR;
         desc->miplevels = tex1->numLevels;

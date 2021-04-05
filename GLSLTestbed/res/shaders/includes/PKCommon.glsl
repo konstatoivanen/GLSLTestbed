@@ -59,8 +59,8 @@ PK_DECLARE_CBUFFER(pk_PerFrameConstants)
     };
 
     PK_DECLARE_READONLY_BUFFER(InstanceMatrices, pk_InstancingMatrices);
-    #define pk_MATRIX_M PK_BUFFER_DATA(pk_InstancingMatrices, PK_INSTANCE_ID).localToWorld
-    #define pk_MATRIX_I_M PK_BUFFER_DATA(pk_InstancingMatrices, PK_INSTANCE_ID).worldToLocal
+    #define pk_MATRIX_M PK_BUFFER_DATA(pk_InstancingMatrices, PK_INSTANCE_OFFSET_ID).localToWorld
+    #define pk_MATRIX_I_M PK_BUFFER_DATA(pk_InstancingMatrices, PK_INSTANCE_OFFSET_ID).worldToLocal
 #else
     // Current model matrix.
     uniform float4x4 pk_MATRIX_M;
@@ -68,24 +68,22 @@ PK_DECLARE_CBUFFER(pk_PerFrameConstants)
     uniform float4x4 pk_MATRIX_I_M;
 #endif
 
-#define HDRFactor 4.0
+#define HDRFactor 8.0
 
-float4 HDREncode(float4 color) { return float4(color.rgb / HDRFactor, color.a); }
+float4 HDREncode(float3 color) 
+{
+    color /= HDRFactor;
+    float alpha = ceil( max(max(color.r, color.g), color.b) * 255.0) / 255.0;
+    return float4(color / alpha, alpha);
+}
 
-float4 HDRDecode(float4 hdr) { return float4(hdr.rgb * HDRFactor, hdr.a); }
+float3 HDRDecode(float4 hdr) { return float3(hdr.rgb * hdr.a * HDRFactor); }
 
 float LinearizeDepth(float z) 
 { 
     return 1.0f / (pk_MATRIX_I_P[2][3] * (z * 2.0f - 1.0f) + pk_MATRIX_I_P[3][3]);
 } 
 
-float4 ComputeScreenPos(float4 clippos) 
-{
-    float4 screenpos = clippos * 0.5f;
-    screenpos.xy = screenpos.xy + screenpos.w;
-    screenpos.zw = clippos.zw;
-    return screenpos;
-}
 
 float4 WorldToClipPos( in float3 pos) { return mul(pk_MATRIX_VP, float4(pos, 1.0)); }
 
@@ -116,6 +114,14 @@ float3 WorldToObjectDir( in float3 dir) { return normalize(mul(float3x3(pk_MATRI
 float4 ObjectToClipPos( in float3 pos) { return mul(pk_MATRIX_VP, mul(pk_MATRIX_M, float4(pos, 1.0))); }
 
 float4 ObjectToClipPos(float4 pos) { return ObjectToClipPos(pos.xyz); }
+
+float4 ClipToScreenPos(float4 clippos) 
+{
+    float4 screenpos = clippos * 0.5f;
+    screenpos.xy = screenpos.xy + screenpos.w;
+    screenpos.zw = clippos.zw;
+    return screenpos;
+}
 
 float3 ClipToViewPos(float3 clippos)
 {

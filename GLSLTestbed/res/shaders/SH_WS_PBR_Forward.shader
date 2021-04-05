@@ -1,4 +1,5 @@
 #version 460
+#extension GL_ARB_bindless_texture : require
 
 #Blend Off
 #ZTest Equal
@@ -112,7 +113,7 @@ void main()
     float3 textureval = tex2D(PK_ACCESS_INSTANCED_PROP(_PBSTexture), uv).xyz;
     surf.metallic = textureval.SRC_METALLIC * PK_ACCESS_INSTANCED_PROP(_Metallic);
     surf.roughness = textureval.SRC_ROUGHNESS * PK_ACCESS_INSTANCED_PROP(_Roughness);
-    surf.occlusion = lerp(1.0f, textureval.SRC_OCCLUSION * SampleScreenSpaceOcclusion(), PK_ACCESS_INSTANCED_PROP(_Occlusion));
+    surf.occlusion = lerp(1.0f, textureval.SRC_OCCLUSION, PK_ACCESS_INSTANCED_PROP(_Occlusion)) * SampleScreenSpaceOcclusion();
 
     SV_Target0 = PhysicallyBasedShading(surf, viewdir, worldpos);
 };

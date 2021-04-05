@@ -145,6 +145,7 @@ void AssetImporters::Import<Material>(const std::string& filepath, Ref<Material>
 
 	auto shaderPath = shaderPathProp.as<std::string>();
 	material->m_shader = Application::GetService<AssetDatabase>()->Load<Shader>(shaderPath);
+	material->m_cachedShaderAssetId = material->m_shader.lock()->GetAssetID();
 	material->m_renderQueueIndex = material->m_shader.lock()->GetRenderQueueIndex();
 
 	auto keywords = data["Keywords"];

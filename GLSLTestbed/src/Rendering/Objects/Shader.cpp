@@ -35,7 +35,7 @@ namespace PK::Rendering::Objects
 		}
 	}
 	
-	uint32_t ShaderVariantMap::GetActiveIndex()
+	uint32_t ShaderVariantMap::GetActiveIndex() const
 	{
 		uint32_t idx = 0;
 	
@@ -337,6 +337,33 @@ namespace PK::Rendering::Objects
 			return false;
 		}
 		
+		static bool IsInterfacePresentInProgramStages(GLuint program, GLuint programInterface, GLuint index)
+		{
+			GLuint props[6] =
+			{
+				GL_REFERENCED_BY_FRAGMENT_SHADER,
+				GL_REFERENCED_BY_VERTEX_SHADER,
+				GL_REFERENCED_BY_TESS_CONTROL_SHADER,
+				GL_REFERENCED_BY_TESS_EVALUATION_SHADER,
+				GL_REFERENCED_BY_GEOMETRY_SHADER,
+				GL_REFERENCED_BY_COMPUTE_SHADER
+			};
+
+			GLint count;
+
+			for (uint i = 0; i < 6; ++i)
+			{
+				glGetProgramResourceiv(program, programInterface, index, 1, props + i, 1, NULL, &count);
+			
+				if (count)
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		static void GetCullModeFromString(const std::string& cull, GLenum& mode, bool& enabled)
 		{
 			if (cull.empty() || cull == "Off")
@@ -457,13 +484,51 @@ namespace PK::Rendering::Objects
 			return;
 		}
 	
+		static void ExtractInstancingInfo(const std::string& source, const ShaderVariantMap& variants, ShaderInstancingInfo& instancingInfo)
+		{
+			auto instancingKeyword = StringHashID::StringToID("PK_ENABLE_INSTANCING");
+			instancingInfo.supportsInstancing = variants.keywords.count(instancingKeyword) > 0;
+			instancingInfo.hasInstancedProperties = false;
+
+			if (!instancingInfo.supportsInstancing)
+			{
+				return;
+			}
+
+			std::vector<BufferElement> elements;
+			std::vector<std::string> instancedProperties;
+			Utilities::String::FindTokens("PK_INSTANCED_PROPERTY", source, instancedProperties, true);
+
+			for (auto& propRaw : instancedProperties)
+			{
+				auto values = Utilities::String::Split(propRaw, " ;\n\r");
+
+				if (values.size() != 3)
+				{
+					continue;
+				}
+			
+				auto type = Math::Convert::FromNativeString(values.at(1).c_str());
+				auto name = values.at(2);
+
+				elements.push_back(BufferElement(type, name));
+			}
+
+			instancingInfo.hasInstancedProperties = !elements.empty();
+		
+			if (instancingInfo.hasInstancedProperties)
+			{
+				instancingInfo.propertyLayout = BufferLayout(elements);
+			}
+		}
+
 		static void ExtractStateAttributes(std::string& source, FixedStateAttributes& parameters)
 		{
-			auto valueZWrite = Utilities::String::ExtractTokens("#ZWrite ", source, false);
-			auto valueZTest = Utilities::String::ExtractTokens("#ZTest ", source, false);
-			auto valueBlend = Utilities::String::ExtractTokens("#Blend ", source, false);
-			auto valueColorMask = Utilities::String::ExtractTokens("#ColorMask ", source, false);
-			auto valueCull = Utilities::String::ExtractTokens("#Cull ", source, false);
+			auto valueZWrite = Utilities::String::ExtractToken("#ZWrite ", source, false);
+			auto valueZTest = Utilities::String::ExtractToken("#ZTest ", source, false);
+			auto valueBlend = Utilities::String::ExtractToken("#Blend ", source, false);
+			auto valueColorMask = Utilities::String::ExtractToken("#ColorMask ", source, false);
+			auto valueCull = Utilities::String::ExtractToken("#Cull ", source, false);
 		
 			if (!valueZWrite.empty())
 			{
@@ -494,7 +559,7 @@ namespace PK::Rendering::Objects
 		
 		static void ExtractRenderQueueIndex(std::string& source, uint32_t* queueIndex)
 		{
-			auto valueIdentifier = Utilities::String::ExtractTokens("#RenderPass", source, false);
+			auto valueIdentifier = Utilities::String::ExtractToken("#RenderPass", source, false);
 
 			if (!valueIdentifier.empty())
 			{
@@ -508,7 +573,7 @@ namespace PK::Rendering::Objects
 
 		static void ProcessShaderVersion(std::string& source)
 		{
-			auto versionToken = Utilities::String::ExtractTokens("#version ", source, true);
+			auto versionToken = Utilities::String::ExtractToken("#version ", source, true);
 			
 			if (versionToken.empty())
 			{
@@ -693,6 +758,12 @@ namespace PK::Rendering::Objects
 			// Map Compute Buffers
 			for (GLuint i = 0; i < (GLuint)bufferCount; ++i)
 			{
+				// Inteface query returns false positives for ssbos but GL_REFERENCED_BY_*_SHADER doesn't ¯\_(ツ)_/¯
+				if (!IsInterfacePresentInProgramStages(program, GL_SHADER_STORAGE_BLOCK, i))
+				{
+					continue;
+				}
+				
 				glGetProgramResourceName(program, GL_SHADER_STORAGE_BLOCK, i, maxnamelength, &length, name);
 				auto location = glGetProgramResourceIndex(program, GL_SHADER_STORAGE_BLOCK, name);
 				glShaderStorageBlockBinding(program, location, location);
@@ -743,8 +814,6 @@ namespace PK::Rendering::Objects
 			glUseProgram(currentProgram);
 		}
 	}
-	
-	
 }
 
 template<> 
@@ -766,6 +835,7 @@ void PK::Core::AssetImporters::Import(const std::string& filepath, PK::Utilities
 	PK::Rendering::Objects::ShaderCompiler::ExtractMulticompiles(source, mckeywords, shader->m_variantMap);
 	PK::Rendering::Objects::ShaderCompiler::ExtractStateAttributes(source, shader->m_stateAttributes);
 	PK::Rendering::Objects::ShaderCompiler::ExtractRenderQueueIndex(source, &shader->m_renderQueueIndex);
+	PK::Rendering::Objects::ShaderCompiler::ExtractInstancingInfo(source, shader->m_variantMap, shader->m_instancingInfo);
 
 	PK::Rendering::Objects::ShaderCompiler::GetSharedInclude(source, sharedInclude);
 

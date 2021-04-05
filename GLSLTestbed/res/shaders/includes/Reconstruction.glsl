@@ -14,7 +14,8 @@ float3 UnpackNormal(in float3 packedNormal)
 
 float3 SampleNormal(in sampler2D map, in float3x3 rotation, in float2 uv, float amount)
 {
-    return lerp(rotation[2], mul(rotation, UnpackNormal(tex2D(map, uv).xyz)), amount);
+    float3 unpackedNormal =  UnpackNormal(tex2D(map, uv).xyz);
+    return lerp(rotation[2], mul(rotation, unpackedNormal), amount);
 }
 
 float2 ParallaxOffset(float height, float heightAmount, float3 viewdir)

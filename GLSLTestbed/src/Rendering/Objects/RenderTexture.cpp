@@ -22,6 +22,23 @@ namespace PK::Rendering::Objects
 		return textureDescriptor;
 	}
 	
+	static GLenum GetDepthAttachmentType(GLenum depthFormat)
+	{
+		switch (depthFormat)
+		{
+			case GL_DEPTH24_STENCIL8:
+			case GL_DEPTH32F_STENCIL8:
+				return GL_DEPTH_STENCIL_ATTACHMENT;
+			case GL_DEPTH_COMPONENT16:
+			case GL_DEPTH_COMPONENT24:
+			case GL_DEPTH_COMPONENT32:
+			case GL_DEPTH_COMPONENT32F:
+				return GL_DEPTH_ATTACHMENT;
+		}
+
+		PK_CORE_ERROR("Unsupported depth format!");
+	}
+
 	RenderTexture::RenderTexture(const RenderTextureDescriptor& descriptor) : Texture(TextureDescriptor())
 	{
 		Rebuild(descriptor);
@@ -62,22 +79,23 @@ namespace PK::Rendering::Objects
 			{
 				RenderBuffer::Validate(m_colorBuffers[i], ConvertDescriptor(descriptor, descriptor.colorFormats.at(i)));
 				// glFramebufferTexture2D
-				GraphicsAPI::SetRenderBuffer(m_graphicsId, m_colorBuffers[i], GL_COLOR_ATTACHMENT0 + i);
+				GraphicsAPI::SetRenderBuffer(m_graphicsId, m_colorBuffers[i].get(), GL_COLOR_ATTACHMENT0 + i);
 				m_bufferAttachments[i] = GL_COLOR_ATTACHMENT0 + i;
 			}
 		}
 	
 		if (descriptor.depthFormat != GL_NONE)
 		{
+			auto depthAttachmentType = GetDepthAttachmentType(descriptor.depthFormat);
 			RenderBuffer::Validate(m_depthBuffer, ConvertDescriptor(descriptor, descriptor.depthFormat));
-			GraphicsAPI::SetRenderBuffer(m_graphicsId, m_depthBuffer, GL_DEPTH_STENCIL_ATTACHMENT);
-			m_bufferAttachments[colorCount] = GL_DEPTH_STENCIL_ATTACHMENT;
+			GraphicsAPI::SetRenderBuffer(m_graphicsId, m_depthBuffer.get(), depthAttachmentType);
+			m_bufferAttachments[colorCount] = depthAttachmentType;
 			++m_bufferAttachmentCount;
 		}
 	
 		ResetDrawTargets();
 	
-		PK_CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!");
+		PK_CORE_ASSERT(glCheckNamedFramebufferStatus(m_graphicsId, GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!");
 	}
 	
 	void RenderTexture::ValidateResolution(const uint3& resolution)

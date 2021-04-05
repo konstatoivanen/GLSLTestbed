@@ -31,6 +31,13 @@ float SampleDepth(float2 uv)
     return LinearizeDepth(d) + ViewPortClip(uv, d);
 }                      
 
+float GetDepthBlurFactor(float2 uv)
+{
+    //@TODO solve this correctly later
+    float d = 1.0f - (LinearizeDepth(tex2D(pk_ScreenDepth, uv).r) - pk_ProjectionParams.y) / pk_ProjectionParams.z;
+    return d * d * d * d * d * d * d * d * d * d * d * d * d * d * d * d;
+}
+
 float CompareNormal(float3 normal0, float3 normal1)
 {
     return pow((dot(normal0, normal1) + 1) * 0.5f, kGeometryAwareness);
@@ -88,7 +95,7 @@ float ComputeCoarseAO(float2 uv)
 
 half SeparableBlurLarge(float2 uv)
 {
-    float2 delta = _Maintex_TexelSize.xy * _BlurVector;
+    float2 delta = _Maintex_TexelSize.xy * _BlurVector * GetDepthBlurFactor(uv);
 
     float2 uv10 = uv - delta * 1.0f;
     float2 uv11 = uv + delta * 1.0f;
@@ -120,7 +127,7 @@ half SeparableBlurLarge(float2 uv)
 
 half SeparableBlurSmall(float2 uv)
 {
-    float2 delta = _Maintex_TexelSize.xy * _BlurVector;
+    float2 delta = _Maintex_TexelSize.xy * _BlurVector * GetDepthBlurFactor(uv);
 
     float2 uv0 = uv - delta;
     float2 uv1 = uv + delta;

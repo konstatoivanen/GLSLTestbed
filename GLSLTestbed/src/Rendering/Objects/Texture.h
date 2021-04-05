@@ -15,6 +15,7 @@ namespace PK::Rendering::Objects
         GLenum dimension = GL_TEXTURE_2D;
         GLenum wrapmodex = GL_REPEAT;
         GLenum wrapmodey = GL_REPEAT;
+        GLenum wrapmodez = GL_REPEAT;
         GLenum filtermag = GL_LINEAR;
         GLenum filtermin = GL_LINEAR;
         uint miplevels = 0;
@@ -36,6 +37,7 @@ namespace PK::Rendering::Objects
             uint GetSize() const { return m_descriptor.resolution.x * m_descriptor.resolution.y * m_descriptor.resolution.z * GetTexelSize(m_descriptor.colorFormat); }
             uint8_t GetChannelCount() const { return GetChannelCount(m_channels); }
             GLenum GetDimension() const { return m_descriptor.dimension; }
+            GLuint64 GetBindlessHandle() const { return glGetTextureHandleARB(m_graphicsId); }
     
             void SetWrapMode(GLenum x, GLenum y);
             void SetFilterMode(GLenum min, GLenum mag);

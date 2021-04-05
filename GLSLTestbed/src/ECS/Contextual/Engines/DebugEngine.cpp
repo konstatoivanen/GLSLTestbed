@@ -35,7 +35,7 @@ namespace PK::ECS::Engines
 		implementer->scale = CG_FLOAT3_ONE * size;
 		implementer->sharedMaterials.push_back(material);
 		implementer->sharedMesh = mesh;
-		implementer->type = Components::RenderHandleType::MeshRenderer;
+		implementer->flags = Components::RenderHandleFlags::Renderer;
 		implementer->viewSize = 1.0f;
 	
 		return egid;
@@ -58,17 +58,23 @@ namespace PK::ECS::Engines
 		lightView->transform = static_cast<Components::Transform*>(implementer);
 		lightSphereView->transformLight = static_cast<Components::Transform*>(implementer);
 	
-		float intensity = glm::length(float3(color.rgb));
-		auto radius = 4 * glm::sqrt(intensity);
-		auto hdrColor = color * (intensity * intensity);
+		const auto intensityThreshold = 0.2f;
+		const auto sphereRadius = 0.2f;
+		const auto sphereTranslucency = 0.1f;
+		auto lightColor = glm::exp(color);
+		auto hdrColor = lightColor * sphereTranslucency * (1.0f / (sphereRadius * sphereRadius));
+
+		float3 gammaColor = glm::pow(float3(lightColor.rgb), float3(1.0f / 2.2f));
+		float intensity = glm::compMax(gammaColor);
+		auto radius = intensity / intensityThreshold;
 	
 		implementer->localAABB = Functions::CreateBoundsCenterExtents(CG_FLOAT3_ZERO, CG_FLOAT3_ONE * radius);
 		implementer->isCullable = true;
 		implementer->isVisible = false;
 		implementer->position = position;
-		implementer->color = color;
+		implementer->color = lightColor;
 		implementer->radius = radius;
-		implementer->type = Components::RenderHandleType::PointLight;
+		implementer->flags = Components::RenderHandleFlags::Light;
 		implementer->viewSize = 1.0f;
 	
 		auto mesh = assetDatabase->Find<Mesh>("Primitive_Sphere").lock();
@@ -76,7 +82,7 @@ namespace PK::ECS::Engines
 		auto material = assetDatabase->RegisterProcedural("M_Point_Light_" + std::to_string(egid.entityID()), CreateRef<Material>(shader));
 		material.lock()->SetFloat4(StringHashID::StringToID("_Color"), hdrColor);
 		
-		auto meshEgid = CreateMeshRenderable(entityDb, position, CG_FLOAT3_ZERO, 0.2f, mesh, material);
+		auto meshEgid = CreateMeshRenderable(entityDb, position, CG_FLOAT3_ZERO, sphereRadius, mesh, material);
 		auto meshView = entityDb->Query<EntityViews::TransformView>(meshEgid);
 		lightSphereView->transformMesh = meshView->transform;
 	}
@@ -101,8 +107,10 @@ namespace PK::ECS::Engines
 		auto minpos = float3(-40, -5, -40);
 		auto maxpos = float3(40, 0, 40);
 
+		srand(config.RandomSeed);
+
 		CreateMeshRenderable(entityDb, float3(0,-5,0), { 90, 0, 0 }, 40.0f, planeMesh, materialWood);
-	
+		
 		for (auto i = 0; i < 256; ++i)
 		{
 			CreateMeshRenderable(entityDb, Functions::RandomRangeFloat3(minpos, maxpos), Functions::RandomEuler(), 1.0f, sphereMesh, materialMetal);
@@ -115,7 +123,7 @@ namespace PK::ECS::Engines
 	
 		for (uint i = 0; i < config.LightCount; ++i)
 		{
-			CreatePointLight(entityDb, assetDatabase, Functions::RandomRangeFloat3(minpos, maxpos), Functions::HueToRGB(Functions::RandomRangeFloat(0.0f, 1.0f)) * Functions::RandomRangeFloat(1.0f, 2.0f));
+			CreatePointLight(entityDb, assetDatabase, Functions::RandomRangeFloat3(minpos, maxpos), Functions::HueToRGB(Functions::RandomRangeFloat(0.0f, 1.0f)) * Functions::RandomRangeFloat(5.0f, 6.0f));
 		}
 	}
 	
@@ -134,9 +142,8 @@ namespace PK::ECS::Engines
 	
 		if (input->GetKeyDown(KeyCode::R))
 		{
-			auto shader = m_assetDatabase->Find<Shader>("SH_WS_PBR_Forward");
-			m_assetDatabase->Reload<Shader>(shader);
-			PK_CORE_LOG("Reimported shader: %s", shader.lock()->GetFileName().c_str());
+			m_assetDatabase->ReloadDirectory<Shader>("res/shaders/", { ".shader" });
+			PK_CORE_LOG("Reimported shaders!                                        ");
 		}
 	
 		if (input->GetKey(KeyCode::C))
@@ -149,7 +156,6 @@ namespace PK::ECS::Engines
 	
 	void DebugEngine::Step(int condition)
 	{
-		return;
 		auto lights = m_entityDb->Query<EntityViews::LightSphere>((int)ENTITY_GROUPS::ACTIVE);
 		auto time = Application::GetService<Time>()->GetTime();
 	
@@ -160,6 +166,7 @@ namespace PK::ECS::Engines
 			lights[i].transformMesh->position.y = ypos;
 		}
 	
+		return;
 		auto meshes = m_entityDb->Query<EntityViews::MeshRenderable>((int)ENTITY_GROUPS::ACTIVE);
 	
 		for (auto i = 0; i < meshes.count; ++i)
@@ -192,14 +199,13 @@ namespace PK::ECS::Engines
 			gizmos->DrawFrustrum(vp);
 		}
 
-		return;
 		auto cullables = m_entityDb->Query<EntityViews::BaseRenderable>((int)ENTITY_GROUPS::ACTIVE);
 	
 		gizmos->SetColor(CG_COLOR_GREEN);
 
 		for (auto i = 0; i < cullables.count; ++i)
 		{
-			if (cullables[i].handle->type != Components::RenderHandleType::PointLight)
+			if (cullables[i].handle->flags != Components::RenderHandleFlags::Light)
 			{
 				continue;
 			}

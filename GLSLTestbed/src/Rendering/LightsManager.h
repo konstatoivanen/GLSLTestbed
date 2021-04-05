@@ -1,8 +1,11 @@
 #pragma once
 #include "Utilities/Ref.h"
-#include "Rendering/Objects/Buffer.h"
 #include "Core/NoCopy.h"
 #include "ECS/EntityDatabase.h"
+#include "ECS/Contextual/EntityViews/EntityViews.h"
+#include "Rendering/Batching.h"
+#include "Rendering/Objects/Buffer.h"
+#include "Rendering/Objects/RenderTexture.h"
 #include <hlslmath.h>
 
 namespace PK::Rendering
@@ -10,14 +13,32 @@ namespace PK::Rendering
     using namespace PK::Math;
     using namespace PK::Rendering::Objects;
 
+    struct ShadowmapData
+    {
+        Batching::MeshBatchCollection Batches;
+        Utilities::Ref<RenderTexture> ShadowmapCube;
+        Utilities::Ref<RenderTexture> ShadowmapOctahedron;
+        Utilities::Ref<RenderTexture> ShadowmapAtlas;
+
+        Utilities::Weak<Shader> ShaderRenderCube;
+        Utilities::Weak<Shader> ShaderBlurCube;
+        Utilities::Weak<Shader> ShaderBlitToAtlas;
+
+        static const uint TileSize = 512;
+        static const uint TileCountPerAxis = 8; 
+        static const uint CurrentTileIndex = 0;
+    };
+
     class LightsManager : public PK::Core::NoCopy
     {
         public:
             LightsManager(AssetDatabase* assetDatabase);
 
-            void Update(PK::ECS::EntityDatabase* entityDb, Core::BufferView<uint> visibleLights, const uint2& resolution, float znear, float zfar);
+            void Preprocess(PK::ECS::EntityDatabase* entityDb, Core::BufferView<uint> visibleLights, const uint2& resolution, float znear, float zfar);
 
             void UpdateLightTiles(const uint2& resolution);
+
+            void DrawDebug();
 
         private:
             const uint MaxLightsPerTile = 64;
@@ -29,10 +50,13 @@ namespace PK::Rendering
             uint m_passKeywords[2];
 
             ShaderPropertyBlock m_properties;
+            ShadowmapData m_shadowmapData;
+
             Utilities::Weak<Shader> m_computeLightAssignment;
             Utilities::Weak<Shader> m_computeCullClusters;
             Utilities::Weak<Shader> m_computeDepthTiles;
             Utilities::Weak<Shader> m_computeDepthReset;
+            Utilities::Weak<Shader> m_debugVisualize;
 
             Utilities::Ref<ComputeBuffer> m_lightsBuffer;
             Utilities::Ref<ComputeBuffer> m_globalLightsList;

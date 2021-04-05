@@ -26,11 +26,11 @@ namespace PK::Rendering
 		GraphicsAPI::SetGlobalFloat(hashCache->pk_SceneOEM_Exposure, exposure);
 	}
 	
-	static void UpdateDynamicBatches(ECS::EntityDatabase* entityDb, FrustumCuller& culler, DynamicBatcher& batcher)
+	static void UpdateDynamicBatches(ECS::EntityDatabase* entityDb, Culling::VisibilityCache& viscache, Batching::DynamicBatchCollection& batches)
 	{
-		batcher.Reset();
+		Batching::ResetCollection(&batches);
 	
-		auto cullingResults = culler.GetCullingResults((int)ECS::Components::RenderHandleType::MeshRenderer);
+		auto cullingResults = viscache.GetList(Culling::CullingGroup::CameraFrustum, (int)ECS::Components::RenderHandleFlags::Renderer);
 	
 		for (uint i = 0; i < cullingResults.count; ++i)
 		{
@@ -40,11 +40,11 @@ namespace PK::Rendering
 	
 			for (auto i = 0; i < materials->size(); ++i)
 			{
-				batcher.QueueDraw(mesh, i, materials->at(i), &view->transform->localToWorld, &view->transform->worldToLocal);
+				Batching::QueueDraw(&batches, mesh, i, materials->at(i), &view->transform->localToWorld, &view->transform->worldToLocal);
 			}
 		}
 	
-		batcher.UpdateBuffers();
+		Batching::UpdateBuffers(&batches);
 	}
 	
 	RenderPipeline::RenderPipeline(AssetDatabase* assetDatabase, ECS::EntityDatabase* entityDb, const ApplicationConfig& config) :
@@ -69,6 +69,8 @@ namespace PK::Rendering
 		m_OEMBackgroundShader = assetDatabase->Find<Shader>("SH_VS_IBLBackground");
 		m_OEMTexture = assetDatabase->Find<TextureXD>(config.FileBackgroundTexture.c_str());
 		m_OEMExposure = config.BackgroundExposure;
+
+		m_enableLightingDebug = config.EnableLightingDebug;
 	
 		auto renderTargetDescriptor = RenderTextureDescriptor();
 		renderTargetDescriptor.colorFormats = { GL_RGBA16F };
@@ -134,7 +136,7 @@ namespace PK::Rendering
 	{
 		GraphicsAPI::StartWindow();
 		GraphicsAPI::ResetResourceBindings();
-	
+
 		m_constantsPerFrame->CopyFrom(m_context.ShaderProperties);
 		m_constantsPerFrame->FlushBufer();
 		GraphicsAPI::SetGlobalConstantBuffer(HashCache::Get()->pk_PerFrameConstants, m_constantsPerFrame->GetGraphicsID());
@@ -142,48 +144,60 @@ namespace PK::Rendering
 	
 		auto resolution = GraphicsAPI::GetActiveWindowResolution();
 
-		m_frustrumCuller.Update(m_entityDb, GraphicsAPI::GetActiveViewProjectionMatrix());
+		Culling::ResetEntityVisibilities(m_entityDb);
+		m_visibilityCache.Reset();
+		
+		Culling::BuildVisibilityCacheFrustum(m_entityDb, 
+			&m_visibilityCache, 
+			GraphicsAPI::GetActiveViewProjectionMatrix(), 
+			Culling::CullingGroup::CameraFrustum, 
+			(ushort)(ECS::Components::RenderHandleFlags::Renderer | ECS::Components::RenderHandleFlags::Light));
 	
 		auto projectionParams = *m_constantsPerFrame->GetPropertyPtr<float4>(HashCache::Get()->pk_ProjectionParams);
 
-		UpdateDynamicBatches(m_entityDb, m_frustrumCuller, m_dynamicBatcher);
+		UpdateDynamicBatches(m_entityDb, m_visibilityCache, m_dynamicBatches);
 	
 		m_HDRRenderTarget->ValidateResolution(uint3(resolution, 0));
 		m_PreZRenderTarget->ValidateResolution(uint3(resolution, 0));
 
-		m_lightsManager.Update(m_entityDb, m_frustrumCuller.GetCullingResults((int)ECS::Components::RenderHandleType::PointLight), resolution, projectionParams.y, projectionParams.z);
+		m_lightsManager.Preprocess(m_entityDb, m_visibilityCache.GetList(Culling::CullingGroup::CameraFrustum, (int)ECS::Components::RenderHandleFlags::Light), resolution, projectionParams.y, projectionParams.z);
 	}
 	
 	void RenderPipeline::OnRender()
 	{
-		GraphicsAPI::SetRenderTarget(m_PreZRenderTarget);
+		GraphicsAPI::SetRenderTarget(m_PreZRenderTarget.get());
 		GraphicsAPI::Clear(CG_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		auto depthNormals = m_depthNormalsShader.lock();
-		m_dynamicBatcher.Execute(0, depthNormals);
+		Batching::DrawBatches(&m_dynamicBatches, 0, depthNormals.get());
 
 		GraphicsAPI::SetGlobalTexture(HashCache::Get()->pk_ScreenDepth, m_PreZRenderTarget->GetDepthBuffer().lock()->GetGraphicsID());
 		GraphicsAPI::SetGlobalTexture(HashCache::Get()->pk_ScreenNormals, m_PreZRenderTarget->GetColorBuffer(0).lock()->GetGraphicsID());
 		
 		m_lightsManager.UpdateLightTiles(m_PreZRenderTarget->GetResolution2D());
 
-		m_filterAO.Execute(m_PreZRenderTarget, nullptr);
+		m_filterAO.Execute(m_PreZRenderTarget.get(), nullptr);
 
-		GraphicsAPI::SetRenderTarget(m_HDRRenderTarget);
+		GraphicsAPI::SetRenderTarget(m_HDRRenderTarget.get());
 		GraphicsAPI::Clear(CG_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT);
 
-		GraphicsAPI::CopyRenderTexture(m_PreZRenderTarget, m_HDRRenderTarget, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		GraphicsAPI::CopyRenderTexture(m_PreZRenderTarget.get(), m_HDRRenderTarget.get(), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
-		GraphicsAPI::Blit(m_OEMBackgroundShader.lock());
+		GraphicsAPI::Blit(m_OEMBackgroundShader.lock().get());
 
 		// @Todo Implement depth sorted index queue
 		// @Todo Implement render passes
-		m_dynamicBatcher.Execute(0);
+		Batching::DrawBatches(&m_dynamicBatches, 0);
 
-		m_filterBloom.Execute(m_HDRRenderTarget, GraphicsAPI::GetBackBuffer());
+		m_filterBloom.Execute(m_HDRRenderTarget.get(), GraphicsAPI::GetBackBuffer());
 
 		// Required for gizmos depth testing
-		GraphicsAPI::CopyRenderTexture(m_HDRRenderTarget, nullptr, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		GraphicsAPI::CopyRenderTexture(m_HDRRenderTarget.get(), nullptr, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+		if (m_enableLightingDebug)
+		{
+			m_lightsManager.DrawDebug();
+		}
 	}
 	
 	void RenderPipeline::OnPostRender()

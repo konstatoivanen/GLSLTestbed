@@ -22,6 +22,7 @@ namespace PK::Math
 			case CG_TYPE::UINT3: return CG_TYPE_SIZE_INT3;
 			case CG_TYPE::INT4: 
 			case CG_TYPE::UINT4: return CG_TYPE_SIZE_INT4;
+			case CG_TYPE::SAMPLER: return CG_TYPE_SIZE_SAMPLER;
 			case CG_TYPE::TEXTURE: return CG_TYPE_SIZE_TEXTURE;
 			case CG_TYPE::CONSTANT_BUFFER: return CG_TYPE_SIZE_CONSTANT_BUFFER;
 			case CG_TYPE::COMPUTE_BUFFER: return CG_TYPE_SIZE_COMPUTE_BUFFER;
@@ -49,6 +50,7 @@ namespace PK::Math
 			case CG_TYPE::UINT3: return CG_TYPE_COMPONENTS_INT3;
 			case CG_TYPE::INT4: 
 			case CG_TYPE::UINT4: return CG_TYPE_COMPONENTS_INT4;
+			case CG_TYPE::SAMPLER: return CG_TYPE_COMPONENTS_SAMPLER;
 			case CG_TYPE::TEXTURE: return CG_TYPE_COMPONENTS_TEXTURE;
 			case CG_TYPE::CONSTANT_BUFFER: return CG_TYPE_COMPONENTS_CONSTANT_BUFFER;
 			case CG_TYPE::COMPUTE_BUFFER: return CG_TYPE_COMPONENTS_COMPUTE_BUFFER;
@@ -76,6 +78,7 @@ namespace PK::Math
 			case CG_TYPE::UINT2: return GL_UNSIGNED_INT;
 			case CG_TYPE::UINT3: return GL_UNSIGNED_INT;
 			case CG_TYPE::UINT4: return GL_UNSIGNED_INT;
+			case CG_TYPE::SAMPLER: return GL_UNSIGNED_INT64_ARB;
 			case CG_TYPE::TEXTURE: return GL_INT;
 			case CG_TYPE::CONSTANT_BUFFER: return GL_INT;
 			case CG_TYPE::COMPUTE_BUFFER: return GL_INT;
@@ -103,6 +106,7 @@ namespace PK::Math
 			case CG_TYPE::UINT2: return GL_UNSIGNED_INT_VEC2;
 			case CG_TYPE::UINT3: return GL_UNSIGNED_INT_VEC3;
 			case CG_TYPE::UINT4: return GL_UNSIGNED_INT_VEC4;
+			case CG_TYPE::SAMPLER: return GL_SAMPLER;
 			case CG_TYPE::TEXTURE: return GL_TEXTURE;
 			case CG_TYPE::CONSTANT_BUFFER: return GL_UNIFORM_BUFFER;
 			case CG_TYPE::COMPUTE_BUFFER: return GL_SHADER_STORAGE_BUFFER;
@@ -130,11 +134,55 @@ namespace PK::Math
 			case GL_UNSIGNED_INT_VEC2: return CG_TYPE::UINT2;
 			case GL_UNSIGNED_INT_VEC3: return CG_TYPE::UINT3;
 			case GL_UNSIGNED_INT_VEC4: return CG_TYPE::UINT4;
+			case GL_SAMPLER:
+			case GL_SAMPLER_1D:
+			case GL_SAMPLER_1D_ARRAY:
+			case GL_SAMPLER_2D:
+			case GL_SAMPLER_2D_ARRAY:
+			case GL_SAMPLER_3D:
+			case GL_SAMPLER_CUBE: return CG_TYPE::SAMPLER;
 			case GL_TEXTURE: return CG_TYPE::TEXTURE;
 			case GL_UNIFORM_BUFFER: return CG_TYPE::CONSTANT_BUFFER;
 			case GL_SHADER_STORAGE_BUFFER: return CG_TYPE::COMPUTE_BUFFER;
 		}
 
+		return CG_TYPE::INVALID;
+	}
+
+	CG_TYPE Convert::FromNativeString(const char* string)
+	{
+		if (strcmp(string, "float") == 0) return CG_TYPE::FLOAT;
+		if (strcmp(string, "vec2") == 0) return CG_TYPE::FLOAT2;
+		if (strcmp(string, "float2") == 0) return CG_TYPE::FLOAT2;
+		if (strcmp(string, "vec3") == 0) return CG_TYPE::FLOAT3;
+		if (strcmp(string, "float3") == 0) return CG_TYPE::FLOAT3;
+		if (strcmp(string, "vec4") == 0) return CG_TYPE::FLOAT4;
+		if (strcmp(string, "float4") == 0) return CG_TYPE::FLOAT4;
+
+		if (strcmp(string, "mat2") == 0) return CG_TYPE::FLOAT2X2;
+		if (strcmp(string, "float2x2") == 0) return CG_TYPE::FLOAT2X2;
+		if (strcmp(string, "mat3") == 0) return CG_TYPE::FLOAT3X3;
+		if (strcmp(string, "float3x3") == 0) return CG_TYPE::FLOAT3X3;
+		if (strcmp(string, "mat4") == 0) return CG_TYPE::FLOAT4X4;
+		if (strcmp(string, "float4x4") == 0) return CG_TYPE::FLOAT4X4;
+		
+		if (strcmp(string, "int") == 0) return CG_TYPE::INT;
+		if (strcmp(string, "ivec2") == 0) return CG_TYPE::INT2;
+		if (strcmp(string, "int2") == 0) return CG_TYPE::INT2;
+		if (strcmp(string, "ivec3") == 0) return CG_TYPE::INT3;
+		if (strcmp(string, "int3") == 0) return CG_TYPE::INT3;
+		if (strcmp(string, "ivec4") == 0) return CG_TYPE::INT4;
+		if (strcmp(string, "int4") == 0) return CG_TYPE::INT4;
+		if (strcmp(string, "uint") == 0) return CG_TYPE::UINT;
+		if (strcmp(string, "uvec2") == 0) return CG_TYPE::UINT2;
+		if (strcmp(string, "uint2") == 0) return CG_TYPE::UINT2;
+		if (strcmp(string, "uvec3") == 0) return CG_TYPE::UINT3;
+		if (strcmp(string, "uint3") == 0) return CG_TYPE::UINT3;
+		if (strcmp(string, "uvec4") == 0) return CG_TYPE::UINT4;
+		if (strcmp(string, "uint4") == 0) return CG_TYPE::UINT4;
+		if (strcmp(string, "sampler1D") == 0) return CG_TYPE::SAMPLER;
+		if (strcmp(string, "sampler2D") == 0) return CG_TYPE::SAMPLER;
+		if (strcmp(string, "sampler3D") == 0) return CG_TYPE::SAMPLER;
 		return CG_TYPE::INVALID;
 	}
 	
@@ -157,6 +205,7 @@ namespace PK::Math
 			case CG_TYPE::UINT2: return "UINT2";
 			case CG_TYPE::UINT3: return "UINT3";
 			case CG_TYPE::UINT4: return "UINT4";
+			case CG_TYPE::SAMPLER: return "SAMPLER";
 			case CG_TYPE::TEXTURE: return "TEXTURE";
 			case CG_TYPE::CONSTANT_BUFFER: return "CONSTANT_BUFFER";
 			case CG_TYPE::COMPUTE_BUFFER: return "COMPUTE_BUFFER";
@@ -182,6 +231,7 @@ namespace PK::Math
 		if (strcmp(string, "UINT2") == 0) return CG_TYPE::UINT2;
 		if (strcmp(string, "UINT3") == 0) return CG_TYPE::UINT3;
 		if (strcmp(string, "UINT4") == 0) return CG_TYPE::UINT4;
+		if (strcmp(string, "SAMPLER") == 0) return CG_TYPE::SAMPLER;
 		if (strcmp(string, "TEXTURE") == 0) return CG_TYPE::TEXTURE;
 		if (strcmp(string, "CONSTANT_BUFFER") == 0) return CG_TYPE::CONSTANT_BUFFER;
 		if (strcmp(string, "COMPUTE_BUFFER") == 0) return CG_TYPE::COMPUTE_BUFFER;
@@ -216,10 +266,20 @@ namespace PK::Math
 	
 		return m;
 	}
+
+	float4x4 Functions::GetMatrixTRS(const float3& position, const float3& euler, const float3& scale)
+	{
+		return GetMatrixTRS(position, glm::quat(euler), scale);
+	}
 	
 	float4x4 Functions::GetMatrixInvTRS(const float3& position, const quaternion& rotation, const float3& scale)
 	{
 		return glm::inverse(GetMatrixTRS(position, rotation, scale));
+	}
+
+	float4x4 Functions::GetMatrixInvTRS(const float3& position, const float3& euler, const float3& scale)
+	{
+		return GetMatrixInvTRS(position, glm::quat(euler), scale);
 	}
 	
 	float4x4 Functions::GetMatrixTR(const float3& position, const quaternion& rotation)
@@ -395,6 +455,22 @@ namespace PK::Math
 		}
 	
 		return true;
+	}
+
+	bool Functions::IntersectAABB(const BoundingBox& a, const BoundingBox& b)
+	{
+		auto overlap = (!(a.min[0] > b.max[0]) && !(a.max[0] < b.min[0]));
+		overlap = (!(a.min[1] > b.max[1]) && !(a.max[1] < b.min[1])) && overlap;
+		overlap = (!(a.min[2] > b.max[2]) && !(a.max[2] < b.min[2])) && overlap;
+		return overlap;
+	}
+
+	bool Functions::IntersectSphere(const float3& center, float radius, const BoundingBox& b)
+	{
+		float3 d = glm::abs(center - b.GetCenter()) - b.GetExtents();
+		float r = radius - glm::compMax(min(d, float3(0.0f)));
+		d = max(d, float3(0.0f));
+		return radius > 0.0f && dot(d, d) <= r * r;
 	}
 	
 	void Functions::BoundsEncapsulate(BoundingBox* bounds, const BoundingBox& other)

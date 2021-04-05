@@ -20,7 +20,7 @@ BRDF_DATA_CACHE brdf_cache;
 
 float3 FresnelTerm(float3 F0, float cosA)
 {
-    float t = pow5 (1 - cosA);
+    float t = pow5(1 - cosA);
     return F0 + (1-F0).xxx * t;
 }
 

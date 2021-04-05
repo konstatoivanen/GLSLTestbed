@@ -127,7 +127,7 @@ namespace PK::Utilities::String
 		return ReadFileRecursiveInclude(filepath, includes, false);
 	}
 	
-	std::string ExtractTokens(const char* token, std::string& source, bool includeToken)
+	std::string ExtractToken(const char* token, std::string& source, bool includeToken)
 	{
 		std::string firstToken;
 	
@@ -186,6 +186,57 @@ namespace PK::Utilities::String
 
 		source.erase(pos, sol - pos);
 		return pos;
+	}
+
+	void ExtractTokens(const char* token, std::string& source, std::vector<std::string>& tokens, bool includeToken)
+	{
+		auto pos = source.find(token, 0);
+
+		while (pos != std::string::npos)
+		{
+			auto eol = source.find_first_of("\r\n", pos);
+			auto sol = source.find_first_not_of("\r\n", eol);
+			PK_CORE_ASSERT(eol != std::string::npos, "Syntax error");
+			PK_CORE_ASSERT(sol != std::string::npos, "Syntax error");
+
+			if (includeToken)
+			{
+				tokens.push_back(source.substr(pos, sol - pos));
+			}
+			else
+			{
+				auto spos = pos + strlen(token);
+				tokens.push_back(source.substr(spos, eol - spos));
+			}
+
+			source.erase(pos, sol - pos);
+			pos = source.find(token);
+		}
+	}
+
+	void FindTokens(const char* token, const std::string& source, std::vector<std::string>& tokens, bool includeToken)
+	{
+		auto pos = source.find(token, 0);
+
+		while (pos != std::string::npos)
+		{
+			auto eol = source.find_first_of("\r\n", pos);
+			auto sol = source.find_first_not_of("\r\n", eol);
+			PK_CORE_ASSERT(eol != std::string::npos, "Syntax error");
+			PK_CORE_ASSERT(sol != std::string::npos, "Syntax error");
+
+			if (includeToken)
+			{
+				tokens.push_back(source.substr(pos, sol - pos));
+			}
+			else
+			{
+				auto spos = pos + strlen(token);
+				tokens.push_back(source.substr(spos, eol - spos));
+			}
+
+			pos = source.find(token, sol);
+		}
 	}
 
 	size_t FirstIndexOf(const char* str, char c)

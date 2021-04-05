@@ -8,8 +8,8 @@
 #include "Rendering/Objects/TextureXD.h"
 #include "Rendering/Structs/GraphicsContext.h"
 #include "Rendering/Structs/StructsCommon.h"
-#include "Rendering/DynamicBatcher.h"
-#include "Rendering/FrustumCuller.h"
+#include "Rendering/Batching.h"
+#include "Rendering/Culling.h"
 #include "Rendering/PostProcessing/FilterBloom.h"
 #include "Rendering/PostProcessing/FilterAO.h"
 #include "Rendering/LightsManager.h"
@@ -29,10 +29,12 @@ namespace PK::Rendering
             void OnRender();
             void OnPostRender();
     
+            bool m_enableLightingDebug;
+
             GraphicsContext m_context;  
             PK::ECS::EntityDatabase* m_entityDb;
-            FrustumCuller m_frustrumCuller;
-            DynamicBatcher m_dynamicBatcher;
+            Culling::VisibilityCache m_visibilityCache;
+            Batching::DynamicBatchCollection m_dynamicBatches;
             LightsManager m_lightsManager;
             PostProcessing::FilterBloom m_filterBloom;
             PostProcessing::FilterAO m_filterAO;

@@ -154,6 +154,6 @@ namespace PK::Rendering
         m_vertexBuffer->MapBuffer(m_vertices.data(), m_vertices.size() * sizeof(GizmoVertex));
     
         GraphicsAPI::SetGlobalComputeBuffer(HashCache::Get()->pk_GizmoVertices, m_vertexBuffer->GetGraphicsID());
-        GraphicsAPI::DrawProcedural(m_gizmoShader.lock(), GL_LINES, 0, m_vertexCount);
+        GraphicsAPI::DrawProcedural(m_gizmoShader.lock().get(), GL_LINES, 0, m_vertexCount);
     }
 }
