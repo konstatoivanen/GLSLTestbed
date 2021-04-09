@@ -1641,7 +1641,6 @@
     <None Include="res\textures\T_OEM_Mountains2.ktx" />
     <None Include="res\shaders\SH_VS_ShadowmapCube.shader" />
     <None Include="res\shaders\SH_VS_ShadowmapBlurCube.shader" />
-    <None Include="res\shaders\SH_VS_ShadowmapAtlas.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">

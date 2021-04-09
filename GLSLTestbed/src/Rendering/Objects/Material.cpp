@@ -191,7 +191,14 @@ void AssetImporters::Import<Material>(const std::string& filepath, Ref<Material>
 				case CG_TYPE::INT2: material->SetInt2(nameHash, values.as<int2>()); break;
 				case CG_TYPE::INT3: material->SetInt3(nameHash, values.as<int3>()); break;
 				case CG_TYPE::INT4: material->SetInt4(nameHash, values.as<int4>()); break;
-				case CG_TYPE::TEXTURE: material->SetTexture(nameHash, values.as<Weak<TextureXD>>().lock()->GetGraphicsID()); break;
+				case CG_TYPE::TEXTURE: 
+				{
+					auto texture = values.as<Weak<TextureXD>>().lock();
+					texture->MakeHandleResident();
+					auto handle = texture->GetBindlessHandle();
+					material->SetResourceHandle(nameHash, handle); break;
+				}
+				break;
 			}
 		}
 	}

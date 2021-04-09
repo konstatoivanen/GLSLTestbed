@@ -20,10 +20,10 @@ namespace PK::Rendering::Culling
 		}
 	}
 
-	void Culling::BuildVisibilityListFrustum(PK::ECS::EntityDatabase* entityDb, VisibilityList* list, const float4x4& matrix, ushort typeMask)
+	void Culling::ExecuteOnVisibleItemsFrustum(PK::ECS::EntityDatabase* entityDb, const float4x4& matrix, ushort typeMask, OnVisibleItem onvisible, void* context)
 	{
-		FrustrumPlanes frustrum;
-		Functions::ExtractFrustrumPlanes(matrix, &frustrum, true);
+		FrustrumPlanes frustum;
+		Functions::ExtractFrustrumPlanes(matrix, &frustum, true);
 
 		auto cullables = entityDb->Query<ECS::EntityViews::BaseRenderable>((int)ECS::ENTITY_GROUPS::ACTIVE);
 
@@ -36,17 +36,17 @@ namespace PK::Rendering::Culling
 				continue;
 			}
 
-			auto isVisible = !cullable->handle->isCullable || Functions::IntersectPlanesAABB(frustrum.planes, 6, cullable->bounds->worldAABB);
+			auto isVisible = !cullable->handle->isCullable || Functions::IntersectPlanesAABB(frustum.planes, 6, cullable->bounds->worldAABB);
 			cullable->handle->isVisible |= isVisible;
 
 			if (isVisible)
 			{
-				Utilities::PushVectorElement(list->list, &list->count, cullable->GID.entityID());
+				onvisible(entityDb, cullable->GID, Functions::PlaneDistanceToAABB(frustum.planes[4], cullable->bounds->worldAABB), context);
 			}
 		}
 	}
 
-	void Culling::BuildVisibilityListAABB(PK::ECS::EntityDatabase* entityDb, VisibilityList* list, const BoundingBox& aabb, ushort typeMask)
+	void Culling::ExecuteOnVisibleItemsAABB(PK::ECS::EntityDatabase* entityDb, const BoundingBox& aabb, ushort typeMask, OnVisibleItem onvisible, void* context)
 	{
 		auto cullables = entityDb->Query<ECS::EntityViews::BaseRenderable>((int)ECS::ENTITY_GROUPS::ACTIVE);
 
@@ -64,12 +64,12 @@ namespace PK::Rendering::Culling
 
 			if (isVisible)
 			{
-				Utilities::PushVectorElement(list->list, &list->count, cullable->GID.entityID());
+				onvisible(entityDb, cullable->GID, 0.0f, context);
 			}
 		}
 	}
 
-	void Culling::BuildVisibilityListSphere(PK::ECS::EntityDatabase* entityDb, VisibilityList* list, const float3& center, float radius, ushort typeMask)
+	void Culling::ExecuteOnVisibleItemsSphere(PK::ECS::EntityDatabase* entityDb, const float3& center, float radius, ushort typeMask, OnVisibleItem onvisible, void* context)
 	{
 		auto cullables = entityDb->Query<ECS::EntityViews::BaseRenderable>((int)ECS::ENTITY_GROUPS::ACTIVE);
 
@@ -87,7 +87,7 @@ namespace PK::Rendering::Culling
 
 			if (isVisible)
 			{
-				Utilities::PushVectorElement(list->list, &list->count, cullable->GID.entityID());
+				onvisible(entityDb, cullable->GID, 0.0f, context);
 			}
 		}
 	}

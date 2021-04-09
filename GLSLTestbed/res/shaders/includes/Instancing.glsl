@@ -11,7 +11,7 @@
 
         #define PK_VARYING_INSTANCE_ID out flat uint3 pk_instanceIds;
         #define PK_INSTANCE_BASE_ID gl_InstanceID
-        #define PK_INSTANCE_OFFSET_ID (PK_INSTANCE_BASE_ID + gl_BaseInstance)
+        #define PK_INSTANCE_OFFSET_ID (gl_InstanceID + gl_BaseInstance)
         #define PK_INSTANCE_PROPERTIES_ID PK_BUFFER_DATA(pk_InstancingPropertyIndices, PK_INSTANCE_OFFSET_ID)
         #define PK_SETUP_INSTANCE_ID() pk_instanceIds = uint3(PK_INSTANCE_BASE_ID, PK_INSTANCE_OFFSET_ID, PK_INSTANCE_PROPERTIES_ID)
 

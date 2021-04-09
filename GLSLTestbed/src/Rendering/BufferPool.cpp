@@ -13,7 +13,7 @@ namespace PK::Rendering
     
         if (m_buffers.at(m_usedCount) == nullptr)
         {
-            m_buffers[m_usedCount] = CreateRef<ComputeBuffer>(BufferLayout({ {CG_TYPE::FLOAT4, "DATA"} }), (uint)count);
+            m_buffers[m_usedCount] = CreateRef<ComputeBuffer>(BufferLayout({ {CG_TYPE::FLOAT4, "DATA"} }), (uint)count, false, GL_STREAM_DRAW);
         }
         else
         {

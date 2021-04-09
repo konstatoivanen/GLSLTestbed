@@ -14,9 +14,9 @@ namespace PK::Rendering::Objects
 	{
 		public:
 			VertexBuffer(size_t size);
-			VertexBuffer(const void* vertices, size_t size);
+			VertexBuffer(const void* vertices, size_t size, bool immutable);
 			VertexBuffer(size_t elementCount, const BufferLayout& layout);
-			VertexBuffer(const void* vertices, size_t elementCount, const BufferLayout& layout);
+			VertexBuffer(const void* vertices, size_t elementCount, const BufferLayout& layout, bool immutable);
 			~VertexBuffer();
 	
 			void SetData(const void* data, size_t size);
@@ -26,18 +26,20 @@ namespace PK::Rendering::Objects
 	
 		private:
 			BufferLayout m_layout;
+			bool m_immutable;
 	};
 	
 	class IndexBuffer : public GraphicsObject
 	{
 		public:
-			IndexBuffer(uint* indices, uint count);
+			IndexBuffer(uint* indices, uint count, bool immutable);
 			~IndexBuffer();
 		
 			uint GetCount() const { return m_count; }
-	
+
 		private:
 			uint m_count;
+			bool m_immutable;
 	};
 	
 	class ConstantBuffer : public GraphicsObject, public PropertyBlock
@@ -52,7 +54,7 @@ namespace PK::Rendering::Objects
 	class ComputeBuffer : public GraphicsObject
 	{
 		public:
-			ComputeBuffer(const BufferLayout& layout, uint count, GLenum usage = GL_DYNAMIC_DRAW);
+			ComputeBuffer(const BufferLayout& layout, uint count, bool immutable, uint flags);
 			~ComputeBuffer();
 			void Resize(uint newCount);
 			void ValidateSize(uint newCount);
@@ -89,5 +91,6 @@ namespace PK::Rendering::Objects
 			BufferLayout m_layout;
 			size_t m_count;
 			GLenum m_usage;
+			bool m_immutable;
 	};
 }

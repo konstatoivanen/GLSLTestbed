@@ -22,7 +22,7 @@ namespace PK::Math
 			case CG_TYPE::UINT3: return CG_TYPE_SIZE_INT3;
 			case CG_TYPE::INT4: 
 			case CG_TYPE::UINT4: return CG_TYPE_SIZE_INT4;
-			case CG_TYPE::SAMPLER: return CG_TYPE_SIZE_SAMPLER;
+			case CG_TYPE::HANDLE: return CG_TYPE_SIZE_HANDLE;
 			case CG_TYPE::TEXTURE: return CG_TYPE_SIZE_TEXTURE;
 			case CG_TYPE::CONSTANT_BUFFER: return CG_TYPE_SIZE_CONSTANT_BUFFER;
 			case CG_TYPE::COMPUTE_BUFFER: return CG_TYPE_SIZE_COMPUTE_BUFFER;
@@ -50,7 +50,7 @@ namespace PK::Math
 			case CG_TYPE::UINT3: return CG_TYPE_COMPONENTS_INT3;
 			case CG_TYPE::INT4: 
 			case CG_TYPE::UINT4: return CG_TYPE_COMPONENTS_INT4;
-			case CG_TYPE::SAMPLER: return CG_TYPE_COMPONENTS_SAMPLER;
+			case CG_TYPE::HANDLE: return CG_TYPE_COMPONENTS_HANDLE;
 			case CG_TYPE::TEXTURE: return CG_TYPE_COMPONENTS_TEXTURE;
 			case CG_TYPE::CONSTANT_BUFFER: return CG_TYPE_COMPONENTS_CONSTANT_BUFFER;
 			case CG_TYPE::COMPUTE_BUFFER: return CG_TYPE_COMPONENTS_COMPUTE_BUFFER;
@@ -78,7 +78,7 @@ namespace PK::Math
 			case CG_TYPE::UINT2: return GL_UNSIGNED_INT;
 			case CG_TYPE::UINT3: return GL_UNSIGNED_INT;
 			case CG_TYPE::UINT4: return GL_UNSIGNED_INT;
-			case CG_TYPE::SAMPLER: return GL_UNSIGNED_INT64_ARB;
+			case CG_TYPE::HANDLE: return GL_UNSIGNED_INT64_ARB;
 			case CG_TYPE::TEXTURE: return GL_INT;
 			case CG_TYPE::CONSTANT_BUFFER: return GL_INT;
 			case CG_TYPE::COMPUTE_BUFFER: return GL_INT;
@@ -106,7 +106,7 @@ namespace PK::Math
 			case CG_TYPE::UINT2: return GL_UNSIGNED_INT_VEC2;
 			case CG_TYPE::UINT3: return GL_UNSIGNED_INT_VEC3;
 			case CG_TYPE::UINT4: return GL_UNSIGNED_INT_VEC4;
-			case CG_TYPE::SAMPLER: return GL_SAMPLER;
+			case CG_TYPE::HANDLE: return GL_UNSIGNED_INT64_ARB;
 			case CG_TYPE::TEXTURE: return GL_TEXTURE;
 			case CG_TYPE::CONSTANT_BUFFER: return GL_UNIFORM_BUFFER;
 			case CG_TYPE::COMPUTE_BUFFER: return GL_SHADER_STORAGE_BUFFER;
@@ -140,7 +140,7 @@ namespace PK::Math
 			case GL_SAMPLER_2D:
 			case GL_SAMPLER_2D_ARRAY:
 			case GL_SAMPLER_3D:
-			case GL_SAMPLER_CUBE: return CG_TYPE::SAMPLER;
+			case GL_SAMPLER_CUBE: return CG_TYPE::HANDLE;
 			case GL_TEXTURE: return CG_TYPE::TEXTURE;
 			case GL_UNIFORM_BUFFER: return CG_TYPE::CONSTANT_BUFFER;
 			case GL_SHADER_STORAGE_BUFFER: return CG_TYPE::COMPUTE_BUFFER;
@@ -180,9 +180,11 @@ namespace PK::Math
 		if (strcmp(string, "uint3") == 0) return CG_TYPE::UINT3;
 		if (strcmp(string, "uvec4") == 0) return CG_TYPE::UINT4;
 		if (strcmp(string, "uint4") == 0) return CG_TYPE::UINT4;
-		if (strcmp(string, "sampler1D") == 0) return CG_TYPE::SAMPLER;
-		if (strcmp(string, "sampler2D") == 0) return CG_TYPE::SAMPLER;
-		if (strcmp(string, "sampler3D") == 0) return CG_TYPE::SAMPLER;
+		if (strcmp(string, "sampler1D") == 0) return CG_TYPE::HANDLE;
+		if (strcmp(string, "sampler2D") == 0) return CG_TYPE::HANDLE;
+		if (strcmp(string, "sampler2DArray") == 0) return CG_TYPE::HANDLE;
+		if (strcmp(string, "samplerCubeArray") == 0) return CG_TYPE::HANDLE;
+		if (strcmp(string, "sampler3D") == 0) return CG_TYPE::HANDLE;
 		return CG_TYPE::INVALID;
 	}
 	
@@ -205,7 +207,7 @@ namespace PK::Math
 			case CG_TYPE::UINT2: return "UINT2";
 			case CG_TYPE::UINT3: return "UINT3";
 			case CG_TYPE::UINT4: return "UINT4";
-			case CG_TYPE::SAMPLER: return "SAMPLER";
+			case CG_TYPE::HANDLE: return "HANDLE";
 			case CG_TYPE::TEXTURE: return "TEXTURE";
 			case CG_TYPE::CONSTANT_BUFFER: return "CONSTANT_BUFFER";
 			case CG_TYPE::COMPUTE_BUFFER: return "COMPUTE_BUFFER";
@@ -231,7 +233,7 @@ namespace PK::Math
 		if (strcmp(string, "UINT2") == 0) return CG_TYPE::UINT2;
 		if (strcmp(string, "UINT3") == 0) return CG_TYPE::UINT3;
 		if (strcmp(string, "UINT4") == 0) return CG_TYPE::UINT4;
-		if (strcmp(string, "SAMPLER") == 0) return CG_TYPE::SAMPLER;
+		if (strcmp(string, "HANDLE") == 0) return CG_TYPE::HANDLE;
 		if (strcmp(string, "TEXTURE") == 0) return CG_TYPE::TEXTURE;
 		if (strcmp(string, "CONSTANT_BUFFER") == 0) return CG_TYPE::CONSTANT_BUFFER;
 		if (strcmp(string, "COMPUTE_BUFFER") == 0) return CG_TYPE::COMPUTE_BUFFER;
@@ -436,6 +438,14 @@ namespace PK::Math
 			NormalizePlane(&planes[4]);
 			NormalizePlane(&planes[5]);
 		}
+	}
+
+	float Functions::PlaneDistanceToAABB(const float4& plane, const BoundingBox& aabb)
+	{
+		auto bx = plane.x > 0 ? aabb.max.x : aabb.min.x;
+		auto by = plane.y > 0 ? aabb.max.y : aabb.min.y;
+		auto bz = plane.z > 0 ? aabb.max.z : aabb.min.z;
+		return plane.x * bx + plane.y * by + plane.z * bz + plane.w;
 	}
 	
 	bool Functions::IntersectPlanesAABB(const float4* planes, int planeCount, const BoundingBox& aabb)

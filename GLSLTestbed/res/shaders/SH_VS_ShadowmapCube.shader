@@ -1,4 +1,5 @@
 #version 460
+#extension GL_ARB_shader_viewport_layer_array : require
 
 #Cull Front
 #ZTest LEqual
@@ -7,119 +8,65 @@
 #multi_compile _ PK_ENABLE_INSTANCING
 
 #include includes/PKCommon.glsl
-#include includes/LightingCommon.glsl
-uniform uint pk_ShadowmapLightIndex;
 
 #pragma PROGRAM_VERTEX
+#include includes/LightingCommon.glsl
 
-layout(location = 0) in float4 in_POSITION0;
-
-void main()
+const float3 faceSigns[6] =
 {
-	gl_Position = float4(ObjectToWorldPos(in_POSITION0.xyz), 1.0f);
+	 float3(-1, -1,  1),
+	 float3( 1, -1, -1),
+
+	 float3(1,  1,  1),
+	 float3(1, -1, -1),
+
+	 float3( 1, -1,  1),
+	 float3(-1, -1, -1),
 };
 
-#pragma PROGRAM_GEOMETRY
-
-const uint3 axisswizzles[3] =
+const uint3 swizzles[6] =
 {
 	uint3(2,1,0),
+	uint3(2,1,0),
+	
 	uint3(0,2,1),
+	uint3(0,2,1),
+	
+	uint3(0,1,2),
 	uint3(0,1,2),
 };
 
-const float3 facesigns[6] = 
-{
-	// X
-    float3(-1, -1, 1),
-    float3( 1, -1, -1),
-	// Y
-    float3( 1,  1,  1),
-	float3( 1, -1, -1),
-	// Z
-	float3( 1, -1,  1),
-    float3(-1, -1, -1),
-};
-
-uniform float4x4 pk_ShadowmapMatrix;
-
-layout(triangles, invocations = 6) in;
-layout(triangle_strip, max_vertices = 3) out;
-
-out noperspective float3 vs_POSITION;
+layout(location = 0) in float3 in_POSITION0;
+out noperspective float3 vs_VIEWVECTOR;
 
 void main()
 {
-	float4 lposition = PK_BUFFER_DATA(pk_Lights, pk_ShadowmapLightIndex).position;
-	float3 center = lposition.xyz;
-	float  zfar = lposition.w;
+	uint lightIndex = 0;
+	uint faceIndex = 0;
 
-	uint3 swizzle = axisswizzles[gl_InvocationID / 2];
-	float3 fsign = facesigns[gl_InvocationID];
+	#if defined(PK_ENABLE_INSTANCING)
+		uint data = PK_INSTANCE_PROPERTIES_ID;
+		lightIndex = bitfieldExtract(data, 0, 16);
+		faceIndex = bitfieldExtract(data, 24, 8);
+		gl_Layer = int(bitfieldExtract(data, 16, 8) * 6 + faceIndex);
+	#endif
 
-	gl_Layer = gl_InvocationID;
+	float4 light = PK_BUFFER_DATA(pk_Lights, lightIndex).position;
+	vs_VIEWVECTOR = ObjectToWorldPos(in_POSITION0) - light.xyz;
 
-	float3 outpositions[3];
-	float4 viewpositions[3];
-	float2 clippositions[3];
+	float3 vpos = float3(vs_VIEWVECTOR[swizzles[faceIndex].x], vs_VIEWVECTOR[swizzles[faceIndex].y], vs_VIEWVECTOR[swizzles[faceIndex].z]) * faceSigns[faceIndex];
 
-	outpositions[0] = gl_in[0].gl_Position.xyz;
-	outpositions[1] = gl_in[1].gl_Position.xyz;
-	outpositions[2] = gl_in[2].gl_Position.xyz;
-
-	viewpositions[0] = float4(outpositions[0] - center, 1.0f);
-	viewpositions[1] = float4(outpositions[1] - center, 1.0f);
-	viewpositions[2] = float4(outpositions[2] - center, 1.0f);
-
-	viewpositions[0].xyz = float3(viewpositions[0][swizzle.x], viewpositions[0][swizzle.y], viewpositions[0][swizzle.z]) * fsign;
-	viewpositions[1].xyz = float3(viewpositions[1][swizzle.x], viewpositions[1][swizzle.y], viewpositions[1][swizzle.z]) * fsign;
-	viewpositions[2].xyz = float3(viewpositions[2][swizzle.x], viewpositions[2][swizzle.y], viewpositions[2][swizzle.z]) * fsign;
-
-	viewpositions[0] = mul(pk_ShadowmapMatrix, viewpositions[0]);
-	viewpositions[1] = mul(pk_ShadowmapMatrix, viewpositions[1]);
-	viewpositions[2] = mul(pk_ShadowmapMatrix, viewpositions[2]);
-
-	// ClipToScreenPos
-	clippositions[0] = viewpositions[0].xy / viewpositions[0].w;
-	clippositions[1] = viewpositions[1].xy / viewpositions[1].w;
-	clippositions[2] = viewpositions[2].xy / viewpositions[2].w;
-
-	float2 minp = min(min(clippositions[0], clippositions[1]), clippositions[2]);
-	float2 maxp = max(max(clippositions[0], clippositions[1]), clippositions[2]);
-
-	if (Less(maxp, float2(-1.0f)) || Greater(minp, float2(1.0f)))
-	{
-		return;
-	}
-
-	vs_POSITION = outpositions[0];
-	gl_Position = viewpositions[0];
-	EmitVertex();
-
-	vs_POSITION = outpositions[1];
-	gl_Position = viewpositions[1];
-	EmitVertex();
-
-	vs_POSITION = outpositions[2];
-	gl_Position = viewpositions[2];
-	EmitVertex();
-
-	EndPrimitive();
-}
+	gl_Position = float4(vpos.xy, 1.020202f * vpos.z - light.w * 0.020202f, vpos.z);
+};
 
 #pragma PROGRAM_FRAGMENT
 
-in float3 vs_POSITION;
+in noperspective float3 vs_VIEWVECTOR;
 layout(early_fragment_tests) in;
 layout(location = 0) out float2 SV_Target0;
 
 void main()
 {
-	PKRawLight light = PK_BUFFER_DATA(pk_Lights, pk_ShadowmapLightIndex);
-
-	float3 lvector = vs_POSITION - light.position.xyz;
-	float dist = length(lvector);
-	float sqrdist = dist * dist;
-
-	SV_Target0 = float2(dist, sqrdist);
+	float sqrdist = dot(vs_VIEWVECTOR, vs_VIEWVECTOR);
+	SV_Target0 = float2(sqrt(sqrdist), sqrdist);
 };

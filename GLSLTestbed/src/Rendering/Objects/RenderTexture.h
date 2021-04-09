@@ -15,6 +15,7 @@ namespace PK::Rendering::Objects
         GLenum dimension = GL_TEXTURE_2D;
         GLenum wrapmodex = GL_REPEAT;
         GLenum wrapmodey = GL_REPEAT;
+        GLenum wrapmodez = GL_REPEAT;
         GLenum filtermag = GL_LINEAR;
         GLenum filtermin = GL_LINEAR;
         uint32_t miplevels = 0;

@@ -15,7 +15,7 @@ namespace PK::Rendering
     {
         m_sequencer = sequencer;
         m_gizmoShader = assetDatabase->Find<Shader>("SH_WS_Gizmos");
-        m_vertexBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE::FLOAT4, "POSITION" }, { CG_TYPE::FLOAT4, "COLOR" } }), 32);
+        m_vertexBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE::FLOAT4, "POSITION" }, { CG_TYPE::FLOAT4, "COLOR" } }), 32, false, GL_STREAM_DRAW);
         m_enabled = enabled;
     }
     

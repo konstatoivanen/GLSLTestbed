@@ -14,14 +14,17 @@ namespace PK::Rendering::Culling
         ShadowFrustum,
     };
 
-    struct VisibilityList
-    {
-        std::vector<uint> list;
-        size_t count = 0;
-    };
+    typedef void (*OnVisibleItem)(ECS::EntityDatabase*, ECS::EGID, float depth, void*);
 
     class VisibilityCache
     {
+        private:
+            struct VisibilityList
+            {
+                std::vector<uint> list;
+                size_t count = 0;
+            };
+
         public:
             void AddItem(CullingGroup group, ushort type, uint item);
             
@@ -40,15 +43,15 @@ namespace PK::Rendering::Culling
                 return { nullptr, 0 };
             }
 
-        private:
+        private:            
             std::map<uint, VisibilityList> m_visibilityLists;
     };
 
-    void BuildVisibilityListFrustum(PK::ECS::EntityDatabase* entityDb, VisibilityList* list, const float4x4& matrix, ushort typeMask);
+    void ExecuteOnVisibleItemsFrustum(PK::ECS::EntityDatabase* entityDb, const float4x4& matrix, ushort typeMask, OnVisibleItem onvisible, void* context);
 
-    void BuildVisibilityListAABB(PK::ECS::EntityDatabase* entityDb, VisibilityList* list, const BoundingBox& aabb, ushort typeMask);
+    void ExecuteOnVisibleItemsAABB(PK::ECS::EntityDatabase* entityDb, const BoundingBox& aabb, ushort typeMask, OnVisibleItem onvisible, void* context);
 
-    void BuildVisibilityListSphere(PK::ECS::EntityDatabase* entityDb, VisibilityList* list, const float3& center, float radius, ushort typeMask);
+    void ExecuteOnVisibleItemsSphere(PK::ECS::EntityDatabase* entityDb, const float3& center, float radius, ushort typeMask, OnVisibleItem onvisible, void* context);
 
     void BuildVisibilityCacheFrustum(PK::ECS::EntityDatabase* entityDb, VisibilityCache* cache, const float4x4& matrix, CullingGroup group, ushort typeMask);
     

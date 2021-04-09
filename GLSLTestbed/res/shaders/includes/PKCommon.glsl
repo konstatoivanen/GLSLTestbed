@@ -52,15 +52,9 @@ PK_DECLARE_CBUFFER(pk_PerFrameConstants)
 };
 
 #if defined(PK_ENABLE_INSTANCING)
-    struct InstanceMatrices
-    {
-        float4x4 localToWorld;
-        float4x4 worldToLocal;
-    };
-
-    PK_DECLARE_READONLY_BUFFER(InstanceMatrices, pk_InstancingMatrices);
-    #define pk_MATRIX_M PK_BUFFER_DATA(pk_InstancingMatrices, PK_INSTANCE_OFFSET_ID).localToWorld
-    #define pk_MATRIX_I_M PK_BUFFER_DATA(pk_InstancingMatrices, PK_INSTANCE_OFFSET_ID).worldToLocal
+    PK_DECLARE_READONLY_BUFFER(float4x4, pk_InstancingMatrices);
+    #define pk_MATRIX_M PK_BUFFER_DATA(pk_InstancingMatrices, PK_INSTANCE_OFFSET_ID)
+    #define pk_MATRIX_I_M inverse(PK_BUFFER_DATA(pk_InstancingMatrices, PK_INSTANCE_OFFSET_ID))
 #else
     // Current model matrix.
     uniform float4x4 pk_MATRIX_M;

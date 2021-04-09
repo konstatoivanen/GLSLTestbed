@@ -10,6 +10,87 @@ namespace PK::Rendering::Batching
     using namespace Objects;
 
     template<typename T>
+    static void QuickSortBatchesIndexed(T* arr, int low, int high)
+    {
+        int i = low;
+        int j = high;
+        auto pivotDepth = arr[(i + j) / 2].depth;
+        auto pivotIndex = arr[(i + j) / 2].index;
+
+        while (i <= j)
+        {
+            while (arr[i].index < pivotIndex || (arr[i].index == pivotIndex && arr[i].depth < pivotDepth))
+            {
+                i++;
+            }
+            
+            while (arr[j].index > pivotIndex || (arr[j].index == pivotIndex && arr[j].depth > pivotDepth))
+            {
+                j--;
+            }
+
+            if (i <= j)
+            {
+                auto temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+                i++;
+                j--;
+            }
+        }
+
+        if (j > low)
+        {
+            QuickSortBatchesIndexed(arr, low, j);
+        }
+
+        if (i < high)
+        {
+            QuickSortBatchesIndexed(arr, i, high);
+        }
+    }
+
+    template<typename T>
+    static void QuickSortBatches(T* arr, int low, int high)
+    {
+        int i = low;
+        int j = high;
+        auto pivotDepth = arr[(i + j) / 2].depth;
+
+        while (i <= j)
+        {
+            while (arr[i].depth < pivotDepth)
+            {
+                i++;
+            }
+
+            while (arr[j].depth > pivotDepth)
+            {
+                j--;
+            }
+
+            if (i <= j)
+            {
+                auto temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+                i++;
+                j--;
+            }
+        }
+
+        if (j > low)
+        {
+            QuickSortBatches(arr, low, j);
+        }
+
+        if (i < high)
+        {
+            QuickSortBatches(arr, i, high);
+        }
+    }
+
+    template<typename T>
     static bool GetBatch(std::unordered_map<ulong, uint>& batchmap, std::vector<T>& batches, ulong key, T** batch, uint* batchIndex)
     {
         if (batchmap.count(key) < 1)
@@ -64,8 +145,19 @@ namespace PK::Rendering::Batching
         }
     }
 
+    void ResetCollection(IndexedMeshBatchCollection* collection)
+    {
+        collection->TotalDrawCallCount = 0;
+
+        for (auto& batch : collection->MeshBatches)
+        {
+            batch.drawCallCount = 0;
+            batch.instancingOffset = 0;
+        }
+    }
+
   
-    void QueueDraw(DynamicBatchCollection* collection, Weak<Mesh>& mesh, int submesh, Weak<Material>& material, float4x4* localToWorld, float4x4* worldToLocal)
+    void QueueDraw(DynamicBatchCollection* collection, Weak<Mesh>& mesh, int submesh, Weak<Material>& material, const Drawcall& drawcall)
     {
         auto meshref = mesh.lock();
         auto materialref = material.lock();
@@ -96,7 +188,7 @@ namespace PK::Rendering::Batching
 
             if (instancingInfo.hasInstancedProperties)
             {
-                shaderBatch->instancedData = CreateRef<ComputeBuffer>(instancingInfo.propertyLayout, 1, GL_STREAM_DRAW);
+                shaderBatch->instancedData = CreateRef<ComputeBuffer>(instancingInfo.propertyLayout, 1, false, GL_STREAM_DRAW);
             }
         }
 
@@ -113,16 +205,14 @@ namespace PK::Rendering::Batching
             Utilities::PushVectorElementRef(shaderBatch->materialBatches, &shaderBatch->materialBatchCount, materialBatchIndex);
         }
 
-        Utilities::ValidateVectorSize(materialBatch->matrices, (materialBatch->drawCallCount + 1) * 2);
-        materialBatch->matrices[materialBatch->drawCallCount * 2 + 0] = localToWorld;
-        materialBatch->matrices[materialBatch->drawCallCount * 2 + 1] = worldToLocal;
-        ++materialBatch->drawCallCount;
+        Utilities::ValidateVectorSize(materialBatch->drawcalls, materialBatch->drawCallCount + 1);
+        materialBatch->drawcalls[materialBatch->drawCallCount++] = drawcall;
         ++shaderBatch->drawCallCount;
         ++meshBatch->drawCallCount;
         ++collection->TotalDrawCallCount;
     }
 
-    void QueueDraw(MeshBatchCollection* collection, Weak<Mesh>& mesh, float4x4* localToWorld, float4x4* worldToLocal)
+    void QueueDraw(MeshBatchCollection* collection, Weak<Mesh>& mesh, const Drawcall& drawcall)
     {
         auto meshref = mesh.lock();
         auto meshId = (ulong)meshref->GetGraphicsID();
@@ -133,10 +223,24 @@ namespace PK::Rendering::Batching
         GetBatch(collection->BatchMap, collection->MeshBatches, meshId, &meshBatch, &meshBatchIndex);
         meshBatch->mesh = meshref.get();
 
-        Utilities::ValidateVectorSize(meshBatch->matrices, (meshBatch->drawCallCount + 1) * 2);
-        meshBatch->matrices[meshBatch->drawCallCount * 2 + 0] = localToWorld;
-        meshBatch->matrices[meshBatch->drawCallCount * 2 + 1] = worldToLocal;
-        ++meshBatch->drawCallCount;
+        Utilities::ValidateVectorSize(meshBatch->drawcalls, meshBatch->drawCallCount + 1);
+        meshBatch->drawcalls[meshBatch->drawCallCount++] = drawcall;
+        ++collection->TotalDrawCallCount;
+    }
+
+    void QueueDraw(IndexedMeshBatchCollection* collection, Weak<Mesh>& mesh, const DrawcallIndexed& drawcall)
+    {
+        auto meshref = mesh.lock();
+        auto meshId = (ulong)meshref->GetGraphicsID();
+
+        uint meshBatchIndex = 0;
+        IndexedMeshBatch* meshBatch = nullptr;
+
+        GetBatch(collection->BatchMap, collection->MeshBatches, meshId, &meshBatch, &meshBatchIndex);
+        meshBatch->mesh = meshref.get();
+
+        Utilities::ValidateVectorSize(meshBatch->drawcalls, meshBatch->drawCallCount + 1);
+        meshBatch->drawcalls[meshBatch->drawCallCount++] = drawcall;
         ++collection->TotalDrawCallCount;
     }
 
@@ -150,7 +254,7 @@ namespace PK::Rendering::Batching
 
         if (collection->PropertyIndices == nullptr)
         {
-            collection->PropertyIndices = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE::UINT, "Index"} }), (uint)collection->TotalDrawCallCount, GL_STREAM_DRAW);
+            collection->PropertyIndices = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE::UINT, "Index"} }), (uint)collection->TotalDrawCallCount, false, GL_STREAM_DRAW);
         }
         else
         {
@@ -159,15 +263,15 @@ namespace PK::Rendering::Batching
 
         if (collection->MatrixBuffer == nullptr)
         {
-            collection->MatrixBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE::FLOAT4X4, "Matrix"} }), (uint)collection->TotalDrawCallCount * 2, GL_STREAM_DRAW);
+            collection->MatrixBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE::FLOAT4X4, "Matrix"} }), (uint)collection->TotalDrawCallCount, false, GL_STREAM_DRAW);
         }
         else
         {
-            collection->MatrixBuffer->ValidateSize((uint)collection->TotalDrawCallCount * 2);
+            collection->MatrixBuffer->ValidateSize((uint)collection->TotalDrawCallCount);
         }
 
         auto indexBuffer = collection->PropertyIndices->BeginMapBufferRange<uint>(0, collection->TotalDrawCallCount);
-        auto matrixBuffer = collection->MatrixBuffer->BeginMapBufferRange<float4x4>(0, collection->TotalDrawCallCount * 2);
+        auto matrixBuffer = collection->MatrixBuffer->BeginMapBufferRange<float4x4>(0, collection->TotalDrawCallCount);
         auto shaderBatches = collection->ShaderBatches.data();
         auto materialBatches = collection->MaterialBatches.data();
         char* instancedDataBuffer = nullptr;
@@ -210,14 +314,12 @@ namespace PK::Rendering::Batching
                         materialBatch->material->CopyBufferLayout(*instancingLayout, instancedDataBuffer + j * stride);
                     }
 
-                    float4x4** matrices = materialBatch->matrices.data();
-                    auto matrixOffset = offset * 2;
+                    Drawcall* drawcalls = materialBatch->drawcalls.data();
 
-                    for (uint k = 0, l = 0; k < materialBatch->drawCallCount; ++k, l += 2)
+                    for (uint k = 0; k < materialBatch->drawCallCount; ++k)
                     {
                         indexBuffer[offset + k] = j;
-                        matrixBuffer[matrixOffset + l + 0] = *matrices[l + 0];
-                        matrixBuffer[matrixOffset + l + 1] = *matrices[l + 1];
+                        matrixBuffer[offset + k] = *drawcalls[k].localToWorld;
                     }
 
                     offset += materialBatch->drawCallCount;
@@ -243,14 +345,14 @@ namespace PK::Rendering::Batching
 
         if (collection->MatrixBuffer == nullptr)
         {
-            collection->MatrixBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE::FLOAT4X4, "Matrix"} }), (uint)collection->TotalDrawCallCount * 2, GL_STREAM_DRAW);
+            collection->MatrixBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE::FLOAT4X4, "Matrix"} }), (uint)collection->TotalDrawCallCount, false, GL_STREAM_DRAW);
         }
         else
         {
-            collection->MatrixBuffer->ValidateSize((uint)collection->TotalDrawCallCount * 2);
+            collection->MatrixBuffer->ValidateSize((uint)collection->TotalDrawCallCount);
         }
 
-        auto matrixBuffer = collection->MatrixBuffer->BeginMapBufferRange<float4x4>(0, collection->TotalDrawCallCount * 2);
+        auto matrixBuffer = collection->MatrixBuffer->BeginMapBufferRange<float4x4>(0, collection->TotalDrawCallCount);
         size_t offset = 0;
 
         for (auto& meshBatch : collection->MeshBatches)
@@ -261,19 +363,70 @@ namespace PK::Rendering::Batching
             }
 
             meshBatch.instancingOffset = (uint)offset;
-            float4x4** matrices = meshBatch.matrices.data();
-            auto matrixOffset = offset * 2;
-            auto count = meshBatch.drawCallCount * 2;
+            Drawcall* drawcalls = meshBatch.drawcalls.data();
 
-            for (uint i = 0; i < count; ++i)
+            for (uint i = 0; i < meshBatch.drawCallCount; ++i)
             {
-                matrixBuffer[matrixOffset + i] = *matrices[i];
+                matrixBuffer[offset + i] = *drawcalls[i].localToWorld;
             }
 
             offset += meshBatch.drawCallCount;
         }
 
         collection->MatrixBuffer->EndMapBuffer();
+    }
+
+    void UpdateBuffers(IndexedMeshBatchCollection* collection)
+    {
+        if (collection->TotalDrawCallCount < 1)
+        {
+            return;
+        }
+
+        if (collection->MatrixBuffer == nullptr)
+        {
+            collection->MatrixBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE::FLOAT4X4, "Matrix"} }), (uint)collection->TotalDrawCallCount, false, GL_STREAM_DRAW);
+        }
+        else
+        {
+            collection->MatrixBuffer->ValidateSize((uint)collection->TotalDrawCallCount);
+        }
+
+        if (collection->IndexBuffer == nullptr)
+        {
+            collection->IndexBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE::UINT, "Index"} }), (uint)collection->TotalDrawCallCount, false, GL_STREAM_DRAW);
+        }
+        else
+        {
+            collection->IndexBuffer->ValidateSize((uint)collection->TotalDrawCallCount);
+        }
+
+
+        auto matrixBuffer = collection->MatrixBuffer->BeginMapBufferRange<float4x4>(0, collection->TotalDrawCallCount);
+        auto indexBuffer = collection->IndexBuffer->BeginMapBufferRange<uint>(0, collection->TotalDrawCallCount);
+        size_t offset = 0;
+
+        for (auto& meshBatch : collection->MeshBatches)
+        {
+            if (meshBatch.drawCallCount < 1)
+            {
+                continue;
+            }
+
+            auto* drawcalls = meshBatch.drawcalls.data();
+            meshBatch.instancingOffset = (uint)offset;
+
+            for (uint i = 0; i < meshBatch.drawCallCount; ++i)
+            {
+                indexBuffer[offset + i] = drawcalls[i].index;
+                matrixBuffer[offset + i] = *drawcalls[i].localToWorld;
+            }
+
+            offset += meshBatch.drawCallCount;
+        }
+
+        collection->MatrixBuffer->EndMapBuffer();
+        collection->IndexBuffer->EndMapBuffer();
     }
 
 
@@ -420,6 +573,66 @@ namespace PK::Rendering::Batching
     {
         auto hashes = HashCache::Get();
         GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingMatrices, collection->MatrixBuffer->GetGraphicsID());
+        GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, true);
+
+        for (auto& meshBatch : collection->MeshBatches)
+        {
+            if (meshBatch.drawCallCount < 1)
+            {
+                continue;
+            }
+
+            GraphicsAPI::DrawMeshInstanced(meshBatch.mesh, -1, meshBatch.instancingOffset, (uint)meshBatch.drawCallCount, overrideShader);
+        }
+
+        GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, false);
+    }
+
+    void DrawBatches(IndexedMeshBatchCollection* collection, uint32_t renderQueueIndex, const Material* overrideMaterial)
+    {
+        auto hashes = HashCache::Get();
+        GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingMatrices, collection->MatrixBuffer->GetGraphicsID());
+        GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingPropertyIndices, collection->IndexBuffer->GetGraphicsID());
+        GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, true);
+
+        for (auto& meshBatch : collection->MeshBatches)
+        {
+            if (meshBatch.drawCallCount < 1)
+            {
+                continue;
+            }
+
+            GraphicsAPI::DrawMeshInstanced(meshBatch.mesh, -1, meshBatch.instancingOffset, (uint)meshBatch.drawCallCount, overrideMaterial);
+        }
+
+        GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, false);
+    }
+
+    void DrawBatches(IndexedMeshBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader, const ShaderPropertyBlock& propertyBlock)
+    {
+        auto hashes = HashCache::Get();
+        GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingMatrices, collection->MatrixBuffer->GetGraphicsID());
+        GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingPropertyIndices, collection->IndexBuffer->GetGraphicsID());
+        GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, true);
+
+        for (auto& meshBatch : collection->MeshBatches)
+        {
+            if (meshBatch.drawCallCount < 1)
+            {
+                continue;
+            }
+
+            GraphicsAPI::DrawMeshInstanced(meshBatch.mesh, -1, meshBatch.instancingOffset, (uint)meshBatch.drawCallCount, overrideShader, propertyBlock);
+        }
+
+        GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, false);
+    }
+
+    void DrawBatches(IndexedMeshBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader)
+    {
+        auto hashes = HashCache::Get();
+        GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingMatrices, collection->MatrixBuffer->GetGraphicsID());
+        GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingPropertyIndices, collection->IndexBuffer->GetGraphicsID());
         GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, true);
 
         for (auto& meshBatch : collection->MeshBatches)

@@ -15,6 +15,7 @@ namespace PK::Rendering::Objects
 		textureDescriptor.dimension = descriptor.dimension;
 		textureDescriptor.wrapmodex = descriptor.wrapmodex;
 		textureDescriptor.wrapmodey = descriptor.wrapmodey;
+		textureDescriptor.wrapmodez = descriptor.wrapmodez;
 		textureDescriptor.filtermag = descriptor.filtermag;
 		textureDescriptor.filtermin = descriptor.filtermin;
 		textureDescriptor.miplevels = descriptor.miplevels;
@@ -94,7 +95,7 @@ namespace PK::Rendering::Objects
 		}
 	
 		ResetDrawTargets();
-	
+
 		PK_CORE_ASSERT(glCheckNamedFramebufferStatus(m_graphicsId, GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!");
 	}
 	

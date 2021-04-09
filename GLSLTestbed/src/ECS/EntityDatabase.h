@@ -68,6 +68,24 @@ namespace PK::ECS
         std::vector<Scope<ImplementerBucket>> buckets;
     };
 
+    struct EntityViewsCollection
+    {
+        std::map<uint, size_t> Indices;
+        std::vector<char> Buffer;
+    };
+
+    struct ViewCollectionKey
+    {
+        std::type_index type;
+        uint group;
+        
+        bool operator < (const ViewCollectionKey& r) const noexcept
+        {
+            return (type < r.type) || ((type == r.type) && (group < r.group));
+        }
+    };
+
+
     class EntityDatabase : public IService
     {
         public:
@@ -99,16 +117,12 @@ namespace PK::ECS
             T* ReserveEntityView(const EGID& egid)
             {
                 PK_CORE_ASSERT(egid.IsValid(), "Trying to acquire resources for an invalid egid!");
+                auto& views = m_entityViews[{ std::type_index(typeid(T)), egid.groupID() }];
+                auto offset = views.Buffer.size();
+                views.Buffer.resize(offset + sizeof(T));
+                views.Indices[egid.entityID()] = offset;
 
-                auto size = sizeof(T);
-                auto type = std::type_index(typeid(T));
-                auto& views = m_entityViews[type][egid.groupID()];
-                auto offset = views.size();
-                views.resize(offset + size);
-
-                m_viewIndices[type][egid.entityID()] = offset;
-
-                auto* element = reinterpret_cast<T*>(views.data() + offset);
+                auto* element = reinterpret_cast<T*>(views.Buffer.data() + offset);
 
                 element->GID = egid;
                 
@@ -119,28 +133,22 @@ namespace PK::ECS
             const BufferView<T> Query(const uint group)
             {
                 PK_CORE_ASSERT(group, "Trying to acquire resources for an invalid egid!");
-                auto size = sizeof(T);
-                auto type = std::type_index(typeid(T));
-                auto& views = m_entityViews[type][group];
-                auto count = views.size() / size;
-                return { reinterpret_cast<T*>(views.data()), count };
+                auto& views = m_entityViews[{ std::type_index(typeid(T)), group }];
+                auto count = views.Buffer.size() / sizeof(T);
+                return { reinterpret_cast<T*>(views.Buffer.data()), count };
             }
 
             template<typename T>
             T* Query(const EGID& egid)
             {
                 PK_CORE_ASSERT(egid.IsValid(), "Trying to acquire resources for an invalid egid!");
-                auto size = sizeof(T);
-                auto type = std::type_index(typeid(T));
-                auto& views = m_entityViews.at(type).at(egid.groupID());
-                auto offset = m_viewIndices.at(type).at(egid.entityID());
-                return reinterpret_cast<T*>(views.data() + offset);
+                auto& views = m_entityViews.at({ std::type_index(typeid(T)), egid.groupID() });
+                auto offset = views.Indices.at(egid.entityID());
+                return reinterpret_cast<T*>(views.Buffer.data() + offset);
             }
 
         private:
-            // @TODO refactor this to use better data structures
-            std::map<std::type_index, std::map<uint, size_t>> m_viewIndices;
-            std::map<std::type_index, std::map<uint, std::vector<char>>> m_entityViews;
+            std::map<ViewCollectionKey, EntityViewsCollection> m_entityViews;
             std::map<std::type_index, ImplementerContainer> m_implementerBuckets;
             int m_idCounter = 0;
     };

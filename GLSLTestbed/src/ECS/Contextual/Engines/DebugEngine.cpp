@@ -156,6 +156,7 @@ namespace PK::ECS::Engines
 	
 	void DebugEngine::Step(int condition)
 	{
+		return;
 		auto lights = m_entityDb->Query<EntityViews::LightSphere>((int)ENTITY_GROUPS::ACTIVE);
 		auto time = Application::GetService<Time>()->GetTime();
 	
@@ -166,7 +167,6 @@ namespace PK::ECS::Engines
 			lights[i].transformMesh->position.y = ypos;
 		}
 	
-		return;
 		auto meshes = m_entityDb->Query<EntityViews::MeshRenderable>((int)ENTITY_GROUPS::ACTIVE);
 	
 		for (auto i = 0; i < meshes.count; ++i)

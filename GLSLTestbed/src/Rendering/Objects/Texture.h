@@ -38,7 +38,18 @@ namespace PK::Rendering::Objects
             uint8_t GetChannelCount() const { return GetChannelCount(m_channels); }
             GLenum GetDimension() const { return m_descriptor.dimension; }
             GLuint64 GetBindlessHandle() const { return glGetTextureHandleARB(m_graphicsId); }
-    
+            GLuint64 GetBindlessHandleResident() const 
+            { 
+                auto handle = glGetTextureHandleARB(m_graphicsId);
+                if (!glIsTextureHandleResidentARB(handle))
+                {
+                    glMakeTextureHandleResidentARB(handle);
+                }
+                return handle; 
+            }
+            void MakeHandleResident() const { glMakeTextureHandleResidentARB(glGetTextureHandleARB(m_graphicsId)); }
+            void MakeHandleNonResident() const { glMakeTextureHandleNonResidentARB(glGetTextureHandleARB(m_graphicsId)); }
+
             void SetWrapMode(GLenum x, GLenum y);
             void SetFilterMode(GLenum min, GLenum mag);
     

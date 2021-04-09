@@ -58,19 +58,18 @@ void main()
     PK_SETUP_INSTANCE_ID();
 
     #if defined(PK_NORMALMAPS) || defined(PK_HEIGHTMAPS)
-        float3 tangent = normalize(in_TANGENT.xyz);
-        float3 bitangent = normalize(in_TANGENT.w * cross(in_NORMAL.xyz, in_TANGENT.xyz));
-        float3 normal = normalize(in_NORMAL.xyz);
-
-        float3x3 TSROTATION = float3x3(tangent, bitangent, normal);
+        float3 T = normalize(in_TANGENT.xyz);
+        float3 B = normalize(in_TANGENT.w * cross(in_NORMAL.xyz, in_TANGENT.xyz));
+        float3 N = normalize(in_NORMAL.xyz);
+        float3x3 TBN = float3x3(T, B, N);
+        TBN = mul(float3x3(pk_MATRIX_M), TBN);
 
         #if defined(PK_NORMALMAPS)
-            varyings.vs_TSROTATION = mul(float3x3(pk_MATRIX_M), TSROTATION);
+            varyings.vs_TSROTATION = TBN;
         #endif
 
         #if defined(PK_HEIGHTMAPS)
-            float3 localViewDir = WorldToObjectDir(pk_WorldSpaceCameraPos.xyz - varyings.vs_WORLDPOSITION);
-            varyings.vs_TSVIEWDIRECTION = mul(localViewDir, TSROTATION);
+            varyings.vs_TSVIEWDIRECTION = mul(transpose(TBN), normalize(pk_WorldSpaceCameraPos.xyz - varyings.vs_WORLDPOSITION));
         #endif
     #endif
 

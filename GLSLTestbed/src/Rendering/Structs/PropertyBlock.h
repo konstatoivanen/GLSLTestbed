@@ -40,6 +40,7 @@ namespace PK::Rendering::Structs
 			void SetUInt2(uint hashId, const uint2* values, uint count = 1) { SetValue(hashId, CG_TYPE::UINT2, values, count); }
 			void SetUInt3(uint hashId, const uint3* values, uint count = 1) { SetValue(hashId, CG_TYPE::UINT3, values, count); }
 			void SetUInt4(uint hashId, const uint4* values, uint count = 1) { SetValue(hashId, CG_TYPE::UINT4, values, count); }
+			void SetResourceHandle(uint hashId, const ulong* values, uint count = 1) { SetValue(hashId, CG_TYPE::HANDLE, values, count); }
 		
 			void SetFloat(uint hashId, float value) { SetValue(hashId, CG_TYPE::FLOAT, &value); }
 			void SetFloat2(uint hashId, const float2& value) { SetValue(hashId, CG_TYPE::FLOAT2, glm::value_ptr(value)); }
@@ -56,8 +57,8 @@ namespace PK::Rendering::Structs
 			void SetUInt2(uint hashId, const uint2& value) { SetValue(hashId, CG_TYPE::UINT2, glm::value_ptr(value)); }
 			void SetUInt3(uint hashId, const uint3& value) { SetValue(hashId, CG_TYPE::UINT3, glm::value_ptr(value)); }
 			void SetUInt4(uint hashId, const uint4& value) { SetValue(hashId, CG_TYPE::UINT4, glm::value_ptr(value)); }
-
-		
+			void SetResourceHandle(uint hashId, const ulong& value) { SetValue(hashId, CG_TYPE::HANDLE, &value); }
+	
 			void CopyFrom(PropertyBlock& from);
 	
 			virtual void Clear();

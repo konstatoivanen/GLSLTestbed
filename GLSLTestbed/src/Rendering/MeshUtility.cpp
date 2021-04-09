@@ -286,7 +286,7 @@ namespace PK::Rendering::MeshUtility
         };
     
         BufferLayout layout = { {CG_TYPE::FLOAT3, "POSITION"} };
-        return CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, 8, layout), CreateRef<IndexBuffer>(indices, 36));
+        return CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, 8, layout, true), CreateRef<IndexBuffer>(indices, 36, true));
     }
     
     Ref<Mesh> GetBox(const float3& offset, const float3& extents)
@@ -378,7 +378,7 @@ namespace PK::Rendering::MeshUtility
         };
     
         BufferLayout layout = { {CG_TYPE::FLOAT3, "POSITION"}, {CG_TYPE::FLOAT3, "NORMAL"}, {CG_TYPE::FLOAT2, "TEXCOORD0"} };
-        return CreateRef<Mesh>(CreateRef<VertexBuffer>(reinterpret_cast<float*>(vertices), 24, layout), CreateRef<IndexBuffer>(indices, 36));
+        return CreateRef<Mesh>(CreateRef<VertexBuffer>(reinterpret_cast<float*>(vertices), 24, layout, true), CreateRef<IndexBuffer>(indices, 36, true));
     }
     
     Ref<Mesh> GetQuad2D(const float2& min, const float2& max)
@@ -402,7 +402,7 @@ namespace PK::Rendering::MeshUtility
         };
     
         BufferLayout layout = { {CG_TYPE::FLOAT2, "POSITION"}, {CG_TYPE::FLOAT2, "TEXCOORD0"} };
-        return CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, 4, layout), CreateRef<IndexBuffer>(indices, 6));
+        return CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, 4, layout, true), CreateRef<IndexBuffer>(indices, 6, true));
     }
     
     Ref<Mesh> GetQuad3D(const float2& min, const float2& max)
@@ -426,7 +426,7 @@ namespace PK::Rendering::MeshUtility
         };
     
         BufferLayout layout = { {CG_TYPE::FLOAT3, "POSITION"}, {CG_TYPE::FLOAT2, "TEXCOORD0"} };
-        return CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, 4, layout), CreateRef<IndexBuffer>(indices, 6));
+        return CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, 4, layout, true), CreateRef<IndexBuffer>(indices, 6, true));
     }
 
     Ref<Mesh> GetPlane(const float2& center, const float2& extents, uint2 resolution)
@@ -463,7 +463,7 @@ namespace PK::Rendering::MeshUtility
 
         CalculateTangents(reinterpret_cast<float*>(vertices), layout.GetStride() / 4, 0, 3, 6, 10, indices, vcount, icount);
 
-        auto mesh = CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, vcount, layout), CreateRef<IndexBuffer>(indices, icount));
+        auto mesh = CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, vcount, layout, true), CreateRef<IndexBuffer>(indices, icount, true));
     
         free(vertices);
         free(indices);
@@ -560,7 +560,7 @@ namespace PK::Rendering::MeshUtility
 
         CalculateTangents(reinterpret_cast<float*>(vertices), layout.GetStride() / 4, 0, 3, 6, 10, indices, vcount, icount);
 
-        auto mesh = CreateRef<Mesh>(CreateRef<VertexBuffer>(reinterpret_cast<float*>(vertices), vcount, layout), CreateRef<IndexBuffer>(indices, icount));
+        auto mesh = CreateRef<Mesh>(CreateRef<VertexBuffer>(reinterpret_cast<float*>(vertices), vcount, layout, true), CreateRef<IndexBuffer>(indices, icount, true));
 
         free(vertices);
         free(indices);

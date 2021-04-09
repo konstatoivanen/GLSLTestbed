@@ -161,26 +161,26 @@ void PK::Core::AssetImporters::Import<PK::Rendering::Objects::Mesh>(const std::s
 	auto hasNormals = !attrib.normals.empty() && (attrib.normals.size() / 3) == vcount;
 	auto hasUVs = !attrib.texcoords.empty() && (attrib.texcoords.size() / 2) == vcount;
 
-	mesh->AddVertexBuffer(CreateRef<VertexBuffer>(attrib.vertices.data(), vcount, BufferLayout({ { CG_TYPE::FLOAT3, "POSITION" } })));
+	mesh->AddVertexBuffer(CreateRef<VertexBuffer>(attrib.vertices.data(), vcount, BufferLayout({ { CG_TYPE::FLOAT3, "POSITION" } }), true));
 
 	if (hasNormals)
 	{
-		mesh->AddVertexBuffer(CreateRef<VertexBuffer>(attrib.normals.data(), vcount, BufferLayout({ { CG_TYPE::FLOAT3, "NORMAL" } })));
+		mesh->AddVertexBuffer(CreateRef<VertexBuffer>(attrib.normals.data(), vcount, BufferLayout({ { CG_TYPE::FLOAT3, "NORMAL" } }), true));
 	}
 	else
 	{
 		auto normals = PK_CONTIGUOUS_ALLOC(float3, vcount);
 		auto vertices = reinterpret_cast<float3*>(attrib.vertices.data());
 		PK::Rendering::MeshUtility::CalculateNormals(vertices, indices.data(), normals, (uint)vcount, (uint)indices.size());
-		mesh->AddVertexBuffer(CreateRef<VertexBuffer>(normals, vcount, BufferLayout({ { CG_TYPE::FLOAT3, "NORMAL" } })));
+		mesh->AddVertexBuffer(CreateRef<VertexBuffer>(normals, vcount, BufferLayout({ { CG_TYPE::FLOAT3, "NORMAL" } }), true));
 		free(normals);
 	}
 
 	if (hasUVs)
 	{
-		mesh->AddVertexBuffer(CreateRef<VertexBuffer>(attrib.texcoords.data(), vcount, BufferLayout({ { CG_TYPE::FLOAT2, "TEXCOORD0" } })));
+		mesh->AddVertexBuffer(CreateRef<VertexBuffer>(attrib.texcoords.data(), vcount, BufferLayout({ { CG_TYPE::FLOAT2, "TEXCOORD0" } }), true));
 	}
 
-	mesh->SetIndexBuffer(CreateRef<IndexBuffer>(indices.data(), (uint)indices.size()));
+	mesh->SetIndexBuffer(CreateRef<IndexBuffer>(indices.data(), (uint)indices.size(), true));
 	mesh->SetSubMeshes(submeshes);
 }

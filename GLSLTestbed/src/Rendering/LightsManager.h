@@ -4,6 +4,7 @@
 #include "ECS/EntityDatabase.h"
 #include "ECS/Contextual/EntityViews/EntityViews.h"
 #include "Rendering/Batching.h"
+#include "Rendering/Culling.h"
 #include "Rendering/Objects/Buffer.h"
 #include "Rendering/Objects/RenderTexture.h"
 #include <hlslmath.h>
@@ -15,18 +16,17 @@ namespace PK::Rendering
 
     struct ShadowmapData
     {
-        Batching::MeshBatchCollection Batches;
+        Batching::IndexedMeshBatchCollection Batches;
         Utilities::Ref<RenderTexture> ShadowmapCube;
         Utilities::Ref<RenderTexture> ShadowmapOctahedron;
         Utilities::Ref<RenderTexture> ShadowmapAtlas;
 
         Utilities::Weak<Shader> ShaderRenderCube;
         Utilities::Weak<Shader> ShaderBlurCube;
-        Utilities::Weak<Shader> ShaderBlitToAtlas;
 
+        static const uint BatchSize = 4;
         static const uint TileSize = 512;
         static const uint TileCountPerAxis = 8; 
-        static const uint CurrentTileIndex = 0;
     };
 
     class LightsManager : public PK::Core::NoCopy

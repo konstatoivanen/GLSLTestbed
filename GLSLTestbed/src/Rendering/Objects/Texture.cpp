@@ -35,7 +35,7 @@ namespace PK::Rendering::Objects
     void Texture::CreateTextureStorage(GraphicsID& graphicsId, const TextureDescriptor& descriptor)
     {
         glCreateTextures(descriptor.dimension, 1, &graphicsId);
-        
+
         switch (descriptor.dimension)
         {
             case GL_TEXTURE_1D: 
@@ -48,6 +48,8 @@ namespace PK::Rendering::Objects
                 glTextureStorage2D(graphicsId, descriptor.miplevels > 0 ? descriptor.miplevels : 1, descriptor.colorFormat, descriptor.resolution.x, descriptor.resolution.y); 
                 break;
             case GL_TEXTURE_CUBE_MAP_ARRAY:
+                glTextureStorage3D(graphicsId, descriptor.miplevels > 0 ? descriptor.miplevels : 1, descriptor.colorFormat, descriptor.resolution.x, descriptor.resolution.y, descriptor.resolution.z * 6);
+                break;
             case GL_TEXTURE_2D_ARRAY:
             case GL_TEXTURE_3D:
                 glTextureStorage3D(graphicsId, descriptor.miplevels > 0 ? descriptor.miplevels : 1, descriptor.colorFormat, descriptor.resolution.x, descriptor.resolution.y, descriptor.resolution.z);

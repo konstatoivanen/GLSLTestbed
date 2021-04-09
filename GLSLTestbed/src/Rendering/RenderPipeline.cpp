@@ -40,7 +40,7 @@ namespace PK::Rendering
 	
 			for (auto i = 0; i < materials->size(); ++i)
 			{
-				Batching::QueueDraw(&batches, mesh, i, materials->at(i), &view->transform->localToWorld, &view->transform->worldToLocal);
+				Batching::QueueDraw(&batches, mesh, i, materials->at(i), { &view->transform->localToWorld, 0.0f });
 			}
 		}
 	

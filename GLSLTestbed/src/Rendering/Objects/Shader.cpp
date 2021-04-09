@@ -103,6 +103,7 @@ namespace PK::Rendering::Objects
 				case CG_TYPE::UINT2: glUniform2uiv(prop.location, count, propertyBlock.GetElementPtr<uint>(info)); break;
 				case CG_TYPE::UINT3: glUniform3uiv(prop.location, count, propertyBlock.GetElementPtr<uint>(info)); break;
 				case CG_TYPE::UINT4: glUniform4uiv(prop.location, count, propertyBlock.GetElementPtr<uint>(info)); break;
+				case CG_TYPE::HANDLE: glUniformHandleui64vARB(prop.location, count, propertyBlock.GetElementPtr<ulong>(info)); break;
 				case CG_TYPE::TEXTURE: GraphicsAPI::BindTextures(prop.location, propertyBlock.GetElementPtr<GraphicsID>(info), count); break;
 				case CG_TYPE::CONSTANT_BUFFER: GraphicsAPI::BindBuffers(CG_TYPE::CONSTANT_BUFFER, prop.location, propertyBlock.GetElementPtr<GraphicsID>(info), count); break;
 				case CG_TYPE::COMPUTE_BUFFER: GraphicsAPI::BindBuffers(CG_TYPE::COMPUTE_BUFFER, prop.location, propertyBlock.GetElementPtr<GraphicsID>(info), count); break;
@@ -145,9 +146,12 @@ namespace PK::Rendering::Objects
 			switch (variableType)
 			{
 				case GL_SAMPLER_1D:
+				case GL_SAMPLER_1D_ARRAY:
 				case GL_SAMPLER_2D:
+				case GL_SAMPLER_2D_ARRAY:
 				case GL_SAMPLER_3D:
 				case GL_SAMPLER_CUBE:
+				case GL_SAMPLER_CUBE_MAP_ARRAY:
 					return currentSlot++;
 			}
 		

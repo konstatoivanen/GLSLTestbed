@@ -27,7 +27,7 @@ namespace PK::Math
         UINT2 = 13,
         UINT3 = 14,
         UINT4 = 15,
-        SAMPLER = 16,
+        HANDLE = 16,
         TEXTURE = 17,
         CONSTANT_BUFFER = 18,
         COMPUTE_BUFFER = 19,
@@ -46,7 +46,7 @@ namespace PK::Math
     const unsigned short CG_TYPE_SIZE_INT2 = 8;			// 4 * 2
     const unsigned short CG_TYPE_SIZE_INT3 = 12;		// 4 * 3
     const unsigned short CG_TYPE_SIZE_INT4 = 16;		// 4 * 4
-    const unsigned short CG_TYPE_SIZE_SAMPLER = 8;
+    const unsigned short CG_TYPE_SIZE_HANDLE = 8;
     const unsigned short CG_TYPE_SIZE_TEXTURE = 4;
     const unsigned short CG_TYPE_SIZE_CONSTANT_BUFFER = 4;
     const unsigned short CG_TYPE_SIZE_COMPUTE_BUFFER = 4;
@@ -62,7 +62,7 @@ namespace PK::Math
     const unsigned short CG_TYPE_COMPONENTS_INT2 = 2;
     const unsigned short CG_TYPE_COMPONENTS_INT3 = 3;
     const unsigned short CG_TYPE_COMPONENTS_INT4 = 4;
-    const unsigned short CG_TYPE_COMPONENTS_SAMPLER = 1;
+    const unsigned short CG_TYPE_COMPONENTS_HANDLE = 1;
     const unsigned short CG_TYPE_COMPONENTS_TEXTURE = 1;
     const unsigned short CG_TYPE_COMPONENTS_CONSTANT_BUFFER = 1;
     const unsigned short CG_TYPE_COMPONENTS_COMPUTE_BUFFER = 1;
@@ -227,6 +227,8 @@ namespace PK::Math
         void NormalizePlane(float4* plane);
         void ExtractFrustrumPlanes(const float4x4 viewprojection, FrustrumPlanes* frustrum, bool normalize);
     
+        float PlaneDistanceToAABB(const float4& plane, const BoundingBox& aabb);
+        
         inline float PlaneDistanceToPoint(const float4& plane, const float3& point) { return plane.x * point.x + plane.y * point.y + plane.z * point.z + plane.w; }
     
         inline float3 IntesectPlanes3(const float4& p1, const float4& p2, const float4& p3)

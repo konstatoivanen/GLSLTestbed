@@ -6,7 +6,6 @@
 #include "Rendering/Objects/RenderTexture.h"
 #include "Rendering/Structs/GraphicsContext.h"
 #include <GLFW/glfw3.h>
-#include <hlslmath.h>
 
 namespace PK::Rendering::GraphicsAPI
 {
@@ -50,6 +49,7 @@ namespace PK::Rendering::GraphicsAPI
 	void SetGlobalTexture(uint32_t hashId, const GraphicsID* textureIds, uint32_t count = 1);
 	void SetGlobalConstantBuffer(uint32_t hashId, const GraphicsID* bufferIds, uint32_t count = 1);
 	void SetGlobalComputeBuffer(uint32_t hashId, const GraphicsID* bufferIds, uint32_t count = 1);
+	void SetGlobalResourceHandle(uint32_t hashId, const ulong* handleIds, uint32_t count = 1);
 
 	void SetGlobalFloat(uint32_t hashId, float value);
 	void SetGlobalFloat2(uint32_t hashId, const float2& value);
@@ -69,14 +69,17 @@ namespace PK::Rendering::GraphicsAPI
 	void SetGlobalTexture(uint32_t hashId, GraphicsID textureId);
 	void SetGlobalConstantBuffer(uint32_t hashId, GraphicsID bufferId);
 	void SetGlobalComputeBuffer(uint32_t hashId, GraphicsID bufferId);
+	void SetGlobalResourceHandle(uint32_t hashId, const ulong handleId);
 	void SetGlobalKeyword(uint32_t hashId, bool value);
 
 	void Clear(const float4& color, float depth, GLuint clearFlags);
 	void SetViewPort(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
+	void SetViewPorts(const uint32_t offset, const float4* viewports, const uint32_t count);
 	void SetViewProjectionMatrices(const float4x4& view, const float4x4& projection);
 	void SetModelMatrix(const float4x4& matrix);
 	void SetModelMatrix(const float4x4& matrix, const float4x4& invMatrix);
 	void SetRenderTarget(const RenderTexture* renderTexture);
+	void SetRenderTarget(const RenderTexture* renderTexture, const uint firstViewport, const float4* viewports, const uint viewportCount);
 	void SetRenderBuffer(const GraphicsID renderTarget, const RenderBuffer* renderBuffer, GLenum attachment);
 	void SetPass(Shader* shader, uint32_t pass = 0);
 	void SetVertexBuffer(const VertexBuffer* buffer);
@@ -99,6 +102,13 @@ namespace PK::Rendering::GraphicsAPI
 	void Blit(const RenderTexture* destination, const Material* material, const ShaderPropertyBlock& propertyBlock);
 	void Blit(const Texture* source, const RenderTexture* destination, const Material* material);
 	void Blit(const Texture* source, const RenderTexture* destination, const Material* material, const ShaderPropertyBlock& propertyBlock);
+
+	void BlitInstanced(uint offset, uint count, Shader* shader);
+	void BlitInstanced(uint offset, uint count, Shader* shader, const ShaderPropertyBlock& propertyBlock);
+	void BlitInstanced(uint offset, uint count, const RenderTexture* destination, Shader* shader);
+	void BlitInstanced(uint offset, uint count, const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock);
+	void BlitInstanced(uint offset, uint count, const Texture* source, const RenderTexture* destination, Shader* shader);
+	void BlitInstanced(uint offset, uint count, const Texture* source, const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock);
 	
 	void CopyRenderTexture(const RenderTexture* source, const RenderTexture* destination, GLbitfield mask, GLenum filter);
 

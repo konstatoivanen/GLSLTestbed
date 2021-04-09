@@ -21,15 +21,14 @@ namespace PK::Rendering::GraphicsAPI
 	#define ACTIVE_RENDERTARGET GetCurrentContext()->ActiveRenderTarget
 	#define BLIT_QUAD GetCurrentContext()->BlitQuad.get()
 	#define BLIT_SHADER GetCurrentContext()->BlitShader.lock().get()
-	#define DELTA_CHECK_SET(attrib, value, func) \
-	{											 \
-		auto& current = CURRENT_ATTRIBUTES;		 \
-		if (current.value != attrib.value)		 \
-		{										 \
-			current.value = attrib.value;		 \
-			func;								 \
-		}										 \
-	}											 \
+	#define DELTA_CHECK_SET(backedvalue, newvalue, func)  \
+	{													  \
+		if (backedvalue != newvalue)				      \
+		{												  \
+			backedvalue = newvalue;						  \
+			func;										  \
+		}												  \
+	}													  \
 
 	static inline void glToggle(GLenum enumKey, bool value)
 	{
@@ -45,17 +44,28 @@ namespace PK::Rendering::GraphicsAPI
 
 	static void SetFixedStateAttributes(const FixedStateAttributes& attributes)
 	{
-		DELTA_CHECK_SET(attributes, ZTestEnabled, glToggle(GL_DEPTH_TEST, attributes.ZTestEnabled))
-		DELTA_CHECK_SET(attributes, BlendEnabled, glToggle(GL_BLEND, attributes.BlendEnabled))
-		DELTA_CHECK_SET(attributes, CullEnabled, glToggle(GL_CULL_FACE, attributes.CullEnabled))
-		DELTA_CHECK_SET(attributes, ZWriteEnabled, glDepthMask(attributes.ZWriteEnabled))
-		DELTA_CHECK_SET(attributes, ZTest, if (attributes.ZTestEnabled) glDepthFunc(attributes.ZTest))
-		DELTA_CHECK_SET(attributes, Blend, if (attributes.BlendEnabled) glBlendFunc(attributes.Blend.Source, attributes.Blend.Destination))
-		DELTA_CHECK_SET(attributes, ColorMask, glColorMask(attributes.ColorMask & (1 << 0), attributes.ColorMask & (1 << 1), attributes.ColorMask & (1 << 2), attributes.ColorMask & (1 << 3)))
-		DELTA_CHECK_SET(attributes, CullMode, if (attributes.CullEnabled) glCullFace(attributes.CullMode))
-	}
+		auto& current = CURRENT_ATTRIBUTES;
+		DELTA_CHECK_SET(current.ZTestEnabled, attributes.ZTestEnabled, glToggle(GL_DEPTH_TEST, attributes.ZTestEnabled))
+		DELTA_CHECK_SET(current.BlendEnabled, attributes.BlendEnabled, glToggle(GL_BLEND, attributes.BlendEnabled))
+		DELTA_CHECK_SET(current.CullEnabled, attributes.CullEnabled, glToggle(GL_CULL_FACE, attributes.CullEnabled))
+		DELTA_CHECK_SET(current.ZWriteEnabled, attributes.ZWriteEnabled, glDepthMask(attributes.ZWriteEnabled))
+		DELTA_CHECK_SET(current.ColorMask, attributes.ColorMask, glColorMask(attributes.ColorMask & (1 << 0), attributes.ColorMask & (1 << 1), attributes.ColorMask & (1 << 2), attributes.ColorMask & (1 << 3)))
 
-	static void GLErrorCallback(int error, const char* description) { PK_CORE_ERROR("GLFW Error (%i) : %s", error, description); }
+		if (attributes.ZTestEnabled)
+		{
+			DELTA_CHECK_SET(current.ZTest, attributes.ZTest, glDepthFunc(attributes.ZTest))
+		}
+
+		if (attributes.BlendEnabled)
+		{
+			DELTA_CHECK_SET(current.Blend, attributes.Blend, glBlendFunc(attributes.Blend.Source, attributes.Blend.Destination))
+		}
+
+		if (attributes.CullEnabled)
+		{
+			DELTA_CHECK_SET(current.CullMode, attributes.CullMode, glCullFace(attributes.CullMode))
+		}
+	}
 
 
 	void GraphicsAPI::Initialize()
@@ -65,7 +75,6 @@ namespace PK::Rendering::GraphicsAPI
 			PK_CORE_ERROR("Failed To Initialize GLFW");
 		}
 	
-		glfwSetErrorCallback(GLErrorCallback);
 		PK_CORE_LOG_HEADER("GLFW Initialized");
 	}
 	
@@ -85,7 +94,6 @@ namespace PK::Rendering::GraphicsAPI
 	{
 		SetRenderTarget(nullptr);
 		Clear(CG_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glFrontFace(GL_CW);
 	}
 	
 	void GraphicsAPI::EndWindow() { glfwSwapBuffers(CURRENT_WINDOW); }
@@ -134,6 +142,7 @@ namespace PK::Rendering::GraphicsAPI
 	void GraphicsAPI::SetGlobalTexture(uint32_t hashId, const GraphicsID* textureIds, uint32_t count) { GLOBAL_PROPERTIES.SetTexture(hashId, textureIds, count); }
 	void GraphicsAPI::SetGlobalConstantBuffer(uint32_t hashId, const GraphicsID* bufferIds, uint32_t count) { GLOBAL_PROPERTIES.SetConstantBuffer(hashId, bufferIds, count); }
 	void GraphicsAPI::SetGlobalComputeBuffer(uint32_t hashId, const GraphicsID* bufferIds, uint32_t count) { GLOBAL_PROPERTIES.SetComputeBuffer(hashId, bufferIds, count); }
+	void GraphicsAPI::SetGlobalResourceHandle(uint32_t hashId, const ulong* handleIds, uint32_t count) { GLOBAL_PROPERTIES.SetResourceHandle(hashId, handleIds, count); }
 	
 	void GraphicsAPI::SetGlobalFloat(uint32_t hashId, float value) { GLOBAL_PROPERTIES.SetFloat(hashId, value); }
 	void GraphicsAPI::SetGlobalFloat2(uint32_t hashId, const float2& value) { GLOBAL_PROPERTIES.SetFloat2(hashId, value); }
@@ -153,17 +162,17 @@ namespace PK::Rendering::GraphicsAPI
 	void GraphicsAPI::SetGlobalTexture(uint32_t hashId, GraphicsID textureId) { GLOBAL_PROPERTIES.SetTexture(hashId, textureId); }
 	void GraphicsAPI::SetGlobalConstantBuffer(uint32_t hashId, GraphicsID bufferId) { GLOBAL_PROPERTIES.SetConstantBuffer(hashId, bufferId); }
 	void GraphicsAPI::SetGlobalComputeBuffer(uint32_t hashId, GraphicsID bufferId) { GLOBAL_PROPERTIES.SetComputeBuffer(hashId, bufferId); }
+	void GraphicsAPI::SetGlobalResourceHandle(uint32_t hashId, const ulong handleId) { GLOBAL_PROPERTIES.SetResourceHandle(hashId, handleId); }
 	void GraphicsAPI::SetGlobalKeyword(uint32_t hashId, bool value) { GLOBAL_PROPERTIES.SetKeyword(hashId, value); }
 
 	void GraphicsAPI::Clear(const float4& color, float depth, GLuint clearFlags)
 	{
-		auto& attributes = CURRENT_ATTRIBUTES;
-		attributes.ZWriteEnabled = true;
-		attributes.ColorMask = 255;
-		glDepthMask(GL_TRUE);
-		glColorMask(true, true, true, true);
-		glClearColor(color.r, color.g, color.b, color.a);
-		glClearDepth(depth);
+		auto context = GetCurrentContext();
+		auto& attributes = context->FixedStateAttributes;
+		DELTA_CHECK_SET(attributes.ZWriteEnabled, true, glDepthMask(true))
+		DELTA_CHECK_SET(attributes.ColorMask, 255, glColorMask(true,true,true,true))
+		DELTA_CHECK_SET(context->ClearColor, color, glClearColor(color.r, color.g, color.b, color.a))
+		DELTA_CHECK_SET(context->ClearDepth, depth, glClearDepth(depth))
 		glClear(clearFlags);
 	}
 	
@@ -171,18 +180,23 @@ namespace PK::Rendering::GraphicsAPI
 	{
 		auto context = GetCurrentContext();
 
-		if (context->ViewPortX == x && context->ViewPortY == y && context->ViewPortW == width && context->ViewPortH == height)
+		if (context->ViewPort.x == x && context->ViewPort.y == y && context->ViewPort.z == width && context->ViewPort.w == height)
 		{
 			return;
 		}
 
-		context->ViewPortX = x;
-		context->ViewPortY = y;
-		context->ViewPortW = width;
-		context->ViewPortH = height;
+		context->ViewPort.x = x;
+		context->ViewPort.y = y;
+		context->ViewPort.z = width;
+		context->ViewPort.w = height;
 
 		glViewport(x, y, width, height);
 		SetGlobalFloat4(HashCache::Get()->pk_ScreenParams, { (float)width, (float)height, 1.0f + 1.0f / (float)width, 1.0f + 1.0f / (float)height });
+	}
+
+	void SetViewPorts(const uint32_t offset, const float4* viewports, const uint32_t count)
+	{
+		glViewportArrayv(offset, (GLsizei)count, reinterpret_cast<const float*>(viewports));
 	}
 	
 	void GraphicsAPI::SetViewProjectionMatrices(const float4x4& view, const float4x4& projection)
@@ -240,6 +254,29 @@ namespace PK::Rendering::GraphicsAPI
 		*target = nullptr;
 		auto resolution = GetActiveWindowResolution();
 		SetViewPort(0, 0, resolution.x, resolution.y);
+	}
+
+	void SetRenderTarget(const RenderTexture* renderTexture, const uint firstViewport, const float4* viewports, const uint viewportCount)
+	{
+		auto target = &ACTIVE_RENDERTARGET;
+
+		if (*target == renderTexture)
+		{
+			return;
+		}
+
+		if (renderTexture != nullptr)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, renderTexture->GetGraphicsID());
+			*target = renderTexture;
+			SetViewPorts(firstViewport, viewports, viewportCount);
+			return;
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		*target = nullptr;
+		auto resolution = GetActiveWindowResolution();
+		SetViewPorts(firstViewport, viewports, viewportCount);
 	}
 	
 	void GraphicsAPI::SetRenderBuffer(const GraphicsID renderTarget, const RenderBuffer* renderBuffer, GLenum attachment)
@@ -342,6 +379,36 @@ namespace PK::Rendering::GraphicsAPI
 		SetGlobalTexture(HashCache::Get()->_MainTex, source->GetGraphicsID());
 		Blit(destination, material, propertyBlock);
 	}
+
+
+	void GraphicsAPI::BlitInstanced(uint offset, uint count, Shader* shader) { DrawMeshInstanced(BLIT_QUAD, 0, offset, count, shader); }
+
+	void GraphicsAPI::BlitInstanced(uint offset, uint count, Shader* shader, const ShaderPropertyBlock& propertyBlock) { DrawMeshInstanced(BLIT_QUAD, 0, offset, count, shader, propertyBlock); }
+
+	void GraphicsAPI::BlitInstanced(uint offset, uint count, const RenderTexture* destination, Shader* shader)
+	{
+		SetRenderTarget(destination);
+		BlitInstanced(offset, count, shader);
+	}
+
+	void GraphicsAPI::BlitInstanced(uint offset, uint count, const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock)
+	{
+		SetRenderTarget(destination);
+		BlitInstanced(offset, count, shader, propertyBlock);
+	}
+
+	void GraphicsAPI::BlitInstanced(uint offset, uint count, const Texture* source, const RenderTexture* destination, Shader* shader)
+	{
+		SetGlobalTexture(HashCache::Get()->_MainTex, source->GetGraphicsID());
+		BlitInstanced(offset, count, destination, shader);
+	}
+
+	void GraphicsAPI::BlitInstanced(uint offset, uint count, const Texture* source, const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock)
+	{
+		SetGlobalTexture(HashCache::Get()->_MainTex, source->GetGraphicsID());
+		BlitInstanced(offset, count, destination, shader, propertyBlock);
+	}
+
 
 	void GraphicsAPI::CopyRenderTexture(const RenderTexture* source, const RenderTexture* destination, GLbitfield mask, GLenum filter)
 	{

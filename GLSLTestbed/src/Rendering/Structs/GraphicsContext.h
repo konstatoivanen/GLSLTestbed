@@ -20,9 +20,8 @@ namespace PK::Rendering::Structs
         Ref<ShaderVariant> ActiveShader;
         Ref<Mesh> BlitQuad;
         Weak<Shader> BlitShader;
-        uint32_t ViewPortX;
-        uint32_t ViewPortY;
-        uint32_t ViewPortW;
-        uint32_t ViewPortH;
+        uint4 ViewPort;
+        color ClearColor;
+        float ClearDepth;
     };
 }

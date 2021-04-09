@@ -41,22 +41,6 @@ namespace PK::Rendering::Structs
 			auto& prop = m_properties.at(element.NameHashId);
 			auto valueptr = GetElementPtr<void>(prop);
 
-			if (prop.type == CG_TYPE::TEXTURE)
-			{
-				PK_CORE_ASSERT(element.Type == CG_TYPE::SAMPLER, "Trying to map an incompatible type!");
-
-				auto graphicsId = *reinterpret_cast<const GraphicsID*>(valueptr);
-				auto handle = glGetTextureHandleARB(graphicsId);
-
-				if (!glIsTextureHandleResidentARB(handle))
-				{
-					glMakeTextureHandleResidentARB(handle);
-				}
-
-				memcpy(destination + element.Offset, &handle, sizeof(GLuint64));
-				continue;
-			}
-
 			PK_CORE_ASSERT(element.Type == prop.type, "Trying to map an incompatible type!");
 			PK_CORE_ASSERT(element.Size == prop.size, "Trying to map a property of differing size!");
 			memcpy(destination + element.Offset, valueptr, element.Size);

@@ -34,11 +34,19 @@ namespace PK::Rendering::Objects
 		glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
 	}
 	
-	VertexBuffer::VertexBuffer(const void* vertices, size_t size)
+	VertexBuffer::VertexBuffer(const void* vertices, size_t size, bool immutable) : m_immutable(immutable)
 	{
 		glCreateBuffers(1, &m_graphicsId);
 		glBindBuffer(GL_ARRAY_BUFFER, m_graphicsId);
-		glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+
+		if (immutable)
+		{
+			glBufferStorage(GL_ARRAY_BUFFER, size, vertices, GL_NONE);
+		}
+		else
+		{
+			glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+		}
 	}
 	
 	VertexBuffer::VertexBuffer(size_t elementCount, const BufferLayout& layout) : VertexBuffer(layout.GetStride() * elementCount)
@@ -46,7 +54,7 @@ namespace PK::Rendering::Objects
 		SetLayout(layout);
 	}
 	
-	VertexBuffer::VertexBuffer(const void* vertices, size_t elementCount, const BufferLayout& layout) : VertexBuffer(vertices, layout.GetStride() * elementCount)
+	VertexBuffer::VertexBuffer(const void* vertices, size_t elementCount, const BufferLayout& layout, bool immutable) : VertexBuffer(vertices, layout.GetStride() * elementCount, immutable)
 	{
 		SetLayout(layout);
 	}
@@ -58,15 +66,23 @@ namespace PK::Rendering::Objects
 	
 	void VertexBuffer::SetData(const void* data, size_t size)
 	{
-		glBindBuffer(GL_ARRAY_BUFFER, m_graphicsId);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
+		PK_CORE_ASSERT(!m_immutable, "Attempting to modify an immutable vertex buffer");
+		glNamedBufferSubData(m_graphicsId, 0, size, data);
 	}
 	
-	IndexBuffer::IndexBuffer(uint* indices, uint count) : m_count(count)
+	IndexBuffer::IndexBuffer(uint* indices, uint count, bool immutable) : m_count(count), m_immutable(immutable)
 	{
 		glCreateBuffers(1, &m_graphicsId);
 		glBindBuffer(GL_ARRAY_BUFFER, m_graphicsId);
-		glBufferData(GL_ARRAY_BUFFER, count * sizeof(uint), indices, GL_STATIC_DRAW);
+
+		if (immutable)
+		{
+			glBufferStorage(GL_ARRAY_BUFFER, count * sizeof(uint), indices, GL_NONE);
+		}
+		else
+		{
+			glBufferData(GL_ARRAY_BUFFER, count * sizeof(uint), indices, GL_STATIC_DRAW);
+		}
 	}
 	
 	IndexBuffer::~IndexBuffer()
@@ -78,7 +94,7 @@ namespace PK::Rendering::Objects
 	{
 		glGenBuffers(1, &m_graphicsId);
 		glBindBuffer(GL_UNIFORM_BUFFER, m_graphicsId);
-		glBufferData(GL_UNIFORM_BUFFER, layout.GetStride(), nullptr, GL_STREAM_DRAW);
+		glBufferStorage(GL_UNIFORM_BUFFER, layout.GetStride(), nullptr, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
 	
@@ -89,19 +105,26 @@ namespace PK::Rendering::Objects
 	
 	void ConstantBuffer::FlushBufer()
 	{
-		glBindBuffer(GL_UNIFORM_BUFFER, m_graphicsId);
-		glInvalidateBufferData(GL_UNIFORM_BUFFER);
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, m_data.size(), m_data.data());
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		glInvalidateBufferSubData(m_graphicsId, 0, m_data.size());
+		glNamedBufferSubData(m_graphicsId, 0, m_data.size(), m_data.data());
 	}
 	
-	ComputeBuffer::ComputeBuffer(const BufferLayout& layout, uint count, GLenum usage) : m_usage(usage), m_count(count), m_layout(layout)
+	ComputeBuffer::ComputeBuffer(const BufferLayout& layout, uint count, bool immutable, uint flags) : m_usage(flags), m_count(count), m_layout(layout), m_immutable(immutable)
 	{
 		auto stride = m_layout.GetPaddedStride();
 		auto size = GetSize();
 		glGenBuffers(1, &m_graphicsId);
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_graphicsId);
-		glBufferData(GL_SHADER_STORAGE_BUFFER, size, nullptr, usage);
+
+		if (m_immutable)
+		{
+			glBufferStorage(GL_SHADER_STORAGE_BUFFER, size, nullptr, flags);
+		}
+		else
+		{
+			glBufferData(GL_SHADER_STORAGE_BUFFER, size, nullptr, flags);
+		}
+
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 	}
 	
@@ -112,6 +135,8 @@ namespace PK::Rendering::Objects
 	
 	void ComputeBuffer::Resize(uint newCount)
 	{
+		PK_CORE_ASSERT(!m_immutable, "Cannot resize an immutable buffer!");
+
 		if (newCount == m_count)
 		{
 			return;
@@ -120,10 +145,8 @@ namespace PK::Rendering::Objects
 		m_count = newCount;
 		auto size = GetSize();
 		
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_graphicsId);
-		glInvalidateBufferData(GL_SHADER_STORAGE_BUFFER);
-		glBufferData(GL_SHADER_STORAGE_BUFFER, size, nullptr, m_usage);
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+		glInvalidateBufferData(m_graphicsId);
+		glNamedBufferData(m_graphicsId, size, nullptr, m_usage);
 	}
 	
 	void ComputeBuffer::ValidateSize(uint newCount)
@@ -150,10 +173,8 @@ namespace PK::Rendering::Objects
 	
 	void ComputeBuffer::SubmitData(const void* data, size_t offset, size_t size)
 	{
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_graphicsId);
-		glInvalidateBufferData(GL_SHADER_STORAGE_BUFFER);
-		glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, data);
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+		glInvalidateBufferSubData(m_graphicsId, offset, size);
+		glNamedBufferSubData(m_graphicsId, offset, size, data);
 	}
 
     void* ComputeBuffer::BeginMapBufferRange(size_t offset, size_t size)

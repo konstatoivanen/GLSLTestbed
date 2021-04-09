@@ -52,5 +52,6 @@ namespace PK::Core
             double m_deltaTime = 0.0;
             double m_unscaledDeltaTime = 0.0;
             double m_smoothDeltaTime = 0.0;
+            double m_unscaledDeltaTimeFixed = 0.0;
     };
 }
