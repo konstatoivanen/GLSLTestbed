@@ -171,7 +171,6 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="src\ECS\Contextual\Implementers\Implementers.h" />
     <ClInclude Include="src\Core\BufferView.h" />
     <ClInclude Include="src\ECS\EntityDatabase.h" />
-    <ClInclude Include="src\Rendering\BufferPool.h" />
     <ClInclude Include="src\Rendering\Batching.h" />
     <ClInclude Include="src\Rendering\Culling.h" />
     <ClInclude Include="src\Rendering\GizmoRenderer.h" />
@@ -760,7 +759,6 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ECS\Contextual\Engines\EngineUpdateTransforms.cpp" />
-    <ClCompile Include="src\Rendering\BufferPool.cpp" />
     <ClCompile Include="src\Rendering\Batching.cpp" />
     <ClCompile Include="src\Rendering\Culling.cpp" />
     <ClCompile Include="src\Rendering\GizmoRenderer.cpp" />

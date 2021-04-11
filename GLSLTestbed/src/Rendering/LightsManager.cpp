@@ -40,16 +40,6 @@ namespace PK::Rendering
 		data->ShadowmapAtlas = CreateRef<RenderTexture>(descriptor);
 	}
 
-	static float4x4 GetCubefaceMatrix(const float3& position, const float3& s, const float3& f, const float3& u, float znear, float zfar)
-	{
-		const float3 proj = float3((zfar + znear) / (zfar - znear), -(2.0f * zfar * znear) / (zfar - znear), glm::dot(f, position));
-		return float4x4(
-			float4(s.x, u.x, proj.x * -f.x, -f.x), 
-			float4(s.y, u.y, proj.x * -f.y, -f.y), 
-			float4(s.z, u.z, proj.x * -f.z, -f.z),
-			float4(-glm::dot(s, position), -glm::dot(u, position), proj.x * proj.z + proj.y, proj.z));
-	}	
-
 	// @TODO implement spot lights
 	static void RenderShadowmaps(ShadowmapData* data, ECS::EntityDatabase* entityDb, BufferView<uint>& lightIndices, ShaderPropertyBlock& properties)
 	{
@@ -67,13 +57,12 @@ namespace PK::Rendering
 			viewports[i].zw = float2(ShadowmapData::TileSize, ShadowmapData::TileSize);
 		}
 
-		float3 lightPositions[ShadowmapData::BatchSize]{};
-
-		Culling::OnVisibleItem onvisible = [](ECS::EntityDatabase* entityDb, ECS::EGID egid, float depth, void* context)
+		Culling::OnVisibleItemMulti onvisible = [](ECS::EntityDatabase* entityDb, ECS::EGID egid, uint clipIndex, float depth, void* context)
 		{
 			auto ctx = reinterpret_cast<ShadowmapContext*>(context);
 			auto renderable = entityDb->Query<ECS::EntityViews::MeshRenderable>(egid);
-			Batching::QueueDraw(&ctx->data->Batches, renderable->mesh->sharedMesh, { &renderable->transform->localToWorld, depth, ctx->index });
+			auto index = (clipIndex << 24u) | ctx->index;
+			Batching::QueueDraw(&ctx->data->Batches, renderable->mesh->sharedMesh, { &renderable->transform->localToWorld, depth, index });
 		};
 
 		for (uint batchIdx = 0; batchIdx < batchCount; ++batchIdx)
@@ -82,17 +71,6 @@ namespace PK::Rendering
 			auto batchSize = glm::min((uint)(lightCount - baseIdx), ShadowmapData::BatchSize);
 			auto zfar = 0.0f;
 
-			for (uint i = 0; i < batchSize; ++i)
-			{
-				auto* light = entityDb->Query<ECS::EntityViews::PointLightRenderable>(ECS::EGID(lightIndices[baseIdx + i], (uint)ECS::ENTITY_GROUPS::ACTIVE));
-				lightPositions[i] = light->transform->position;
-				
-				if (light->pointLight->radius > zfar)
-				{
-					zfar = light->pointLight->radius;
-				}
-			}
-
 			Batching::ResetCollection(&data->Batches);
 
 			for (uint i = 0; i < batchSize; ++i)
@@ -100,25 +78,21 @@ namespace PK::Rendering
 				auto lightIndex = baseIdx + i;
 				auto baseKey = ((uint)i << 16u) | (lightIndex & 0xFFFF);
 
-				// @TODO optimize later
-				float4x4 facematrices[6] =
+				auto bounds = entityDb->Query<ECS::EntityViews::BaseRenderable>(ECS::EGID(lightIndices[lightIndex], (uint)ECS::ENTITY_GROUPS::ACTIVE))->bounds->worldAABB;
+				auto* light = entityDb->Query<ECS::EntityViews::PointLightRenderable>(ECS::EGID(lightIndices[lightIndex], (uint)ECS::ENTITY_GROUPS::ACTIVE));
+				auto position = light->transform->position;
+				auto radius = light->pointLight->radius;
+
+				if (radius > zfar)
 				{
-					GetCubefaceMatrix(lightPositions[i], CG_FLOAT3_FORWARD, CG_FLOAT3_RIGHT, CG_FLOAT3_UP, znear, zfar),
-					GetCubefaceMatrix(lightPositions[i], CG_FLOAT3_BACKWARD, CG_FLOAT3_LEFT, CG_FLOAT3_UP, znear, zfar),
-					GetCubefaceMatrix(lightPositions[i], CG_FLOAT3_RIGHT, CG_FLOAT3_DOWN, CG_FLOAT3_FORWARD, znear, zfar),
-					GetCubefaceMatrix(lightPositions[i], CG_FLOAT3_LEFT, CG_FLOAT3_UP, CG_FLOAT3_FORWARD, znear, zfar),
-					GetCubefaceMatrix(lightPositions[i], CG_FLOAT3_LEFT, CG_FLOAT3_BACKWARD, CG_FLOAT3_UP, znear, zfar),
-					GetCubefaceMatrix(lightPositions[i], CG_FLOAT3_RIGHT, CG_FLOAT3_FORWARD, CG_FLOAT3_UP, znear, zfar)
-				};
+					zfar = radius;
+				}
 
 				viewports[i].x = (float)ShadowmapData::TileSize * (lightIndex % ShadowmapData::TileCountPerAxis);
 				viewports[i].y = (float)ShadowmapData::TileSize * (lightIndex / ShadowmapData::TileCountPerAxis);
 
-				for (uint face = 0; face < 6; ++face)
-				{
-					ShadowmapContext ctx = { data, (face << 24u) | baseKey };
-					Culling::ExecuteOnVisibleItemsFrustum(entityDb, facematrices[face], (ushort)(ECS::Components::RenderHandleFlags::Renderer | ECS::Components::RenderHandleFlags::ShadowCaster), onvisible, &ctx);
-				}
+				ShadowmapContext ctx = { data, baseKey };
+				Culling::ExecuteOnVisibleItemsCubeFaces(entityDb, bounds, (ushort)(ECS::Components::RenderHandleFlags::Renderer | ECS::Components::RenderHandleFlags::ShadowCaster), onvisible, &ctx);
 			}
 
 			Batching::UpdateBuffers(&data->Batches);

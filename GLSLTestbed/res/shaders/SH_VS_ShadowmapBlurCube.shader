@@ -106,11 +106,11 @@ void main()
 #pragma PROGRAM_FRAGMENT
 
 #if defined(BLUR_PASS0)
-uniform highp samplerCubeArray _MainTex;
-#define SAMPLE_SRC(H, layer) tex2D(_MainTex, float4(H, layer)).rg
+    uniform highp samplerCubeArray _MainTex;
+    #define SAMPLE_SRC(H, layer) tex2D(_MainTex, float4(H, layer)).rg
 #else
-uniform highp sampler2DArray _MainTex;
-#define SAMPLE_SRC(H, layer) tex2D(_MainTex, float3(OctaUV(H), vs_SAMPLELAYER)).rg;
+    uniform highp sampler2DArray _MainTex;
+    #define SAMPLE_SRC(H, layer) tex2D(_MainTex, float3(OctaUV(H), vs_SAMPLELAYER)).rg;
 #endif
 
 in flat uint vs_SAMPLELAYER;
@@ -120,7 +120,15 @@ layout(location = 0) out float2 SV_Target0;
 
 void main()
 {
-    float3 N = OctaDecode(vs_TEXCOORD0);
+    float2 uv = vs_TEXCOORD0;
+
+    #if defined(BLUR_PASS1)
+        uv *= float2(1.0f) + 2.0f / SHADOWMAP_TILE_SIZE;
+        uv -= 1.0f / SHADOWMAP_TILE_SIZE;
+        uv = saturate(uv);
+    #endif
+    
+    float3 N = OctaDecode(uv);
     float3 U = abs(N.z) < 0.999f ? half3(0.0f, 0.0f, 1.0f) : half3(1.0f, 0.0f, 0.0f);
     float3 T = normalize(cross(U, N));
     float3 B = cross(N, T);

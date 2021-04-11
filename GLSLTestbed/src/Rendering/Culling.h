@@ -16,6 +16,8 @@ namespace PK::Rendering::Culling
 
     typedef void (*OnVisibleItem)(ECS::EntityDatabase*, ECS::EGID, float depth, void*);
 
+    typedef void (*OnVisibleItemMulti)(ECS::EntityDatabase*, ECS::EGID, uint clipIndex, float depth, void*);
+
     class VisibilityCache
     {
         private:
@@ -46,6 +48,8 @@ namespace PK::Rendering::Culling
         private:            
             std::map<uint, VisibilityList> m_visibilityLists;
     };
+
+    void ExecuteOnVisibleItemsCubeFaces(PK::ECS::EntityDatabase* entityDb, const BoundingBox& aabb, ushort typeMask, OnVisibleItemMulti onvisible, void* context);
 
     void ExecuteOnVisibleItemsFrustum(PK::ECS::EntityDatabase* entityDb, const float4x4& matrix, ushort typeMask, OnVisibleItem onvisible, void* context);
 

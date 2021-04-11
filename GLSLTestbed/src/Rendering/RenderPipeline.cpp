@@ -185,7 +185,6 @@ namespace PK::Rendering
 
 		GraphicsAPI::Blit(m_OEMBackgroundShader.lock().get());
 
-		// @Todo Implement depth sorted index queue
 		// @Todo Implement render passes
 		Batching::DrawBatches(&m_dynamicBatches, 0);
 

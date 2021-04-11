@@ -20,6 +20,62 @@ namespace PK::Rendering::Culling
 		}
 	}
 
+	void Culling::ExecuteOnVisibleItemsCubeFaces(PK::ECS::EntityDatabase* entityDb, const BoundingBox& aabb, ushort typeMask, OnVisibleItemMulti onvisible, void* context)
+	{
+		const float3 planeNormals[] = { {-1,1,0}, {1,1,0}, {1,0,1}, {1,0,-1}, {0,1,1}, {0,-1,1} };
+		const float3 absPlaneNormals[] = { {1,1,0}, {1,1,0}, {1,0,1}, {1,0,1}, {0,1,1}, {0,1,1} };
+
+		auto aabbcenter = aabb.GetCenter();
+
+		auto cullables = entityDb->Query<ECS::EntityViews::BaseRenderable>((int)ECS::ENTITY_GROUPS::ACTIVE);
+
+		for (auto i = 0; i < cullables.count; ++i)
+		{
+			auto cullable = &cullables[i];
+
+			if (!((ushort)cullable->handle->flags & typeMask) || !Functions::IntersectAABB(aabb, cullable->bounds->worldAABB))
+			{
+				continue;
+			}
+
+			auto center = cullable->bounds->worldAABB.GetCenter() - aabbcenter;
+			auto extents = cullable->bounds->worldAABB.GetExtents();
+
+			bool rp[6];
+			bool rn[6];
+			bool vis[6];
+
+			// Source: https://newq.net/dl/pub/s2015_shadows.pdf
+			for (uint j = 0; j < 6; ++j)
+			{
+				auto dist = glm::dot(center, planeNormals[j]);
+				auto radius = glm::dot(extents, absPlaneNormals[j]);
+				rp[j] = dist > -radius;
+				rn[j] = dist < radius;
+			}
+
+			vis[0] = rn[0] && rp[1] && rp[2] && rp[3] && cullable->bounds->worldAABB.max.x > aabbcenter.x;
+			vis[1] = rp[0] && rn[1] && rn[2] && rn[3] && cullable->bounds->worldAABB.min.x < aabbcenter.x;
+
+			vis[2] = rp[0] && rp[1] && rp[4] && rn[5] && cullable->bounds->worldAABB.max.y > aabbcenter.y;
+			vis[3] = rn[0] && rn[1] && rn[4] && rp[5] && cullable->bounds->worldAABB.min.y < aabbcenter.y;
+
+			vis[4] = rp[2] && rn[3] && rp[4] && rp[5] && cullable->bounds->worldAABB.max.z > aabbcenter.z;
+			vis[5] = rn[2] && rp[3] && rn[4] && rn[5] && cullable->bounds->worldAABB.min.z < aabbcenter.z;
+
+			for (uint j = 0; j < 6; ++j)
+			{
+				auto isVisible = !cullable->handle->isCullable || vis[j];
+				cullable->handle->isVisible |= isVisible;
+
+				if (isVisible)
+				{
+					onvisible(entityDb, cullable->GID, j, 0.0f, context);
+				}
+			}
+		}
+	}
+
 	void Culling::ExecuteOnVisibleItemsFrustum(PK::ECS::EntityDatabase* entityDb, const float4x4& matrix, ushort typeMask, OnVisibleItem onvisible, void* context)
 	{
 		FrustrumPlanes frustum;

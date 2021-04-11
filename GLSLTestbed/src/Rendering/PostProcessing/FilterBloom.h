@@ -1,6 +1,7 @@
 #pragma once
 #include "Rendering/PostProcessing/FilterBase.h"
 #include "Rendering/Objects/TextureXD.h"
+#include "Rendering/Objects/Buffer.h"
 
 namespace PK::Rendering::PostProcessing
 {
@@ -19,7 +20,7 @@ namespace PK::Rendering::PostProcessing
             float m_lensDirtIntensity;
             Weak<TextureXD> m_lensDirtTexture;
             Ref<RenderTexture> m_blurTextures[6];
-            uint m_passKeywords[4];
-            GraphicsID m_bloomLayers[6];
+            Ref<ComputeBuffer> m_textureBuffer;
+            uint m_passKeywords[3];
     };
 }

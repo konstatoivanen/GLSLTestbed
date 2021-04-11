@@ -99,13 +99,16 @@ namespace PK::Rendering::Objects
 		PK_CORE_ASSERT(glCheckNamedFramebufferStatus(m_graphicsId, GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!");
 	}
 	
-	void RenderTexture::ValidateResolution(const uint3& resolution)
+	bool RenderTexture::ValidateResolution(const uint3& resolution)
 	{
 		if (m_compoundDescriptor.resolution != resolution)
 		{
 			m_compoundDescriptor.resolution = resolution;
 			Rebuild(m_compoundDescriptor);
+			return true;
 		}
+
+		return false;
 	}
 	
 	void RenderTexture::SetDrawTargets(std::initializer_list<GLenum> attachements)

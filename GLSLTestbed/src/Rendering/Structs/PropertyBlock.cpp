@@ -17,9 +17,12 @@ namespace PK::Rendering::Structs
 	
 		for (const auto& element : layout)
 		{
+			auto elementSize = Convert::Size(element.Type);
+			ushort paddedSize = elementStride * (ushort)ceil((float)elementSize / elementStride);
+			ushort paddedSizeFull = paddedSize * (element.Size / elementSize);
 			PK_CORE_ASSERT(Convert::Size(element.Type) % elementStride == 0, "Property block doesnt support elements that are not of ")
-			m_properties[element.NameHashId] = { element.Type, element.Size, m_currentByteOffset };
-			m_currentByteOffset += element.Size;
+			m_properties[element.NameHashId] = { element.Type, paddedSizeFull, m_currentByteOffset };
+			m_currentByteOffset += paddedSizeFull;
 		}
 	}
 	
@@ -59,21 +62,21 @@ namespace PK::Rendering::Structs
 	
 	void PropertyBlock::CopyFrom(PropertyBlock& from)
 	{
-		auto& propm = m_properties;
-		auto& propt = from.m_properties;
+		auto& propsm = m_properties;
+		auto& propst = from.m_properties;
 	
-		for (auto& prop : propm)
+		for (auto& prop : propsm)
 		{
-			if (propt.count(prop.first) < 1)
+			if (propst.count(prop.first) < 1)
 			{
 				continue;
 			}
 	
-			auto& theirs = propt.at(prop.first);
+			auto& theirs = propst.at(prop.first);
 			auto& mine = prop.second;
 	
 			// missmatch
-			if (mine.size != theirs.size || mine.type != theirs.type)
+			if (mine.size < theirs.size || mine.type != theirs.type)
 			{
 				continue;
 			}

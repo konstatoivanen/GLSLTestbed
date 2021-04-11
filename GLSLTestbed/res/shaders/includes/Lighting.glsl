@@ -12,11 +12,12 @@ uniform float pk_SceneOEM_Exposure;
 #define SRC_METALLIC x
 #define SRC_OCCLUSION y
 #define SRC_ROUGHNESS z
-//#define SHADOW_USE_LBR 
+#define SHADOW_USE_LBR 
 #define SHADOW_LBR 0.1f
 #define SHADOWMAP_TILE_SIZE 512
 #define SHADOWMAP_ATLAS_SIZE 4096
 #define SHADOWMAP_TILES_PER_AXIS 8
+#define SHADOWMAP_BORDER_SIZE (1.0f / SHADOWMAP_ATLAS_SIZE)
 
 // Source: https://de45xmedrsdbp.cloudfront.net/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
 float GetAttenuation(float ldist, float lradius) { return pow2(saturate(1.0f - pow4(ldist/lradius))) / (pow2(ldist) + 1.0f); }
@@ -30,9 +31,9 @@ float GetAttenuation(float ldist, float lradius) { return pow2(saturate(1.0f - p
 float3 GetShadowMapTileST(uint index)
 {
     return float3(
-    uint(index % SHADOWMAP_TILES_PER_AXIS) / float(SHADOWMAP_TILES_PER_AXIS), 
-    uint(index / SHADOWMAP_TILES_PER_AXIS) / float(SHADOWMAP_TILES_PER_AXIS), 
-    1.0f / SHADOWMAP_TILES_PER_AXIS);
+    uint(index % SHADOWMAP_TILES_PER_AXIS) / float(SHADOWMAP_TILES_PER_AXIS) + SHADOWMAP_BORDER_SIZE, 
+    uint(index / SHADOWMAP_TILES_PER_AXIS) / float(SHADOWMAP_TILES_PER_AXIS) + SHADOWMAP_BORDER_SIZE, 
+    1.0f / SHADOWMAP_TILES_PER_AXIS - 2 * SHADOWMAP_BORDER_SIZE);
 }
 
 float2 OctaWrap(float2 v)

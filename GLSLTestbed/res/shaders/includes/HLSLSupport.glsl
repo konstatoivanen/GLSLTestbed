@@ -95,6 +95,8 @@ float pow5(float x) { return x * x * x * x * x; }
 
 #define PK_DECLARE_RESTRICTED_BUFFER(ValueType, BufferName) layout(std430) restrict buffer BufferName { ValueType BufferName##_Data[]; }
 
+#define PK_DECLARE_RESTRICTED_READONLY_BUFFER(ValueType, BufferName) layout(std430) restrict readonly buffer BufferName { ValueType BufferName##_Data[]; }
+
 #define PK_BUFFER_DATA(BufferName, index) BufferName##_Data[index]
 
 #define PK_DECLARE_ATOMIC_VARIABLE(ValueType, BufferName) layout(std430) buffer BufferName { ValueType BufferName##_Data; }

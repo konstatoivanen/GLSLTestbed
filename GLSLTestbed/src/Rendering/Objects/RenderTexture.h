@@ -39,7 +39,7 @@ namespace PK::Rendering::Objects
     		RenderTexture(const RenderTextureDescriptor& descriptor);
     		~RenderTexture();
     		void Rebuild(const RenderTextureDescriptor& descriptor);
-            void ValidateResolution(const uint3& resolution);
+            bool ValidateResolution(const uint3& resolution);
             void SetDrawTargets(std::initializer_list<GLenum> attachements);
             void ResetDrawTargets();
             void DiscardContents();

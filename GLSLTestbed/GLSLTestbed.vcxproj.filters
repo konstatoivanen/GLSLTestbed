@@ -1164,9 +1164,6 @@
     <ClInclude Include="src\Rendering\LightsManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\BufferPool.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\glfw3.lib" />
@@ -1755,9 +1752,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Rendering\LightsManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\BufferPool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
