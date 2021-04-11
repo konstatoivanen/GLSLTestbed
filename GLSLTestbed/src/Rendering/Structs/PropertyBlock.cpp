@@ -17,12 +17,11 @@ namespace PK::Rendering::Structs
 	
 		for (const auto& element : layout)
 		{
-			auto elementSize = Convert::Size(element.Type);
-			ushort paddedSize = elementStride * (ushort)ceil((float)elementSize / elementStride);
-			ushort paddedSizeFull = paddedSize * (element.Size / elementSize);
-			PK_CORE_ASSERT(Convert::Size(element.Type) % elementStride == 0, "Property block doesnt support elements that are not of ")
-			m_properties[element.NameHashId] = { element.Type, paddedSizeFull, m_currentByteOffset };
-			m_currentByteOffset += paddedSizeFull;
+			//auto elementSize = Convert::Size(element.Type);
+			//ushort paddedSize = elementStride * (ushort)ceil((float)elementSize / elementStride);
+			//ushort paddedSizeFull = paddedSize * (element.Size / elementSize);
+			m_properties[element.NameHashId] = { element.Type, element.Size, m_currentByteOffset };
+			m_currentByteOffset += element.Size;
 		}
 	}
 	
@@ -52,9 +51,9 @@ namespace PK::Rendering::Structs
 			info = { type, size, m_currentByteOffset };
 			m_currentByteOffset += size;
 		}
-		else if (info.size > size || info.type != type)
+		else if (info.size < size || info.type != type)
 		{
-			PK_CORE_ERROR("INVALID DATA FORMAT!");
+			PK_CORE_ERROR("INVALID DATA FORMAT! %s", StringHashID::IDToString(hashid).c_str());
 		}
 	
 		memcpy(m_data.data() + info.offset, src, size);

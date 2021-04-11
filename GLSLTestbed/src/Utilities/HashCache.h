@@ -49,6 +49,7 @@ namespace PK::Utilities
         DEFINE_HASH_CACHE(pk_ScreenDepth)
         DEFINE_HASH_CACHE(pk_ScreenNormals)
         DEFINE_HASH_CACHE(pk_ScreenOcclusion)
+        DEFINE_HASH_CACHE(pk_ShadowmapAtlas)
 
         DEFINE_HASH_CACHE(pk_Lights)
         DEFINE_HASH_CACHE(pk_LightCount)

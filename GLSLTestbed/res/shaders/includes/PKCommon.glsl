@@ -2,6 +2,8 @@
 #ifndef PK_COMMON
 #define PK_COMMON
 
+#extension GL_ARB_bindless_texture : require
+
 #include HLSLSupport.glsl
 #include Instancing.glsl
 
@@ -49,6 +51,20 @@ PK_DECLARE_CBUFFER(pk_PerFrameConstants)
     float4x4 pk_MATRIX_VP;
     // Current inverse view * projection matrix.
     float4x4 pk_MATRIX_I_VP;
+
+    // Scene reflections
+    sampler2D pk_SceneOEM_HDR;
+    // Scene normals
+    highp sampler2D pk_ScreenNormals;
+    // Scene depth
+    highp sampler2D pk_ScreenDepth;
+    // Scene shadowmap atlas
+    highp sampler2D pk_ShadowmapAtlas;
+    // Scene ambient occlusion
+    sampler2D pk_ScreenOcclusion;
+
+    // Scene reflections exposure
+    float pk_SceneOEM_Exposure;
 };
 
 #if defined(PK_ENABLE_INSTANCING)

@@ -4,9 +4,6 @@
 
 #include PKCommon.glsl
 
-uniform highp sampler2D pk_ScreenNormals;
-uniform highp sampler2D pk_ScreenDepth;
-
 float3 UnpackNormal(in float3 packedNormal)
 {
     return packedNormal * 2.0f - float3(1.0f);

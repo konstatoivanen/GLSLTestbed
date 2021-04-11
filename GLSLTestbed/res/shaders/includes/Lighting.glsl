@@ -4,11 +4,6 @@
 #include LightingCommon.glsl
 #include LightingBRDF.glsl
 
-uniform sampler2D pk_ShadowmapAtlas;
-uniform sampler2DArray pk_ScreenOcclusion;
-uniform sampler2D pk_SceneOEM_HDR;
-uniform float pk_SceneOEM_Exposure;
-
 #define SRC_METALLIC x
 #define SRC_OCCLUSION y
 #define SRC_ROUGHNESS z
@@ -88,13 +83,13 @@ float SampleLightShadowmap(uint index, float3 direction, float lightDistance)
 
 float SampleScreenSpaceOcclusion(float2 uv)
 {
-    return 1.0f - tex2D(pk_ScreenOcclusion, float3(uv, 0)).r;
+    return 1.0f - tex2D(pk_ScreenOcclusion, uv).r;
 }
 
 float SampleScreenSpaceOcclusion()
 {
     #if defined(SHADER_STAGE_FRAGMENT)
-        return 1.0f - tex2D(pk_ScreenOcclusion, float3(gl_FragCoord.xy / pk_ScreenParams.xy, 0)).r;
+        return 1.0f - tex2D(pk_ScreenOcclusion, gl_FragCoord.xy / pk_ScreenParams.xy).r;
     #else
         return 1.0f;
     #endif

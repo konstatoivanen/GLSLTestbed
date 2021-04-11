@@ -40,6 +40,8 @@ namespace PK::Rendering
 
             void DrawDebug();
 
+            const Ref<RenderTexture>& GetShadowmapAtlas() const { return m_shadowmapData.ShadowmapAtlas; }
+
         private:
             const uint MaxLightsPerTile = 64;
             const uint GridSizeX = 16;

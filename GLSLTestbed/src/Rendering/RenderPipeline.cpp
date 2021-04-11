@@ -14,16 +14,16 @@ namespace PK::Rendering
 	using namespace PK::Rendering::Objects;
 	using namespace PK::Math;
 
-	static void SetOEMTextures(const GraphicsID texture, int probeSize, float exposure)
+	static void SetOEMTextures(const Weak<TextureXD>& texture, Ref<ConstantBuffer>& properties, int probeSize, float exposure)
 	{
 		float OEMRoughnessLevels[] = { 0.0f, 0.33f, 0.66f, 1.0f };
 
 		auto* hashCache = HashCache::Get();
 
-		GraphicsAPI::SetGlobalTexture(hashCache->pk_SceneOEM_HDR, texture);
-		GraphicsAPI::SetGlobalFloat(hashCache->pk_SceneOEM_RVS, &OEMRoughnessLevels[0], 4);
-		GraphicsAPI::SetGlobalFloat4(hashCache->pk_SceneOEM_ST, { 0, 0, 1, 1 });
-		GraphicsAPI::SetGlobalFloat(hashCache->pk_SceneOEM_Exposure, exposure);
+		properties->SetResourceHandle(hashCache->pk_SceneOEM_HDR, texture.lock()->GetBindlessHandleResident());
+		//GraphicsAPI::SetGlobalFloat(hashCache->pk_SceneOEM_RVS, &OEMRoughnessLevels[0], 4);
+		//GraphicsAPI::SetGlobalFloat4(hashCache->pk_SceneOEM_ST, { 0, 0, 1, 1 });
+		properties->SetFloat(hashCache->pk_SceneOEM_Exposure, exposure);
 	}
 	
 	static void UpdateDynamicBatches(ECS::EntityDatabase* entityDb, Culling::VisibilityCache& viscache, Batching::DynamicBatchCollection& batches)
@@ -103,7 +103,17 @@ namespace PK::Rendering
 			{CG_TYPE::FLOAT4X4, "pk_MATRIX_I_P"},
 			{CG_TYPE::FLOAT4X4, "pk_MATRIX_VP"},
 			{CG_TYPE::FLOAT4X4, "pk_MATRIX_I_VP"},
+			{CG_TYPE::HANDLE, "pk_SceneOEM_HDR"},
+			{CG_TYPE::HANDLE, "pk_ScreenNormals"},
+			{CG_TYPE::HANDLE, "pk_ScreenDepth"},
+			{CG_TYPE::HANDLE, "pk_ShadowmapAtlas"},
+			{CG_TYPE::HANDLE, "pk_ScreenOcclusion"},
+			{CG_TYPE::FLOAT, "pk_SceneOEM_Exposure"},
 		}));
+
+		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenDepth, m_PreZRenderTarget->GetDepthBuffer().lock()->GetBindlessHandleResident());
+		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenNormals, m_PreZRenderTarget->GetColorBufferPtr(0)->GetBindlessHandleResident());
+		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ShadowmapAtlas, m_lightsManager.GetShadowmapAtlas()->GetColorBufferPtr(0)->GetBindlessHandleResident());
 	}
 	
 	void RenderPipeline::Step(Time* timeRef)
@@ -136,14 +146,25 @@ namespace PK::Rendering
 	{
 		GraphicsAPI::StartWindow();
 		GraphicsAPI::ResetResourceBindings();
+		auto resolution = GraphicsAPI::GetActiveWindowResolution();
+
+		SetOEMTextures(m_OEMTexture, m_constantsPerFrame, 1, m_OEMExposure);
+
+		m_HDRRenderTarget->ValidateResolution(uint3(resolution, 0));
+
+		if (m_PreZRenderTarget->ValidateResolution(uint3(resolution, 0)))
+		{
+			m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenDepth, m_PreZRenderTarget->GetDepthBuffer().lock()->GetBindlessHandleResident());
+			m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenNormals, m_PreZRenderTarget->GetColorBuffer(0).lock()->GetBindlessHandleResident());
+		}
+
+		m_filterAO.OnPreRender(m_PreZRenderTarget.get());
+		m_filterBloom.OnPreRender(m_HDRRenderTarget.get());
 
 		m_constantsPerFrame->CopyFrom(m_context.ShaderProperties);
 		m_constantsPerFrame->FlushBufer();
 		GraphicsAPI::SetGlobalConstantBuffer(HashCache::Get()->pk_PerFrameConstants, m_constantsPerFrame->GetGraphicsID());
-		SetOEMTextures(m_OEMTexture.lock()->GetGraphicsID(), 1, m_OEMExposure);
 	
-		auto resolution = GraphicsAPI::GetActiveWindowResolution();
-
 		Culling::ResetEntityVisibilities(m_entityDb);
 		m_visibilityCache.Reset();
 		
@@ -156,9 +177,6 @@ namespace PK::Rendering
 		auto projectionParams = *m_constantsPerFrame->GetPropertyPtr<float4>(HashCache::Get()->pk_ProjectionParams);
 
 		UpdateDynamicBatches(m_entityDb, m_visibilityCache, m_dynamicBatches);
-	
-		m_HDRRenderTarget->ValidateResolution(uint3(resolution, 0));
-		m_PreZRenderTarget->ValidateResolution(uint3(resolution, 0));
 
 		m_lightsManager.Preprocess(m_entityDb, m_visibilityCache.GetList(Culling::CullingGroup::CameraFrustum, (int)ECS::Components::RenderHandleFlags::Light), resolution, projectionParams.y, projectionParams.z);
 	}
@@ -170,9 +188,6 @@ namespace PK::Rendering
 
 		auto depthNormals = m_depthNormalsShader.lock();
 		Batching::DrawBatches(&m_dynamicBatches, 0, depthNormals.get());
-
-		GraphicsAPI::SetGlobalTexture(HashCache::Get()->pk_ScreenDepth, m_PreZRenderTarget->GetDepthBuffer().lock()->GetGraphicsID());
-		GraphicsAPI::SetGlobalTexture(HashCache::Get()->pk_ScreenNormals, m_PreZRenderTarget->GetColorBuffer(0).lock()->GetGraphicsID());
 		
 		m_lightsManager.UpdateLightTiles(m_PreZRenderTarget->GetResolution2D());
 

@@ -21,21 +21,13 @@ namespace PK::Rendering::PostProcessing
         m_exposure = exposure;
         m_intensity = intensity;
         m_lensDirtIntensity = lensDirtIntensity;
-        m_lensDirtTexture = lensDirt;
-    
+        m_lensDirtTexture = lensDirt;   
         m_passKeywords[0] = StringHashID::StringToID("BLOOM_PASS0");
         m_passKeywords[1] = StringHashID::StringToID("BLOOM_PASS1");
         m_passKeywords[2] = StringHashID::StringToID("BLOOM_PASS2");
     }
-    
-    static void UpdateBufferData(const RenderTexture* source, 
-        Ref<RenderTexture>* renderTextures, 
-        Ref<ComputeBuffer>& passBuffer, 
-        Weak<TextureXD>& lensdirt, 
-        float bloomIntensity, 
-        float dirtIntensity, 
-        float exposure,
-        float saturation)
+
+    void FilterBloom::OnPreRender(const RenderTexture* source)
     {
         auto descriptor = source->GetCompoundDescriptor();
         descriptor.dimension = GL_TEXTURE_2D_ARRAY;
@@ -52,21 +44,21 @@ namespace PK::Rendering::PostProcessing
         {
             descriptor.resolution.x /= 2;
             descriptor.resolution.y /= 2;
-    
-            if (renderTextures[i] == nullptr)
+
+            if (m_renderTargets[i] == nullptr)
             {
-                renderTextures[i] = CreateRef<RenderTexture>(descriptor);
+                m_renderTargets[i] = CreateRef<RenderTexture>(descriptor);
                 hasdelta = true;
             }
             else
             {
-                hasdelta |= renderTextures[i]->ValidateResolution(descriptor.resolution);
+                hasdelta |= m_renderTargets[i]->ValidateResolution(descriptor.resolution);
             }
         }
 
-        if (passBuffer == nullptr)
+        if (m_passBuffer == nullptr)
         {
-            passBuffer = CreateRef<ComputeBuffer>(BufferLayout({ {CG_TYPE::HANDLE, "SOURCE"}, { CG_TYPE::FLOAT2, "OFFSET" }, { CG_TYPE::UINT2, "READWRITE" } }), 32, true, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
+            m_passBuffer = CreateRef<ComputeBuffer>(BufferLayout({ {CG_TYPE::HANDLE, "SOURCE"}, { CG_TYPE::FLOAT2, "OFFSET" }, { CG_TYPE::UINT2, "READWRITE" } }), 32, true, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
         }
 
         if (!hasdelta)
@@ -76,18 +68,19 @@ namespace PK::Rendering::PostProcessing
 
         GLuint64 handles[8] =
         {
-            renderTextures[0]->GetColorBufferPtr(0)->GetBindlessHandleResident(),
-            renderTextures[1]->GetColorBufferPtr(0)->GetBindlessHandleResident(),
-            renderTextures[2]->GetColorBufferPtr(0)->GetBindlessHandleResident(),
-            renderTextures[3]->GetColorBufferPtr(0)->GetBindlessHandleResident(),
-            renderTextures[4]->GetColorBufferPtr(0)->GetBindlessHandleResident(),
-            renderTextures[5]->GetColorBufferPtr(0)->GetBindlessHandleResident(),
+            m_renderTargets[0]->GetColorBufferPtr(0)->GetBindlessHandleResident(),
+            m_renderTargets[1]->GetColorBufferPtr(0)->GetBindlessHandleResident(),
+            m_renderTargets[2]->GetColorBufferPtr(0)->GetBindlessHandleResident(),
+            m_renderTargets[3]->GetColorBufferPtr(0)->GetBindlessHandleResident(),
+            m_renderTargets[4]->GetColorBufferPtr(0)->GetBindlessHandleResident(),
+            m_renderTargets[5]->GetColorBufferPtr(0)->GetBindlessHandleResident(),
             source->GetColorBufferPtr(0)->GetBindlessHandleResident(),//Kinda volatile not to do this every frame but whatever.
-            lensdirt.lock()->GetBindlessHandleResident(),
+            m_lensDirtTexture.lock()->GetBindlessHandleResident(),
         };
 
+        const float saturation = 0.8f;
         const float blurSize = 4.0f;
-        auto bufferview = passBuffer->BeginMapBuffer<PassParams>();
+        auto bufferview = m_passBuffer->BeginMapBuffer<PassParams>();
         auto passIdx = 0;
 
         for (int i = 0; i < 6; ++i)
@@ -97,29 +90,26 @@ namespace PK::Rendering::PostProcessing
 
             for (int j = 0; j < 2; ++j)
             {
-                bufferview[passIdx++] = { handles[i], { (blurSize * 0.5f + j) * spread, 0 }, { 0, 1 }};
-                bufferview[passIdx++] = { handles[i], { 0, (blurSize * 0.5f + j) * spread }, { 1, 0 }};
+                bufferview[passIdx++] = { handles[i], { (blurSize * 0.5f + j) * spread, 0 }, { 0, 1 } };
+                bufferview[passIdx++] = { handles[i], { 0, (blurSize * 0.5f + j) * spread }, { 1, 0 } };
             }
         }
 
-        bufferview[passIdx++] = { handles[6], { glm::exp(bloomIntensity) - 1.0f, glm::exp(dirtIntensity) - 1.0f }, { 0, 0} };
-        bufferview[passIdx++] = { handles[7], { exposure, saturation }, { 0, 0 }};
+        bufferview[passIdx++] = { handles[6], { glm::exp(m_intensity) - 1.0f, glm::exp(m_lensDirtIntensity) - 1.0f }, { 0, 0} };
+        bufferview[passIdx++] = { handles[7], { m_exposure, saturation }, { 0, 0 } };
 
-        passBuffer->EndMapBuffer();
+        m_passBuffer->EndMapBuffer();
     }
     
     void FilterBloom::Execute(const RenderTexture* source, const RenderTexture* destination)
     {
-        UpdateBufferData(source, m_blurTextures, m_passBuffer, m_lensDirtTexture, m_intensity, m_lensDirtIntensity, m_exposure, 0.8f);
-    
         m_properties.SetComputeBuffer(HashCache::Get()->_BloomPassParams, m_passBuffer->GetGraphicsID());
 
-        const float blurSize = 4.0f;
         auto shader = m_shader.lock().get();
 
         for (int i = 0; i < 6; ++i)
         {
-            auto fbo = m_blurTextures[i].get();
+            auto fbo = m_renderTargets[i].get();
             m_properties.SetKeywords({ m_passKeywords[1] });                                 // downsample
             GraphicsAPI::BlitInstanced(i * 5 + 0, 1, fbo, shader, m_properties);
             glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);

@@ -108,8 +108,6 @@ namespace PK::Rendering
 			properties.SetKeywords({ StringHashID::StringToID("BLUR_PASS1") });
 			GraphicsAPI::BlitInstanced(baseIdx, batchSize, data->ShadowmapOctahedron->GetColorBufferPtr(0), data->ShadowmapAtlas.get(), shaderBlurCube, properties);
 		}
-
-		GraphicsAPI::SetGlobalTexture(StringHashID::StringToID("pk_ShadowmapAtlas"), data->ShadowmapAtlas->GetColorBufferPtr(0)->GetGraphicsID());
 	}
 
 
