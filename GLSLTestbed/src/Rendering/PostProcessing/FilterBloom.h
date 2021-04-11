@@ -20,7 +20,7 @@ namespace PK::Rendering::PostProcessing
             float m_lensDirtIntensity;
             Weak<TextureXD> m_lensDirtTexture;
             Ref<RenderTexture> m_blurTextures[6];
-            Ref<ComputeBuffer> m_textureBuffer;
+            Ref<ComputeBuffer> m_passBuffer;
             uint m_passKeywords[3];
     };
 }

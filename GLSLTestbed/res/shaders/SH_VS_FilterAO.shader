@@ -1,4 +1,6 @@
 #version 460
+#extension GL_ARB_bindless_texture : require
+#extension GL_ARB_shader_viewport_layer_array : require
 
 #multi_compile AO_PASS0 AO_PASS1 AO_PASS2
 
@@ -6,17 +8,23 @@
 #include includes/Reconstruction.glsl
 #include includes/Noise.glsl
 
+struct PassData
+{
+    sampler2DArray source;
+    float2 offset;
+    uint2 readwrite;
+};
+
+PK_DECLARE_RESTRICTED_READONLY_BUFFER(PassData, _AOPassParams);
+uniform float3 _AOParams;
+
 const float kNDotVBias = 0.002;
 const float kGeometryAwareness = 50;
 const int SAMPLE_COUNT = 16;
 
-uniform sampler2D _MainTex;
-uniform half _Intensity;
-uniform float _Radius;
-uniform float _TargetScale;
-uniform float2 _BlurVector;
-
-#define _Maintex_TexelSize (float2(1.0f, 1.0f) / textureSize(_MainTex, 0).xy)
+#define INTENSITY _AOParams.x
+#define RADIUS _AOParams.y
+#define TARGETSCALE _AOParams.z
 
 float ViewPortClip(float2 uv, float d)
 {
@@ -33,7 +41,7 @@ float SampleDepth(float2 uv)
 
 float GetDepthBlurFactor(float2 uv)
 {
-    //@TODO solve this correctly later
+    // @TODO solve this correctly later
     float d = 1.0f - (LinearizeDepth(tex2D(pk_ScreenDepth, uv).r) - pk_ProjectionParams.y) / pk_ProjectionParams.z;
     return d * d * d * d * d * d * d * d * d * d * d * d * d * d * d * d;
 }
@@ -45,7 +53,7 @@ float CompareNormal(float3 normal0, float3 normal1)
 
 float3 GetSampleDirection(float2 uv, float3 normal, float index)
 {
-    float ngrad = NoiseGradient(uv * _TargetScale, pk_ScreenParams.xy);
+    float ngrad = NoiseGradient(uv * TARGETSCALE, pk_ScreenParams.xy);
 
     float theta = (NoiseUV(1, index) + ngrad) * PK_PI * 2;
 
@@ -53,7 +61,7 @@ float3 GetSampleDirection(float2 uv, float3 normal, float index)
 
     float3 direction = float3(float2(cos(theta), sin(theta)) * sqrt(1 - nuv * nuv), nuv);
 
-    direction *= sqrt((index + 1) / SAMPLE_COUNT) * _Radius;
+    direction *= sqrt((index + 1) / SAMPLE_COUNT) * RADIUS;
 
     return faceforward(direction, -normal, direction);
 }
@@ -66,8 +74,9 @@ float ComputeAO(float3 P, float3 N, float3 S, float D)
     return NdotV / VdotV;
 }
 
-float ComputeCoarseAO(float2 uv)
+float ComputeCoarseAO(float3 uvw, sampler2DArray source, float2 offset)
 {
+    float2 uv = uvw.xy;
     float3x3 projection = float3x3(pk_MATRIX_P);
 
     float vdepth = SampleDepth(uv);
@@ -90,12 +99,13 @@ float ComputeCoarseAO(float2 uv)
         AO += ComputeAO(vposition, vnormal, samplePosition, vdepth);
     }
 
-    return pow(AO * _Radius * _Intensity / SAMPLE_COUNT, 0.6f);
+    return pow(AO * RADIUS * INTENSITY / SAMPLE_COUNT, 0.6f);
 }
 
-half SeparableBlurLarge(float2 uv)
+half SeparableBlurLarge(float3 uvw, sampler2DArray source, float2 offset)
 {
-    float2 delta = _Maintex_TexelSize.xy * _BlurVector * GetDepthBlurFactor(uv);
+    float2 uv = uvw.xy;
+    float2 delta = (offset / textureSize(source, 0).xy) * GetDepthBlurFactor(uv);
 
     float2 uv10 = uv - delta * 1.0f;
     float2 uv11 = uv + delta * 1.0f;
@@ -114,20 +124,21 @@ half SeparableBlurLarge(float2 uv)
     float w30 = CompareNormal(normal, SampleViewSpaceNormal(uv30)) * 0.11453744493f;
     float w31 = CompareNormal(normal, SampleViewSpaceNormal(uv31)) * 0.11453744493f;
 
-    float s = tex2D(_MainTex, uv).r * w00;
-    s += tex2D(_MainTex, uv10).r * w10;
-    s += tex2D(_MainTex, uv11).r * w11;
-    s += tex2D(_MainTex, uv20).r * w20;
-    s += tex2D(_MainTex, uv21).r * w21;
-    s += tex2D(_MainTex, uv30).r * w30;
-    s += tex2D(_MainTex, uv31).r * w31;
+    float s = tex2D(source, uvw).r * w00;
+    s += tex2D(source, float3(uv10, uvw.z)).r * w10;
+    s += tex2D(source, float3(uv11, uvw.z)).r * w11;
+    s += tex2D(source, float3(uv20, uvw.z)).r * w20;
+    s += tex2D(source, float3(uv21, uvw.z)).r * w21;
+    s += tex2D(source, float3(uv30, uvw.z)).r * w30;
+    s += tex2D(source, float3(uv31, uvw.z)).r * w31;
 
     return s / (w00 + w10 + w11 + w20 + w21 + w30 + w31);
 }
 
-half SeparableBlurSmall(float2 uv)
+half SeparableBlurSmall(float3 uvw, sampler2DArray source, float2 offset)
 {
-    float2 delta = _Maintex_TexelSize.xy * _BlurVector * GetDepthBlurFactor(uv);
+    float2 uv = uvw.xy;
+    float2 delta = (offset / textureSize(source, 0).xy) * GetDepthBlurFactor(uv);
 
     float2 uv0 = uv - delta;
     float2 uv1 = uv + delta;
@@ -137,9 +148,9 @@ half SeparableBlurSmall(float2 uv)
     float w1 = CompareNormal(normal, SampleViewSpaceNormal(uv0));
     float w2 = CompareNormal(normal, SampleViewSpaceNormal(uv1));
 
-    float s = tex2D(_MainTex, uv).r * 2.0f;
-    s += tex2D(_MainTex, uv0).r * w1;
-    s += tex2D(_MainTex, uv1).r * w2;
+    float s = tex2D(source, uvw).r * 2.0f;
+    s += tex2D(source, float3(uv0, uvw.z)).r * w1;
+    s += tex2D(source, float3(uv1, uvw.z)).r * w2;
 
     return s / (2.0f + w1 + w2);
 }
@@ -155,15 +166,23 @@ half SeparableBlurSmall(float2 uv)
 #pragma PROGRAM_VERTEX
 layout(location = 0) in float4 in_POSITION0;
 layout(location = 1) in float2 in_TEXCOORD0;
-out float2 vs_TEXCOORD0;
+out float3 vs_TEXCOORD0;
+out float2 vs_OFFSET;
+out flat sampler2DArray vs_MainTex;
 
 void main()
 {
+    PassData passdata = PK_BUFFER_DATA(_AOPassParams, gl_BaseInstance);
+    vs_MainTex = passdata.source;
+    vs_OFFSET = passdata.offset;
+    vs_TEXCOORD0 = float3(in_TEXCOORD0, passdata.readwrite.x);
+    gl_Layer = int(passdata.readwrite.y);
     gl_Position = in_POSITION0;
-    vs_TEXCOORD0 = in_TEXCOORD0;
 };
 
 #pragma PROGRAM_FRAGMENT
-in float2 vs_TEXCOORD0;
+in float3 vs_TEXCOORD0;
+in float2 vs_OFFSET;
+in flat sampler2DArray vs_MainTex;
 layout(location = 0) out float SV_Target0;
-void main() { SV_Target0 = FUNC_FRAG(vs_TEXCOORD0); };
+void main() { SV_Target0 = FUNC_FRAG(vs_TEXCOORD0, vs_MainTex, vs_OFFSET); };

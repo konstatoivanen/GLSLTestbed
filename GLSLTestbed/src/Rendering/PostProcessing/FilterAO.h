@@ -1,6 +1,7 @@
 #pragma once
 #include "Rendering/PostProcessing/FilterBase.h"
 #include "Rendering/Objects/TextureXD.h"
+#include "Rendering/Objects/Buffer.h"
 
 namespace PK::Rendering::PostProcessing
 {
@@ -18,6 +19,7 @@ namespace PK::Rendering::PostProcessing
             float m_radius;
             bool m_downsample;
             Ref<RenderTexture> m_renderTargets[2];
+            Ref<ComputeBuffer> m_passBuffer;
             uint m_passKeywords[3];
     };
 }

@@ -41,17 +41,10 @@ namespace PK::Utilities
 
         DEFINE_HASH_CACHE(pk_PerFrameConstants)
         DEFINE_HASH_CACHE(pk_GizmoVertices)
-        DEFINE_HASH_CACHE(_Bloom_Intensity)
-        DEFINE_HASH_CACHE(_Bloom_LensDirtIntensity)
-        DEFINE_HASH_CACHE(_Bloom_DirtTexture)
-        DEFINE_HASH_CACHE(_Bloom_BlurSize)
-        DEFINE_HASH_CACHE(_Bloom_Textures)
-        DEFINE_HASH_CACHE(_Tonemap_Exposure)
         
-        DEFINE_HASH_CACHE(_Intensity)
-        DEFINE_HASH_CACHE(_Radius)
-        DEFINE_HASH_CACHE(_TargetScale)
-        DEFINE_HASH_CACHE(_BlurVector)
+        DEFINE_HASH_CACHE(_BloomPassParams)
+        DEFINE_HASH_CACHE(_AOPassParams)
+        DEFINE_HASH_CACHE(_AOParams)
 
         DEFINE_HASH_CACHE(pk_ScreenDepth)
         DEFINE_HASH_CACHE(pk_ScreenNormals)
