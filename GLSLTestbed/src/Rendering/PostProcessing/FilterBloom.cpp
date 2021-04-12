@@ -107,24 +107,38 @@ namespace PK::Rendering::PostProcessing
 
         auto shader = m_shader.lock().get();
 
+        float4 viewports[7] =
+        {
+            {0,0, m_renderTargets[0]->GetResolution2D()},
+            {0,0, m_renderTargets[1]->GetResolution2D()},
+            {0,0, m_renderTargets[2]->GetResolution2D()},
+            {0,0, m_renderTargets[3]->GetResolution2D()},
+            {0,0, m_renderTargets[4]->GetResolution2D()},
+            {0,0, m_renderTargets[5]->GetResolution2D()},
+            {0,0, source->GetResolution2D()},
+        };
+
+        GraphicsAPI::SetViewPorts(0, viewports, 7);
+
         for (int i = 0; i < 6; ++i)
         {
-            auto fbo = m_renderTargets[i].get();
-            m_properties.SetKeywords({ m_passKeywords[1] });                                 // downsample
-            GraphicsAPI::BlitInstanced(i * 5 + 0, 1, fbo, shader, m_properties);
+            GraphicsAPI::SetRenderTarget(m_renderTargets[i].get(), false);
+            m_properties.SetKeywords({ m_passKeywords[1] });                            // downsample
+            GraphicsAPI::BlitInstanced(i * 5 + 0, 1, shader, m_properties);
             glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
             m_properties.SetKeywords({ m_passKeywords[2] });
-            GraphicsAPI::BlitInstanced(i * 5 + 1, 1, fbo, shader, m_properties);             // vertical blur
+            GraphicsAPI::BlitInstanced(i * 5 + 1, 1, shader, m_properties);             // vertical blur
             glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
-            GraphicsAPI::BlitInstanced(i * 5 + 2, 1, fbo, shader, m_properties);             // horizontal blur
+            GraphicsAPI::BlitInstanced(i * 5 + 2, 1, shader, m_properties);             // horizontal blur
             glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
-            GraphicsAPI::BlitInstanced(i * 5 + 3, 1, fbo, shader, m_properties);             // vertical blur
+            GraphicsAPI::BlitInstanced(i * 5 + 3, 1, shader, m_properties);             // vertical blur
             glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
-            GraphicsAPI::BlitInstanced(i * 5 + 4, 1, fbo, shader, m_properties);            // horizontal blur
+            GraphicsAPI::BlitInstanced(i * 5 + 4, 1, shader, m_properties);            // horizontal blur
             glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
         }
 
         m_properties.SetKeywords({ m_passKeywords[0] });
-        GraphicsAPI::BlitInstanced(30, 1, destination, shader, m_properties);
+        GraphicsAPI::SetRenderTarget(destination, false);
+        GraphicsAPI::BlitInstanced(30, 1, shader, m_properties);
     }
 }

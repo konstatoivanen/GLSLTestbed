@@ -50,12 +50,17 @@ namespace PK::Rendering
 		auto batchCount = (uint)ceil((float)lightCount / ShadowmapData::BatchSize);
 		const auto znear = 0.01f;
 
-		float4 viewports[ShadowmapData::BatchSize]{};
+		properties.SetTexture(StringHashID::StringToID("_MainTex0"), data->ShadowmapCube->GetColorBufferPtr(0)->GetGraphicsID());
+		properties.SetTexture(StringHashID::StringToID("_MainTex1"), data->ShadowmapOctahedron->GetColorBufferPtr(0)->GetGraphicsID());
 
-		for (auto i = 0; i < ShadowmapData::BatchSize; ++i)
+		float4 viewports[3] = 
 		{
-			viewports[i].zw = float2(ShadowmapData::TileSize, ShadowmapData::TileSize);
-		}
+			{0, 0, 256, 256},
+			{0, 0, ShadowmapData::TileSize, ShadowmapData::TileSize},
+			{0, 0, ShadowmapData::TileSize * ShadowmapData::TileCountPerAxis, ShadowmapData::TileSize * ShadowmapData::TileCountPerAxis},
+		};
+
+		GraphicsAPI::SetViewPorts(0, viewports, 3);
 
 		Culling::OnVisibleItemMulti onvisible = [](ECS::EntityDatabase* entityDb, ECS::EGID egid, uint clipIndex, float depth, void* context)
 		{
@@ -88,25 +93,23 @@ namespace PK::Rendering
 					zfar = radius;
 				}
 
-				viewports[i].x = (float)ShadowmapData::TileSize * (lightIndex % ShadowmapData::TileCountPerAxis);
-				viewports[i].y = (float)ShadowmapData::TileSize * (lightIndex / ShadowmapData::TileCountPerAxis);
-
 				ShadowmapContext ctx = { data, baseKey };
 				Culling::ExecuteOnVisibleItemsCubeFaces(entityDb, bounds, (ushort)(ECS::Components::RenderHandleFlags::Renderer | ECS::Components::RenderHandleFlags::ShadowCaster), onvisible, &ctx);
 			}
 
 			Batching::UpdateBuffers(&data->Batches);
 
-			GraphicsAPI::SetRenderTarget(data->ShadowmapCube.get());
+			GraphicsAPI::SetRenderTarget(data->ShadowmapCube.get(), false);
 			GraphicsAPI::Clear(float4(zfar, zfar * zfar, 0, 0), 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			Batching::DrawBatches(&data->Batches, 0, shaderRenderCube, properties);
 			
 			properties.SetKeywords({ StringHashID::StringToID("BLUR_PASS0") });
-			GraphicsAPI::BlitInstanced(0, batchSize, data->ShadowmapCube->GetColorBufferPtr(0), data->ShadowmapOctahedron.get(), shaderBlurCube, properties);
+			GraphicsAPI::SetRenderTarget(data->ShadowmapOctahedron.get(), false);
+			GraphicsAPI::BlitInstanced(0, batchSize, shaderBlurCube, properties);
 
-			GraphicsAPI::SetRenderTarget(data->ShadowmapAtlas.get(), 0, viewports, batchSize);
 			properties.SetKeywords({ StringHashID::StringToID("BLUR_PASS1") });
-			GraphicsAPI::BlitInstanced(baseIdx, batchSize, data->ShadowmapOctahedron->GetColorBufferPtr(0), data->ShadowmapAtlas.get(), shaderBlurCube, properties);
+			GraphicsAPI::SetRenderTarget(data->ShadowmapAtlas.get(), false);
+			GraphicsAPI::BlitInstanced(baseIdx, batchSize, shaderBlurCube, properties);
 		}
 	}
 

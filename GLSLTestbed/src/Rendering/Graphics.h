@@ -78,7 +78,7 @@ namespace PK::Rendering::GraphicsAPI
 	void SetViewProjectionMatrices(const float4x4& view, const float4x4& projection);
 	void SetModelMatrix(const float4x4& matrix);
 	void SetModelMatrix(const float4x4& matrix, const float4x4& invMatrix);
-	void SetRenderTarget(const RenderTexture* renderTexture);
+	void SetRenderTarget(const RenderTexture* renderTexture, bool updateViewport = true);
 	void SetRenderTarget(const RenderTexture* renderTexture, const uint firstViewport, const float4* viewports, const uint viewportCount);
 	void SetRenderBuffer(const GraphicsID renderTarget, const RenderBuffer* renderBuffer, GLenum attachment);
 	void SetPass(Shader* shader, uint32_t pass = 0);

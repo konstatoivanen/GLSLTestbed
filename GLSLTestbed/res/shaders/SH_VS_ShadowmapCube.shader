@@ -57,6 +57,7 @@ void main()
 	float3 vpos = float3(vs_VIEWVECTOR[swizzles[faceIndex].x], vs_VIEWVECTOR[swizzles[faceIndex].y], vs_VIEWVECTOR[swizzles[faceIndex].z]) * faceSigns[faceIndex];
 
 	gl_Position = float4(vpos.xy, 1.020202f * vpos.z - light.w * 0.020202f, vpos.z);
+	gl_ViewportIndex = 0;
 };
 
 #pragma PROGRAM_FRAGMENT

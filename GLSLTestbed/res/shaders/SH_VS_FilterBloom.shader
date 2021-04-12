@@ -180,6 +180,7 @@ void main()
 	vs_MainTex = passdata.source;
 	vs_Varyings = FUNC_VERTEX(float3(in_TEXCOORD0, passdata.readwrite.x), passdata.source, passdata.offset);
 	gl_Layer = int(passdata.readwrite.y);
+	gl_ViewportIndex = gl_BaseInstance / 5;
 	gl_Position = in_POSITION0;
 };
 

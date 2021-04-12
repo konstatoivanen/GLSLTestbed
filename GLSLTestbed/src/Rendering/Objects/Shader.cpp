@@ -140,7 +140,7 @@ namespace PK::Rendering::Objects
 	
 	namespace ShaderCompiler
 	{
-		static GLint GetUniformSamplerSlot(GLint& currentSlot, GLenum variableType)
+		static bool IsSlottedType(GLenum variableType)
 		{
 			// Add support for more types later
 			switch (variableType)
@@ -152,9 +152,39 @@ namespace PK::Rendering::Objects
 				case GL_SAMPLER_3D:
 				case GL_SAMPLER_CUBE:
 				case GL_SAMPLER_CUBE_MAP_ARRAY:
-					return currentSlot++;
+				case GL_IMAGE_1D:
+				case GL_IMAGE_1D_ARRAY:
+				case GL_IMAGE_2D:
+				case GL_IMAGE_2D_ARRAY:
+				case GL_IMAGE_3D:
+					return true;
 			}
-		
+
+			return false;
+		}
+
+		static GLint GetUniformSamplerSlot(const std::map<GLint, GLint>& explicitbindings, GLint location, GLint& currentSlot, GLenum variableType)
+		{
+			if (IsSlottedType(variableType))
+			{
+				if (explicitbindings.count(location))
+				{
+					return explicitbindings.at(location);
+				}
+
+				collisioncheck:
+				for (auto& kv : explicitbindings)
+				{
+					if (kv.second == currentSlot)
+					{
+						++currentSlot;
+						goto collisioncheck;
+					}
+				}
+
+				return currentSlot++;
+			}
+
 			return -1;
 		}
 		
@@ -734,6 +764,8 @@ namespace PK::Rendering::Objects
 			GLsizei maxnamelengtht = 0; // maximum name length temp
 			GLsizei length; // name length
 	
+			std::map<GLint, GLint> explicitBindings;
+
 			glGetProgramInterfaceiv(program, GL_UNIFORM_BLOCK, GL_MAX_NAME_LENGTH, &maxnamelengtht);
 			maxnamelength = glm::max(maxnamelength, maxnamelengtht);
 
@@ -774,6 +806,32 @@ namespace PK::Rendering::Objects
 				variablemap[StringHashID::StringToID(name)] = { (ushort)location, CG_TYPE::COMPUTE_BUFFER, 0, false };
 			}
 	
+			// Map explicit layout binding variables
+			for (GLuint i = 0; i < (GLuint)uniformCount; ++i)
+			{
+				glGetActiveUniform(program, i, maxnamelength, &length, &size, &type, name);
+
+				if (!IsSlottedType(type) || size != 1)
+				{
+					continue;
+				}
+
+				auto location = glGetUniformLocation(program, name);
+				
+				if (location < 0)
+				{
+					continue;
+				}
+
+				GLint explicitSlot;
+				glGetUniformiv(program, location, &explicitSlot);
+
+				if (explicitSlot > 0)
+				{
+					explicitBindings[location] = explicitSlot;
+				}
+			}
+
 			// Map regular uniforms
 			for (GLuint i = 0; i < (GLuint)uniformCount; ++i)
 			{
@@ -792,8 +850,8 @@ namespace PK::Rendering::Objects
 						name[(int)length - 1 + (int)istrl] = '\0';
 					}
 		
-					auto slot = GetUniformSamplerSlot(samplerSlot, type);
 					auto location = glGetUniformLocation(program, name);
+					auto slot = GetUniformSamplerSlot(explicitBindings, location, samplerSlot, type);
 		
 					// Uniform requires a resource slot.
 					// Assign it & override location with the slot value.

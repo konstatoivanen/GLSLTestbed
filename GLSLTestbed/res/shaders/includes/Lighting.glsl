@@ -23,12 +23,20 @@ float GetAttenuation(float ldist, float lradius) { return pow2(saturate(1.0f - p
     #define LBR(shadow) (shadow)
 #endif
 
-float3 GetShadowMapTileST(uint index)
+float3 GetShadowMapPaddedTileST(uint index)
 {
     return float3(
     uint(index % SHADOWMAP_TILES_PER_AXIS) / float(SHADOWMAP_TILES_PER_AXIS) + SHADOWMAP_BORDER_SIZE, 
     uint(index / SHADOWMAP_TILES_PER_AXIS) / float(SHADOWMAP_TILES_PER_AXIS) + SHADOWMAP_BORDER_SIZE, 
     1.0f / SHADOWMAP_TILES_PER_AXIS - 2 * SHADOWMAP_BORDER_SIZE);
+}
+
+float3 GetShadowMapTileST(uint index)
+{
+    return float3(
+    uint(index % SHADOWMAP_TILES_PER_AXIS) / float(SHADOWMAP_TILES_PER_AXIS), 
+    uint(index / SHADOWMAP_TILES_PER_AXIS) / float(SHADOWMAP_TILES_PER_AXIS), 
+    1.0f / SHADOWMAP_TILES_PER_AXIS);
 }
 
 float2 OctaWrap(float2 v)
@@ -74,7 +82,7 @@ float3 SampleEnv(float2 uv, float roughness)
 
 float SampleLightShadowmap(uint index, float3 direction, float lightDistance)
 {
-    float3 shadowST = GetShadowMapTileST(index);
+    float3 shadowST = GetShadowMapPaddedTileST(index);
     float2 shadowval = tex2D(pk_ShadowmapAtlas, OctaUV(shadowST, direction)).xy;
     float variance = shadowval.y - shadowval.x * shadowval.x;
     float difference = lightDistance - shadowval.x;

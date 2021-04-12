@@ -196,6 +196,11 @@ namespace PK::Rendering::GraphicsAPI
 
 	void SetViewPorts(const uint32_t offset, const float4* viewports, const uint32_t count)
 	{
+		auto context = GetCurrentContext();
+		context->ViewPort.x = (uint)viewports->x;
+		context->ViewPort.y = (uint)viewports->y;
+		context->ViewPort.z = (uint)viewports->z;
+		context->ViewPort.w = (uint)viewports->w;
 		glViewportArrayv(offset, (GLsizei)count, reinterpret_cast<const float*>(viewports));
 	}
 	
@@ -233,7 +238,7 @@ namespace PK::Rendering::GraphicsAPI
 		SetGlobalFloat4x4(hashCache->pk_MATRIX_I_M, invMatrix);
 	}
 	
-	void GraphicsAPI::SetRenderTarget(const RenderTexture* renderTexture)
+	void GraphicsAPI::SetRenderTarget(const RenderTexture* renderTexture, bool updateViewport)
 	{
 		auto target = &ACTIVE_RENDERTARGET;
 
@@ -246,14 +251,22 @@ namespace PK::Rendering::GraphicsAPI
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, renderTexture->GetGraphicsID());
 			*target = renderTexture;
-			SetViewPort(0, 0, renderTexture->GetWidth(), renderTexture->GetHeight());
+			
+			if (updateViewport)
+			{
+				SetViewPort(0, 0, renderTexture->GetWidth(), renderTexture->GetHeight());
+			}
 			return;
 		}
 	
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		*target = nullptr;
-		auto resolution = GetActiveWindowResolution();
-		SetViewPort(0, 0, resolution.x, resolution.y);
+
+		if (updateViewport)
+		{
+			auto resolution = GetActiveWindowResolution();
+			SetViewPort(0, 0, resolution.x, resolution.y);
+		}
 	}
 
 	void SetRenderTarget(const RenderTexture* renderTexture, const uint firstViewport, const float4* viewports, const uint viewportCount)
@@ -670,7 +683,6 @@ namespace PK::Rendering::GraphicsAPI
 		glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, argumentsBuffer);
 		glDispatchComputeIndirect(offset);
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-		glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, 0);
     }
 
 	#undef CURRENT_WINDOW 

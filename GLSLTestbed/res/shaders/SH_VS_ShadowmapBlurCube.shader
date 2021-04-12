@@ -84,13 +84,17 @@ out float2 vs_TEXCOORD0;
 
 void main()
 {
+    gl_Position = in_POSITION0;
+
 #if defined(BLUR_PASS0)
     gl_Layer = gl_InstanceID;
+    gl_ViewportIndex = 1;
 #else
-    gl_ViewportIndex = gl_InstanceID;
+    gl_ViewportIndex = 2;
+    float3 tilest = GetShadowMapTileST(gl_BaseInstance + gl_InstanceID);
+    gl_Position.xy = lerp(-1.0f.xx, 1.0f.xx, tilest.xy + in_TEXCOORD0 * tilest.z);
 #endif
 
-    gl_Position = in_POSITION0;
     vs_TEXCOORD0 = in_TEXCOORD0;
     vs_SAMPLELAYER = gl_InstanceID;
 
@@ -106,11 +110,11 @@ void main()
 #pragma PROGRAM_FRAGMENT
 
 #if defined(BLUR_PASS0)
-    uniform highp samplerCubeArray _MainTex;
-    #define SAMPLE_SRC(H, layer) tex2D(_MainTex, float4(H, layer)).rg
+    layout(binding = 0) uniform highp samplerCubeArray _MainTex0;
+    #define SAMPLE_SRC(H, layer) tex2D(_MainTex0, float4(H, layer)).rg
 #else
-    uniform highp sampler2DArray _MainTex;
-    #define SAMPLE_SRC(H, layer) tex2D(_MainTex, float3(OctaUV(H), vs_SAMPLELAYER)).rg;
+    layout(binding = 1) uniform highp sampler2DArray _MainTex1;
+    #define SAMPLE_SRC(H, layer) tex2D(_MainTex1, float3(OctaUV(H), vs_SAMPLELAYER)).rg;
 #endif
 
 in flat uint vs_SAMPLELAYER;
