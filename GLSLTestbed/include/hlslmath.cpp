@@ -24,6 +24,7 @@ namespace PK::Math
 			case CG_TYPE::UINT4: return CG_TYPE_SIZE_INT4;
 			case CG_TYPE::HANDLE: return CG_TYPE_SIZE_HANDLE;
 			case CG_TYPE::TEXTURE: return CG_TYPE_SIZE_TEXTURE;
+			case CG_TYPE::IMAGE_PARAMS: return CG_TYPE_SIZE_IMAGEPARAMS;
 			case CG_TYPE::CONSTANT_BUFFER: return CG_TYPE_SIZE_CONSTANT_BUFFER;
 			case CG_TYPE::COMPUTE_BUFFER: return CG_TYPE_SIZE_COMPUTE_BUFFER;
 		}
@@ -52,6 +53,7 @@ namespace PK::Math
 			case CG_TYPE::UINT4: return CG_TYPE_COMPONENTS_INT4;
 			case CG_TYPE::HANDLE: return CG_TYPE_COMPONENTS_HANDLE;
 			case CG_TYPE::TEXTURE: return CG_TYPE_COMPONENTS_TEXTURE;
+			case CG_TYPE::IMAGE_PARAMS: return CG_TYPE_COMPONENTS_IMAGEPARAMS;
 			case CG_TYPE::CONSTANT_BUFFER: return CG_TYPE_COMPONENTS_CONSTANT_BUFFER;
 			case CG_TYPE::COMPUTE_BUFFER: return CG_TYPE_COMPONENTS_COMPUTE_BUFFER;
 		}
@@ -80,6 +82,7 @@ namespace PK::Math
 			case CG_TYPE::UINT4: return GL_UNSIGNED_INT;
 			case CG_TYPE::HANDLE: return GL_UNSIGNED_INT64_ARB;
 			case CG_TYPE::TEXTURE: return GL_INT;
+			case CG_TYPE::IMAGE_PARAMS: return GL_INT;
 			case CG_TYPE::CONSTANT_BUFFER: return GL_INT;
 			case CG_TYPE::COMPUTE_BUFFER: return GL_INT;
 		}
@@ -108,6 +111,7 @@ namespace PK::Math
 			case CG_TYPE::UINT4: return GL_UNSIGNED_INT_VEC4;
 			case CG_TYPE::HANDLE: return GL_UNSIGNED_INT64_ARB;
 			case CG_TYPE::TEXTURE: return GL_TEXTURE;
+			case CG_TYPE::IMAGE_PARAMS: return GL_TEXTURE;
 			case CG_TYPE::CONSTANT_BUFFER: return GL_UNIFORM_BUFFER;
 			case CG_TYPE::COMPUTE_BUFFER: return GL_SHADER_STORAGE_BUFFER;
 		}
@@ -115,7 +119,7 @@ namespace PK::Math
 		return (ushort)CG_TYPE::INVALID;
 	}
 
-	CG_TYPE Convert::FromNativeEnum(ushort type)
+	CG_TYPE Convert::FromUniformType(ushort type)
 	{
 		switch (type)
 		{
@@ -140,6 +144,11 @@ namespace PK::Math
 			case GL_SAMPLER_2D:
 			case GL_SAMPLER_2D_ARRAY:
 			case GL_SAMPLER_3D:
+			case GL_IMAGE_1D:
+			case GL_IMAGE_1D_ARRAY:
+			case GL_IMAGE_2D:
+			case GL_IMAGE_2D_ARRAY:
+			case GL_IMAGE_3D:
 			case GL_SAMPLER_CUBE: return CG_TYPE::HANDLE;
 			case GL_TEXTURE: return CG_TYPE::TEXTURE;
 			case GL_UNIFORM_BUFFER: return CG_TYPE::CONSTANT_BUFFER;
@@ -149,7 +158,7 @@ namespace PK::Math
 		return CG_TYPE::INVALID;
 	}
 
-	CG_TYPE Convert::FromNativeString(const char* string)
+	CG_TYPE Convert::FromUniformString(const char* string)
 	{
 		if (strcmp(string, "float") == 0) return CG_TYPE::FLOAT;
 		if (strcmp(string, "vec2") == 0) return CG_TYPE::FLOAT2;
@@ -185,6 +194,11 @@ namespace PK::Math
 		if (strcmp(string, "sampler2DArray") == 0) return CG_TYPE::HANDLE;
 		if (strcmp(string, "samplerCubeArray") == 0) return CG_TYPE::HANDLE;
 		if (strcmp(string, "sampler3D") == 0) return CG_TYPE::HANDLE;
+		if (strcmp(string, "image1D") == 0) return CG_TYPE::HANDLE;
+		if (strcmp(string, "image2D") == 0) return CG_TYPE::HANDLE;
+		if (strcmp(string, "image2DArray") == 0) return CG_TYPE::HANDLE;
+		if (strcmp(string, "imageCubeArray") == 0) return CG_TYPE::HANDLE;
+		if (strcmp(string, "image3D") == 0) return CG_TYPE::HANDLE;
 		return CG_TYPE::INVALID;
 	}
 	
@@ -209,6 +223,7 @@ namespace PK::Math
 			case CG_TYPE::UINT4: return "UINT4";
 			case CG_TYPE::HANDLE: return "HANDLE";
 			case CG_TYPE::TEXTURE: return "TEXTURE";
+			case CG_TYPE::IMAGE_PARAMS: return "IMAGE";
 			case CG_TYPE::CONSTANT_BUFFER: return "CONSTANT_BUFFER";
 			case CG_TYPE::COMPUTE_BUFFER: return "COMPUTE_BUFFER";
 		}
@@ -235,6 +250,7 @@ namespace PK::Math
 		if (strcmp(string, "UINT4") == 0) return CG_TYPE::UINT4;
 		if (strcmp(string, "HANDLE") == 0) return CG_TYPE::HANDLE;
 		if (strcmp(string, "TEXTURE") == 0) return CG_TYPE::TEXTURE;
+		if (strcmp(string, "IMAGE") == 0) return CG_TYPE::IMAGE_PARAMS;
 		if (strcmp(string, "CONSTANT_BUFFER") == 0) return CG_TYPE::CONSTANT_BUFFER;
 		if (strcmp(string, "COMPUTE_BUFFER") == 0) return CG_TYPE::COMPUTE_BUFFER;
 		return CG_TYPE::INVALID;

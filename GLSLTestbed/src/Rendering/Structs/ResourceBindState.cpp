@@ -1,5 +1,6 @@
 #include "PrecompiledHeader.h"
 #include "ResourceBindState.h"
+#include "Utilities/Ref.h"
 #include "Utilities/Log.h"
 
 namespace PK::Rendering::Structs
@@ -17,7 +18,10 @@ namespace PK::Rendering::Structs
     
         glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &count);
         m_bindings[CG_TYPE::COMPUTE_BUFFER] = std::vector<GraphicsID>(count);
-    
+
+        glGetIntegerv(GL_MAX_IMAGE_UNITS, &count);
+        m_bindings[CG_TYPE::IMAGE_PARAMS] = std::vector<GraphicsID>(count);
+
         m_bindings[CG_TYPE::VERTEX_ARRAY] = std::vector<GraphicsID>(1);
     }
     
@@ -45,6 +49,41 @@ namespace PK::Rendering::Structs
     
             memcpy(bindings, graphicsIds, sizeof(GraphicsID) * count);
             glBindTextures(location, count, graphicsIds);
+            break;
+        }
+    }
+
+    void ResourceBindState::BindImages(ushort location, const ImageBindDescriptor* imageBindings, ushort count)
+    {
+        auto bindings = GetBindings(CG_TYPE::IMAGE_PARAMS, location, count);
+
+        if (count == 1)
+        {
+            if (bindings[0] != imageBindings->graphicsId)
+            {
+                bindings[0] = imageBindings->graphicsId;
+                glBindImageTexture(location, imageBindings->graphicsId, imageBindings->level, imageBindings->layered, imageBindings->layer, imageBindings->access, imageBindings->format);
+            }
+
+            return;
+        }
+
+        for (ushort i = 0; i < count; ++i)
+        {
+            if (bindings[i] == imageBindings[i].graphicsId)
+            {
+                continue;
+            }
+
+            auto ids = PK_STACK_ALLOC(GraphicsID, count);
+
+            for (auto j = 0; j < count; ++j)
+            {
+                ids[j] = imageBindings[j].graphicsId;
+            }
+
+            memcpy(bindings, ids, sizeof(GraphicsID) * count);
+            glBindImageTextures(location, count, ids);
             break;
         }
     }

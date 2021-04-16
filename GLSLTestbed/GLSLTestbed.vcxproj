@@ -510,6 +510,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="src\Rendering\PostProcessing\FilterAO.h" />
     <ClInclude Include="src\Rendering\PostProcessing\FilterBase.h" />
     <ClInclude Include="src\Rendering\PostProcessing\FilterBloom.h" />
+    <ClInclude Include="src\Rendering\PostProcessing\FilterVolumetricFog.h" />
     <ClInclude Include="src\Rendering\RenderPipeline.h" />
     <ClInclude Include="src\Rendering\RenderQueueInfo.h" />
     <ClInclude Include="src\Rendering\Structs\BufferLayout.h" />
@@ -714,6 +715,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\includes\LightingBRDF.glsl" />
     <None Include="res\shaders\includes\Noise.glsl" />
     <None Include="res\shaders\includes\Reconstruction.glsl" />
+    <None Include="res\shaders\includes\VolumeResources.glsl" />
     <None Include="res\shaders\SH_VS_ClusterDebug.shader" />
     <None Include="res\shaders\SH_VS_FilterAO.shader" />
     <None Include="res\shaders\SH_VS_IBLBackground.shader">
@@ -727,9 +729,10 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
       <DeploymentContent>true</DeploymentContent>
     </None>
     <None Include="res\shaders\SH_VS_ShadowmapBlurCube.shader" />
-    <None Include="res\shaders\SH_VS_ShadowmapCube.shader" />
+    <None Include="res\shaders\SH_WS_ShadowmapCube.shader" />
     <None Include="res\shaders\SH_WS_DepthNormals.shader" />
     <None Include="res\textures\T_Bloom_LensDirt.ktx" />
+    <None Include="res\textures\T_Bluenoise256_repeat.ktx" />
     <None Include="res\textures\T_Gravel_D.ktx" />
     <None Include="res\textures\T_Gravel_H.ktx" />
     <None Include="res\textures\T_Gravel_MAOR.ktx" />
@@ -785,6 +788,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClCompile Include="src\ECS\Sequencer.cpp" />
     <ClCompile Include="src\Rendering\PostProcessing\FilterAO.cpp" />
     <ClCompile Include="src\Rendering\PostProcessing\FilterBloom.cpp" />
+    <ClCompile Include="src\Rendering\PostProcessing\FilterVolumetricFog.cpp" />
     <ClCompile Include="src\Rendering\RenderPipeline.cpp" />
     <ClCompile Include="src\Rendering\Structs\PropertyBlock.cpp" />
     <ClCompile Include="src\Rendering\MeshUtility.cpp" />
@@ -821,7 +825,10 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
       <DeploymentContent>true</DeploymentContent>
     </Text>
     <Text Include="res\shaders\CS_ClusteredDepthReset.shader" />
+    <Text Include="res\shaders\CS_VolumeFogLightDensity.shader" />
     <Text Include="res\shaders\includes\LightingCommon.glsl" />
+    <Text Include="res\shaders\SH_VS_VolumeFogComposite.shader" />
+    <Text Include="res\shaders\SH_VS_VolumetricFog.shader" />
     <Text Include="res\shaders\SH_WS_Unlit_Color.shader" />
     <Text Include="res\shaders\SH_VS_FilterBloom.shader" />
     <Text Include="res\shaders\SH_WS_PBR_Forward.shader">

@@ -123,7 +123,7 @@ namespace PK::ECS::Engines
 	
 		for (uint i = 0; i < config.LightCount; ++i)
 		{
-			CreatePointLight(entityDb, assetDatabase, Functions::RandomRangeFloat3(minpos, maxpos), Functions::HueToRGB(Functions::RandomRangeFloat(0.0f, 1.0f)) * Functions::RandomRangeFloat(5.0f, 6.0f));
+			CreatePointLight(entityDb, assetDatabase, Functions::RandomRangeFloat3(minpos, maxpos), Functions::HueToRGB(Functions::RandomRangeFloat(0.0f, 1.0f)) * Functions::RandomRangeFloat(2.0f, 6.0f));
 		}
 	}
 	

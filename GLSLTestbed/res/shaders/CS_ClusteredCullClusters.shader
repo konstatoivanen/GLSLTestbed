@@ -3,6 +3,7 @@
 #multi_compile PASS_CLUSTERS PASS_DISPATCH
 
 #pragma PROGRAM_COMPUTE
+#define PK_WRITE_CLUSTER_LIGHTS
 #include includes/PKCommon.glsl
 #include includes/LightingCommon.glsl
 #include includes/ClusteringCommon.glsl

@@ -14,7 +14,7 @@ namespace PK::Rendering
 
 	static void InitializeShadowmapData(AssetDatabase* assetDatabase, ShadowmapData* data)
 	{
-		data->ShaderRenderCube = assetDatabase->Find<Shader>("SH_VS_ShadowmapCube");
+		data->ShaderRenderCube = assetDatabase->Find<Shader>("SH_WS_ShadowmapCube");
 		data->ShaderBlurCube = assetDatabase->Find<Shader>("SH_VS_ShadowmapBlurCube");
 
 		auto descriptor = RenderTextureDescriptor();

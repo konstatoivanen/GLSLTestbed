@@ -59,6 +59,7 @@ namespace PK::Rendering
 			config.AmbientOcclusionIntensity, 
 			config.AmbientOcclusionRadius, 
 			config.AmbientOcclusionDownsample),
+		m_filterFog(assetDatabase),
 		m_lightsManager(assetDatabase)
 	{
 		m_entityDb = entityDb;
@@ -203,6 +204,7 @@ namespace PK::Rendering
 		// @Todo Implement render passes
 		Batching::DrawBatches(&m_dynamicBatches, 0);
 
+		m_filterFog.Execute(m_HDRRenderTarget.get(), m_HDRRenderTarget.get());
 		m_filterBloom.Execute(m_HDRRenderTarget.get(), GraphicsAPI::GetBackBuffer());
 
 		// Required for gizmos depth testing

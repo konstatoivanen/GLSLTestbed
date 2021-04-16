@@ -53,7 +53,7 @@ PKIndirect EmptyIndirect()
 uniform int pk_LightCount;
 PK_DECLARE_READONLY_BUFFER(PKRawLight, pk_Lights);
 
-#if defined(SHADER_STAGE_COMPUTE)
+#if defined(PK_WRITE_CLUSTER_LIGHTS)
     PK_DECLARE_WRITEONLY_BUFFER(uint, pk_GlobalLightsList);
     PK_DECLARE_WRITEONLY_BUFFER(uint, pk_LightTiles);
 #else

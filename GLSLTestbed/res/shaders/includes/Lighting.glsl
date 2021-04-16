@@ -17,6 +17,16 @@
 // Source: https://de45xmedrsdbp.cloudfront.net/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
 float GetAttenuation(float ldist, float lradius) { return pow2(saturate(1.0f - pow4(ldist/lradius))) / (pow2(ldist) + 1.0f); }
 
+float GetLightAnistropy(float costheta, float anistropy)
+{
+	float g = anistropy;
+	float gsq = g * g;
+	float denom = 1 + gsq - 2.0 * g * costheta;
+	denom = denom * denom * denom;
+	denom = sqrt(max(0, denom));
+	return (1 - gsq) / denom;
+}
+
 #if defined(SHADOW_USE_LBR)
     float LBR(float shadow) { return smoothstep(SHADOW_LBR, 1.0f, shadow);}
 #else
@@ -136,6 +146,37 @@ PKLight GetSurfaceLight(uint index, in float3 worldpos)
     l.direction = vector;
 
     return l;
+}
+
+float3 GetVolumeLightColor(uint index, in float3 worldpos)
+{
+    PKRawLight raw = PK_BUFFER_DATA(pk_Lights, index);
+
+    float3 vector = raw.position.xyz - worldpos;
+    float lindist = sqrt(dot(vector, vector));
+    float atten = GetAttenuation(lindist, raw.position.w);
+    vector /= lindist;
+
+    atten *= SampleLightShadowmap(raw.shadowmap_index, -vector, lindist);
+
+    return raw.color.xyz * atten;
+}
+
+float3 GetVolumeLightColorAnistropic(uint index, in float3 worldpos, float anistropy)
+{
+    PKRawLight raw = PK_BUFFER_DATA(pk_Lights, index);
+
+    float3 vector = raw.position.xyz - worldpos;
+    float lindist = sqrt(dot(vector, vector));
+    float atten = GetAttenuation(lindist, raw.position.w);
+    vector /= lindist;
+
+    float3 cameraToPos = normalize(raw.position.xyz - pk_WorldSpaceCameraPos.xyz);
+	atten *= GetLightAnistropy(dot(cameraToPos, vector), anistropy);
+
+    atten *= SampleLightShadowmap(raw.shadowmap_index, -vector, lindist);
+
+    return raw.color.xyz * atten;
 }
 
 float4 PhysicallyBasedShading(SurfaceData surf, float3 viewdir, float3 worldpos)

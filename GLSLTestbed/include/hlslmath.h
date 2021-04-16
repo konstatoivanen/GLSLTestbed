@@ -29,9 +29,10 @@ namespace PK::Math
         UINT4 = 15,
         HANDLE = 16,
         TEXTURE = 17,
-        CONSTANT_BUFFER = 18,
-        COMPUTE_BUFFER = 19,
-        VERTEX_ARRAY = 20,
+        IMAGE_PARAMS = 18,
+        CONSTANT_BUFFER = 19,
+        COMPUTE_BUFFER = 20,
+        VERTEX_ARRAY = 21,
         INVALID = 0xFFFF
     };
     
@@ -48,6 +49,7 @@ namespace PK::Math
     const unsigned short CG_TYPE_SIZE_INT4 = 16;		// 4 * 4
     const unsigned short CG_TYPE_SIZE_HANDLE = 8;
     const unsigned short CG_TYPE_SIZE_TEXTURE = 4;
+    const unsigned short CG_TYPE_SIZE_IMAGEPARAMS = 21;
     const unsigned short CG_TYPE_SIZE_CONSTANT_BUFFER = 4;
     const unsigned short CG_TYPE_SIZE_COMPUTE_BUFFER = 4;
     
@@ -64,6 +66,7 @@ namespace PK::Math
     const unsigned short CG_TYPE_COMPONENTS_INT4 = 4;
     const unsigned short CG_TYPE_COMPONENTS_HANDLE = 1;
     const unsigned short CG_TYPE_COMPONENTS_TEXTURE = 1;
+    const unsigned short CG_TYPE_COMPONENTS_IMAGEPARAMS = 1;
     const unsigned short CG_TYPE_COMPONENTS_CONSTANT_BUFFER = 1;
     const unsigned short CG_TYPE_COMPONENTS_COMPUTE_BUFFER = 1;
     
@@ -196,8 +199,8 @@ namespace PK::Math
         ushort Components(CG_TYPE type);
         ushort BaseType(CG_TYPE type);
         ushort ToNativeEnum(CG_TYPE type);
-        CG_TYPE FromNativeEnum(ushort type);
-        CG_TYPE FromNativeString(const char* string);
+        CG_TYPE FromUniformType(ushort type);
+        CG_TYPE FromUniformString(const char* string);
         std::string ToString(CG_TYPE type);
         CG_TYPE FromString(const char* string);
     };

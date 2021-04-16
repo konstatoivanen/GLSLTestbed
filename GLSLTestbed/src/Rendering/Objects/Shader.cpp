@@ -60,7 +60,7 @@ namespace PK::Rendering::Objects
 	{
 		for (auto& i : m_properties)
 		{
-			PK_CORE_LOG("%s : %i", StringHashID::IDToString(i.first).c_str(), i.second.location);
+			PK_CORE_LOG("%s : %s : %i", Convert::ToString(i.second.type).c_str(), StringHashID::IDToString(i.first).c_str(), i.second.location);
 		}
 	}
 	
@@ -105,6 +105,7 @@ namespace PK::Rendering::Objects
 				case CG_TYPE::UINT4: glUniform4uiv(prop.location, count, propertyBlock.GetElementPtr<uint>(info)); break;
 				case CG_TYPE::HANDLE: glUniformHandleui64vARB(prop.location, count, propertyBlock.GetElementPtr<ulong>(info)); break;
 				case CG_TYPE::TEXTURE: GraphicsAPI::BindTextures(prop.location, propertyBlock.GetElementPtr<GraphicsID>(info), count); break;
+				case CG_TYPE::IMAGE_PARAMS: GraphicsAPI::BindImages(prop.location, propertyBlock.GetElementPtr<ImageBindDescriptor>(info), count); break;
 				case CG_TYPE::CONSTANT_BUFFER: GraphicsAPI::BindBuffers(CG_TYPE::CONSTANT_BUFFER, prop.location, propertyBlock.GetElementPtr<GraphicsID>(info), count); break;
 				case CG_TYPE::COMPUTE_BUFFER: GraphicsAPI::BindBuffers(CG_TYPE::COMPUTE_BUFFER, prop.location, propertyBlock.GetElementPtr<GraphicsID>(info), count); break;
 				default: PK_CORE_ERROR("Invalid Shader Property Type");
@@ -542,7 +543,7 @@ namespace PK::Rendering::Objects
 					continue;
 				}
 			
-				auto type = Math::Convert::FromNativeString(values.at(1).c_str());
+				auto type = Math::Convert::FromUniformString(values.at(1).c_str());
 				auto name = values.at(2);
 
 				elements.push_back(BufferElement(type, name));
@@ -837,7 +838,7 @@ namespace PK::Rendering::Objects
 			{
 				glGetActiveUniform(program, i, maxnamelength, &length, &size, &type, name);
 				glGetActiveUniformsiv(program, 1, &i, GL_UNIFORM_BLOCK_INDEX, &blockIndex);
-				auto cgtype = Convert::FromNativeEnum(type);
+				auto cgtype = Convert::FromUniformType(type);
 		
 				for (auto j = 0; j < size; ++j)
 				{

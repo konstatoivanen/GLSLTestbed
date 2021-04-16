@@ -140,6 +140,7 @@ namespace PK::Rendering::GraphicsAPI
 	void GraphicsAPI::SetGlobalUInt3(uint32_t hashId, const uint3* values, uint32_t count) { GLOBAL_PROPERTIES.SetUInt3(hashId, values, count); }
 	void GraphicsAPI::SetGlobalUInt4(uint32_t hashId, const uint4* values, uint32_t count) { GLOBAL_PROPERTIES.SetUInt4(hashId, values, count); }
 	void GraphicsAPI::SetGlobalTexture(uint32_t hashId, const GraphicsID* textureIds, uint32_t count) { GLOBAL_PROPERTIES.SetTexture(hashId, textureIds, count); }
+	void GraphicsAPI::SetGlobalImage(uint32_t hashId, const ImageBindDescriptor* imageBindings, uint32_t count) { GLOBAL_PROPERTIES.SetImage(hashId, imageBindings, count); }
 	void GraphicsAPI::SetGlobalConstantBuffer(uint32_t hashId, const GraphicsID* bufferIds, uint32_t count) { GLOBAL_PROPERTIES.SetConstantBuffer(hashId, bufferIds, count); }
 	void GraphicsAPI::SetGlobalComputeBuffer(uint32_t hashId, const GraphicsID* bufferIds, uint32_t count) { GLOBAL_PROPERTIES.SetComputeBuffer(hashId, bufferIds, count); }
 	void GraphicsAPI::SetGlobalResourceHandle(uint32_t hashId, const ulong* handleIds, uint32_t count) { GLOBAL_PROPERTIES.SetResourceHandle(hashId, handleIds, count); }
@@ -160,6 +161,7 @@ namespace PK::Rendering::GraphicsAPI
 	void GraphicsAPI::SetGlobalUInt3(uint32_t hashId, const uint3& value) { GLOBAL_PROPERTIES.SetUInt3(hashId, value); }
 	void GraphicsAPI::SetGlobalUInt4(uint32_t hashId, const uint4& value) { GLOBAL_PROPERTIES.SetUInt4(hashId, value); }
 	void GraphicsAPI::SetGlobalTexture(uint32_t hashId, GraphicsID textureId) { GLOBAL_PROPERTIES.SetTexture(hashId, textureId); }
+	void GraphicsAPI::SetGlobalImage(uint32_t hashId, const ImageBindDescriptor& imageBindings) { GLOBAL_PROPERTIES.SetImage(hashId, imageBindings); }
 	void GraphicsAPI::SetGlobalConstantBuffer(uint32_t hashId, GraphicsID bufferId) { GLOBAL_PROPERTIES.SetConstantBuffer(hashId, bufferId); }
 	void GraphicsAPI::SetGlobalComputeBuffer(uint32_t hashId, GraphicsID bufferId) { GLOBAL_PROPERTIES.SetComputeBuffer(hashId, bufferId); }
 	void GraphicsAPI::SetGlobalResourceHandle(uint32_t hashId, const ulong handleId) { GLOBAL_PROPERTIES.SetResourceHandle(hashId, handleId); }
@@ -194,7 +196,7 @@ namespace PK::Rendering::GraphicsAPI
 		SetGlobalFloat4(HashCache::Get()->pk_ScreenParams, { (float)width, (float)height, 1.0f + 1.0f / (float)width, 1.0f + 1.0f / (float)height });
 	}
 
-	void SetViewPorts(const uint32_t offset, const float4* viewports, const uint32_t count)
+	void GraphicsAPI::SetViewPorts(const uint32_t offset, const float4* viewports, const uint32_t count)
 	{
 		auto context = GetCurrentContext();
 		context->ViewPort.x = (uint)viewports->x;
@@ -269,7 +271,7 @@ namespace PK::Rendering::GraphicsAPI
 		}
 	}
 
-	void SetRenderTarget(const RenderTexture* renderTexture, const uint firstViewport, const float4* viewports, const uint viewportCount)
+	void GraphicsAPI::SetRenderTarget(const RenderTexture* renderTexture, const uint firstViewport, const float4* viewports, const uint viewportCount)
 	{
 		auto target = &ACTIVE_RENDERTARGET;
 
@@ -326,6 +328,8 @@ namespace PK::Rendering::GraphicsAPI
 
 
     void GraphicsAPI::BindTextures(ushort location, const GraphicsID* graphicsIds, ushort count) { RESOURCE_BINDINGS.BindTextures(location, graphicsIds, count); }
+
+	void GraphicsAPI::BindImages(ushort location, const ImageBindDescriptor* imageBindings, ushort count) { RESOURCE_BINDINGS.BindImages(location, imageBindings, count); }
 
 	void GraphicsAPI::BindBuffers(CG_TYPE type, ushort location, const GraphicsID* graphicsIds, ushort count) { RESOURCE_BINDINGS.BindBuffers(type, location, graphicsIds, count); }
 	
@@ -633,7 +637,7 @@ namespace PK::Rendering::GraphicsAPI
 		glDrawArrays(topology, (GLint)offset, (GLsizei)count);
 	}
 
-	void GraphicsAPI::DispatchCompute(Shader* shader, uint3 threadGroupSize)
+	void GraphicsAPI::DispatchCompute(Shader* shader, uint3 threadGroupSize, GLenum barrierFlags)
 	{
 		shader->ResetKeywords();
 		shader->SetKeywords(GLOBAL_KEYWORDS);
@@ -641,10 +645,10 @@ namespace PK::Rendering::GraphicsAPI
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 
 		glDispatchCompute(threadGroupSize.x, threadGroupSize.y, threadGroupSize.z);
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		glMemoryBarrier(barrierFlags);
 	}
 
-	void GraphicsAPI::DispatchCompute(const Material* material, uint3 threadGroupSize)
+	void GraphicsAPI::DispatchCompute(const Material* material, uint3 threadGroupSize, GLenum barrierFlags)
 	{
 		auto shader = material->GetShader().lock();
 		shader->ResetKeywords();
@@ -655,10 +659,10 @@ namespace PK::Rendering::GraphicsAPI
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 
 		glDispatchCompute(threadGroupSize.x, threadGroupSize.y, threadGroupSize.z);
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		glMemoryBarrier(barrierFlags);
 	}
 
-	void GraphicsAPI::DispatchCompute(Shader* shader, uint3 threadGroupSize, const ShaderPropertyBlock& propertyBlock)
+	void GraphicsAPI::DispatchCompute(Shader* shader, uint3 threadGroupSize, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags)
 	{
 		shader->ResetKeywords();
 		shader->SetKeywords(GLOBAL_KEYWORDS);
@@ -668,10 +672,10 @@ namespace PK::Rendering::GraphicsAPI
 		shader->SetPropertyBlock(propertyBlock);
 
 		glDispatchCompute(threadGroupSize.x, threadGroupSize.y, threadGroupSize.z);
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		glMemoryBarrier(barrierFlags);
 	}
 
-    void GraphicsAPI::DispatchComputeIndirect(Shader* shader, const GraphicsID& argumentsBuffer, uint offset, const ShaderPropertyBlock& propertyBlock)
+    void GraphicsAPI::DispatchComputeIndirect(Shader* shader, const GraphicsID& argumentsBuffer, uint offset, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags)
     {
 		shader->ResetKeywords();
 		shader->SetKeywords(GLOBAL_KEYWORDS);
@@ -682,7 +686,7 @@ namespace PK::Rendering::GraphicsAPI
 
 		glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, argumentsBuffer);
 		glDispatchComputeIndirect(offset);
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		glMemoryBarrier(barrierFlags);
     }
 
 	#undef CURRENT_WINDOW 

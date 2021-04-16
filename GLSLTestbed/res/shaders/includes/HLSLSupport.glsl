@@ -51,6 +51,10 @@ float pow3(float x) { return x * x * x; }
 float pow4(float x) { return x * x * x * x; }
 float pow5(float x) { return x * x * x * x * x; }
 
+#define unlerp(a,b,value) (((value) - (a)) / ((b) - (a)))
+
+#define unlerp_sat(a,b,value) saturate(((value) - (a)) / ((b) - (a)))
+
 #define saturate(v) clamp(v, 0.0, 1.0)
 
 #define lerp(a,b,v) mix(a,b,v)

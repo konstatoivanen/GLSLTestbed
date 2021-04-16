@@ -1,5 +1,6 @@
 #pragma once
 #include "Rendering/Objects/GraphicsObject.h"
+#include "Rendering/Objects/Texture.h"
 #include <hlslmath.h>
 
 namespace PK::Rendering::Structs
@@ -12,6 +13,7 @@ namespace PK::Rendering::Structs
         public:
             ResourceBindState();
             void BindTextures(ushort location, const GraphicsID* graphicsId, ushort count);
+            void BindImages(ushort location, const ImageBindDescriptor* imageBindings, ushort count);
             void BindBuffers(CG_TYPE type, ushort location, const GraphicsID* graphicsId, ushort count);
             void BindMesh(GraphicsID graphicsId);
             void ResetBindStates();

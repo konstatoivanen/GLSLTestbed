@@ -10,12 +10,14 @@ namespace PK::Rendering::Objects
     {
     }
     
-    void Texture::SetWrapMode(GLenum x, GLenum y)
+    void Texture::SetWrapMode(GLenum x, GLenum y, GLenum z)
     {
         m_descriptor.wrapmodex = x;
         m_descriptor.wrapmodey = y;
+        m_descriptor.wrapmodey = z;
         glTextureParameteri(m_graphicsId, GL_TEXTURE_WRAP_S, x);
         glTextureParameteri(m_graphicsId, GL_TEXTURE_WRAP_T, y);
+        glTextureParameteri(m_graphicsId, GL_TEXTURE_WRAP_R, z);
     }
     
     void Texture::SetFilterMode(GLenum min, GLenum mag)
@@ -159,6 +161,14 @@ namespace PK::Rendering::Objects
         }
     
         PK_CORE_ERROR("UNSUPPORTED TEXTURE FORMAT");
+    }
+
+    GLenum Texture::GetWrapmodeFromString(const char* string)
+    {
+        if (strstr(string, "_clamp")) return GL_CLAMP_TO_EDGE;
+        if (strstr(string, "_repeat")) return GL_REPEAT;
+        if (strstr(string, "_mirror")) return GL_MIRRORED_REPEAT;
+        return GL_CLAMP_TO_EDGE;
     }
     
     uint8_t Texture::GetTexelSize(GLenum format)

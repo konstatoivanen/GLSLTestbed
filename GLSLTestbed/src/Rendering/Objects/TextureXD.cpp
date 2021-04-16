@@ -70,6 +70,8 @@ void PK::Core::AssetImporters::Import(const std::string& filepath, Utilities::Re
 		glDeleteTextures(1, &texture->m_graphicsId);
 	}
 
+	auto wrapmode = PK::Rendering::Objects::Texture::GetWrapmodeFromString(filepath.c_str());
+
 	if (filepath.find(".ktx") != std::string::npos)
 	{
 		ktxTexture* kTexture;
@@ -90,13 +92,13 @@ void PK::Core::AssetImporters::Import(const std::string& filepath, Utilities::Re
 
 		glTextureParameteri(texture->m_graphicsId, GL_TEXTURE_MIN_FILTER, texture->m_descriptor.filtermin);
 		glTextureParameteri(texture->m_graphicsId, GL_TEXTURE_MAG_FILTER, texture->m_descriptor.filtermag);
-		glTextureParameteri(texture->m_graphicsId, GL_TEXTURE_WRAP_S, texture->m_descriptor.wrapmodex);
-		glTextureParameteri(texture->m_graphicsId, GL_TEXTURE_WRAP_T, texture->m_descriptor.wrapmodey);
+		texture->SetWrapMode(wrapmode, wrapmode, wrapmode);
 
 		ktxTexture_Destroy(kTexture);
 		return;
 	}
 
+	texture->m_descriptor.wrapmodex = texture->m_descriptor.wrapmodey = texture->m_descriptor.wrapmodez = wrapmode;
 	auto desiredChannelCount = PK::Rendering::Objects::Texture::GetChannelCount(texture->m_channels);
 
 	int width, height, channels;

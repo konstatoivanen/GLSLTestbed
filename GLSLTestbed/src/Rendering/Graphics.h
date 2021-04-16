@@ -47,6 +47,7 @@ namespace PK::Rendering::GraphicsAPI
 	void SetGlobalUInt3(uint32_t hashId, const uint3* values, uint32_t count = 1);
 	void SetGlobalUInt4(uint32_t hashId, const uint4* values, uint32_t count = 1);
 	void SetGlobalTexture(uint32_t hashId, const GraphicsID* textureIds, uint32_t count = 1);
+	void SetGlobalImage(uint32_t hashId, const ImageBindDescriptor* imageBindings, uint32_t count = 1);
 	void SetGlobalConstantBuffer(uint32_t hashId, const GraphicsID* bufferIds, uint32_t count = 1);
 	void SetGlobalComputeBuffer(uint32_t hashId, const GraphicsID* bufferIds, uint32_t count = 1);
 	void SetGlobalResourceHandle(uint32_t hashId, const ulong* handleIds, uint32_t count = 1);
@@ -67,6 +68,7 @@ namespace PK::Rendering::GraphicsAPI
 	void SetGlobalUInt3(uint32_t hashId, const uint3& value);
 	void SetGlobalUInt4(uint32_t hashId, const uint4& value);
 	void SetGlobalTexture(uint32_t hashId, GraphicsID textureId);
+	void SetGlobalImage(uint32_t hashId, const ImageBindDescriptor& imageBindings);
 	void SetGlobalConstantBuffer(uint32_t hashId, GraphicsID bufferId);
 	void SetGlobalComputeBuffer(uint32_t hashId, GraphicsID bufferId);
 	void SetGlobalResourceHandle(uint32_t hashId, const ulong handleId);
@@ -86,6 +88,7 @@ namespace PK::Rendering::GraphicsAPI
 	void SetIndexBuffer(const IndexBuffer* buffer);
 
 	void BindTextures(ushort location, const GraphicsID* graphicsIds, ushort count);
+	void BindImages(ushort location, const ImageBindDescriptor* imageBindigns, ushort count);
 	void BindBuffers(CG_TYPE type, ushort location, const GraphicsID* graphicsIds, ushort count);
 
 	void Blit(Shader* shader);
@@ -133,11 +136,11 @@ namespace PK::Rendering::GraphicsAPI
 
 	void DrawProcedural(Shader* shader, GLenum topology, size_t offset, size_t count);
 
-	void DispatchCompute(Shader* shader, uint3 threadGroupSize);
-	void DispatchCompute(const Material* material, uint3 threadGroupSize);
-	void DispatchCompute(Shader* shader, uint3 threadGroupSize, const ShaderPropertyBlock& propertyBlock);
+	void DispatchCompute(Shader* shader, uint3 threadGroupSize, GLenum barrierFlags = GL_SHADER_STORAGE_BARRIER_BIT);
+	void DispatchCompute(const Material* material, uint3 threadGroupSize, GLenum barrierFlags = GL_SHADER_STORAGE_BARRIER_BIT);
+	void DispatchCompute(Shader* shader, uint3 threadGroupSize, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags = GL_SHADER_STORAGE_BARRIER_BIT);
 
-	void DispatchComputeIndirect(Shader* shader, const GraphicsID& argumentsBuffer, uint offset);
-	void DispatchComputeIndirect(const Material* material, const GraphicsID& argumentsBuffer, uint offset);
-	void DispatchComputeIndirect(Shader* shader, const GraphicsID& argumentsBuffer, uint offset, const ShaderPropertyBlock& propertyBlock);
+	void DispatchComputeIndirect(Shader* shader, const GraphicsID& argumentsBuffer, uint offset, GLenum barrierFlags = GL_SHADER_STORAGE_BARRIER_BIT);
+	void DispatchComputeIndirect(const Material* material, const GraphicsID& argumentsBuffer, uint offset, GLenum barrierFlags = GL_SHADER_STORAGE_BARRIER_BIT);
+	void DispatchComputeIndirect(Shader* shader, const GraphicsID& argumentsBuffer, uint offset, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags = GL_SHADER_STORAGE_BARRIER_BIT);
 }

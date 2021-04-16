@@ -12,6 +12,7 @@
 #include "Rendering/Culling.h"
 #include "Rendering/PostProcessing/FilterBloom.h"
 #include "Rendering/PostProcessing/FilterAO.h"
+#include "Rendering/PostProcessing/FilterVolumetricFog.h"
 #include "Rendering/LightsManager.h"
 
 namespace PK::Rendering
@@ -38,6 +39,7 @@ namespace PK::Rendering
             LightsManager m_lightsManager;
             PostProcessing::FilterBloom m_filterBloom;
             PostProcessing::FilterAO m_filterAO;
+            PostProcessing::FilterVolumetricFog m_filterFog;
     
             Utilities::Ref<RenderTexture> m_PreZRenderTarget;
             Utilities::Ref<RenderTexture> m_HDRRenderTarget;
