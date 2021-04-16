@@ -708,6 +708,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     </None>
     <None Include="res\shaders\includes\ClusterIndexing.glsl" />
     <None Include="res\shaders\includes\ClusteringCommon.glsl" />
+    <None Include="res\shaders\CS_VolumeFogScatter.shader" />
     <None Include="res\shaders\includes\Instancing.glsl" />
     <None Include="res\shaders\includes\Lighting.glsl">
       <DeploymentContent>true</DeploymentContent>

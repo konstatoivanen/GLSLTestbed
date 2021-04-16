@@ -30,41 +30,19 @@ float SampleDepth(float2 uv)
 	return LinearizeDepth(tex2D(pk_ScreenDepth, uv).r);
 }
 
-float4 ScatterStep(float3 accumulatedLight, float accumulatedTransmittance, float sliceDepth, float3 sliceLight, float sliceDensity)
-{
-	sliceDensity = max(sliceDensity, 0.000001);
-	float sliceTransmittance = exp(-sliceDensity * sliceDepth);
-
-	float3 sliceLightIntegral = sliceLight * (1.0 - sliceTransmittance) / sliceDensity;
-
-	accumulatedLight += sliceLightIntegral * accumulatedTransmittance;
-	accumulatedTransmittance *= sliceTransmittance;
-
-	return float4(accumulatedLight, accumulatedTransmittance);
-}
-
 in float2 vs_TEXCOORD;
 layout(location = 0) out float4 SV_Target0;
 void main() 
 {
-	float3 offset = NoiseBlue(int2(vs_TEXCOORD * pk_ScreenParams.xy + pk_Time.ww * 1000));
-	offset.x -= 0.5f;
-	offset.y -= 0.5f;
-	offset.xy *= 4.0f / textureSize(pk_Volume_InjectRead, 0).xy;
-
 	float linearDepth = SampleDepth(vs_TEXCOORD);
 	float linear01Depth = unlerp_sat(pk_ProjectionParams.y, pk_ProjectionParams.z, linearDepth);
-	float depthSlice = linear01Depth / RAYMARCH_STEP_COUNT;
+	
+	float3 offset = NoiseBlue(int2(vs_TEXCOORD * pk_ScreenParams.xy + pk_Time.ww * 1000));
+	offset.xy -= 0.5f;
+	offset.xy *= 4.0f / textureSize(pk_Volume_ScatterRead, 0).xy;
+	offset.z  /= VOLUME_DEPTH;
 
-	float4 accum = float4(0, 0, 0, 1);
-	float3 pos = float3(vs_TEXCOORD + offset.xy, offset.z * depthSlice);
+	float3 uvw = float3(vs_TEXCOORD + offset.xy, linear01Depth - offset.z);
 
-	for (uint z = 0; z < RAYMARCH_STEP_COUNT; ++z)
-	{
-		float4 slice = tex2D(pk_Volume_InjectRead, pos);
-		accum = ScatterStep(accum.rgb, accum.a, depthSlice, slice.rgb, slice.a);
-		pos.z += depthSlice;
-	}
-
-	SV_Target0 = accum;
+	SV_Target0 = tex2D(pk_Volume_ScatterRead, uvw);
 };

@@ -1643,6 +1643,7 @@
     <None Include="res\shaders\SH_VS_ShadowmapBlurCube.shader" />
     <None Include="res\shaders\includes\VolumeResources.glsl" />
     <None Include="res\textures\T_Bluenoise256_repeat.ktx" />
+    <None Include="res\shaders\CS_VolumeFogScatter.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">
