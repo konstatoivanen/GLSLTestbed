@@ -14,6 +14,8 @@ void main()
     #if defined(PASS_CLUSTERS)
         uint tileIndex = CoordToTile(gl_WorkGroupID.xyz);
 
+        PK_BUFFER_DATA(pk_LightTiles, tileIndex) = 0;
+
         TileDepth tileDepth = PK_BUFFER_DATA(pk_FDepthRanges, tileIndex);
 
         float minDepth = uintBitsToFloat(tileDepth.depthmin);
@@ -24,7 +26,13 @@ void main()
         
         float2 screenmin = gl_WorkGroupID.xy * CLUSTER_SIZE_PX;
         
-        uint count = minDepth < far && maxDepth > near && Less(screenmin, pk_ScreenParams.xy) ? 1 : 0;
+        // Disable min culling as transparent objects & fx might need them
+        #if defined(CLUSTERING_CULL_OPTIMIZE_DEPTH)
+            uint count = minDepth < far && maxDepth > near && Less(screenmin, pk_ScreenParams.xy) ? 1 : 0;
+        #else
+            //@TODO Implement max 2d tiled depth culling later
+            uint count = Less(screenmin, pk_ScreenParams.xy) ? 1 : 0;
+        #endif
 
         uint offset = atomicAdd(PK_ATOMIC_DATA(pk_ClusterDispatchInfo).clusterCount, count);
         

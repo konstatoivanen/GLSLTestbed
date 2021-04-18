@@ -3,9 +3,7 @@
 
 #Blend One SrcAlpha
 
-#include includes/PKCommon.glsl
-#include includes/Noise.glsl
-#include includes/VolumeResources.glsl
+#include includes/VolumeFogShared.glsl
 
 struct Varyings
 {
@@ -34,15 +32,13 @@ in float2 vs_TEXCOORD;
 layout(location = 0) out float4 SV_Target0;
 void main() 
 {
-	float linearDepth = SampleDepth(vs_TEXCOORD);
-	float linear01Depth = unlerp_sat(pk_ProjectionParams.y, pk_ProjectionParams.z, linearDepth);
+	float w = GetVolumeWCoord(SampleDepth(vs_TEXCOORD));
 	
 	float3 offset = NoiseBlue(int2(vs_TEXCOORD * pk_ScreenParams.xy + pk_Time.ww * 1000));
 	offset.xy -= 0.5f;
 	offset.xy *= 4.0f / textureSize(pk_Volume_ScatterRead, 0).xy;
-	offset.z  /= VOLUME_DEPTH;
+	offset.z  = offset.z * 2 - 1;
+	offset.z /= VOLUME_DEPTH;
 
-	float3 uvw = float3(vs_TEXCOORD + offset.xy, linear01Depth - offset.z);
-
-	SV_Target0 = tex2D(pk_Volume_ScatterRead, uvw);
+	SV_Target0 = tex2D(pk_Volume_ScatterRead, float3(vs_TEXCOORD, w) + offset.xyz);
 };

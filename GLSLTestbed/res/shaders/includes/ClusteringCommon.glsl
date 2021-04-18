@@ -21,6 +21,9 @@ PK_DECLARE_BUFFER(TileDepth, pk_FDepthRanges);
 PK_DECLARE_RESTRICTED_BUFFER(uint, pk_VisibleClusters);
 PK_DECLARE_ATOMIC_VARIABLE(ClusterDispatchInfo, pk_ClusterDispatchInfo);
 
+// Control z min max optimization as transparent objects & fx might need cells that don't touch any opaque surfaces. 
+//#define CLUSTERING_CULL_OPTIMIZE_DEPTH
+
 #define CLUSTER_TILE_MAX_LIGHT_COUNT 128
 #define CLUSTER_TILE_BATCH_SIZE 32
 #define DEPTH_BATCH_SIZE_PX 16

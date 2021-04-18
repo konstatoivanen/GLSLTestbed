@@ -22,9 +22,15 @@ void main()
 
     uint2 tileCoord = TileToCoord2D(tileIndex);
 
+#if defined(CLUSTERING_CULL_OPTIMIZE_DEPTH)
     TileDepth tileDepth = PK_BUFFER_DATA(pk_FDepthRanges, min(tileIndex, CLUSTER_TILE_COUNT_MAX - 1));
     float near = uintBitsToFloat(tileDepth.depthmin);
     float far = uintBitsToFloat(tileDepth.depthmax);
+#else
+    uint zcoord = TileToZCoord(tileIndex);
+    float near = ZCoordToLinearDepth(zcoord);
+    float far = ZCoordToLinearDepth(zcoord + 1);
+#endif
 
     float2 invstep = 1.0f / float2(CLUSTER_TILE_COUNT_X, CLUSTER_TILE_COUNT_X * (pk_ScreenParams.y / pk_ScreenParams.x));
     float4 screenminmax = float4(tileCoord.xy * invstep, (tileCoord.xy + 1.0f) * invstep);

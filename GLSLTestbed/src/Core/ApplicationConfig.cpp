@@ -50,6 +50,17 @@ namespace PK::Core
 		AmbientOcclusionRadius = TryParse(properties["AmbientOcclusionRadius"], 1.0f);
 		AmbientOcclusionDownsample = TryParse(properties["AmbientOcclusionDownsample"], true);
 
+		VolumeConstantFog = TryParse(properties["VolumeConstantFog"], 0.0f);
+		VolumeHeightFogExponent = TryParse(properties["VolumeHeightFogExponent"], 0.0f);
+		VolumeHeightFogOffset = TryParse(properties["VolumeHeightFogOffset"], 0.0f);
+		VolumeHeightFogAmount = TryParse(properties["VolumeHeightFogAmount"], 0.0f);
+		VolumeDensity = TryParse(properties["VolumeDensity"], 0.0f);
+		VolumeIntensity = TryParse(properties["VolumeIntensity"], 0.0f);
+		VolumeAnisotropy = TryParse(properties["VolumeAnisotropy"], 0.0f);
+		VolumeNoiseFogAmount = TryParse(properties["VolumeNoiseFogAmount"], 0.0f);
+		VolumeNoiseFogScale = TryParse(properties["VolumeNoiseFogScale"], 0.0f);
+		VolumeWindSpeed = TryParse(properties["VolumeWindSpeed"], 0.0f);
+
 		FileBackgroundTexture = TryParse(properties["FileBackgroundTexture"], std::string("T_OEM_Mountains"));
 		BackgroundExposure = TryParse(properties["BackgroundExposure"], 1.0f);
 	

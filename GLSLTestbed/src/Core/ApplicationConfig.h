@@ -36,6 +36,17 @@ namespace PK::Core
 		float AmbientOcclusionRadius;
 		bool AmbientOcclusionDownsample;
 
+		float VolumeConstantFog;
+		float VolumeHeightFogExponent;
+		float VolumeHeightFogOffset;
+		float VolumeHeightFogAmount;
+		float VolumeDensity;
+		float VolumeIntensity;
+		float VolumeAnisotropy;
+		float VolumeNoiseFogAmount;
+		float VolumeNoiseFogScale;
+		float VolumeWindSpeed;
+
 		std::string FileBackgroundTexture;
 		float BackgroundExposure;
 	

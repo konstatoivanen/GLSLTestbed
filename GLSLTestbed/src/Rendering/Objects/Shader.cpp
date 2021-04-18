@@ -76,12 +76,7 @@ namespace PK::Rendering::Objects
 			}
 	
 			const auto& prop = m_properties.at(hashId);
-	
-			if (prop.cbufferId > 0)
-			{
-				continue;
-			}
-	
+
 			auto& info = i.second;
 			uint count = info.size / Convert::Size(info.type);
 			auto components = Convert::Components(info.type);
@@ -789,7 +784,7 @@ namespace PK::Rendering::Objects
 				glGetProgramResourceName(program, GL_UNIFORM_BLOCK, i, maxnamelength, &length, name);
 				auto location = glGetProgramResourceIndex(program, GL_UNIFORM_BLOCK, name);
 				glUniformBlockBinding(program, location, location);
-				variablemap[StringHashID::StringToID(name)] = { (ushort)location, CG_TYPE::CONSTANT_BUFFER, 0, false };
+				variablemap[StringHashID::StringToID(name)] = { (ushort)location, CG_TYPE::CONSTANT_BUFFER };
 			}
 	
 			// Map Compute Buffers
@@ -804,7 +799,7 @@ namespace PK::Rendering::Objects
 				glGetProgramResourceName(program, GL_SHADER_STORAGE_BLOCK, i, maxnamelength, &length, name);
 				auto location = glGetProgramResourceIndex(program, GL_SHADER_STORAGE_BLOCK, name);
 				glShaderStorageBlockBinding(program, location, location);
-				variablemap[StringHashID::StringToID(name)] = { (ushort)location, CG_TYPE::COMPUTE_BUFFER, 0, false };
+				variablemap[StringHashID::StringToID(name)] = { (ushort)location, CG_TYPE::COMPUTE_BUFFER };
 			}
 	
 			// Map explicit layout binding variables
@@ -836,8 +831,16 @@ namespace PK::Rendering::Objects
 			// Map regular uniforms
 			for (GLuint i = 0; i < (GLuint)uniformCount; ++i)
 			{
-				glGetActiveUniform(program, i, maxnamelength, &length, &size, &type, name);
 				glGetActiveUniformsiv(program, 1, &i, GL_UNIFORM_BLOCK_INDEX, &blockIndex);
+
+				// Omit variables from constant buffers as they should be passed via buffers anyways.
+				if (blockIndex >= 0)
+				{
+					continue;
+				}
+
+				glGetActiveUniform(program, i, maxnamelength, &length, &size, &type, name);
+
 				auto cgtype = Convert::FromUniformType(type);
 		
 				for (auto j = 0; j < size; ++j)
@@ -862,13 +865,13 @@ namespace PK::Rendering::Objects
 						location = slot;
 					}
 		
-					variablemap[StringHashID::StringToID(name)] = { (ushort)location, cgtype, (byte)(blockIndex + 1), false };
+					variablemap[StringHashID::StringToID(name)] = { (ushort)location, cgtype };
 		
 					// For array uniforms also map the variable name without the brackets
 					if (j == 0 && size > 1)
 					{
 						name[(int)length - 3] = '\0';
-						variablemap[StringHashID::StringToID(name)] = { (ushort)location, cgtype, (byte)(blockIndex + 1), false };
+						variablemap[StringHashID::StringToID(name)] = { (ushort)location, cgtype };
 						name[(int)length - 3] = '[';
 					}
 				}

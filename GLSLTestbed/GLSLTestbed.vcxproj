@@ -716,7 +716,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\includes\LightingBRDF.glsl" />
     <None Include="res\shaders\includes\Noise.glsl" />
     <None Include="res\shaders\includes\Reconstruction.glsl" />
-    <None Include="res\shaders\includes\VolumeResources.glsl" />
+    <None Include="res\shaders\includes\VolumeFogShared.glsl" />
     <None Include="res\shaders\SH_VS_ClusterDebug.shader" />
     <None Include="res\shaders\SH_VS_FilterAO.shader" />
     <None Include="res\shaders\SH_VS_IBLBackground.shader">

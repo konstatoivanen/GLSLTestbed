@@ -14,8 +14,6 @@ namespace PK::Rendering::Objects
 	{
 		ushort location;
 		CG_TYPE type;
-		byte cbufferId;
-		bool isInstanced;
 	};
 
 	struct ShaderInstancingInfo

@@ -3,8 +3,7 @@
 
 #pragma PROGRAM_COMPUTE
 #include includes/Lighting.glsl
-#include includes/VolumeResources.glsl
-#include includes/Noise.glsl
+#include includes/VolumeFogShared.glsl
 
 float Density(float3 pos)
 {
@@ -24,19 +23,19 @@ void main()
 {
 	uint3 id = gl_GlobalInvocationID;
 
-	float3 bluenoise = NoiseBlue(id.xy + id.z * int2(VOLUME_WIDTH, VOLUME_HEIGHT) + int(pk_Time.w * 1000).xx);
+	float3 bluenoise = GetVolumeCellNoise(id);
+	float depth = GetVolumeCellDepth(id.z + NoiseUniformToTriangle(bluenoise.x));
 
-	float depthslice = (pk_ProjectionParams.z - pk_ProjectionParams.y) / VOLUME_DEPTH;
-	float lineardepth = pk_ProjectionParams.y + depthslice * id.z;
+	float2 uv = id.xy / VOLUME_SIZE_XY;
 
-	float3 worldpos = mul(pk_MATRIX_I_V, float4(ClipToViewPos(id.xy / VOLUME_SIZE_XY, lineardepth), 1.0f)).xyz;
+	float3 worldpos = mul(pk_MATRIX_I_V, float4(ClipToViewPos(uv, depth), 1.0f)).xyz;
 
-	worldpos += normalize(worldpos - pk_WorldSpaceCameraPos.xyz) * depthslice * NoiseUniformToTriangle(bluenoise.x);
 
-	float3 color = SampleEnv(OctaUV(normalize(bluenoise - 0.5f)), 1.0f);
+	float3 color = SampleEnv(OctaUV(normalize(bluenoise - 0.5f + float3(0,1,0))), 1.0f);
 
-	// @TODO Utilitize light tiles
-	for (uint i = 0; i < pk_LightCount; ++i)
+	LightTile tile = GetLightTile(GetTileIndex(uv * pk_ScreenParams.xy, depth));
+
+	for (uint i = tile.start; i < tile.end; ++i)
 	{
 		// color += GetVolumeLightColorAnistropic(i, worldpos, pk_Volume_Anisotropy);
 		color += GetVolumeLightColor(i, worldpos);
@@ -47,5 +46,5 @@ void main()
 	float4 preval = imageLoad(pk_Volume_Inject, int3(id));
 	float4 curval = float4(pk_Volume_Intensity * density * color, density);
 	
-	imageStore(pk_Volume_Inject, int3(id),  lerp(preval, curval, 0.3f));
+	imageStore(pk_Volume_Inject, int3(id),  lerp(preval, curval, 0.2f));
 }

@@ -115,12 +115,12 @@ float SampleScreenSpaceOcclusion()
 
 LightTile GetLightTile(uint index)
 {
-    #if defined(SHADER_STAGE_FRAGMENT)
+    #if defined(PK_WRITE_CLUSTER_LIGHTS)
+        return LightTile(0,0);
+    #else
         uint data = PK_BUFFER_DATA(pk_LightTiles, index);
         uint offset = data & 0xFFFFFF;
         return LightTile(offset, offset + (data >> 24));
-    #else
-        return LightTile(0,0);
     #endif
 }
 
@@ -150,7 +150,8 @@ PKLight GetSurfaceLight(uint index, in float3 worldpos)
 
 float3 GetVolumeLightColor(uint index, in float3 worldpos)
 {
-    PKRawLight raw = PK_BUFFER_DATA(pk_Lights, index);
+    uint linearIndex = PK_BUFFER_DATA(pk_GlobalLightsList, index);
+    PKRawLight raw = PK_BUFFER_DATA(pk_Lights, linearIndex);
 
     float3 vector = raw.position.xyz - worldpos;
     float lindist = sqrt(dot(vector, vector));
@@ -164,7 +165,8 @@ float3 GetVolumeLightColor(uint index, in float3 worldpos)
 
 float3 GetVolumeLightColorAnistropic(uint index, in float3 worldpos, float anistropy)
 {
-    PKRawLight raw = PK_BUFFER_DATA(pk_Lights, index);
+    uint linearIndex = PK_BUFFER_DATA(pk_GlobalLightsList, index);
+    PKRawLight raw = PK_BUFFER_DATA(pk_Lights, linearIndex);
 
     float3 vector = raw.position.xyz - worldpos;
     float lindist = sqrt(dot(vector, vector));

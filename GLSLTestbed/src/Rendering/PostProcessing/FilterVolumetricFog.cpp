@@ -8,7 +8,7 @@ namespace PK::Rendering::PostProcessing
     static const uint3 ScatterThreadCount = { 32u,2u,1u };
     static const uint3 VolumeResolution = { 160u, 90u, 128u };
 
-    FilterVolumetricFog::FilterVolumetricFog(AssetDatabase* assetDatabase) : FilterBase(assetDatabase->Find<Shader>("SH_VS_VolumeFogComposite"))
+    FilterVolumetricFog::FilterVolumetricFog(AssetDatabase* assetDatabase, const ApplicationConfig& config) : FilterBase(assetDatabase->Find<Shader>("SH_VS_VolumeFogComposite"))
     {
         RenderTextureDescriptor descriptor;
         descriptor.dimension = GL_TEXTURE_3D;
@@ -39,24 +39,25 @@ namespace PK::Rendering::PostProcessing
             {CG_TYPE::FLOAT, "pk_Volume_NoiseFogAmount"},
             {CG_TYPE::FLOAT, "pk_Volume_NoiseFogScale"},
             {CG_TYPE::FLOAT, "pk_Volume_WindSpeed"},
-            //{CG_TYPE::HANDLE, "pk_Volume_Inject"},
-            //{CG_TYPE::HANDLE, "pk_Volume_InjectRead"},
+            {CG_TYPE::HANDLE, "pk_Volume_ScatterRead"},
         }));
 
         auto bufferInject = m_volumes->GetColorBufferPtr(0);
         auto bufferScatter = m_volumes->GetColorBufferPtr(1);
 
         m_volumeResources->SetFloat4(StringHashID::StringToID("pk_Volume_WindDir"), float4(1.0f, 0.0f, 0.0f, 0.0f));
-        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_ConstantFog"), 0.0f);
-        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_HeightFogExponent"), 2.0f);
-        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_HeightFogOffset"), -1.0f);
-        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_HeightFogAmount"), 0.5f);
-        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_Density"), 1.0f);
-        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_Intensity"), 0.5f);
-        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_Anisotropy"), 0.5f);
-        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_NoiseFogAmount"), 1.5f);
-        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_NoiseFogScale"), 0.5f);
-        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_WindSpeed"), 0.0f);
+        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_ConstantFog"), config.VolumeConstantFog);
+        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_HeightFogExponent"), config.VolumeHeightFogExponent);
+        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_HeightFogOffset"), config.VolumeHeightFogOffset);
+        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_HeightFogAmount"), config.VolumeHeightFogAmount);
+        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_Density"), config.VolumeDensity);
+        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_Intensity"), config.VolumeIntensity);
+        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_Anisotropy"), config.VolumeAnisotropy);
+        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_NoiseFogAmount"), config.VolumeNoiseFogAmount);
+        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_NoiseFogScale"), config.VolumeNoiseFogScale);
+        m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_WindSpeed"), config.VolumeWindSpeed);
+        m_volumeResources->SetResourceHandle(StringHashID::StringToID("pk_Volume_ScatterRead"), bufferScatter->GetBindlessHandleResident());
+
         m_volumeResources->FlushBufer();
         //m_volumeResources->SetResourceHandle(StringHashID::StringToID("pk_Volume_Inject"), bufferInject->GetImageHandleResident(GL_RGBA16F, GL_READ_WRITE, 0, 0, true));
         //m_volumeResources->SetResourceHandle(StringHashID::StringToID("pk_Volume_InjectRead"), bufferInject->GetTextureHandleResident());
@@ -66,7 +67,6 @@ namespace PK::Rendering::PostProcessing
 
         m_properties.SetImage(StringHashID::StringToID("pk_Volume_Inject"), { bufferInject->GetGraphicsID(), GL_RGBA16F, GL_READ_WRITE, 0, 0, true });
         m_properties.SetImage(StringHashID::StringToID("pk_Volume_Scatter"), { bufferScatter->GetGraphicsID(), GL_RGBA16F, GL_READ_WRITE, 0, 0, true });
-        m_properties.SetTexture(StringHashID::StringToID("pk_Volume_ScatterRead"), bufferScatter->GetGraphicsID());
 
         m_properties.SetConstantBuffer(StringHashID::StringToID("pk_VolumeResources"), m_volumeResources->GetGraphicsID());
     }
@@ -80,6 +80,7 @@ namespace PK::Rendering::PostProcessing
         auto shaderComposite = m_shader.lock().get();
         auto computeInject = m_computeInject.lock().get();
         auto computeScatter = m_computeScatter.lock().get();
+
         auto groupsInject = uint3(VolumeResolution.x / InjectThreadCount.x, VolumeResolution.y / InjectThreadCount.y, VolumeResolution.z / InjectThreadCount.z);
         auto groupsScatter = uint3(VolumeResolution.x / ScatterThreadCount.x, VolumeResolution.y / ScatterThreadCount.y, 1);
 

@@ -59,7 +59,7 @@ namespace PK::Rendering
 			config.AmbientOcclusionIntensity, 
 			config.AmbientOcclusionRadius, 
 			config.AmbientOcclusionDownsample),
-		m_filterFog(assetDatabase),
+		m_filterFog(assetDatabase, config),
 		m_lightsManager(assetDatabase)
 	{
 		m_entityDb = entityDb;

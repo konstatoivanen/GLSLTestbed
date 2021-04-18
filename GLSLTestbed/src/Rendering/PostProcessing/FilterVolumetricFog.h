@@ -2,6 +2,7 @@
 #include "Rendering/PostProcessing/FilterBase.h"
 #include "Rendering/Objects/TextureXD.h"
 #include "Rendering/Objects/Buffer.h"
+#include "Core/ApplicationConfig.h"
 
 namespace PK::Rendering::PostProcessing
 {
@@ -11,7 +12,7 @@ namespace PK::Rendering::PostProcessing
     class FilterVolumetricFog : public FilterBase
     {
         public:
-            FilterVolumetricFog(AssetDatabase* assetDatabase);
+            FilterVolumetricFog(AssetDatabase* assetDatabase, const ApplicationConfig& config);
             void OnPreRender(const RenderTexture* source) override;
             void Execute(const RenderTexture* source, const RenderTexture* destination) override;
 
