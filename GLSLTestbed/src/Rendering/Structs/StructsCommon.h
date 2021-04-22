@@ -2,6 +2,25 @@
 
 namespace PK::Rendering::Structs
 {
+    enum class LightType : uint
+    {
+        Point = 0,
+        Spot = 1,
+        Directional = 2,
+    };
+
+    enum class LightCookie : uint
+    {
+        Circle0 = 0,
+        Circle1 = 1,
+        Circle2 = 2,
+        Square0 = 3,
+        Square1 = 4,
+        Square2 = 5,
+        Triangle = 6,
+        Star = 7,
+    };
+
     struct FrustumTileAABB
     {
         float4 minPoint;
@@ -33,9 +52,9 @@ namespace PK::Rendering::Structs
         float4 color;
         float4 position;
         uint shadowmap_index;
-        uint shadowmap_proj_index;
-        uint light_cookie_index;
-        uint light_type;
+        uint projection_index;
+        uint cookie_index;
+        uint type;
     };
 
     struct IndexRange

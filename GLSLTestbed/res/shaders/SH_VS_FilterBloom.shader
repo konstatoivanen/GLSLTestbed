@@ -4,6 +4,7 @@
 
 #multi_compile BLOOM_PASS0 BLOOM_PASS1 BLOOM_PASS2
 
+#include includes/PKCommon.glsl
 #include includes/HLSLSupport.glsl
 
 struct PassData

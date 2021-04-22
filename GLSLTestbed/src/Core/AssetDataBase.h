@@ -41,7 +41,7 @@ namespace PK::Core
     {
         private:
             template<typename T>
-            Weak<T> Load(const std::string& filepath, AssetID assetId)
+            T* Load(const std::string& filepath, AssetID assetId)
             {
                 PK_CORE_ASSERT(std::filesystem::exists(filepath), "Asset not found at path: %s", filepath.c_str());
     
@@ -49,7 +49,7 @@ namespace PK::Core
     
                 if (collection.count(assetId) > 0)
                 {
-                    return std::static_pointer_cast<T>(collection.at(assetId));
+                    return std::static_pointer_cast<T>(collection.at(assetId)).get();
                 }
     
                 auto asset = CreateRef<T>();
@@ -58,11 +58,11 @@ namespace PK::Core
     
                 AssetImporters::Import<T>(filepath, asset);
     
-                return asset;
+                return asset.get();
             }
     
             template<typename T>
-            Weak<T> Reload(const std::string& filepath, AssetID assetId)
+            T* Reload(const std::string& filepath, AssetID assetId)
             {
                 PK_CORE_ASSERT(std::filesystem::exists(filepath), "Asset not found at path: %s", filepath.c_str());
                 
@@ -82,12 +82,12 @@ namespace PK::Core
     
                 AssetImporters::Import<T>(filepath, asset);
     
-                return asset;
+                return asset.get();
             }
     
         public:
             template<typename T, typename ... Args>
-            Weak<T> CreateProcedural(std::string name, Args&& ... args)
+            T* CreateProcedural(std::string name, Args&& ... args)
             {
                 auto& collection = m_assets[std::type_index(typeid(T))];
                 auto assetId = StringHashID::StringToID(name);
@@ -98,11 +98,11 @@ namespace PK::Core
                 collection[assetId] = asset;
                 std::static_pointer_cast<Asset>(asset)->m_assetId = assetId;
     
-                return asset;
+                return asset.get();
             }
     
             template<typename T, typename ... Args>
-            Weak<T> RegisterProcedural(std::string name, Ref<T> asset)
+            T* RegisterProcedural(std::string name, Ref<T> asset)
             {
                 auto& collection = m_assets[std::type_index(typeid(T))];
                 auto assetId = StringHashID::StringToID(name);
@@ -112,11 +112,11 @@ namespace PK::Core
                 collection[assetId] = asset;
                 std::static_pointer_cast<Asset>(asset)->m_assetId = assetId;
     
-                return asset;
+                return asset.get();
             }
     
             template<typename T>
-            Weak<T> Find(const char* name)
+            T* Find(const char* name)
             {
                 auto type = std::type_index(typeid(T));
     
@@ -130,7 +130,7 @@ namespace PK::Core
     
                         if (filename.find(name) != std::string::npos)
                         {
-                            return std::static_pointer_cast<T>(i.second);
+                            return std::static_pointer_cast<T>(i.second).get();
                         }
                     }
                 }
@@ -139,16 +139,16 @@ namespace PK::Core
             }
             
             template<typename T>
-            Weak<T> Load(const std::string& filepath) { return Load<T>(filepath, StringHashID::StringToID(filepath)); }
+            T* Load(const std::string& filepath) { return Load<T>(filepath, StringHashID::StringToID(filepath)); }
     
             template<typename T>
-            Weak<T> Load(AssetID assetId) { return Load<T>(StringHashID::IDToString(assetId), assetId); }
+            T* Load(AssetID assetId) { return Load<T>(StringHashID::IDToString(assetId), assetId); }
     
             template<typename T>
-            Weak<T> Reload(const std::string& filepath) { return Reload<T>(filepath, StringHashID::StringToID(filepath)); }
+            T* Reload(const std::string& filepath) { return Reload<T>(filepath, StringHashID::StringToID(filepath)); }
     
             template<typename T>
-            Weak<T> Reload(AssetID assetId) { return Reload<T>(StringHashID::IDToString(assetId), assetId); }
+            T* Reload(AssetID assetId) { return Reload<T>(StringHashID::IDToString(assetId), assetId); }
     
             template<typename T>
             void Reload(const Weak<T>& asset) 

@@ -75,6 +75,7 @@ namespace PK::Rendering::GraphicsAPI
 	void SetGlobalKeyword(uint32_t hashId, bool value);
 
 	void Clear(const float4& color, float depth, GLuint clearFlags);
+	void ResetViewPort();
 	void SetViewPort(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 	void SetViewPorts(const uint32_t offset, const float4* viewports, const uint32_t count);
 	void SetViewProjectionMatrices(const float4x4& view, const float4x4& projection);

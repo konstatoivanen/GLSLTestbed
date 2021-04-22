@@ -16,7 +16,7 @@ namespace PK::Rendering::PostProcessing
         uint2 readwrite;
     };
 
-    FilterBloom::FilterBloom(Weak<Shader> shader, Weak<TextureXD> lensDirt, float exposure, float intensity, float lensDirtIntensity) : FilterBase(shader)
+    FilterBloom::FilterBloom(Shader* shader, TextureXD* lensDirt, float exposure, float intensity, float lensDirtIntensity) : FilterBase(shader)
     {
         m_exposure = exposure;
         m_intensity = intensity;
@@ -58,7 +58,12 @@ namespace PK::Rendering::PostProcessing
 
         if (m_passBuffer == nullptr)
         {
-            m_passBuffer = CreateRef<ComputeBuffer>(BufferLayout({ {CG_TYPE::HANDLE, "SOURCE"}, { CG_TYPE::FLOAT2, "OFFSET" }, { CG_TYPE::UINT2, "READWRITE" } }), 32, true, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
+            m_passBuffer = CreateRef<ComputeBuffer>(BufferLayout(
+                { 
+                    { CG_TYPE::HANDLE, "SOURCE"}, 
+                    { CG_TYPE::FLOAT2, "OFFSET" }, 
+                    { CG_TYPE::UINT2, "READWRITE" } }), 
+                    32, true, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
         }
 
         if (!hasdelta)
@@ -68,14 +73,14 @@ namespace PK::Rendering::PostProcessing
 
         GLuint64 handles[8] =
         {
-            m_renderTargets[0]->GetColorBufferPtr(0)->GetBindlessHandleResident(),
-            m_renderTargets[1]->GetColorBufferPtr(0)->GetBindlessHandleResident(),
-            m_renderTargets[2]->GetColorBufferPtr(0)->GetBindlessHandleResident(),
-            m_renderTargets[3]->GetColorBufferPtr(0)->GetBindlessHandleResident(),
-            m_renderTargets[4]->GetColorBufferPtr(0)->GetBindlessHandleResident(),
-            m_renderTargets[5]->GetColorBufferPtr(0)->GetBindlessHandleResident(),
-            source->GetColorBufferPtr(0)->GetBindlessHandleResident(),//Kinda volatile not to do this every frame but whatever.
-            m_lensDirtTexture.lock()->GetBindlessHandleResident(),
+            m_renderTargets[0]->GetColorBuffer(0)->GetBindlessHandleResident(),
+            m_renderTargets[1]->GetColorBuffer(0)->GetBindlessHandleResident(),
+            m_renderTargets[2]->GetColorBuffer(0)->GetBindlessHandleResident(),
+            m_renderTargets[3]->GetColorBuffer(0)->GetBindlessHandleResident(),
+            m_renderTargets[4]->GetColorBuffer(0)->GetBindlessHandleResident(),
+            m_renderTargets[5]->GetColorBuffer(0)->GetBindlessHandleResident(),
+            source->GetColorBuffer(0)->GetBindlessHandleResident(),//Kinda volatile not to do this every frame but whatever.
+            m_lensDirtTexture->GetBindlessHandleResident(),
         };
 
         const float saturation = 0.8f;
@@ -105,8 +110,6 @@ namespace PK::Rendering::PostProcessing
     {
         m_properties.SetComputeBuffer(HashCache::Get()->_BloomPassParams, m_passBuffer->GetGraphicsID());
 
-        auto shader = m_shader.lock().get();
-
         float4 viewports[7] =
         {
             {0,0, m_renderTargets[0]->GetResolution2D()},
@@ -124,21 +127,21 @@ namespace PK::Rendering::PostProcessing
         {
             GraphicsAPI::SetRenderTarget(m_renderTargets[i].get(), false);
             m_properties.SetKeywords({ m_passKeywords[1] });                            // downsample
-            GraphicsAPI::BlitInstanced(i * 5 + 0, 1, shader, m_properties);
+            GraphicsAPI::BlitInstanced(i * 5 + 0, 1, m_shader, m_properties);
             glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
             m_properties.SetKeywords({ m_passKeywords[2] });
-            GraphicsAPI::BlitInstanced(i * 5 + 1, 1, shader, m_properties);             // vertical blur
+            GraphicsAPI::BlitInstanced(i * 5 + 1, 1, m_shader, m_properties);             // vertical blur
             glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
-            GraphicsAPI::BlitInstanced(i * 5 + 2, 1, shader, m_properties);             // horizontal blur
+            GraphicsAPI::BlitInstanced(i * 5 + 2, 1, m_shader, m_properties);             // horizontal blur
             glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
-            GraphicsAPI::BlitInstanced(i * 5 + 3, 1, shader, m_properties);             // vertical blur
+            GraphicsAPI::BlitInstanced(i * 5 + 3, 1, m_shader, m_properties);             // vertical blur
             glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
-            GraphicsAPI::BlitInstanced(i * 5 + 4, 1, shader, m_properties);            // horizontal blur
+            GraphicsAPI::BlitInstanced(i * 5 + 4, 1, m_shader, m_properties);            // horizontal blur
             glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
         }
 
         m_properties.SetKeywords({ m_passKeywords[0] });
         GraphicsAPI::SetRenderTarget(destination, false);
-        GraphicsAPI::BlitInstanced(30, 1, shader, m_properties);
+        GraphicsAPI::BlitInstanced(30, 1, m_shader, m_properties);
     }
 }

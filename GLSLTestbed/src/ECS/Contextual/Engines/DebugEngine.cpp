@@ -2,6 +2,7 @@
 #include "DebugEngine.h"
 #include "ECS/Contextual/Implementers/Implementers.h"
 #include "ECS/Contextual/EntityViews/EntityViews.h"
+#include "ECS/Contextual/Builders/Builders.h"
 #include "Rendering/MeshUtility.h"
 #include "Core/Application.h"
 
@@ -11,7 +12,7 @@ namespace PK::ECS::Engines
 	using namespace PK::Rendering::Structs;
 	using namespace PK::Math;
 
-	static EGID CreateMeshRenderable(EntityDatabase* entityDb, const float3& position, const float3& rotation, float size, Weak<Mesh> mesh, Weak<Material> material)
+	static EGID CreateMeshRenderable(EntityDatabase* entityDb, const float3& position, const float3& rotation, float size, Mesh* mesh, Material* material)
 	{
 		auto egid = EGID(entityDb->ReserveEntityId(), (uint)ENTITY_GROUPS::ACTIVE);
 		auto implementer = entityDb->ResereveImplementer<Implementers::MeshRenderableImplementer>();
@@ -35,56 +36,44 @@ namespace PK::ECS::Engines
 		implementer->scale = CG_FLOAT3_ONE * size;
 		implementer->sharedMaterials.push_back(material);
 		implementer->sharedMesh = mesh;
-		implementer->flags = Components::RenderHandleFlags::Renderer;
-		implementer->viewSize = 1.0f;
-	
+		implementer->flags = Components::RenderHandleFlags::Renderer | Components::RenderHandleFlags::ShadowCaster;
 		return egid;
 	}
 	
 	static void CreatePointLight(EntityDatabase* entityDb, PK::Core::AssetDatabase* assetDatabase, const float3& position, const color& color)
 	{
 		auto egid = EGID(entityDb->ReserveEntityId(), (uint)ENTITY_GROUPS::ACTIVE);
-		auto implementer = entityDb->ResereveImplementer<Implementers::PointLightImplementer>();
+		auto implementer = entityDb->ResereveImplementer<Implementers::LightImplementer>();
 		auto transformView = entityDb->ReserveEntityView<EntityViews::TransformView>(egid);
 		auto baseView = entityDb->ReserveEntityView<EntityViews::BaseRenderable>(egid);
-		auto lightView = entityDb->ReserveEntityView<EntityViews::PointLightRenderable>(egid);
+		auto lightView = entityDb->ReserveEntityView<EntityViews::LightRenderable>(egid);
 		auto lightSphereView = entityDb->ReserveEntityView<EntityViews::LightSphere>(egid);
 	
 		transformView->bounds = static_cast<Components::Bounds*>(implementer);
 		transformView->transform = static_cast<Components::Transform*>(implementer);
 		baseView->bounds = static_cast<Components::Bounds*>(implementer);
 		baseView->handle = static_cast<Components::RenderableHandle*>(implementer);
-		lightView->pointLight = static_cast<Components::PointLight*>(implementer);
+		lightView->light = static_cast<Components::Light*>(implementer);
 		lightView->transform = static_cast<Components::Transform*>(implementer);
 		lightSphereView->transformLight = static_cast<Components::Transform*>(implementer);
 	
+		implementer->position = position;
+		ECS::Builders::InitializeLightValues(implementer, color, LightType::Spot, LightCookie::Circle2, true, 90.0f);
+
 		const auto intensityThreshold = 0.2f;
 		const auto sphereRadius = 0.2f;
 		const auto sphereTranslucency = 0.1f;
-		auto lightColor = glm::exp(color);
-		auto hdrColor = lightColor * sphereTranslucency * (1.0f / (sphereRadius * sphereRadius));
-
-		float3 gammaColor = glm::pow(float3(lightColor.rgb), float3(1.0f / 2.2f));
-		float intensity = glm::compMax(gammaColor);
-		auto radius = intensity / intensityThreshold;
+		auto hdrColor = implementer->color * sphereTranslucency * (1.0f / (sphereRadius * sphereRadius));
 	
-		implementer->localAABB = Functions::CreateBoundsCenterExtents(CG_FLOAT3_ZERO, CG_FLOAT3_ONE * radius);
-		implementer->isCullable = true;
-		implementer->isVisible = false;
-		implementer->position = position;
-		implementer->color = lightColor;
-		implementer->radius = radius;
-		implementer->flags = Components::RenderHandleFlags::Light;
-		implementer->viewSize = 1.0f;
-	
-		auto mesh = assetDatabase->Find<Mesh>("Primitive_Sphere").lock();
-		auto shader = assetDatabase->Find<Shader>("SH_WS_Unlit_Color").lock();
+		auto mesh = assetDatabase->Find<Mesh>("Primitive_Sphere");
+		auto shader = assetDatabase->Find<Shader>("SH_WS_Unlit_Color");
 		auto material = assetDatabase->RegisterProcedural("M_Point_Light_" + std::to_string(egid.entityID()), CreateRef<Material>(shader));
-		material.lock()->SetFloat4(StringHashID::StringToID("_Color"), hdrColor);
+		material->SetFloat4(StringHashID::StringToID("_Color"), hdrColor);
 		
 		auto meshEgid = CreateMeshRenderable(entityDb, position, CG_FLOAT3_ZERO, sphereRadius, mesh, material);
-		auto meshView = entityDb->Query<EntityViews::TransformView>(meshEgid);
-		lightSphereView->transformMesh = meshView->transform;
+		auto meshTransform = entityDb->Query<EntityViews::TransformView>(meshEgid);
+		entityDb->Query<EntityViews::BaseRenderable>(meshEgid)->handle->flags = Components::RenderHandleFlags::Renderer;
+		lightSphereView->transformMesh = meshTransform->transform;
 	}
 	
 	DebugEngine::DebugEngine(AssetDatabase* assetDatabase, Time* time, EntityDatabase* entityDb, const ApplicationConfig& config)
@@ -137,7 +126,7 @@ namespace PK::ECS::Engines
 	
 		if (input->GetKeyDown(KeyCode::T))
 		{
-			m_assetDatabase->Find<Shader>("SH_WS_PBR_Forward").lock()->ListProperties();
+			m_assetDatabase->Find<Shader>("SH_WS_PBR_Forward")->ListProperties();
 		}
 	
 		if (input->GetKeyDown(KeyCode::R))
@@ -156,17 +145,18 @@ namespace PK::ECS::Engines
 	
 	void DebugEngine::Step(int condition)
 	{
-		return;
 		auto lights = m_entityDb->Query<EntityViews::LightSphere>((int)ENTITY_GROUPS::ACTIVE);
 		auto time = Application::GetService<Time>()->GetTime();
 	
 		for (auto i = 0; i < lights.count; ++i)
 		{
-			auto ypos = sin(time + ((float)i * 4 / lights.count)) * 4;
-			lights[i].transformLight->position.y = ypos;
-			lights[i].transformMesh->position.y = ypos;
+			// auto ypos = sin(time + ((float)i * 4 / lights.count)) * 4;
+			auto rotation = glm::quat(float3(0, time + float(i), 0));
+			lights[i].transformLight->rotation = rotation;
+			lights[i].transformMesh->rotation = rotation;
 		}
 	
+		return;
 		auto meshes = m_entityDb->Query<EntityViews::MeshRenderable>((int)ENTITY_GROUPS::ACTIVE);
 	
 		for (auto i = 0; i < meshes.count; ++i)
@@ -179,7 +169,6 @@ namespace PK::ECS::Engines
 	{
 		auto aspect = Application::GetWindow().GetAspect();
 		auto proj = Functions::GetPerspective(50.0f, aspect, 0.1f, 4.0f);
-		// auto view = Functions::GetMatrixInvTRS(CG_FLOAT3_ZERO, glm::quat(float3(0, Application::GetService<Time>()->GetTime(), 0)), CG_FLOAT3_ONE);
 		auto view = Functions::GetMatrixInvTRS(CG_FLOAT3_ZERO, CG_QUATERNION_IDENTITY, CG_FLOAT3_ONE);
 		auto vp = proj * view;
 	

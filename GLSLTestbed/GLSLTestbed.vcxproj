@@ -165,6 +165,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\Core\NoCopy.h" />
+    <ClInclude Include="src\ECS\Contextual\Builders\Builders.h" />
     <ClInclude Include="src\ECS\Contextual\Engines\EngineUpdateTransforms.h" />
     <ClInclude Include="src\ECS\Contextual\Components\Components.h" />
     <ClInclude Include="src\ECS\Contextual\EntityViews\EntityViews.h" />
@@ -716,6 +717,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\includes\LightingBRDF.glsl" />
     <None Include="res\shaders\includes\Noise.glsl" />
     <None Include="res\shaders\includes\Reconstruction.glsl" />
+    <None Include="res\shaders\includes\Shadowmapping.glsl" />
     <None Include="res\shaders\includes\VolumeFogShared.glsl" />
     <None Include="res\shaders\SH_VS_ClusterDebug.shader" />
     <None Include="res\shaders\SH_VS_FilterAO.shader" />
@@ -730,14 +732,17 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
       <DeploymentContent>true</DeploymentContent>
     </None>
     <None Include="res\shaders\SH_VS_ShadowmapBlurCube.shader" />
+    <None Include="res\shaders\SH_VS_ShadowmapBlurProj.shader" />
     <None Include="res\shaders\SH_WS_ShadowmapCube.shader" />
     <None Include="res\shaders\SH_WS_DepthNormals.shader" />
+    <None Include="res\shaders\SH_WS_ShadowmapProj.shader" />
     <None Include="res\textures\T_Bloom_LensDirt.ktx" />
     <None Include="res\textures\T_Bluenoise256_repeat.ktx" />
     <None Include="res\textures\T_Gravel_D.ktx" />
     <None Include="res\textures\T_Gravel_H.ktx" />
     <None Include="res\textures\T_Gravel_MAOR.ktx" />
     <None Include="res\textures\T_Gravel_N.ktx" />
+    <None Include="res\textures\T_LightCookies.ktx" />
     <None Include="res\textures\T_Metal_Plates_D.ktx" />
     <None Include="res\textures\T_Metal_Plates_H.ktx" />
     <None Include="res\textures\T_Metal_Plates_MAOR.ktx" />
@@ -762,6 +767,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="x64\Debug\vc141.pdb" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\ECS\Contextual\Builders\Builders.cpp" />
     <ClCompile Include="src\ECS\Contextual\Engines\EngineUpdateTransforms.cpp" />
     <ClCompile Include="src\Rendering\Batching.cpp" />
     <ClCompile Include="src\Rendering\Culling.cpp" />
@@ -829,7 +835,6 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <Text Include="res\shaders\CS_VolumeFogLightDensity.shader" />
     <Text Include="res\shaders\includes\LightingCommon.glsl" />
     <Text Include="res\shaders\SH_VS_VolumeFogComposite.shader" />
-    <Text Include="res\shaders\SH_VS_VolumetricFog.shader" />
     <Text Include="res\shaders\SH_WS_Unlit_Color.shader" />
     <Text Include="res\shaders\SH_VS_FilterBloom.shader" />
     <Text Include="res\shaders\SH_WS_PBR_Forward.shader">

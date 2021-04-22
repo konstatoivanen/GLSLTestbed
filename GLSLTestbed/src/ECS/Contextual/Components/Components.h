@@ -34,11 +34,7 @@ namespace PK::ECS::Components
         Renderer = 1 << 0,
         Light = 1 << 1,
         Static = 1 << 2,
-        Dynamic = 1 << 3,
-        ShadowCaster = 1 << 4,
-        LightPoint = 1 << 5,
-        LightSpot = 1 << 6,
-        LightDirectional = 1 << 7
+        ShadowCaster = 1 << 3,
     };
 
     inline RenderHandleFlags operator|(RenderHandleFlags a, RenderHandleFlags b)
@@ -51,26 +47,32 @@ namespace PK::ECS::Components
         bool isVisible = false;
         bool isCullable = true;
         RenderHandleFlags flags = RenderHandleFlags::Renderer;
-        float viewSize = 1.0f;
         virtual ~RenderableHandle() = 0 {}
     };
     
     struct MeshReference
     {
-        Weak<Mesh> sharedMesh;
+        Mesh* sharedMesh;
         virtual ~MeshReference() = 0 {}
     };
     
     struct Materials
     {
-        std::vector<Weak<Material>> sharedMaterials;
+        std::vector<Material*> sharedMaterials;
         virtual ~Materials() = 0 {}
     };
     
-    struct PointLight
+    struct Light
     {
         color color = CG_COLOR_WHITE;
         float radius = 1.0f;
-        virtual ~PointLight() = 0 {}
+        float angle = 45.0f;
+        bool castShadows = true;
+        uint linearIndex;
+        uint shadowmapIndex;
+        uint projectionIndex;
+        LightCookie cookie;
+        LightType lightType;
+        virtual ~Light() = 0 {}
     };
 }

@@ -33,7 +33,7 @@ namespace PK::Rendering::Culling
 		{
 			auto cullable = &cullables[i];
 
-			if (!((ushort)cullable->handle->flags & typeMask) || !Functions::IntersectAABB(aabb, cullable->bounds->worldAABB))
+			if (((ushort)cullable->handle->flags & typeMask) != typeMask || !Functions::IntersectAABB(aabb, cullable->bounds->worldAABB))
 			{
 				continue;
 			}
@@ -76,7 +76,7 @@ namespace PK::Rendering::Culling
 		}
 	}
 
-	void Culling::ExecuteOnVisibleItemsFrustum(PK::ECS::EntityDatabase* entityDb, const float4x4& matrix, ushort typeMask, OnVisibleItem onvisible, void* context)
+	void Culling::ExecuteOnVisibleItemsFrustum(PK::ECS::EntityDatabase* entityDb, const float4x4& matrix, ushort typeMask, OnVisibleItemMulti onvisible, void* context)
 	{
 		FrustrumPlanes frustum;
 		Functions::ExtractFrustrumPlanes(matrix, &frustum, true);
@@ -87,7 +87,7 @@ namespace PK::Rendering::Culling
 		{
 			auto cullable = &cullables[i];
 
-			if (!((ushort)cullable->handle->flags & typeMask))
+			if (((ushort)cullable->handle->flags & typeMask) != typeMask)
 			{
 				continue;
 			}
@@ -97,7 +97,7 @@ namespace PK::Rendering::Culling
 
 			if (isVisible)
 			{
-				onvisible(entityDb, cullable->GID, Functions::PlaneDistanceToAABB(frustum.planes[4], cullable->bounds->worldAABB), context);
+				onvisible(entityDb, cullable->GID, 0u, Functions::PlaneDistanceToAABB(frustum.planes[4], cullable->bounds->worldAABB), context);
 			}
 		}
 	}
@@ -158,8 +158,9 @@ namespace PK::Rendering::Culling
 		for (auto i = 0; i < cullables.count; ++i)
 		{
 			auto cullable = &cullables[i];
+			auto maskedFlags = (ushort)cullable->handle->flags & typeMask;
 
-			if (!((ushort)cullable->handle->flags & typeMask))
+			if (!maskedFlags)
 			{
 				continue;
 			}
@@ -169,7 +170,7 @@ namespace PK::Rendering::Culling
 
 			if (isVisible)
 			{
-				cache->AddItem(group, (ushort)cullable->handle->flags, cullable->GID.entityID());
+				cache->AddItem(group, maskedFlags, cullable->GID.entityID());
 			}
 		}
 	}

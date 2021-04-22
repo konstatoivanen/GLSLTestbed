@@ -1,6 +1,11 @@
 #pragma once
 #include HLSLSupport.glsl
 
+#define LIGHT_PARAM_INVALID 0xFFFFFFFF
+#define LIGHT_TYPE_POINT 0
+#define LIGHT_TYPE_SPOT 1
+#define LIGHT_TYPE_DIRECTIONAL 2
+
 struct LightTile 
 {
     uint start;
@@ -12,9 +17,9 @@ struct PKRawLight
     float4 color;
     float4 position;
     uint shadowmap_index;
-    uint shadowmap_proj_index;
-    uint light_cookie_index;
-    uint light_type;
+    uint projection_index;
+    uint cookie_index;
+    uint type;
 };
 
 struct PKLight
@@ -52,6 +57,7 @@ PKIndirect EmptyIndirect()
 
 uniform int pk_LightCount;
 PK_DECLARE_READONLY_BUFFER(PKRawLight, pk_Lights);
+PK_DECLARE_READONLY_BUFFER(float4x4, pk_LightMatrices);
 
 #if defined(PK_WRITE_CLUSTER_LIGHTS)
     PK_DECLARE_WRITEONLY_BUFFER(uint, pk_GlobalLightsList);

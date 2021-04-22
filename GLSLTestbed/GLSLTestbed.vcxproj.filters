@@ -1167,6 +1167,9 @@
     <ClInclude Include="src\Rendering\PostProcessing\FilterVolumetricFog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\ECS\Contextual\Builders\Builders.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\glfw3.lib" />
@@ -1644,6 +1647,10 @@
     <None Include="res\shaders\includes\VolumeFogShared.glsl" />
     <None Include="res\textures\T_Bluenoise256_repeat.ktx" />
     <None Include="res\shaders\CS_VolumeFogScatter.shader" />
+    <None Include="res\shaders\SH_VS_ShadowmapBlurProj.shader" />
+    <None Include="res\shaders\SH_WS_ShadowmapProj.shader" />
+    <None Include="res\shaders\includes\Shadowmapping.glsl" />
+    <None Include="res\textures\T_LightCookies.ktx" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">
@@ -1763,6 +1770,9 @@
     <ClCompile Include="src\Rendering\PostProcessing\FilterVolumetricFog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\ECS\Contextual\Builders\Builders.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="x64\Debug\GLImageProcessor.log" />
@@ -1775,7 +1785,6 @@
     <Text Include="res\shaders\SH_WS_PBR_Forward.shader" />
     <Text Include="res\shaders\SH_WS_Unlit_Color.shader" />
     <Text Include="res\shaders\CS_ClusteredDepthReset.shader" />
-    <Text Include="res\shaders\SH_VS_VolumetricFog.shader" />
     <Text Include="res\shaders\CS_VolumeFogLightDensity.shader" />
     <Text Include="res\shaders\SH_VS_VolumeFogComposite.shader" />
   </ItemGroup>

@@ -157,14 +157,11 @@ namespace PK::Rendering::Batching
     }
 
   
-    void QueueDraw(DynamicBatchCollection* collection, Weak<Mesh>& mesh, int submesh, Weak<Material>& material, const Drawcall& drawcall)
+    void QueueDraw(DynamicBatchCollection* collection, const Mesh* mesh, int submesh, const Material* material, const Drawcall& drawcall)
     {
-        auto meshref = mesh.lock();
-        auto materialref = material.lock();
-
-        auto meshId = (ulong)meshref->GetGraphicsID();
-        auto materialId = (ulong)materialref->GetAssetID();
-        auto shaderId = (ulong)materialref->GetShaderAssetID();
+        auto meshId = (ulong)mesh->GetGraphicsID();
+        auto materialId = (ulong)material->GetAssetID();
+        auto shaderId = (ulong)material->GetShaderAssetID();
 
         auto meshKey = (ulong)(meshId & 0xFFFF);
         auto submeshKey = (ulong)(((ulong)submesh << 16ul) | meshKey);
@@ -179,11 +176,11 @@ namespace PK::Rendering::Batching
         MaterialBatch* materialBatch = nullptr;
 
         GetBatch(collection->BatchMap, collection->MeshBatches, meshKey, &meshBatch, &meshBatchIndex);
-        meshBatch->mesh = meshref.get();
+        meshBatch->mesh = mesh;
 
         if (GetBatch(collection->BatchMap, collection->ShaderBatches, shaderKey, &shaderBatch, &shaderBatchIndex))
         {
-            auto& instancingInfo = materialref->GetShader().lock()->GetInstancingInfo();
+            auto& instancingInfo = material->GetShader()->GetInstancingInfo();
             shaderBatch->submesh = submesh;
 
             if (instancingInfo.hasInstancedProperties)
@@ -193,7 +190,7 @@ namespace PK::Rendering::Batching
         }
 
         GetBatch(collection->BatchMap, collection->MaterialBatches, materialKey, &materialBatch, &materialBatchIndex);
-        materialBatch->material = materialref.get();
+        materialBatch->material = material;
 
         if (shaderBatch->drawCallCount == 0)
         {
@@ -212,32 +209,30 @@ namespace PK::Rendering::Batching
         ++collection->TotalDrawCallCount;
     }
 
-    void QueueDraw(MeshBatchCollection* collection, Weak<Mesh>& mesh, const Drawcall& drawcall)
+    void QueueDraw(MeshBatchCollection* collection, const Mesh* mesh, const Drawcall& drawcall)
     {
-        auto meshref = mesh.lock();
-        auto meshId = (ulong)meshref->GetGraphicsID();
+        auto meshId = (ulong)mesh->GetGraphicsID();
         
         uint meshBatchIndex = 0;
         MeshOnlyBatch* meshBatch = nullptr;
 
         GetBatch(collection->BatchMap, collection->MeshBatches, meshId, &meshBatch, &meshBatchIndex);
-        meshBatch->mesh = meshref.get();
+        meshBatch->mesh = mesh;
 
         Utilities::ValidateVectorSize(meshBatch->drawcalls, meshBatch->drawCallCount + 1);
         meshBatch->drawcalls[meshBatch->drawCallCount++] = drawcall;
         ++collection->TotalDrawCallCount;
     }
 
-    void QueueDraw(IndexedMeshBatchCollection* collection, Weak<Mesh>& mesh, const DrawcallIndexed& drawcall)
+    void QueueDraw(IndexedMeshBatchCollection* collection, const Mesh* mesh, const DrawcallIndexed& drawcall)
     {
-        auto meshref = mesh.lock();
-        auto meshId = (ulong)meshref->GetGraphicsID();
+        auto meshId = (ulong)mesh->GetGraphicsID();
 
         uint meshBatchIndex = 0;
         IndexedMeshBatch* meshBatch = nullptr;
 
         GetBatch(collection->BatchMap, collection->MeshBatches, meshId, &meshBatch, &meshBatchIndex);
-        meshBatch->mesh = meshref.get();
+        meshBatch->mesh = mesh;
 
         Utilities::ValidateVectorSize(meshBatch->drawcalls, meshBatch->drawCallCount + 1);
         meshBatch->drawcalls[meshBatch->drawCallCount++] = drawcall;
@@ -432,6 +427,11 @@ namespace PK::Rendering::Batching
 
     void DrawBatches(DynamicBatchCollection* collection, uint32_t renderQueueIndex)
     {
+        if (collection->TotalDrawCallCount < 1)
+        {
+            return;
+        }
+
         auto hashes = HashCache::Get();
         GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingMatrices, collection->MatrixBuffer->GetGraphicsID());
         GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingPropertyIndices, collection->PropertyIndices->GetGraphicsID());
@@ -475,6 +475,11 @@ namespace PK::Rendering::Batching
 
     void DrawBatches(DynamicBatchCollection* collection, uint32_t renderQueueIndex, const Material* overrideMaterial)
     {
+        if (collection->TotalDrawCallCount < 1)
+        {
+            return;
+        }
+
         auto hashes = HashCache::Get();
         GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingMatrices, collection->MatrixBuffer->GetGraphicsID());
         GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, true);
@@ -494,6 +499,11 @@ namespace PK::Rendering::Batching
 
     void DrawBatches(DynamicBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader, const ShaderPropertyBlock& propertyBlock)
     {
+        if (collection->TotalDrawCallCount < 1)
+        {
+            return;
+        }
+
         auto hashes = HashCache::Get();
         GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingMatrices, collection->MatrixBuffer->GetGraphicsID());
         GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, true);
@@ -513,6 +523,11 @@ namespace PK::Rendering::Batching
 
     void DrawBatches(DynamicBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader)
     {
+        if (collection->TotalDrawCallCount < 1)
+        {
+            return;
+        }
+
         auto hashes = HashCache::Get();
         GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingMatrices, collection->MatrixBuffer->GetGraphicsID());
         GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, true);
@@ -533,6 +548,11 @@ namespace PK::Rendering::Batching
    
     void DrawBatches(MeshBatchCollection* collection, uint32_t renderQueueIndex, const Material* overrideMaterial)
     {
+        if (collection->TotalDrawCallCount < 1)
+        {
+            return;
+        }
+
         auto hashes = HashCache::Get();
         GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingMatrices, collection->MatrixBuffer->GetGraphicsID());
         GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, true);
@@ -552,6 +572,11 @@ namespace PK::Rendering::Batching
 
     void DrawBatches(MeshBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader, const ShaderPropertyBlock& propertyBlock)
     {
+        if (collection->TotalDrawCallCount < 1)
+        {
+            return;
+        }
+
         auto hashes = HashCache::Get();
         GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingMatrices, collection->MatrixBuffer->GetGraphicsID());
         GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, true);
@@ -571,6 +596,11 @@ namespace PK::Rendering::Batching
 
     void DrawBatches(MeshBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader)
     {
+        if (collection->TotalDrawCallCount < 1)
+        {
+            return;
+        }
+
         auto hashes = HashCache::Get();
         GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingMatrices, collection->MatrixBuffer->GetGraphicsID());
         GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, true);
@@ -590,6 +620,11 @@ namespace PK::Rendering::Batching
 
     void DrawBatches(IndexedMeshBatchCollection* collection, uint32_t renderQueueIndex, const Material* overrideMaterial)
     {
+        if (collection->TotalDrawCallCount < 1)
+        {
+            return;
+        }
+
         auto hashes = HashCache::Get();
         GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingMatrices, collection->MatrixBuffer->GetGraphicsID());
         GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingPropertyIndices, collection->IndexBuffer->GetGraphicsID());
@@ -610,6 +645,11 @@ namespace PK::Rendering::Batching
 
     void DrawBatches(IndexedMeshBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader, const ShaderPropertyBlock& propertyBlock)
     {
+        if (collection->TotalDrawCallCount < 1)
+        {
+            return;
+        }
+
         auto hashes = HashCache::Get();
         GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingMatrices, collection->MatrixBuffer->GetGraphicsID());
         GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingPropertyIndices, collection->IndexBuffer->GetGraphicsID());
@@ -630,6 +670,11 @@ namespace PK::Rendering::Batching
 
     void DrawBatches(IndexedMeshBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader)
     {
+        if (collection->TotalDrawCallCount < 1)
+        {
+            return;
+        }
+
         auto hashes = HashCache::Get();
         GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingMatrices, collection->MatrixBuffer->GetGraphicsID());
         GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingPropertyIndices, collection->IndexBuffer->GetGraphicsID());

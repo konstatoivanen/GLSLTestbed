@@ -13,11 +13,11 @@ namespace PK::ECS::Implementers
     {
     };
 
-    struct PointLightImplementer : public IImplementer,
+    struct LightImplementer : public IImplementer,
         public Components::Transform,
         public Components::Bounds,
         public Components::RenderableHandle,
-        public Components::PointLight
+        public Components::Light
     {
     };
 }

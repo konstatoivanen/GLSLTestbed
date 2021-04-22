@@ -14,13 +14,13 @@ namespace PK::Rendering
 	using namespace PK::Rendering::Objects;
 	using namespace PK::Math;
 
-	static void SetOEMTextures(const Weak<TextureXD>& texture, Ref<ConstantBuffer>& properties, int probeSize, float exposure)
+	static void SetOEMTextures(const TextureXD* texture, Ref<ConstantBuffer>& properties, int probeSize, float exposure)
 	{
 		float OEMRoughnessLevels[] = { 0.0f, 0.33f, 0.66f, 1.0f };
 
 		auto* hashCache = HashCache::Get();
 
-		properties->SetResourceHandle(hashCache->pk_SceneOEM_HDR, texture.lock()->GetBindlessHandleResident());
+		properties->SetResourceHandle(hashCache->pk_SceneOEM_HDR, texture->GetBindlessHandleResident());
 		//GraphicsAPI::SetGlobalFloat(hashCache->pk_SceneOEM_RVS, &OEMRoughnessLevels[0], 4);
 		//GraphicsAPI::SetGlobalFloat4(hashCache->pk_SceneOEM_ST, { 0, 0, 1, 1 });
 		properties->SetFloat(hashCache->pk_SceneOEM_Exposure, exposure);
@@ -109,12 +109,15 @@ namespace PK::Rendering
 			{CG_TYPE::HANDLE, "pk_ScreenDepth"},
 			{CG_TYPE::HANDLE, "pk_ShadowmapAtlas"},
 			{CG_TYPE::HANDLE, "pk_ScreenOcclusion"},
+			{CG_TYPE::HANDLE, "pk_LightCookies"},
 			{CG_TYPE::FLOAT, "pk_SceneOEM_Exposure"},
 		}));
 
-		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenDepth, m_PreZRenderTarget->GetDepthBuffer().lock()->GetBindlessHandleResident());
-		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenNormals, m_PreZRenderTarget->GetColorBufferPtr(0)->GetBindlessHandleResident());
-		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ShadowmapAtlas, m_lightsManager.GetShadowmapAtlas()->GetColorBufferPtr(0)->GetBindlessHandleResident());
+		auto cookies = assetDatabase->Find<TextureXD>("T_LightCookies");
+		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_LightCookies, cookies->GetBindlessHandleResident());
+		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenDepth, m_PreZRenderTarget->GetDepthBuffer()->GetBindlessHandleResident());
+		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenNormals, m_PreZRenderTarget->GetColorBuffer(0)->GetBindlessHandleResident());
+		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ShadowmapAtlas, m_lightsManager.GetShadowmapAtlas()->GetColorBuffer(0)->GetBindlessHandleResident());
 	}
 	
 	void RenderPipeline::Step(Time* timeRef)
@@ -155,8 +158,8 @@ namespace PK::Rendering
 
 		if (m_PreZRenderTarget->ValidateResolution(uint3(resolution, 0)))
 		{
-			m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenDepth, m_PreZRenderTarget->GetDepthBuffer().lock()->GetBindlessHandleResident());
-			m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenNormals, m_PreZRenderTarget->GetColorBuffer(0).lock()->GetBindlessHandleResident());
+			m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenDepth, m_PreZRenderTarget->GetDepthBuffer()->GetBindlessHandleResident());
+			m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenNormals, m_PreZRenderTarget->GetColorBuffer(0)->GetBindlessHandleResident());
 		}
 
 		m_filterAO.OnPreRender(m_PreZRenderTarget.get());
@@ -187,8 +190,7 @@ namespace PK::Rendering
 		GraphicsAPI::SetRenderTarget(m_PreZRenderTarget.get());
 		GraphicsAPI::Clear(CG_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		auto depthNormals = m_depthNormalsShader.lock();
-		Batching::DrawBatches(&m_dynamicBatches, 0, depthNormals.get());
+		Batching::DrawBatches(&m_dynamicBatches, 0, m_depthNormalsShader);
 		
 		m_lightsManager.UpdateLightTiles(m_PreZRenderTarget->GetResolution2D());
 
@@ -199,7 +201,7 @@ namespace PK::Rendering
 
 		GraphicsAPI::CopyRenderTexture(m_PreZRenderTarget.get(), m_HDRRenderTarget.get(), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
-		GraphicsAPI::Blit(m_OEMBackgroundShader.lock().get());
+		GraphicsAPI::Blit(m_OEMBackgroundShader);
 
 		// @Todo Implement render passes
 		Batching::DrawBatches(&m_dynamicBatches, 0);
@@ -209,6 +211,7 @@ namespace PK::Rendering
 
 		// Required for gizmos depth testing
 		GraphicsAPI::CopyRenderTexture(m_HDRRenderTarget.get(), nullptr, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		GraphicsAPI::ResetViewPort();
 
 		if (m_enableLightingDebug)
 		{

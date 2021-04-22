@@ -20,7 +20,7 @@ namespace PK::Rendering::GraphicsAPI
 	#define RESOURCE_BINDINGS GetCurrentContext()->ResourceBindState
 	#define ACTIVE_RENDERTARGET GetCurrentContext()->ActiveRenderTarget
 	#define BLIT_QUAD GetCurrentContext()->BlitQuad.get()
-	#define BLIT_SHADER GetCurrentContext()->BlitShader.lock().get()
+	#define BLIT_SHADER GetCurrentContext()->BlitShader
 	#define DELTA_CHECK_SET(backedvalue, newvalue, func)  \
 	{													  \
 		if (backedvalue != newvalue)				      \
@@ -176,6 +176,20 @@ namespace PK::Rendering::GraphicsAPI
 		DELTA_CHECK_SET(context->ClearColor, color, glClearColor(color.r, color.g, color.b, color.a))
 		DELTA_CHECK_SET(context->ClearDepth, depth, glClearDepth(depth))
 		glClear(clearFlags);
+	}
+
+	void GraphicsAPI::ResetViewPort()
+	{
+		auto target = ACTIVE_RENDERTARGET;
+
+		if (target != nullptr)
+		{
+			SetViewPort(0, 0, target->GetWidth(), target->GetHeight());
+			return;
+		}
+
+		auto resolution = GetActiveWindowResolution();
+		SetViewPort(0, 0, resolution.x, resolution.y);
 	}
 	
 	void GraphicsAPI::SetViewPort(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
@@ -508,11 +522,11 @@ namespace PK::Rendering::GraphicsAPI
 
 	void GraphicsAPI::DrawMesh(const Mesh* mesh, int submesh, const Material* material)
 	{
-		auto shader = material->GetShader().lock();
+		auto shader = material->GetShader();
 		shader->ResetKeywords();
 		shader->SetKeywords(material->GetKeywords());
 		shader->SetKeywords(GLOBAL_KEYWORDS);
-		SetPass(shader.get());
+		SetPass(shader);
 		shader->SetPropertyBlock(*material);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		DrawMesh(mesh, submesh);
@@ -520,11 +534,11 @@ namespace PK::Rendering::GraphicsAPI
 
 	void GraphicsAPI::DrawMesh(const Mesh* mesh, int submesh, const Material* material, const float4x4& matrix)
 	{
-		auto shader = material->GetShader().lock();
+		auto shader = material->GetShader();
 		shader->ResetKeywords();
 		shader->SetKeywords(material->GetKeywords());
 		shader->SetKeywords(GLOBAL_KEYWORDS);
-		SetPass(shader.get());
+		SetPass(shader);
 		SetModelMatrix(matrix);
 		shader->SetPropertyBlock(*material);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
@@ -533,11 +547,11 @@ namespace PK::Rendering::GraphicsAPI
 
 	void GraphicsAPI::DrawMesh(const Mesh* mesh, int submesh, const Material* material, const float4x4& matrix, const float4x4& invMatrix)
 	{
-		auto shader = material->GetShader().lock();
+		auto shader = material->GetShader();
 		shader->ResetKeywords();
 		shader->SetKeywords(material->GetKeywords());
 		shader->SetKeywords(GLOBAL_KEYWORDS);
-		SetPass(shader.get());
+		SetPass(shader);
 		SetModelMatrix(matrix, invMatrix);
 		shader->SetPropertyBlock(*material);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
@@ -546,12 +560,12 @@ namespace PK::Rendering::GraphicsAPI
 
 	void GraphicsAPI::DrawMesh(const Mesh* mesh, int submesh, const Material* material, const ShaderPropertyBlock& propertyBlock)
 	{
-		auto shader = material->GetShader().lock();
+		auto shader = material->GetShader();
 		shader->ResetKeywords();
 		shader->SetKeywords(material->GetKeywords());
 		shader->SetKeywords(GLOBAL_KEYWORDS);
 		shader->SetKeywords(propertyBlock.GetKeywords());
-		SetPass(shader.get());
+		SetPass(shader);
 		shader->SetPropertyBlock(*material);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		shader->SetPropertyBlock(propertyBlock);
@@ -560,12 +574,12 @@ namespace PK::Rendering::GraphicsAPI
 
 	void GraphicsAPI::DrawMesh(const Mesh* mesh, int submesh, const Material* material, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock)
 	{
-		auto shader = material->GetShader().lock();
+		auto shader = material->GetShader();
 		shader->ResetKeywords();
 		shader->SetKeywords(material->GetKeywords());
 		shader->SetKeywords(GLOBAL_KEYWORDS);
 		shader->SetKeywords(propertyBlock.GetKeywords());
-		SetPass(shader.get());
+		SetPass(shader);
 		SetModelMatrix(matrix);
 		shader->SetPropertyBlock(*material);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
@@ -603,11 +617,11 @@ namespace PK::Rendering::GraphicsAPI
 
 	void GraphicsAPI::DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, const Material* material)
 	{
-		auto shader = material->GetShader().lock();
+		auto shader = material->GetShader();
 		shader->ResetKeywords();
 		shader->SetKeywords(material->GetKeywords());
 		shader->SetKeywords(GLOBAL_KEYWORDS);
-		SetPass(shader.get());
+		SetPass(shader);
 		shader->SetPropertyBlock(*material);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		DrawMeshInstanced(mesh, submesh, offset, count);
@@ -615,12 +629,12 @@ namespace PK::Rendering::GraphicsAPI
 
 	void GraphicsAPI::DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, const Material* material, const ShaderPropertyBlock& propertyBlock)
 	{
-		auto shader = material->GetShader().lock();
+		auto shader = material->GetShader();
 		shader->ResetKeywords();
 		shader->SetKeywords(material->GetKeywords());
 		shader->SetKeywords(GLOBAL_KEYWORDS);
 		shader->SetKeywords(propertyBlock.GetKeywords());
-		SetPass(shader.get());
+		SetPass(shader);
 		shader->SetPropertyBlock(*material);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 		shader->SetPropertyBlock(propertyBlock);
@@ -650,11 +664,11 @@ namespace PK::Rendering::GraphicsAPI
 
 	void GraphicsAPI::DispatchCompute(const Material* material, uint3 threadGroupSize, GLenum barrierFlags)
 	{
-		auto shader = material->GetShader().lock();
+		auto shader = material->GetShader();
 		shader->ResetKeywords();
 		shader->SetKeywords(material->GetKeywords());
 		shader->SetKeywords(GLOBAL_KEYWORDS);
-		SetPass(shader.get());
+		SetPass(shader);
 		shader->SetPropertyBlock(*material);
 		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
 

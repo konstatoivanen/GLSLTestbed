@@ -30,7 +30,7 @@ namespace PK::Rendering::Batching
 
     struct MaterialBatch : BatchBase
     {
-        Material* material;
+        const Material* material;
         std::vector<Drawcall> drawcalls;
     };
 
@@ -44,20 +44,20 @@ namespace PK::Rendering::Batching
 
     struct MeshBatch : BatchBase
     {
-        Mesh* mesh;
+        const Mesh* mesh;
         std::vector<uint> shaderBatches;
         uint shaderBatchCount = 0;
     };
 
     struct MeshOnlyBatch : BatchBase
     {
-        Mesh* mesh;
+        const Mesh* mesh;
         std::vector<Drawcall> drawcalls;
     };
 
     struct IndexedMeshBatch : BatchBase
     {
-        Mesh* mesh;
+        const Mesh* mesh;
         std::vector<DrawcallIndexed> drawcalls;
     };
 
@@ -88,16 +88,16 @@ namespace PK::Rendering::Batching
         std::unordered_map<ulong, uint> BatchMap;
         Ref<ComputeBuffer> MatrixBuffer;
         Ref<ComputeBuffer> IndexBuffer;
-        uint TotalDrawCallCount;
+        uint TotalDrawCallCount = 0;
     };
 
     void ResetCollection(DynamicBatchCollection* collection);
     void ResetCollection(MeshBatchCollection* collection);
     void ResetCollection(IndexedMeshBatchCollection* collection);
     
-    void QueueDraw(DynamicBatchCollection* collection, Weak<Mesh>& mesh, int submesh, Weak<Material>& material, const Drawcall& drawcall);
-    void QueueDraw(MeshBatchCollection* collection, Weak<Mesh>& mesh, const Drawcall& drawcall);
-    void QueueDraw(IndexedMeshBatchCollection* collection, Weak<Mesh>& mesh, const DrawcallIndexed& drawcall);
+    void QueueDraw(DynamicBatchCollection* collection, const Mesh* mesh, int submesh, const Material* material, const Drawcall& drawcall);
+    void QueueDraw(MeshBatchCollection* collection, const Mesh* mesh, const Drawcall& drawcall);
+    void QueueDraw(IndexedMeshBatchCollection* collection, const Mesh* mesh, const DrawcallIndexed& drawcall);
 
     void UpdateBuffers(DynamicBatchCollection* collection);
     void UpdateBuffers(MeshBatchCollection* collection);

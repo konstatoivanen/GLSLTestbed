@@ -579,8 +579,8 @@ namespace PK::Math
 		for (int i = 0; i < 3; ++i)
 		for (int j = 0; j < 3; ++j)
 		{
-			auto a = matrix[i][j] * bounds.min[j];
-			auto b = matrix[i][j] * bounds.max[j];
+			auto a = matrix[j][i] * bounds.min[j];
+			auto b = matrix[j][i] * bounds.max[j];
 	
 			if (a < b)
 			{

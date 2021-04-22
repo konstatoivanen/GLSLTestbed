@@ -23,10 +23,10 @@ namespace PK::ECS::EntityViews
         Components::Materials *materials;
     };
 
-    struct PointLightRenderable : public IEntityView
+    struct LightRenderable : public IEntityView
     {
         Components::Transform* transform;
-        Components::PointLight* pointLight;
+        Components::Light* light;
     };
 
     struct LightSphere : public IEntityView

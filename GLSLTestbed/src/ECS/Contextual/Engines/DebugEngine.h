@@ -27,7 +27,7 @@ namespace PK::ECS::Engines
 			AssetDatabase* m_assetDatabase;
 			Time* m_time;
 		
-			Weak<Mesh> cornellBox;
-			Weak<Material> cornellBoxMaterial;
+			Mesh* cornellBox;
+			Material* cornellBoxMaterial;
 	};
 }

@@ -51,6 +51,7 @@
     #define PK_VARYING_INSTANCE_ID
     #define PK_INSTANCED_PROPERTY uniform 
     #define PK_INSTANCE_ID 0
+    #define PK_INSTANCE_PROPERTIES_ID 0
     #define PK_SETUP_INSTANCE_ID()
     #define PK_ACCESS_INSTANCED_PROP(Name) Name
     #define PK_BEGIN_INSTANCED_PROPERTIES

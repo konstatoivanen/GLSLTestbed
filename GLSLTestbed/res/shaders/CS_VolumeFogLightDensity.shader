@@ -37,8 +37,7 @@ void main()
 
 	for (uint i = tile.start; i < tile.end; ++i)
 	{
-		// color += GetVolumeLightColorAnistropic(i, worldpos, pk_Volume_Anisotropy);
-		color += GetVolumeLightColor(i, worldpos);
+		color += GetVolumeLightColor(i, worldpos, pk_Volume_Anisotropy);
 	}
 	
 	float density = Density(worldpos);

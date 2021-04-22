@@ -62,6 +62,8 @@ PK_DECLARE_CBUFFER(pk_PerFrameConstants)
     highp sampler2D pk_ShadowmapAtlas;
     // Scene ambient occlusion
     sampler2D pk_ScreenOcclusion;
+    // Array of light cookies
+    sampler2DArray pk_LightCookies;
 
     // Scene reflections exposure
     float pk_SceneOEM_Exposure;

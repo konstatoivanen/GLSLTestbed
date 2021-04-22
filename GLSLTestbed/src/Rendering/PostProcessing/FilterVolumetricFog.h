@@ -19,7 +19,7 @@ namespace PK::Rendering::PostProcessing
         private:
             Utilities::Ref<ConstantBuffer> m_volumeResources;
             Utilities::Ref<RenderTexture> m_volumes;
-            Utilities::Weak<Shader> m_computeInject;
-            Utilities::Weak<Shader> m_computeScatter;
+            Shader* m_computeInject;
+            Shader* m_computeScatter;
     };
 }

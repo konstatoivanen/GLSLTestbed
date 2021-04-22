@@ -44,9 +44,9 @@ namespace PK::Rendering
             Utilities::Ref<RenderTexture> m_PreZRenderTarget;
             Utilities::Ref<RenderTexture> m_HDRRenderTarget;
             Utilities::Ref<ConstantBuffer> m_constantsPerFrame;
-            Utilities::Weak<Shader> m_depthNormalsShader;
-            Utilities::Weak<Shader> m_OEMBackgroundShader;
-            Utilities::Weak<TextureXD> m_OEMTexture;
+            Shader* m_depthNormalsShader;
+            Shader* m_OEMBackgroundShader;
+            TextureXD* m_OEMTexture;
             float m_OEMExposure;
     };
 }

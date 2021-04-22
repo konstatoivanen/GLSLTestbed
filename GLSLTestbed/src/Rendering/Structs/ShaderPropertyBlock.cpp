@@ -29,7 +29,7 @@ namespace PK::Rendering::Structs
 		memcpy(m_keywords.data(), hashIds.begin(), sizeof(uint32_t) * hashIds.size());
     }
 
-	void ShaderPropertyBlock::CopyBufferLayout(const BufferLayout& layout, char* destination)
+	void ShaderPropertyBlock::CopyBufferLayout(const BufferLayout& layout, char* destination) const
 	{
 		for (auto& element : layout)
 		{
@@ -38,7 +38,7 @@ namespace PK::Rendering::Structs
 				continue;
 			}
 
-			auto& prop = m_properties.at(element.NameHashId);
+			const auto& prop = m_properties.at(element.NameHashId);
 			auto valueptr = GetElementPtr<void>(prop);
 
 			PK_CORE_ASSERT(element.Type == prop.type, "Trying to map an incompatible type!");

@@ -45,10 +45,8 @@ namespace PK::Rendering::Objects
             void DiscardContents();
     
             RenderTextureDescriptor GetCompoundDescriptor() const { return m_compoundDescriptor; }
-            const RenderBuffer* GetColorBufferPtr(int index) const { return m_colorBuffers.at(index).get(); }
-            const RenderBuffer* GetDepthBufferPtr() const { return m_depthBuffer.get(); }
-            Weak<RenderBuffer> GetColorBuffer(int index) const { return m_colorBuffers.at(index); }
-            Weak<RenderBuffer> GetDepthBuffer() const { return m_depthBuffer; }
+            const RenderBuffer* GetColorBuffer(int index) const { return m_colorBuffers.at(index).get(); }
+            const RenderBuffer* GetDepthBuffer() const { return m_depthBuffer.get(); }
             size_t GetColorBufferCount() const { return m_colorBuffers.size(); }
     
         private:

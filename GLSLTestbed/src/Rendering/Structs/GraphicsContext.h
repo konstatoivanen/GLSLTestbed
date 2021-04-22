@@ -19,7 +19,7 @@ namespace PK::Rendering::Structs
         const RenderTexture* ActiveRenderTarget;
         Ref<ShaderVariant> ActiveShader;
         Ref<Mesh> BlitQuad;
-        Weak<Shader> BlitShader;
+        Shader* BlitShader;
         uint4 ViewPort;
         color ClearColor;
         float ClearDepth;

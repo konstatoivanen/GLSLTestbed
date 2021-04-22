@@ -17,11 +17,12 @@
 // Source: https://de45xmedrsdbp.cloudfront.net/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
 float GetAttenuation(float ldist, float lradius) { return pow2(saturate(1.0f - pow4(ldist/lradius))) / (pow2(ldist) + 1.0f); }
 
-float GetLightAnistropy(float costheta, float anistropy)
+float GetLightAnistropy(float3 lightPos, float3 lightToPos, float anistropy)
 {
+    float3 cameraToPos = normalize(lightPos - pk_WorldSpaceCameraPos.xyz);
 	float g = anistropy;
 	float gsq = g * g;
-	float denom = 1 + gsq - 2.0 * g * costheta;
+	float denom = 1 + gsq - 2.0 * g * dot(cameraToPos, lightToPos);
 	denom = denom * denom * denom;
 	denom = sqrt(max(0, denom));
 	return (1 - gsq) / denom;
@@ -49,10 +50,7 @@ float3 GetShadowMapTileST(uint index)
     1.0f / SHADOWMAP_TILES_PER_AXIS);
 }
 
-float2 OctaWrap(float2 v)
-{
-    return (1.0 - abs(v.yx)) * float2(v.x >= 0.0 ? 1.0 : -1.0, v.y >= 0.0 ? 1.0 : -1.0);
-}
+float2 OctaWrap(float2 v) { return (1.0 - abs(v.yx)) * float2(v.x >= 0.0 ? 1.0 : -1.0, v.y >= 0.0 ? 1.0 : -1.0); }
 
 float2 OctaEncode(float3 n)
 {
@@ -73,15 +71,9 @@ float3 OctaDecode(float2 f)
     return normalize(n);
 }
 
-float2 OctaUV(float3 offset, float3 reflection)
-{
-    return offset.xy + OctaEncode(reflection) * offset.z;
-}
+float2 OctaUV(float3 offset, float3 direction) { return offset.xy + OctaEncode(direction) * offset.z; }
 
-float2 OctaUV(float3 reflection)
-{
-    return OctaEncode(reflection);
-}
+float2 OctaUV(float3 direction) { return OctaEncode(direction); }
 
 
 float3 SampleEnv(float2 uv, float roughness)
@@ -90,27 +82,109 @@ float3 SampleEnv(float2 uv, float roughness)
     return HDRDecode(env) * pk_SceneOEM_Exposure;
 }
 
-float SampleLightShadowmap(uint index, float3 direction, float lightDistance)
+float SampleScreenSpaceOcclusion(float2 uv) { return 1.0f - tex2D(pk_ScreenOcclusion, uv).r; }
+
+float SampleScreenSpaceOcclusion()
 {
-    float3 shadowST = GetShadowMapPaddedTileST(index);
-    float2 shadowval = tex2D(pk_ShadowmapAtlas, OctaUV(shadowST, direction)).xy;
+    #if defined(SHADER_STAGE_FRAGMENT)
+        return SampleScreenSpaceOcclusion(gl_FragCoord.xy / pk_ScreenParams.xy);
+    #else
+        return 1.0f;
+    #endif
+}
+
+float3 GetLightUV(PKRawLight light, float3 worldpos, float3 direction)
+{
+    switch(light.type)
+    {
+        case LIGHT_TYPE_POINT:
+        {
+            return float3(OctaEncode(direction), 1.0f);
+        }
+        case LIGHT_TYPE_SPOT:
+        {
+            float4x4 matrix = PK_BUFFER_DATA(pk_LightMatrices, light.projection_index);
+            float4 coord = mul(matrix, float4(worldpos, 1.0f));
+            coord = ClipToScreenPos(coord);
+
+            return float3(coord.xy / coord.w, step(0.0f, coord.z * 0.5f));
+        }
+        case LIGHT_TYPE_DIRECTIONAL: 
+        {
+            return float3(0.0f);
+        }
+    }
+
+    return float3(0.0f);
+}
+
+float SampleLightShadowmap(PKRawLight light, float2 uv, float lightDistance)
+{
+    if (light.shadowmap_index == LIGHT_PARAM_INVALID)
+    {
+        return 1.0f;
+    }
+
+    float3 shadowST = GetShadowMapPaddedTileST(light.shadowmap_index);
+    float2 shadowval = tex2D(pk_ShadowmapAtlas, shadowST.xy + uv * shadowST.z).xy;
     float variance = shadowval.y - shadowval.x * shadowval.x;
     float difference = lightDistance - shadowval.x;
     return difference > 0.01f ? LBR(variance / (variance + difference * difference)) : 1.0f;
 }
 
-float SampleScreenSpaceOcclusion(float2 uv)
+float SampleLightCookie(PKRawLight raw, float2 uv)
 {
-    return 1.0f - tex2D(pk_ScreenOcclusion, uv).r;
+    switch(raw.type)
+    {
+        case LIGHT_TYPE_POINT: return 1.0f;
+        case LIGHT_TYPE_SPOT: return tex2D(pk_LightCookies, float3(uv, float(raw.cookie_index))).r;
+        case LIGHT_TYPE_DIRECTIONAL: return 1.0f;
+    }
+
+    return 0.0f;
 }
 
-float SampleScreenSpaceOcclusion()
+PKLight GetSurfaceLight(uint index, in float3 worldpos)
 {
-    #if defined(SHADER_STAGE_FRAGMENT)
-        return 1.0f - tex2D(pk_ScreenOcclusion, gl_FragCoord.xy / pk_ScreenParams.xy).r;
-    #else
-        return 1.0f;
-    #endif
+    uint linearIndex = PK_BUFFER_DATA(pk_GlobalLightsList, index);
+    PKRawLight raw = PK_BUFFER_DATA(pk_Lights, linearIndex);
+
+    float3 vector = raw.position.xyz - worldpos;
+    float lindist = sqrt(dot(vector, vector));
+    float attenuation = GetAttenuation(lindist, raw.position.w);
+    vector /= lindist;
+
+    float3 lightuvw = GetLightUV(raw, worldpos, -vector);
+
+    attenuation *= lightuvw.z;
+    attenuation *= SampleLightCookie(raw, lightuvw.xy);
+    attenuation *= SampleLightShadowmap(raw, lightuvw.xy, lindist);
+
+    PKLight l;
+    l.color = raw.color.xyz * attenuation;
+    l.direction = vector;
+
+    return l;
+}
+
+float3 GetVolumeLightColor(uint index, in float3 worldpos, float anistropy)
+{
+    uint linearIndex = PK_BUFFER_DATA(pk_GlobalLightsList, index);
+    PKRawLight raw = PK_BUFFER_DATA(pk_Lights, linearIndex);
+
+    float3 vector = raw.position.xyz - worldpos;
+    float lindist = sqrt(dot(vector, vector));
+    float attenuation = GetAttenuation(lindist, raw.position.w);
+    vector /= lindist;
+
+    float3 lightuvw = GetLightUV(raw, worldpos, -vector);
+
+    attenuation *= lightuvw.z;
+	attenuation *= GetLightAnistropy(raw.position.xyz, vector, anistropy);
+    attenuation *= SampleLightCookie(raw, lightuvw.xy);
+    attenuation *= SampleLightShadowmap(raw, lightuvw.xy, lindist);
+
+    return raw.color.xyz * attenuation;
 }
 
 LightTile GetLightTile(uint index)
@@ -124,62 +198,8 @@ LightTile GetLightTile(uint index)
     #endif
 }
 
-LightTile GetLightTile()
-{
-    return GetLightTile(GetTileIndexFragment());
-}
+LightTile GetLightTile() { return GetLightTile(GetTileIndexFragment()); }
 
-PKLight GetSurfaceLight(uint index, in float3 worldpos)
-{
-    uint linearIndex = PK_BUFFER_DATA(pk_GlobalLightsList, index);
-    PKRawLight raw = PK_BUFFER_DATA(pk_Lights, linearIndex);
-
-    float3 vector = raw.position.xyz - worldpos;
-    float lindist = sqrt(dot(vector, vector));
-    float atten = GetAttenuation(lindist, raw.position.w);
-    vector /= lindist;
-
-    atten *= SampleLightShadowmap(raw.shadowmap_index, -vector, lindist);
-
-    PKLight l;
-    l.color = raw.color.xyz * atten;
-    l.direction = vector;
-
-    return l;
-}
-
-float3 GetVolumeLightColor(uint index, in float3 worldpos)
-{
-    uint linearIndex = PK_BUFFER_DATA(pk_GlobalLightsList, index);
-    PKRawLight raw = PK_BUFFER_DATA(pk_Lights, linearIndex);
-
-    float3 vector = raw.position.xyz - worldpos;
-    float lindist = sqrt(dot(vector, vector));
-    float atten = GetAttenuation(lindist, raw.position.w);
-    vector /= lindist;
-
-    atten *= SampleLightShadowmap(raw.shadowmap_index, -vector, lindist);
-
-    return raw.color.xyz * atten;
-}
-
-float3 GetVolumeLightColorAnistropic(uint index, in float3 worldpos, float anistropy)
-{
-    uint linearIndex = PK_BUFFER_DATA(pk_GlobalLightsList, index);
-    PKRawLight raw = PK_BUFFER_DATA(pk_Lights, linearIndex);
-
-    float3 vector = raw.position.xyz - worldpos;
-    float lindist = sqrt(dot(vector, vector));
-    float atten = GetAttenuation(lindist, raw.position.w);
-    vector /= lindist;
-
-    float3 cameraToPos = normalize(raw.position.xyz - pk_WorldSpaceCameraPos.xyz);
-	atten *= GetLightAnistropy(dot(cameraToPos, vector), anistropy);
-
-    atten *= SampleLightShadowmap(raw.shadowmap_index, -vector, lindist);
-
-    return raw.color.xyz * atten;
-}
 
 float4 PhysicallyBasedShading(SurfaceData surf, float3 viewdir, float3 worldpos)
 {

@@ -7,6 +7,7 @@
 #include "Rendering/Culling.h"
 #include "Rendering/Objects/Buffer.h"
 #include "Rendering/Objects/RenderTexture.h"
+#include "Rendering/Objects/TextureXD.h"
 #include <hlslmath.h>
 
 namespace PK::Rendering
@@ -17,12 +18,15 @@ namespace PK::Rendering
     struct ShadowmapData
     {
         Batching::IndexedMeshBatchCollection Batches;
-        Utilities::Ref<RenderTexture> ShadowmapCube;
-        Utilities::Ref<RenderTexture> ShadowmapOctahedron;
+        Utilities::Ref<RenderTexture> MapTargetCube;
+        Utilities::Ref<RenderTexture> MapTargetProj;
+        Utilities::Ref<RenderTexture> MapIntermediate;
         Utilities::Ref<RenderTexture> ShadowmapAtlas;
 
-        Utilities::Weak<Shader> ShaderRenderCube;
-        Utilities::Weak<Shader> ShaderBlurCube;
+        Shader* ShaderRenderMapCube;
+        Shader* ShaderRenderMapProj;
+        Shader* ShaderBlurCube;
+        Shader* ShaderBlurProj;
 
         static const uint BatchSize = 4;
         static const uint TileSize = 512;
@@ -43,6 +47,15 @@ namespace PK::Rendering
             const Ref<RenderTexture>& GetShadowmapAtlas() const { return m_shadowmapData.ShadowmapAtlas; }
 
         private:
+            void RenderShadowmapsForLightType(PK::ECS::EntityDatabase* entityDb,
+                Shader* renderShadows,
+                Shader* blurshadowmap,
+                RenderTexture* target,
+                BufferView<uint>& lightIndices,
+                LightType type);
+            void UpdateShadowmaps(PK::ECS::EntityDatabase* entityDb, BufferView<uint>& lightIndices);
+            void UpdateLightBuffers(PK::ECS::EntityDatabase* entityDb, Core::BufferView<uint> visibleLights);
+
             const uint MaxLightsPerTile = 64;
             const uint GridSizeX = 16;
             const uint GridSizeY = 9;
@@ -54,13 +67,14 @@ namespace PK::Rendering
             ShaderPropertyBlock m_properties;
             ShadowmapData m_shadowmapData;
 
-            Utilities::Weak<Shader> m_computeLightAssignment;
-            Utilities::Weak<Shader> m_computeCullClusters;
-            Utilities::Weak<Shader> m_computeDepthTiles;
-            Utilities::Weak<Shader> m_computeDepthReset;
-            Utilities::Weak<Shader> m_debugVisualize;
+            Shader* m_computeLightAssignment;
+            Shader* m_computeCullClusters;
+            Shader* m_computeDepthTiles;
+            Shader* m_computeDepthReset;
+            Shader* m_debugVisualize;
 
             Utilities::Ref<ComputeBuffer> m_lightsBuffer;
+            Utilities::Ref<ComputeBuffer> m_lightMatricesBuffer;
             Utilities::Ref<ComputeBuffer> m_globalLightsList;
             Utilities::Ref<ComputeBuffer> m_lightTiles;
 

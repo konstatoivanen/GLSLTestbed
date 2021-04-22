@@ -38,7 +38,7 @@ namespace PK::Rendering
             ECS::Sequencer* m_sequencer;
             FrustrumPlanes m_frustrumPlanes;
             Ref<ComputeBuffer> m_vertexBuffer;
-            Weak<Shader> m_gizmoShader;
+            Shader* m_gizmoShader;
             std::vector<GizmoVertex> m_vertices;
             uint m_vertexCount = 0;
             color m_color = CG_COLOR_WHITE;

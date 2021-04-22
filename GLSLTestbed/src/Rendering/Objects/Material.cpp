@@ -92,17 +92,17 @@ namespace YAML
 	#undef DECLARE_MATRIX_CONVERTER
 
 	template<>
-	struct convert<Weak<TextureXD>>
+	struct convert<TextureXD*>
 	{
-		static Node encode(const Weak<TextureXD>& rhs)
+		static Node encode(const TextureXD*& rhs)
 		{
 			Node node;
-			node.push_back(rhs.lock()->GetFileName());
+			node.push_back(rhs->GetFileName());
 			node.SetStyle(EmitterStyle::Default);
 			return node;
 		}
 
-		static bool decode(const Node& node, Weak<TextureXD>& rhs)
+		static bool decode(const Node& node, TextureXD*& rhs)
 		{
 			auto path = node.as<std::string>();
 			rhs = Application::GetService<AssetDatabase>()->Load<TextureXD>(path);
@@ -145,8 +145,8 @@ void AssetImporters::Import<Material>(const std::string& filepath, Ref<Material>
 
 	auto shaderPath = shaderPathProp.as<std::string>();
 	material->m_shader = Application::GetService<AssetDatabase>()->Load<Shader>(shaderPath);
-	material->m_cachedShaderAssetId = material->m_shader.lock()->GetAssetID();
-	material->m_renderQueueIndex = material->m_shader.lock()->GetRenderQueueIndex();
+	material->m_cachedShaderAssetId = material->m_shader->GetAssetID();
+	material->m_renderQueueIndex = material->m_shader->GetRenderQueueIndex();
 
 	auto keywords = data["Keywords"];
 	
@@ -193,7 +193,7 @@ void AssetImporters::Import<Material>(const std::string& filepath, Ref<Material>
 				case CG_TYPE::INT4: material->SetInt4(nameHash, values.as<int4>()); break;
 				case CG_TYPE::TEXTURE: 
 				{
-					auto texture = values.as<Weak<TextureXD>>().lock();
+					auto texture = values.as<TextureXD*>();
 					texture->MakeHandleResident();
 					auto handle = texture->GetBindlessHandle();
 					material->SetResourceHandle(nameHash, handle); break;

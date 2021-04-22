@@ -42,8 +42,8 @@ namespace PK::Rendering::PostProcessing
             {CG_TYPE::HANDLE, "pk_Volume_ScatterRead"},
         }));
 
-        auto bufferInject = m_volumes->GetColorBufferPtr(0);
-        auto bufferScatter = m_volumes->GetColorBufferPtr(1);
+        auto bufferInject = m_volumes->GetColorBuffer(0);
+        auto bufferScatter = m_volumes->GetColorBuffer(1);
 
         m_volumeResources->SetFloat4(StringHashID::StringToID("pk_Volume_WindDir"), float4(1.0f, 0.0f, 0.0f, 0.0f));
         m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_ConstantFog"), config.VolumeConstantFog);
@@ -62,7 +62,7 @@ namespace PK::Rendering::PostProcessing
         //m_volumeResources->SetResourceHandle(StringHashID::StringToID("pk_Volume_Inject"), bufferInject->GetImageHandleResident(GL_RGBA16F, GL_READ_WRITE, 0, 0, true));
         //m_volumeResources->SetResourceHandle(StringHashID::StringToID("pk_Volume_InjectRead"), bufferInject->GetTextureHandleResident());
 
-        auto bluenoiseTex = assetDatabase->Find<TextureXD>("T_Bluenoise256_repeat").lock();
+        auto bluenoiseTex = assetDatabase->Find<TextureXD>("T_Bluenoise256_repeat");
         m_properties.SetTexture(StringHashID::StringToID("pk_Bluenoise256"), bluenoiseTex->GetGraphicsID());
 
         m_properties.SetImage(StringHashID::StringToID("pk_Volume_Inject"), { bufferInject->GetGraphicsID(), GL_RGBA16F, GL_READ_WRITE, 0, 0, true });
@@ -77,16 +77,12 @@ namespace PK::Rendering::PostProcessing
     
     void FilterVolumetricFog::Execute(const RenderTexture* source, const RenderTexture* destination)
     {
-        auto shaderComposite = m_shader.lock().get();
-        auto computeInject = m_computeInject.lock().get();
-        auto computeScatter = m_computeScatter.lock().get();
-
         auto groupsInject = uint3(VolumeResolution.x / InjectThreadCount.x, VolumeResolution.y / InjectThreadCount.y, VolumeResolution.z / InjectThreadCount.z);
         auto groupsScatter = uint3(VolumeResolution.x / ScatterThreadCount.x, VolumeResolution.y / ScatterThreadCount.y, 1);
 
-        GraphicsAPI::DispatchCompute(computeInject, groupsInject, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-        GraphicsAPI::DispatchCompute(computeScatter, groupsScatter, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        GraphicsAPI::DispatchCompute(m_computeInject, groupsInject, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        GraphicsAPI::DispatchCompute(m_computeScatter, groupsScatter, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-        GraphicsAPI::Blit(destination, shaderComposite, m_properties);
+        GraphicsAPI::Blit(destination, m_shader, m_properties);
     }
 }
