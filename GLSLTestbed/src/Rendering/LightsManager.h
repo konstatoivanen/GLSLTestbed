@@ -15,22 +15,27 @@ namespace PK::Rendering
     using namespace PK::Math;
     using namespace PK::Rendering::Objects;
 
+    struct ShadowmapLightTypeData
+    {
+        Utilities::Ref<RenderTexture> SceneRenderTarget;
+        Shader* ShaderRenderShadows;
+        Shader* ShaderBlur;
+        uint viewFirst;
+        uint viewCount;
+        uint atlasBaseIndex = 0;
+    };
+    
     struct ShadowmapData
     {
+        ShadowmapLightTypeData LightIndices[(int)LightType::TypeCount];
         Batching::IndexedMeshBatchCollection Batches;
-        Utilities::Ref<RenderTexture> MapTargetCube;
-        Utilities::Ref<RenderTexture> MapTargetProj;
         Utilities::Ref<RenderTexture> MapIntermediate;
         Utilities::Ref<RenderTexture> ShadowmapAtlas;
-
-        Shader* ShaderRenderMapCube;
-        Shader* ShaderRenderMapProj;
-        Shader* ShaderBlurCube;
-        Shader* ShaderBlurProj;
 
         static const uint BatchSize = 4;
         static const uint TileSize = 512;
         static const uint TileCountPerAxis = 8; 
+        static const uint TotalTileCount = 8 * 8; 
     };
 
     class LightsManager : public PK::Core::NoCopy
@@ -47,13 +52,7 @@ namespace PK::Rendering
             const Ref<RenderTexture>& GetShadowmapAtlas() const { return m_shadowmapData.ShadowmapAtlas; }
 
         private:
-            void RenderShadowmapsForLightType(PK::ECS::EntityDatabase* entityDb,
-                Shader* renderShadows,
-                Shader* blurshadowmap,
-                RenderTexture* target,
-                BufferView<uint>& lightIndices,
-                LightType type);
-            void UpdateShadowmaps(PK::ECS::EntityDatabase* entityDb, BufferView<uint>& lightIndices);
+            void UpdateShadowmaps(PK::ECS::EntityDatabase* entityDb);
             void UpdateLightBuffers(PK::ECS::EntityDatabase* entityDb, Core::BufferView<uint> visibleLights);
 
             const uint MaxLightsPerTile = 64;
@@ -62,8 +61,10 @@ namespace PK::Rendering
             const uint GridSizeZ = 24;
             const uint ClusterCount = GridSizeX * GridSizeY * GridSizeZ;
 
-            uint m_passKeywords[2];
+            std::vector<PK::ECS::EntityViews::LightRenderable*> m_visibleLights;
+            uint m_visibleLightCount;
 
+            uint m_passKeywords[2];
             ShaderPropertyBlock m_properties;
             ShadowmapData m_shadowmapData;
 

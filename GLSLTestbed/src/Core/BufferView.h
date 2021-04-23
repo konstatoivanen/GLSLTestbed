@@ -5,8 +5,8 @@ namespace PK::Core
     template<typename T>
     struct BufferView
     {
-        T* data;
-        size_t count;
+        T* data = nullptr;
+        size_t count = 0;
     
         T& operator[](size_t);
     };

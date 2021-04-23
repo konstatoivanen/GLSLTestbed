@@ -24,6 +24,7 @@ namespace PK::ECS
         public:
             uint entityID() const { return (uint)(_GID & 0xFFFFFFFF); }
             uint groupID() const { return (uint)(_GID >> 32); }
+            EGID() : _GID(0) {}
             EGID(const EGID& other) : _GID(other._GID) {}
             EGID(ulong identifier) : _GID(identifier) {}
             EGID(uint entityID, uint groupID) : _GID((ulong)groupID << 32 | ((ulong)(uint)entityID & 0xFFFFFFFF)) {}

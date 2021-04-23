@@ -7,6 +7,7 @@ namespace PK::Rendering::Structs
         Point = 0,
         Spot = 1,
         Directional = 2,
+        TypeCount
     };
 
     enum class LightCookie : uint

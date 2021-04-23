@@ -1,7 +1,8 @@
 #include "PrecompiledHeader.h"
-#include "LightsManager.h"
-#include "Rendering/Graphics.h"
+#include "Utilities/Utilities.h"
 #include "Utilities/HashCache.h"
+#include "Rendering/Graphics.h"
+#include "LightsManager.h"
 #include "ECS/Contextual/EntityViews/EntityViews.h"
 
 namespace PK::Rendering
@@ -11,6 +12,70 @@ namespace PK::Rendering
 		ShadowmapData* data;
 		uint index;
 	};
+
+	static int LightViewCompare(PK::ECS::EntityViews::LightRenderable* a, PK::ECS::EntityViews::LightRenderable* b)
+	{
+		if (a->light->castShadows < b->light->castShadows)
+		{
+			return -1;
+		}
+
+		if (a->light->castShadows > b->light->castShadows)
+		{
+			return 1;
+		}
+
+		if (a->light->lightType < b->light->lightType)
+		{
+			return -1;
+		}
+
+		if (a->light->lightType > b->light->lightType)
+		{
+			return 1;
+		}
+
+		return 0;
+	}
+
+	static void QuickSortVisibleLights(PK::ECS::EntityViews::LightRenderable** arr, int low, int high)
+	{
+		int i = low;
+		int j = high;
+		auto pivot = arr[(i + j) / 2];
+
+		while (i <= j)
+		{
+			while (LightViewCompare(arr[i], pivot) < 0)
+			{
+				i++;
+			}
+
+			while (LightViewCompare(arr[j], pivot) > 0)
+			{
+				j--;
+			}
+
+			if (i <= j)
+			{
+				auto temp = arr[i];
+				arr[i] = arr[j];
+				arr[j] = temp;
+				i++;
+				j--;
+			}
+		}
+
+		if (j > low)
+		{
+			QuickSortVisibleLights(arr, low, j);
+		}
+
+		if (i < high)
+		{
+			QuickSortVisibleLights(arr, i, high);
+		}
+	}
 
 	static void OnCullVisibleShadowmap(ECS::EntityDatabase* entityDb, ECS::EGID egid, uint clipIndex, float depth, void* context)
 	{
@@ -31,10 +96,10 @@ namespace PK::Rendering
 		m_computeCullClusters = assetDatabase->Find<Shader>("CS_ClusteredCullClusters");
 		m_debugVisualize = assetDatabase->Find<Shader>("SH_VS_ClusterDebug");
 	
-		m_shadowmapData.ShaderRenderMapCube = assetDatabase->Find<Shader>("SH_WS_ShadowmapCube");
-		m_shadowmapData.ShaderRenderMapProj = assetDatabase->Find<Shader>("SH_WS_ShadowmapProj");
-		m_shadowmapData.ShaderBlurCube = assetDatabase->Find<Shader>("SH_VS_ShadowmapBlurCube");
-		m_shadowmapData.ShaderBlurProj = assetDatabase->Find<Shader>("SH_VS_ShadowmapBlurProj");
+		m_shadowmapData.LightIndices[(int)LightType::Point].ShaderRenderShadows = assetDatabase->Find<Shader>("SH_WS_ShadowmapCube");
+		m_shadowmapData.LightIndices[(int)LightType::Spot].ShaderRenderShadows = assetDatabase->Find<Shader>("SH_WS_ShadowmapProj");
+		m_shadowmapData.LightIndices[(int)LightType::Point].ShaderBlur = assetDatabase->Find<Shader>("SH_VS_ShadowmapBlurCube");
+		m_shadowmapData.LightIndices[(int)LightType::Spot].ShaderBlur = assetDatabase->Find<Shader>("SH_VS_ShadowmapBlurProj");
 
 		auto descriptor = RenderTextureDescriptor();
 		descriptor.dimension = GL_TEXTURE_CUBE_MAP_ARRAY;
@@ -44,15 +109,15 @@ namespace PK::Rendering
 		descriptor.wrapmodex = GL_CLAMP_TO_EDGE;
 		descriptor.wrapmodey = GL_CLAMP_TO_EDGE;
 		descriptor.wrapmodez = GL_CLAMP_TO_EDGE;
-		m_shadowmapData.MapTargetCube = CreateRef<RenderTexture>(descriptor);
+		m_shadowmapData.LightIndices[(int)LightType::Point].SceneRenderTarget = CreateRef<RenderTexture>(descriptor);
 
 		descriptor.dimension = GL_TEXTURE_2D_ARRAY;
 		descriptor.resolution = { ShadowmapData::TileSize, ShadowmapData::TileSize, ShadowmapData::BatchSize };
 		descriptor.colorFormats = { GL_RG32F };
-		descriptor.depthFormat = GL_NONE;
-		m_shadowmapData.MapTargetProj = CreateRef<RenderTexture>(descriptor);
-
 		descriptor.depthFormat = GL_DEPTH_COMPONENT16;
+		m_shadowmapData.LightIndices[(int)LightType::Spot].SceneRenderTarget = CreateRef<RenderTexture>(descriptor);
+
+		descriptor.depthFormat = GL_NONE;
 		m_shadowmapData.MapIntermediate = CreateRef<RenderTexture>(descriptor);
 
 		descriptor.dimension = GL_TEXTURE_2D;
@@ -102,98 +167,10 @@ namespace PK::Rendering
 		}), ClusterCount, true, GL_NONE);
 	}
 
-	void LightsManager::RenderShadowmapsForLightType(PK::ECS::EntityDatabase* entityDb, 
-		Shader* renderShadows,
-		Shader* blurshadowmap,
-		RenderTexture* target,
-		BufferView<uint>& lightIndices, 
-		LightType type)
+	void LightsManager::UpdateShadowmaps(ECS::EntityDatabase* entityDb)
 	{
-		auto batchIdx = 0u;
-		auto lightIndex = 0u;
-		const auto cullingMask = (ushort)(ECS::Components::RenderHandleFlags::Renderer | ECS::Components::RenderHandleFlags::ShadowCaster);
-		const auto maxBatches = (ShadowmapData::TileCountPerAxis * ShadowmapData::TileCountPerAxis) / ShadowmapData::BatchSize;
-		ECS::EntityViews::LightRenderable* batchViews[ShadowmapData::BatchSize];
-
-		while (batchIdx < maxBatches && lightIndex < lightIndices.count)
-		{
-			auto atlasBaseIdx = batchIdx * ShadowmapData::BatchSize;
-			auto batchSize = 0u;
-			auto zfar = 0.0f;
-			++batchIdx;
-
-			while (batchSize < ShadowmapData::BatchSize && lightIndex < lightIndices.count)
-			{
-				auto* lightview = entityDb->Query<ECS::EntityViews::LightRenderable>(ECS::EGID(lightIndices[lightIndex++], (uint)ECS::ENTITY_GROUPS::ACTIVE));
-
-				if (lightview->light->lightType == type && lightview->light->castShadows)
-				{
-					batchViews[batchSize++] = lightview;
-				}
-			}
-
-			if (batchSize == 0)
-			{
-				continue;
-			}
-
-			Batching::ResetCollection(&m_shadowmapData.Batches);
-
-			for (uint i = 0; i < batchSize; ++i)
-			{
-				auto* lightview = batchViews[i];
-				auto radius = lightview->light->radius;
-				auto baseKey = ((uint)i << 16u) | (lightview->light->linearIndex & 0xFFFF);
-
-				if (radius > zfar)
-				{
-					zfar = radius;
-				}
-
-				ShadowmapContext ctx = { &m_shadowmapData, baseKey };
-
-				switch (type)
-				{
-					case LightType::Point:
-					{
-						auto bounds = entityDb->Query<ECS::EntityViews::BaseRenderable>(batchViews[i]->GID)->bounds->worldAABB;
-						Culling::ExecuteOnVisibleItemsCubeFaces(entityDb, bounds, cullingMask, OnCullVisibleShadowmap, &ctx);
-						break;
-					}
-					case LightType::Spot:
-					{
-						auto projection = Functions::GetPerspective(lightview->light->angle, 1.0f, 0.1f, lightview->light->radius) * lightview->transform->worldToLocal;
-						Culling::ExecuteOnVisibleItemsFrustum(entityDb, projection, cullingMask, OnCullVisibleShadowmap, &ctx);
-						break;
-					}
-				}
-			}
-
-			Batching::UpdateBuffers(&m_shadowmapData.Batches);
-
-			GraphicsAPI::SetRenderTarget(target, false);
-			GraphicsAPI::Clear(float4(zfar, zfar * zfar, 0, 0), 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			Batching::DrawBatches(&m_shadowmapData.Batches, 0, renderShadows, m_properties);
-
-			m_properties.SetKeywords({ StringHashID::StringToID("SHADOW_BLUR_PASS0") });
-			GraphicsAPI::SetRenderTarget(m_shadowmapData.MapTargetProj.get(), false);
-			GraphicsAPI::BlitInstanced(0, batchSize, blurshadowmap, m_properties);
-
-			m_properties.SetKeywords({ StringHashID::StringToID("SHADOW_BLUR_PASS1") });
-			GraphicsAPI::SetRenderTarget(m_shadowmapData.ShadowmapAtlas.get(), false);
-			GraphicsAPI::BlitInstanced(atlasBaseIdx, batchSize, blurshadowmap, m_properties);
-		}
-	}
-
-	void LightsManager::UpdateShadowmaps(ECS::EntityDatabase* entityDb, BufferView<uint>& lightIndices)
-	{
-		auto shaderRenderCube = m_shadowmapData.ShaderRenderMapCube;
-		auto shaderRenderProj = m_shadowmapData.ShaderRenderMapProj;
-		auto shaderBlurCube = m_shadowmapData.ShaderBlurCube;
-		auto shaderBlurProj = m_shadowmapData.ShaderBlurProj;
-
-		m_properties.SetTexture(StringHashID::StringToID("_ShadowmapBatchCube"), m_shadowmapData.MapTargetCube->GetColorBuffer(0)->GetGraphicsID());
-		m_properties.SetTexture(StringHashID::StringToID("_ShadowmapBatch0"), m_shadowmapData.MapTargetProj->GetColorBuffer(0)->GetGraphicsID());
+		m_properties.SetTexture(StringHashID::StringToID("_ShadowmapBatchCube"), m_shadowmapData.LightIndices[(int)LightType::Point].SceneRenderTarget->GetColorBuffer(0)->GetGraphicsID());
+		m_properties.SetTexture(StringHashID::StringToID("_ShadowmapBatch0"), m_shadowmapData.LightIndices[(int)LightType::Spot].SceneRenderTarget->GetColorBuffer(0)->GetGraphicsID());
 		m_properties.SetTexture(StringHashID::StringToID("_ShadowmapBatch1"), m_shadowmapData.MapIntermediate->GetColorBuffer(0)->GetGraphicsID());
 
 		float4 viewports[3] = 
@@ -203,26 +180,128 @@ namespace PK::Rendering
 			{0, 0, ShadowmapData::TileSize * ShadowmapData::TileCountPerAxis, ShadowmapData::TileSize * ShadowmapData::TileCountPerAxis},
 		};
 
+		const auto cullingMask = (ushort)(ECS::Components::RenderHandleFlags::Renderer | ECS::Components::RenderHandleFlags::ShadowCaster);
+
 		GraphicsAPI::SetViewPorts(0, viewports, 3);
 
-		RenderShadowmapsForLightType(entityDb, shaderRenderCube, shaderBlurCube, m_shadowmapData.MapTargetCube.get(), lightIndices, LightType::Point);
-		RenderShadowmapsForLightType(entityDb, shaderRenderProj, shaderBlurProj, m_shadowmapData.MapIntermediate.get(), lightIndices, LightType::Spot);
+		for (auto typeIdx = 0; typeIdx < (int)LightType::TypeCount; ++typeIdx)
+		{
+			auto& typedata = m_shadowmapData.LightIndices[typeIdx];
+			auto batchCount = (uint)std::ceil(typedata.viewCount / (float)ShadowmapData::BatchSize);
+
+			for (auto batch = 0; batch < batchCount; ++batch)
+			{
+				auto batchSize = std::min(typedata.viewCount - batch * ShadowmapData::BatchSize, ShadowmapData::BatchSize);
+				auto baseLightIndex = typedata.viewFirst + batch * ShadowmapData::BatchSize;
+				auto atlasIndex = m_visibleLights[baseLightIndex]->light->shadowmapIndex;
+				auto zfar = 0.0f;
+
+
+				Batching::ResetCollection(&m_shadowmapData.Batches);
+
+				for (uint i = 0; i < batchSize; ++i)
+				{
+					auto* lightview = m_visibleLights[baseLightIndex + i];
+					auto radius = lightview->light->radius;
+					auto baseKey = ((uint)i << 16u) | (lightview->light->linearIndex & 0xFFFF);
+
+					if (radius > zfar)
+					{
+						zfar = radius;
+					}
+
+					ShadowmapContext ctx = { &m_shadowmapData, baseKey };
+
+					switch ((LightType)typeIdx)
+					{
+						case LightType::Point:
+						{
+							auto bounds = entityDb->Query<ECS::EntityViews::BaseRenderable>(lightview->GID)->bounds->worldAABB;
+							Culling::ExecuteOnVisibleItemsCubeFaces(entityDb, bounds, cullingMask, OnCullVisibleShadowmap, &ctx);
+							break;
+						}
+						case LightType::Spot:
+						{
+							auto projection = Functions::GetPerspective(lightview->light->angle, 1.0f, 0.1f, lightview->light->radius) * lightview->transform->worldToLocal;
+							Culling::ExecuteOnVisibleItemsFrustum(entityDb, projection, cullingMask, OnCullVisibleShadowmap, &ctx);
+							break;
+						}
+					}
+				}
+
+				Batching::UpdateBuffers(&m_shadowmapData.Batches);
+
+				GraphicsAPI::SetRenderTarget(typedata.SceneRenderTarget.get(), false);
+				GraphicsAPI::Clear(float4(zfar, zfar * zfar, 0, 0), 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				Batching::DrawBatches(&m_shadowmapData.Batches, 0, typedata.ShaderRenderShadows, m_properties);
+
+				m_properties.SetKeywords({ StringHashID::StringToID("SHADOW_BLUR_PASS0") });
+				GraphicsAPI::SetRenderTarget(m_shadowmapData.MapIntermediate.get(), false);
+				GraphicsAPI::BlitInstanced(0, batchSize, typedata.ShaderBlur, m_properties);
+
+				m_properties.SetKeywords({ StringHashID::StringToID("SHADOW_BLUR_PASS1") });
+				GraphicsAPI::SetRenderTarget(m_shadowmapData.ShadowmapAtlas.get(), false);
+				GraphicsAPI::BlitInstanced(atlasIndex, batchSize, typedata.ShaderBlur, m_properties);
+			}
+		}
 	}
 
 	void LightsManager::UpdateLightBuffers(PK::ECS::EntityDatabase* entityDb, Core::BufferView<uint> visibleLights)
 	{
-		m_lightsBuffer->ValidateSize((uint)visibleLights.count + 1);
-
-		auto lightProjectionCount = 0;
-
-		auto lightsBuffer = m_lightsBuffer->BeginMapBufferRange<Structs::PKRawLight>(0, visibleLights.count + 1);
+		m_visibleLightCount = 0;
 
 		for (size_t i = 0; i < visibleLights.count; ++i)
 		{
-			auto* view = entityDb->Query<ECS::EntityViews::LightRenderable>(ECS::EGID(visibleLights[i], (uint)ECS::ENTITY_GROUPS::ACTIVE));
+			Utilities::PushVectorElement(m_visibleLights, &m_visibleLightCount, entityDb->Query<ECS::EntityViews::LightRenderable>(ECS::EGID(visibleLights[i], (uint)ECS::ENTITY_GROUPS::ACTIVE)));
+		}
+
+		if (m_visibleLightCount > 1)
+		{
+			QuickSortVisibleLights(m_visibleLights.data(), 0, m_visibleLightCount - 1);
+		}
+
+		for (auto i = 0; i < (int)LightType::TypeCount; ++i)
+		{
+			m_shadowmapData.LightIndices[i].viewCount = 0;
+			m_shadowmapData.LightIndices[i].viewFirst = 0xFFFFFFFF;
+		}
+
+		auto lightProjectionCount = 0;
+
+		// Get visible shadowmap tiles per light type so that tile indexing can be ordered by light type
+		for (size_t i = 0; i < m_visibleLightCount; ++i)
+		{
+			auto* view = m_visibleLights.at(i);
 			view->light->linearIndex = (uint)i;
-			view->light->shadowmapIndex = view->light->castShadows ? (uint)i : 0xFFFFFFFF;
-			view->light->projectionIndex = view->light->lightType != LightType::Point ? lightProjectionCount++ : 0xFFFFFFFF;
+			view->light->projectionIndex = view->light->lightType != LightType::Point ? lightProjectionCount++ : 0;
+
+			if (view->light->castShadows && i < ShadowmapData::TotalTileCount)
+			{
+				view->light->shadowmapIndex = i;
+				auto& indicesView = m_shadowmapData.LightIndices[(uint)view->light->lightType];
+				indicesView.viewFirst = std::min(indicesView.viewFirst, (uint)i);
+				++indicesView.viewCount;
+			}
+			else
+			{
+				view->light->shadowmapIndex = 0xFFFFFFFF;
+			}
+		}
+
+		m_lightMatricesBuffer->ValidateSize((uint)lightProjectionCount);
+		m_lightsBuffer->ValidateSize((uint)m_visibleLightCount + 1);
+
+		auto lightsBuffer = m_lightsBuffer->BeginMapBufferRange<Structs::PKRawLight>(0, m_visibleLightCount + 1);
+		auto matricesBuffer = lightProjectionCount > 0 ? m_lightMatricesBuffer->BeginMapBufferRange<float4x4>(0, lightProjectionCount) : BufferView<float4x4>();
+
+		for (size_t i = 0; i < m_visibleLightCount; ++i)
+		{
+			auto* view = m_visibleLights.at(i);
+
+			switch (view->light->lightType)
+			{
+				case LightType::Spot: matricesBuffer[view->light->projectionIndex] = Functions::GetPerspective(view->light->angle, 1.0f, 0.1f, view->light->radius) * view->transform->worldToLocal; break;
+			}
 
 			lightsBuffer[i] = 
 			{ 
@@ -235,30 +314,11 @@ namespace PK::Rendering
 			};
 		}
 
-		lightsBuffer[visibleLights.count] = { CG_COLOR_CLEAR, CG_FLOAT4_ZERO, 0u, 0u, 0u, 0u };
+		lightsBuffer[m_visibleLightCount] = { CG_COLOR_CLEAR, CG_FLOAT4_ZERO, 0u, 0u, 0u, 0u };
 		m_lightsBuffer->EndMapBuffer();
 
 		if (lightProjectionCount > 0)
 		{
-			m_lightMatricesBuffer->ValidateSize((uint)lightProjectionCount);
-
-			auto projectionIndex = 0;
-			auto matricesBuffer = m_lightMatricesBuffer->BeginMapBufferRange<float4x4>(0, lightProjectionCount);
-
-			for (size_t i = 0; i < visibleLights.count; ++i)
-			{
-				auto* view = entityDb->Query<ECS::EntityViews::LightRenderable>(ECS::EGID(visibleLights[i], (uint)ECS::ENTITY_GROUPS::ACTIVE));
-
-				switch (view->light->lightType)
-				{
-					case LightType::Spot:
-					{
-						matricesBuffer[projectionIndex++] = Functions::GetPerspective(view->light->angle, 1.0f, 0.1f, view->light->radius) * view->transform->worldToLocal;
-					}
-					break;
-				}
-			}
-
 			m_lightMatricesBuffer->EndMapBuffer();
 		}
 	}
@@ -278,7 +338,7 @@ namespace PK::Rendering
 	
 		auto hashCache = HashCache::Get();
 	
-		GraphicsAPI::SetGlobalInt(hashCache->pk_LightCount, (int)visibleLights.count);
+		GraphicsAPI::SetGlobalInt(hashCache->pk_LightCount, m_visibleLightCount);
 		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_Lights, m_lightsBuffer->GetGraphicsID());
 		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_LightMatrices, m_lightMatricesBuffer->GetGraphicsID());
 		GraphicsAPI::SetGlobalFloat(hashCache->pk_ClusterFrustumInfo, frustuminfo, 5);
@@ -291,7 +351,7 @@ namespace PK::Rendering
 		uint zero[5] = { 0, 0, 0, 0, 0 };
 		m_clusterDispatchInfo->SubmitData(&zero, 0, CG_TYPE_SIZE_INT * 5);
 
-		UpdateShadowmaps(entityDb, visibleLights);
+		UpdateShadowmaps(entityDb);
 	}
 	
 	void LightsManager::UpdateLightTiles(const uint2& resolution)

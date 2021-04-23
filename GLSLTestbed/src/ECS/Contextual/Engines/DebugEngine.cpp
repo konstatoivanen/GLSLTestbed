@@ -40,7 +40,7 @@ namespace PK::ECS::Engines
 		return egid;
 	}
 	
-	static void CreatePointLight(EntityDatabase* entityDb, PK::Core::AssetDatabase* assetDatabase, const float3& position, const color& color)
+	static void CreateLight(EntityDatabase* entityDb, PK::Core::AssetDatabase* assetDatabase, const float3& position, const color& color, LightType type)
 	{
 		auto egid = EGID(entityDb->ReserveEntityId(), (uint)ENTITY_GROUPS::ACTIVE);
 		auto implementer = entityDb->ResereveImplementer<Implementers::LightImplementer>();
@@ -58,7 +58,7 @@ namespace PK::ECS::Engines
 		lightSphereView->transformLight = static_cast<Components::Transform*>(implementer);
 	
 		implementer->position = position;
-		ECS::Builders::InitializeLightValues(implementer, color, LightType::Spot, LightCookie::Circle2, true, 90.0f);
+		ECS::Builders::InitializeLightValues(implementer, color, type, LightCookie::Circle2, true, 90.0f);
 
 		const auto intensityThreshold = 0.2f;
 		const auto sphereRadius = 0.2f;
@@ -110,9 +110,13 @@ namespace PK::ECS::Engines
 			CreateMeshRenderable(entityDb, Functions::RandomRangeFloat3(minpos, maxpos), Functions::RandomEuler(), 1.0f, sphereMesh, materialGravel);
 		}
 	
+		bool flipperinotyperino = false;
+
 		for (uint i = 0; i < config.LightCount; ++i)
 		{
-			CreatePointLight(entityDb, assetDatabase, Functions::RandomRangeFloat3(minpos, maxpos), Functions::HueToRGB(Functions::RandomRangeFloat(0.0f, 1.0f)) * Functions::RandomRangeFloat(2.0f, 6.0f));
+			auto type = flipperinotyperino ? LightType::Point : LightType::Spot;
+			CreateLight(entityDb, assetDatabase, Functions::RandomRangeFloat3(minpos, maxpos), Functions::HueToRGB(Functions::RandomRangeFloat(0.0f, 1.0f)) * Functions::RandomRangeFloat(2.0f, 6.0f), type);
+			flipperinotyperino ^= true;
 		}
 	}
 	
@@ -155,8 +159,8 @@ namespace PK::ECS::Engines
 			lights[i].transformLight->rotation = rotation;
 			lights[i].transformMesh->rotation = rotation;
 		}
-	
 		return;
+	
 		auto meshes = m_entityDb->Query<EntityViews::MeshRenderable>((int)ENTITY_GROUPS::ACTIVE);
 	
 		for (auto i = 0; i < meshes.count; ++i)

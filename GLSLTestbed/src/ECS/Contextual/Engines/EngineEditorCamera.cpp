@@ -26,7 +26,7 @@ namespace PK::ECS::Engines
 			m_eulerAngles.y -= input->GetMouseDeltaX() * deltaTime;
 		}
 	
-		auto speed = input->GetKey(KeyCode::LEFT_SHIFT) ? (m_moveSpeed * 5) : m_moveSpeed;
+		auto speed = input->GetKey(KeyCode::LEFT_CONTROL) ? (m_moveSpeed * 0.25f) : input->GetKey(KeyCode::LEFT_SHIFT) ? (m_moveSpeed * 5) : m_moveSpeed;
 		auto offset = input->GetAxis3D(KeyCode::Q, KeyCode::E, KeyCode::W, KeyCode::S, KeyCode::D, KeyCode::A) * deltaTime * speed;
 	
 		auto fdelta = input->GetMouseScrollY() * deltaTime * 1000.0f;

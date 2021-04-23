@@ -1,7 +1,6 @@
 #pragma once
 #include Lighting.glsl
 
-
 layout(binding = 0) uniform highp samplerCubeArray _ShadowmapBatchCube;
 layout(binding = 1) uniform highp sampler2DArray _ShadowmapBatch0;
 layout(binding = 2) uniform highp sampler2DArray _ShadowmapBatch1;
@@ -10,44 +9,6 @@ layout(binding = 2) uniform highp sampler2DArray _ShadowmapBatch1;
 // @TODO Parameterize these later
 #define GET_SHADOW_BLUR_AMOUNT_3D pow5(0.125f)
 #define GET_SHADOW_BLUR_AMOUNT_2D 13.0f / 512.0f
-
-// Original functions kept for reference.
-/*
-float RadicalInverse_VdC(uint bits)
-{
-    bits = (bits << 16u) | (bits >> 16u);
-    bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
-    bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
-    bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
-    bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
-    return float(bits) * 2.3283064365386963e-10;
-}
-
-half2 Hammersley(uint i, uint N) { return half2(float(i) / float(N), RadicalInverse_VdC(i)); }
-
-half3 ImportanceSampleGGX(half2 Xi, half3 N, float roughness)
-{
-    float a = roughness * roughness;
-
-    float phi = 2.0 * 3.14159265 * Xi.x;
-    float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a * a - 1.0) * Xi.y));
-    float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
-
-    // from spherical coordinates to cartesian coordinates
-    half3 H;
-    H.x = cos(phi) * sinTheta;
-    H.y = sin(phi) * sinTheta;
-    H.z = cosTheta;
-
-    // from tangent-space vector to world-space sample vector
-    half3 up = abs(N.z) < 0.999 ? half3(0.0, 0.0, 1.0) : half3(1.0, 0.0, 0.0);
-    half3 tangent = normalize(cross(up, N));
-    half3 bitangent = cross(N, tangent);
-
-    half3 sampleVec = tangent * H.x + bitangent * H.y + N * H.z;
-    return normalize(sampleVec);
-}
-*/
 
 const float3 faceSigns[6] =
 {
@@ -116,8 +77,8 @@ const float2 SAMPLES_HAMMERSLEY_2D[SAMPLE_COUNT] =
 struct DrawIndices
 {
 	uint lightIndex; 
-	uint faceIndex;
 	uint batchIndex;
+	uint faceIndex;
 };
 
 float3 DistributeHammersley3D(float3 Xi, float blur)
@@ -134,7 +95,7 @@ float2 DistributeHammersley2D(float2 Xi, float blur)
 
 DrawIndices ParseDrawIndices(uint data)
 {
-	return DrawIndices(bitfieldExtract(data, 0, 16), bitfieldExtract(data, 24, 8), bitfieldExtract(data, 16, 8));
+	return DrawIndices(bitfieldExtract(data, 0, 16), bitfieldExtract(data, 16, 8), bitfieldExtract(data, 24, 8));
 }
 
 float4 GetCubeClipPos(float3 viewvec, float radius, uint faceIndex)
@@ -174,7 +135,7 @@ void SHADOW_SET_VERTEX_STATE_ATTRIBUTES(float4 position, float2 baseuv, out uint
     #define SAMPLE_SRC_OCT(H, layer) tex2D(_ShadowmapBatchCube, float4(H, layer)).rg
 #else
     #define SAMPLE_SRC(UV, layer) tex2D(_ShadowmapBatch1, float3(UV, layer)).rg;
-    #define SAMPLE_SRC_OCT(H, layer) tex2D(_ShadowmapBatch0, float3(OctaUV(H), layer)).rg;
+    #define SAMPLE_SRC_OCT(H, layer) tex2D(_ShadowmapBatch1, float3(OctaUV(H), layer)).rg;
 #endif
 
 #if defined(SHADER_STAGE_FRAGMENT) && defined(DRAW_SHADOW_MAP_FRAGMENT)
