@@ -61,7 +61,8 @@ namespace PK::Rendering::Objects
 			void MapBuffer(const void* data, size_t offset, size_t size);
 			void MapBuffer(const void* data, size_t size);
 			void SubmitData(const void* data, size_t offset, size_t size);
-			
+			void Clear() const;
+
 			void* BeginMapBuffer();
 			void* BeginMapBufferRange(size_t offset, size_t size);
 	

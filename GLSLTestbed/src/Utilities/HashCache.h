@@ -59,7 +59,7 @@ namespace PK::Utilities
         DEFINE_HASH_CACHE(pk_ClusterFrustumInfo)
         DEFINE_HASH_CACHE(pk_GlobalLightsList)
         DEFINE_HASH_CACHE(pk_LightTiles)
-        DEFINE_HASH_CACHE(pk_FDepthRanges)
+        DEFINE_HASH_CACHE(pk_TileMaxDepths)
         DEFINE_HASH_CACHE(pk_GlobalListListIndex)
 
         #undef DEFINE_HASH_CACHE

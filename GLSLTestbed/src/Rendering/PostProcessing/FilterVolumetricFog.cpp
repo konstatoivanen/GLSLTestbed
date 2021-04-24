@@ -10,10 +10,9 @@ namespace PK::Rendering::PostProcessing
 
     FilterVolumetricFog::FilterVolumetricFog(AssetDatabase* assetDatabase, const ApplicationConfig& config) : FilterBase(assetDatabase->Find<Shader>("SH_VS_VolumeFogComposite"))
     {
-        RenderTextureDescriptor descriptor;
+        TextureDescriptor descriptor;
         descriptor.dimension = GL_TEXTURE_3D;
-        descriptor.depthFormat = GL_NONE;
-        descriptor.colorFormats = { GL_RGBA16F, GL_RGBA16F };
+        descriptor.colorFormat = GL_RGBA16F;
         descriptor.miplevels = 0;
         descriptor.filtermag = GL_LINEAR;
         descriptor.filtermin = GL_LINEAR;
@@ -21,7 +20,9 @@ namespace PK::Rendering::PostProcessing
         descriptor.wrapmodey = GL_CLAMP_TO_EDGE;
         descriptor.wrapmodez = GL_CLAMP_TO_EDGE;
         descriptor.resolution = VolumeResolution;
-        m_volumes = CreateRef<RenderTexture>(descriptor);
+
+        m_volumeLightDensity = CreateRef<RenderBuffer>(descriptor);
+        m_volumeScatter = CreateRef<RenderBuffer>(descriptor);
 
         m_computeInject = assetDatabase->Find<Shader>("CS_VolumeFogLightDensity");
         m_computeScatter = assetDatabase->Find<Shader>("CS_VolumeFogScatter");
@@ -42,9 +43,6 @@ namespace PK::Rendering::PostProcessing
             {CG_TYPE::HANDLE, "pk_Volume_ScatterRead"},
         }));
 
-        auto bufferInject = m_volumes->GetColorBuffer(0);
-        auto bufferScatter = m_volumes->GetColorBuffer(1);
-
         m_volumeResources->SetFloat4(StringHashID::StringToID("pk_Volume_WindDir"), float4(1.0f, 0.0f, 0.0f, 0.0f));
         m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_ConstantFog"), config.VolumeConstantFog);
         m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_HeightFogExponent"), config.VolumeHeightFogExponent);
@@ -56,7 +54,7 @@ namespace PK::Rendering::PostProcessing
         m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_NoiseFogAmount"), config.VolumeNoiseFogAmount);
         m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_NoiseFogScale"), config.VolumeNoiseFogScale);
         m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_WindSpeed"), config.VolumeWindSpeed);
-        m_volumeResources->SetResourceHandle(StringHashID::StringToID("pk_Volume_ScatterRead"), bufferScatter->GetBindlessHandleResident());
+        m_volumeResources->SetResourceHandle(StringHashID::StringToID("pk_Volume_ScatterRead"), m_volumeScatter->GetBindlessHandleResident());
 
         m_volumeResources->FlushBufer();
         //m_volumeResources->SetResourceHandle(StringHashID::StringToID("pk_Volume_Inject"), bufferInject->GetImageHandleResident(GL_RGBA16F, GL_READ_WRITE, 0, 0, true));
@@ -65,8 +63,8 @@ namespace PK::Rendering::PostProcessing
         auto bluenoiseTex = assetDatabase->Find<TextureXD>("T_Bluenoise256_repeat");
         m_properties.SetTexture(StringHashID::StringToID("pk_Bluenoise256"), bluenoiseTex->GetGraphicsID());
 
-        m_properties.SetImage(StringHashID::StringToID("pk_Volume_Inject"), { bufferInject->GetGraphicsID(), GL_RGBA16F, GL_READ_WRITE, 0, 0, true });
-        m_properties.SetImage(StringHashID::StringToID("pk_Volume_Scatter"), { bufferScatter->GetGraphicsID(), GL_RGBA16F, GL_READ_WRITE, 0, 0, true });
+        m_properties.SetImage(StringHashID::StringToID("pk_Volume_Inject"), { m_volumeLightDensity->GetGraphicsID(), GL_RGBA16F, GL_READ_WRITE, 0, 0, true });
+        m_properties.SetImage(StringHashID::StringToID("pk_Volume_Scatter"), { m_volumeScatter->GetGraphicsID(), GL_RGBA16F, GL_READ_WRITE, 0, 0, true });
 
         m_properties.SetConstantBuffer(StringHashID::StringToID("pk_VolumeResources"), m_volumeResources->GetGraphicsID());
     }

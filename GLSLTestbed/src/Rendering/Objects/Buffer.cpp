@@ -177,6 +177,12 @@ namespace PK::Rendering::Objects
 		glNamedBufferSubData(m_graphicsId, offset, size, data);
 	}
 
+	void ComputeBuffer::Clear() const 
+	{
+		GLuint zero = 0u;
+		glClearNamedBufferData(m_graphicsId, GL_R32UI, GL_RED, GL_UNSIGNED_INT, &zero);
+	}
+
     void* ComputeBuffer::BeginMapBufferRange(size_t offset, size_t size)
     {
 		return glMapNamedBufferRange(m_graphicsId, offset, size, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);

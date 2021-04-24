@@ -75,13 +75,10 @@ void main()
     uint2 tileCoord = gl_GlobalInvocationID.xy;
     uint depthTileIndex = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * CLUSTER_TILE_COUNT_X;
 
-    TileDepth tileDepth = PK_BUFFER_DATA(pk_FDepthRanges, depthTileIndex);
-    float minnear = uintBitsToFloat(tileDepth.depthmin);
-    float maxfar = uintBitsToFloat(tileDepth.depthmax);
-    
     uint zcoord = TileToZCoord(tileIndex);
     float near = ZCoordToLinearDepth(zcoord);
     float far = ZCoordToLinearDepth(zcoord + 1);
+    float maxfar = LOAD_MAX_DEPTH(depthTileIndex);
 
     far = min(far, maxfar);
 

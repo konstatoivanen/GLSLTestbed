@@ -69,7 +69,6 @@ namespace PK::Rendering
 
             Shader* m_computeLightAssignment;
             Shader* m_computeDepthTiles;
-            Shader* m_computeDepthReset;
             Shader* m_debugVisualize;
 
             Utilities::Ref<ComputeBuffer> m_lightsBuffer;

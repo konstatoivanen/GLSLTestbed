@@ -32,14 +32,12 @@ void main()
 	uint offset = data & 0xFFFFFF;
 	LightTile tile = LightTile(offset, offset + (data >> 24));
 
-	TileDepth tileDepth = PK_BUFFER_DATA(pk_FDepthRanges, tileIndex % CLUSTER_TILE_COUNT_XY);
-	float minnear = mod(uintBitsToFloat(tileDepth.depthmin) / 50, 1.0f);
-	float maxfar = mod(uintBitsToFloat(tileDepth.depthmax) / 50, 1.0f);
+	float maxfar = mod(LOAD_MAX_DEPTH(tileIndex % CLUSTER_TILE_COUNT_XY) / 50, 1.0f);
 
 	float maxcount = min(CLUSTER_TILE_MAX_LIGHT_COUNT, pk_LightCount);
 	float tileIntensity = (tile.end - tile.start) / (maxcount * 0.75f);
 
-	float4 color = float4(hsv2rgb(float3(tileIntensity, 1.0f, 1.0f)), 0.1f);
+	float4 color = float4(hsv2rgb(float3(maxfar, 1.0f, 1.0f)), 0.1f);
 
 	float2 griduv = gl_FragCoord.xy / CLUSTER_SIZE_PX;
 	griduv -= floor(griduv);

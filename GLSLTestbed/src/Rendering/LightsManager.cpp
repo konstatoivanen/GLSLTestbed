@@ -88,8 +88,7 @@ namespace PK::Rendering
 	LightsManager::LightsManager(AssetDatabase* assetDatabase)
 	{
 		m_computeLightAssignment = assetDatabase->Find<Shader>("CS_ClusteredLightAssignment");
-		m_computeDepthReset = assetDatabase->Find<Shader>("CS_ClusteredDepthReset");
-		m_computeDepthTiles = assetDatabase->Find<Shader>("CS_ClusteredDepthMinMax");
+		m_computeDepthTiles = assetDatabase->Find<Shader>("CS_ClusteredDepthMax");
 		m_debugVisualize = assetDatabase->Find<Shader>("SH_VS_ClusterDebug");
 	
 		m_shadowmapData.LightIndices[(int)LightType::Point].ShaderRenderShadows = assetDatabase->Find<Shader>("SH_WS_ShadowmapCube");
@@ -124,7 +123,7 @@ namespace PK::Rendering
 
 		m_depthTiles = CreateRef<ComputeBuffer>(BufferLayout(
 		{
-			{CG_TYPE::INT2, "DEPTHMINMAX"},
+			{CG_TYPE::UINT, "DEPTHMAX"},
 		}), GridSizeX * GridSizeY, true, GL_NONE);
 	
 		m_lightsBuffer = CreateRef<ComputeBuffer>(BufferLayout(
@@ -158,6 +157,10 @@ namespace PK::Rendering
 		}), ClusterCount, true, GL_NONE);
 
 		m_globalLightIndex = CreateRef<ComputeBuffer>(BufferLayout({ {CG_TYPE::UINT, "INDEX"} }), 1, false, GL_STREAM_DRAW);
+
+		m_properties.SetComputeBuffer(HashCache::Get()->pk_TileMaxDepths, m_depthTiles->GetGraphicsID());
+		m_properties.SetComputeBuffer(HashCache::Get()->pk_LightDirections, m_lightDirectionsBuffer->GetGraphicsID());
+		m_properties.SetComputeBuffer(HashCache::Get()->pk_GlobalListListIndex, m_globalLightIndex->GetGraphicsID());
 	}
 
 	void LightsManager::UpdateShadowmaps(ECS::EntityDatabase* entityDb)
@@ -346,9 +349,6 @@ namespace PK::Rendering
 		GraphicsAPI::SetGlobalFloat(hashCache->pk_ClusterFrustumInfo, frustuminfo, 5);
 		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_GlobalLightsList, m_globalLightsList->GetGraphicsID());
 		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_LightTiles, m_lightTiles->GetGraphicsID());
-		m_properties.SetComputeBuffer(hashCache->pk_FDepthRanges, m_depthTiles->GetGraphicsID());
-		m_properties.SetComputeBuffer(hashCache->pk_LightDirections, m_lightDirectionsBuffer->GetGraphicsID());
-		m_properties.SetComputeBuffer(hashCache->pk_GlobalListListIndex, m_globalLightIndex->GetGraphicsID());
 
 		UpdateShadowmaps(entityDb);
 	}
@@ -358,7 +358,7 @@ namespace PK::Rendering
 		auto depthCountX = (uint)std::ceilf(resolution.x / 16.0f);
 		auto depthCountY = (uint)std::ceilf(resolution.y / 16.0f);
 	
-		GraphicsAPI::DispatchCompute(m_computeDepthReset, { 1,1,1 }, m_properties);
+		m_depthTiles->Clear();
 		GraphicsAPI::DispatchCompute(m_computeDepthTiles, { depthCountX, depthCountY, 1 }, m_properties);
 		GraphicsAPI::DispatchCompute(m_computeLightAssignment, { 1,1, GridSizeZ / 4 }, m_properties);
 	}

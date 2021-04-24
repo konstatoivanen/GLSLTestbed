@@ -1635,7 +1635,6 @@
     <None Include="res\shaders\includes\Reconstruction.glsl" />
     <None Include="res\shaders\includes\Noise.glsl" />
     <None Include="res\shaders\CS_ClusteredLightAssignment.shader" />
-    <None Include="res\shaders\CS_ClusteredDepthMinMax.shader" />
     <None Include="res\shaders\includes\ClusteringCommon.glsl" />
     <None Include="res\shaders\includes\ClusterIndexing.glsl" />
     <None Include="res\shaders\includes\Instancing.glsl" />
@@ -1650,6 +1649,7 @@
     <None Include="res\shaders\SH_WS_ShadowmapProj.shader" />
     <None Include="res\shaders\includes\Shadowmapping.glsl" />
     <None Include="res\textures\T_LightCookies.ktx" />
+    <None Include="res\shaders\CS_ClusteredDepthMax.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">
@@ -1783,7 +1783,6 @@
     <Text Include="res\shaders\SH_VS_FilterBloom.shader" />
     <Text Include="res\shaders\SH_WS_PBR_Forward.shader" />
     <Text Include="res\shaders\SH_WS_Unlit_Color.shader" />
-    <Text Include="res\shaders\CS_ClusteredDepthReset.shader" />
     <Text Include="res\shaders\CS_VolumeFogLightDensity.shader" />
     <Text Include="res\shaders\SH_VS_VolumeFogComposite.shader" />
   </ItemGroup>

@@ -61,6 +61,7 @@ namespace PK::Rendering::Objects
             void MakeHandleResident() const { glMakeTextureHandleResidentARB(glGetTextureHandleARB(m_graphicsId)); }
             void MakeHandleNonResident() const { glMakeTextureHandleNonResidentARB(glGetTextureHandleARB(m_graphicsId)); }
 
+            ImageBindDescriptor GetImageBindDescriptor(GLenum access, int level, int layer, bool layered) const { return { m_graphicsId, m_descriptor.colorFormat, access, level, layer, layered }; }
             GLuint64 GetImageHandle(GLenum format, int level, int layer, bool layered) const { return glGetImageHandleARB(m_graphicsId, level, layered, layer, format); }
             GLuint64 GetImageHandleResident(GLenum format, GLenum access, int level, int layer, bool layered) const 
             { 

@@ -14,8 +14,5 @@ void main()
 
     uint tileIndex = uint(uint(pxcoord.x / CLUSTER_SIZE_PX) + CLUSTER_TILE_COUNT_X * uint(pxcoord.y / CLUSTER_SIZE_PX));
 
-    uint encodedDepth = floatBitsToUint(depth);
-
-    atomicMin(PK_BUFFER_DATA(pk_FDepthRanges, tileIndex).depthmin, encodedDepth);
-    atomicMax(PK_BUFFER_DATA(pk_FDepthRanges, tileIndex).depthmax, encodedDepth);
+    atomicMax(PK_BUFFER_DATA(pk_TileMaxDepths, tileIndex), floatBitsToUint(depth));
 }
