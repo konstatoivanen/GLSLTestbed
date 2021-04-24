@@ -41,8 +41,6 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 	- Shader property instancing currently uses bindless texture handles for material properties. 
 	  Creating a sparse texture atlas for them would probably be more cache friendly.
 - Culling of for each pass is currently done on the cpu. This could be moved to the gpu instead.
-- Light clustering only supports point lights. Causing spot lights to be incorrectly registered to a lot of cells.
-	- The solution should be refactored to use bounding primitive rasterization instead.
 
 ## Asset Sources
 - [HDRI Haven](https://hdrihaven.com)

@@ -6,34 +6,89 @@
 #include includes/LightingCommon.glsl
 #include includes/ClusteringCommon.glsl
 
-shared float4 sharedLights[CLUSTER_TILE_BATCH_SIZE];
+struct SharedLight
+{
+    float3 position;
+    float3 direction;
+    float radius;
+    float angle;
+    uint type;
+};
+
+struct AABB
+{
+    float3 center;
+    float3 extents;
+    float  radius;
+};
+
+AABB currentCell;
+shared SharedLight sharedLights[CLUSTER_TILE_COUNT_XY];
 
 float cmax(float3 v) 
 {
     return max(max(v.x, v.y), v.z);
 }
 
-layout(local_size_x = CLUSTER_TILE_BATCH_SIZE, local_size_y = 1, local_size_z = 1) in;
+bool IntersectPointLight(uint lightIndex)
+{
+    SharedLight light = sharedLights[lightIndex];
+    float3 d = abs(light.position.xyz - currentCell.center) - currentCell.extents;
+    float r = light.radius - cmax(min(d, float3(0.0f)));
+    d = max(d, float3(0.0f));
+    return light.radius > 0.0f && dot(d, d) <= r * r;
+}
+
+// Source: https://bartwronski.com/2017/04/13/cull-that-cone/
+bool IntersectSpotLight(uint lightIndex)
+{
+    SharedLight light = sharedLights[lightIndex];
+
+    float3 V = currentCell.center - light.position;
+    float  VlenSq = dot(V, V);
+    float  V1len = dot(V, light.direction);
+    float  distanceClosestPoint = cos(light.angle * 0.5f) * sqrt(VlenSq - V1len * V1len) - V1len * sin(light.angle * 0.5f);
+
+    const bool angleCull = distanceClosestPoint > currentCell.radius;
+    const bool frontCull = V1len > currentCell.radius + light.radius;
+    const bool backCull = V1len < -currentCell.radius;
+    return !(angleCull || frontCull || backCull);
+}
+
+bool IntersectionTest(uint lightIndex)
+{
+    switch (sharedLights[lightIndex].type)
+    {
+        case LIGHT_TYPE_POINT: return IntersectPointLight(lightIndex);
+        case LIGHT_TYPE_SPOT: return IntersectPointLight(lightIndex) && IntersectSpotLight(lightIndex);
+        case LIGHT_TYPE_DIRECTIONAL: return false;
+    }
+
+    return false;
+}
+
+layout(local_size_x = CLUSTER_TILE_COUNT_X, local_size_y = CLUSTER_TILE_COUNT_Y, local_size_z = 4) in;
 void main() 
 {
-    uint clusterCount = PK_ATOMIC_DATA(pk_ClusterDispatchInfo).clusterCount;
-    uint numBatches = (pk_LightCount + CLUSTER_TILE_BATCH_SIZE - 1) / CLUSTER_TILE_BATCH_SIZE;
-    uint tileIndex = PK_BUFFER_DATA(pk_VisibleClusters, min(gl_GlobalInvocationID.x, clusterCount));
+    uint numBatches = (pk_LightCount + CLUSTER_TILE_COUNT_XY - 1) / CLUSTER_TILE_COUNT_XY;
+    uint tileIndex = gl_LocalInvocationIndex + gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z * gl_WorkGroupID.z;
+    uint2 tileCoord = gl_GlobalInvocationID.xy;
+    uint depthTileIndex = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * CLUSTER_TILE_COUNT_X;
 
-    uint2 tileCoord = TileToCoord2D(tileIndex);
-
-#if defined(CLUSTERING_CULL_OPTIMIZE_DEPTH)
-    TileDepth tileDepth = PK_BUFFER_DATA(pk_FDepthRanges, min(tileIndex, CLUSTER_TILE_COUNT_MAX - 1));
-    float near = uintBitsToFloat(tileDepth.depthmin);
-    float far = uintBitsToFloat(tileDepth.depthmax);
-#else
+    TileDepth tileDepth = PK_BUFFER_DATA(pk_FDepthRanges, depthTileIndex);
+    float minnear = uintBitsToFloat(tileDepth.depthmin);
+    float maxfar = uintBitsToFloat(tileDepth.depthmax);
+    
     uint zcoord = TileToZCoord(tileIndex);
     float near = ZCoordToLinearDepth(zcoord);
     float far = ZCoordToLinearDepth(zcoord + 1);
-#endif
+
+    far = min(far, maxfar);
 
     float2 invstep = 1.0f / float2(CLUSTER_TILE_COUNT_X, CLUSTER_TILE_COUNT_X * (pk_ScreenParams.y / pk_ScreenParams.x));
     float4 screenminmax = float4(tileCoord.xy * invstep, (tileCoord.xy + 1.0f) * invstep);
+
+    bool discardTile = near > maxfar || screenminmax.y > 1.0f;
 
     float3 min00 = ClipToViewPos(screenminmax.xy, near);
     float3 max00 = ClipToViewPos(screenminmax.xy, far);
@@ -43,45 +98,52 @@ void main()
     float3 aabbmin = min(min(min00, max00), min(min11, max11));
     float3 aabbmax = max(max(min00, max00), max(min11, max11));
 
-    float3 cellextents = (aabbmax - aabbmin) * 0.5f;
-    float3 cellcenter = aabbmin + cellextents;
+    currentCell.extents = (aabbmax - aabbmin) * 0.5f;
+    currentCell.center = aabbmin + currentCell.extents;
+    currentCell.radius = length(currentCell.extents);
 
     uint visibleLightCount = 0;
     uint visibleLightIndices[CLUSTER_TILE_MAX_LIGHT_COUNT];
 
     for (uint batch = 0; batch < numBatches; ++batch) 
     {
-        uint lightIndex = min(batch * CLUSTER_TILE_BATCH_SIZE + gl_LocalInvocationIndex, pk_LightCount);
+        uint lightIndex = min(batch * CLUSTER_TILE_COUNT_XY + gl_LocalInvocationIndex, pk_LightCount);
 
-        sharedLights[gl_LocalInvocationIndex] = PK_BUFFER_DATA(pk_Lights, lightIndex).position;
-        sharedLights[gl_LocalInvocationIndex].xyz = mul(pk_MATRIX_V, float4(sharedLights[gl_LocalInvocationIndex].xyz, 1.0f)).xyz;
+        PKRawLight light = PK_BUFFER_DATA(pk_Lights, lightIndex);
+        float4 direction = PK_BUFFER_DATA(pk_LightDirections, light.projection_index);
+        
+        SharedLight slight;
+        slight.position = mul(pk_MATRIX_V, float4(light.position.xyz, 1.0f)).xyz;
+        slight.direction = mul(pk_MATRIX_V, float4(direction.xyz, 0.0f)).xyz;
+        slight.radius = light.position.w;
+        slight.angle = direction.w;
+        slight.type = light.type;
+
+        sharedLights[gl_LocalInvocationIndex] = slight;
         barrier();
 
-        for (uint index = 0; index < CLUSTER_TILE_BATCH_SIZE && tileIndex != CLUSTER_TILE_COUNT_MAX && visibleLightCount < CLUSTER_TILE_MAX_LIGHT_COUNT; ++index)
+        if (discardTile)
         {
-            float4 light = sharedLights[index];
-            float3 d = abs(light.xyz - cellcenter) - cellextents;
-            float r = light.w - cmax(min(d, float3(0.0f)));
-            d = max(d, float3(0.0f));
-    
-            if (light.w > 0.0f && dot(d,d) <= r * r)
+            continue;
+        }
+
+        for (uint index = 0; index < CLUSTER_TILE_COUNT_XY && visibleLightCount < CLUSTER_TILE_MAX_LIGHT_COUNT; ++index)
+        {
+            if (IntersectionTest(index))
             {
-                visibleLightIndices[visibleLightCount++] = batch * CLUSTER_TILE_BATCH_SIZE + index;
+                visibleLightIndices[visibleLightCount++] = batch * CLUSTER_TILE_COUNT_XY + index;
             }
         }
     }
 
     barrier();
 
-    uint offset = atomicAdd(PK_ATOMIC_DATA(pk_ClusterDispatchInfo).lightIndexCount, visibleLightCount);
+    uint offset = atomicAdd(PK_ATOMIC_DATA(pk_GlobalListListIndex), visibleLightCount);
 
     for (uint i = 0; i < visibleLightCount; ++i) 
     {
         PK_BUFFER_DATA(pk_GlobalLightsList, offset + i) = visibleLightIndices[i];
     }
 
-    if (tileIndex != CLUSTER_TILE_COUNT_MAX)
-    {
-        PK_BUFFER_DATA(pk_LightTiles, tileIndex) = (visibleLightCount << 24) | (offset & 0xFFFFFF);
-    }
+    PK_BUFFER_DATA(pk_LightTiles, tileIndex) = (visibleLightCount << 24) | (offset & 0xFFFFFF);
 }

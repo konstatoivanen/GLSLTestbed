@@ -64,23 +64,20 @@ namespace PK::Rendering
             std::vector<PK::ECS::EntityViews::LightRenderable*> m_visibleLights;
             uint m_visibleLightCount;
 
-            uint m_passKeywords[2];
             ShaderPropertyBlock m_properties;
             ShadowmapData m_shadowmapData;
 
             Shader* m_computeLightAssignment;
-            Shader* m_computeCullClusters;
             Shader* m_computeDepthTiles;
             Shader* m_computeDepthReset;
             Shader* m_debugVisualize;
 
             Utilities::Ref<ComputeBuffer> m_lightsBuffer;
             Utilities::Ref<ComputeBuffer> m_lightMatricesBuffer;
+            Utilities::Ref<ComputeBuffer> m_lightDirectionsBuffer;
             Utilities::Ref<ComputeBuffer> m_globalLightsList;
+            Utilities::Ref<ComputeBuffer> m_globalLightIndex;
             Utilities::Ref<ComputeBuffer> m_lightTiles;
-
             Utilities::Ref<ComputeBuffer> m_depthTiles;
-            Utilities::Ref<ComputeBuffer> m_VisibleClusterList;
-            Utilities::Ref<ComputeBuffer> m_clusterDispatchInfo;
     };
 }

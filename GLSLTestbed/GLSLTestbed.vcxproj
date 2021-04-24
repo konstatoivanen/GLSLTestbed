@@ -701,7 +701,6 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\materials\M_Metal_Rust.material" />
     <None Include="res\materials\M_Wood_Floor.material" />
     <None Include="res\models\cornell_box.mtl" />
-    <None Include="res\shaders\CS_ClusteredCullClusters.shader" />
     <None Include="res\shaders\CS_ClusteredDepthMinMax.shader" />
     <None Include="res\shaders\CS_ClusteredLightAssignment.shader" />
     <None Include="res\shaders\includes\BlitCommon.glsl">

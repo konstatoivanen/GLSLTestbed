@@ -11,7 +11,8 @@ void main()
     pxcoord.y = min(pxcoord.y, uint(pk_ScreenParams.y - 1));
 
     float depth = LinearizeDepth(texelFetch(pk_ScreenDepth, int2(pxcoord), 0).r);
-    uint tileIndex = GetTileIndex(pxcoord, depth);
+
+    uint tileIndex = uint(uint(pxcoord.x / CLUSTER_SIZE_PX) + CLUSTER_TILE_COUNT_X * uint(pxcoord.y / CLUSTER_SIZE_PX));
 
     uint encodedDepth = floatBitsToUint(depth);
 

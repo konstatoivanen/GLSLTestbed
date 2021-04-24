@@ -87,13 +87,9 @@ namespace PK::Rendering
 
 	LightsManager::LightsManager(AssetDatabase* assetDatabase)
 	{
-		m_passKeywords[0] = StringHashID::StringToID("PASS_CLUSTERS");
-		m_passKeywords[1] = StringHashID::StringToID("PASS_DISPATCH");
-	
 		m_computeLightAssignment = assetDatabase->Find<Shader>("CS_ClusteredLightAssignment");
 		m_computeDepthReset = assetDatabase->Find<Shader>("CS_ClusteredDepthReset");
 		m_computeDepthTiles = assetDatabase->Find<Shader>("CS_ClusteredDepthMinMax");
-		m_computeCullClusters = assetDatabase->Find<Shader>("CS_ClusteredCullClusters");
 		m_debugVisualize = assetDatabase->Find<Shader>("SH_VS_ClusterDebug");
 	
 		m_shadowmapData.LightIndices[(int)LightType::Point].ShaderRenderShadows = assetDatabase->Find<Shader>("SH_WS_ShadowmapCube");
@@ -129,7 +125,7 @@ namespace PK::Rendering
 		m_depthTiles = CreateRef<ComputeBuffer>(BufferLayout(
 		{
 			{CG_TYPE::INT2, "DEPTHMINMAX"},
-		}), ClusterCount, true, GL_NONE);
+		}), GridSizeX * GridSizeY, true, GL_NONE);
 	
 		m_lightsBuffer = CreateRef<ComputeBuffer>(BufferLayout(
 		{
@@ -145,17 +141,12 @@ namespace PK::Rendering
 		{
 			{CG_TYPE::FLOAT4X4, "MATRIX"}
 		}), 32, false, GL_STREAM_DRAW);
+	
+		m_lightDirectionsBuffer = CreateRef<ComputeBuffer>(BufferLayout(
+		{
+			{CG_TYPE::FLOAT4, "DIRECTION"}
+		}), 32, false, GL_STREAM_DRAW);
 
-		m_VisibleClusterList = CreateRef<ComputeBuffer>(BufferLayout(
-		{
-			{CG_TYPE::INT, "INDEX"},
-		}), ClusterCount, true, GL_NONE);
-	
-		m_clusterDispatchInfo = CreateRef<ComputeBuffer>(BufferLayout(
-		{
-			{CG_TYPE::INT, "DISPATCH_ARGUMENTS", 5}
-		}), 1, true, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
-	
 		m_globalLightsList = CreateRef<ComputeBuffer>(BufferLayout(
 		{
 			{CG_TYPE::INT, "INDEX" }
@@ -165,6 +156,8 @@ namespace PK::Rendering
 		{
 			{CG_TYPE::INT, "INDEX"},
 		}), ClusterCount, true, GL_NONE);
+
+		m_globalLightIndex = CreateRef<ComputeBuffer>(BufferLayout({ {CG_TYPE::UINT, "INDEX"} }), 1, false, GL_STREAM_DRAW);
 	}
 
 	void LightsManager::UpdateShadowmaps(ECS::EntityDatabase* entityDb)
@@ -289,10 +282,12 @@ namespace PK::Rendering
 		}
 
 		m_lightMatricesBuffer->ValidateSize((uint)lightProjectionCount);
+		m_lightDirectionsBuffer->ValidateSize((uint)lightProjectionCount);
 		m_lightsBuffer->ValidateSize((uint)m_visibleLightCount + 1);
 
 		auto lightsBuffer = m_lightsBuffer->BeginMapBufferRange<Structs::PKRawLight>(0, m_visibleLightCount + 1);
 		auto matricesBuffer = lightProjectionCount > 0 ? m_lightMatricesBuffer->BeginMapBufferRange<float4x4>(0, lightProjectionCount) : BufferView<float4x4>();
+		auto directionsBuffer = lightProjectionCount > 0 ? m_lightDirectionsBuffer->BeginMapBufferRange<float4>(0, lightProjectionCount) : BufferView<float4>();
 
 		for (size_t i = 0; i < m_visibleLightCount; ++i)
 		{
@@ -300,7 +295,10 @@ namespace PK::Rendering
 
 			switch (view->light->lightType)
 			{
-				case LightType::Spot: matricesBuffer[view->light->projectionIndex] = Functions::GetPerspective(view->light->angle, 1.0f, 0.1f, view->light->radius) * view->transform->worldToLocal; break;
+				case LightType::Spot: 
+					matricesBuffer[view->light->projectionIndex] = Functions::GetPerspective(view->light->angle, 1.0f, 0.1f, view->light->radius) * view->transform->worldToLocal; 
+					directionsBuffer[view->light->projectionIndex] = float4(view->transform->rotation * CG_FLOAT3_FORWARD, view->light->angle * CG_FLOAT_DEG2RAD);
+					break;
 			}
 
 			lightsBuffer[i] = 
@@ -320,6 +318,7 @@ namespace PK::Rendering
 		if (lightProjectionCount > 0)
 		{
 			m_lightMatricesBuffer->EndMapBuffer();
+			m_lightDirectionsBuffer->EndMapBuffer();
 		}
 	}
 	
@@ -338,6 +337,9 @@ namespace PK::Rendering
 	
 		auto hashCache = HashCache::Get();
 	
+		auto zero = 0u;
+		m_globalLightIndex->SubmitData(&zero, 0, sizeof(uint));
+
 		GraphicsAPI::SetGlobalInt(hashCache->pk_LightCount, m_visibleLightCount);
 		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_Lights, m_lightsBuffer->GetGraphicsID());
 		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_LightMatrices, m_lightMatricesBuffer->GetGraphicsID());
@@ -345,11 +347,8 @@ namespace PK::Rendering
 		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_GlobalLightsList, m_globalLightsList->GetGraphicsID());
 		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_LightTiles, m_lightTiles->GetGraphicsID());
 		m_properties.SetComputeBuffer(hashCache->pk_FDepthRanges, m_depthTiles->GetGraphicsID());
-		m_properties.SetComputeBuffer(hashCache->pk_ClusterDispatchInfo, m_clusterDispatchInfo->GetGraphicsID());
-		m_properties.SetComputeBuffer(hashCache->pk_VisibleClusters, m_VisibleClusterList->GetGraphicsID());
-	
-		uint zero[5] = { 0, 0, 0, 0, 0 };
-		m_clusterDispatchInfo->SubmitData(&zero, 0, CG_TYPE_SIZE_INT * 5);
+		m_properties.SetComputeBuffer(hashCache->pk_LightDirections, m_lightDirectionsBuffer->GetGraphicsID());
+		m_properties.SetComputeBuffer(hashCache->pk_GlobalListListIndex, m_globalLightIndex->GetGraphicsID());
 
 		UpdateShadowmaps(entityDb);
 	}
@@ -359,16 +358,9 @@ namespace PK::Rendering
 		auto depthCountX = (uint)std::ceilf(resolution.x / 16.0f);
 		auto depthCountY = (uint)std::ceilf(resolution.y / 16.0f);
 	
-		GraphicsAPI::DispatchCompute(m_computeDepthReset, { 1,1, GridSizeZ / 4 }, m_properties);
+		GraphicsAPI::DispatchCompute(m_computeDepthReset, { 1,1,1 }, m_properties);
 		GraphicsAPI::DispatchCompute(m_computeDepthTiles, { depthCountX, depthCountY, 1 }, m_properties);
-		
-		m_properties.SetKeywords({ m_passKeywords[0] });
-		GraphicsAPI::DispatchCompute(m_computeCullClusters, { GridSizeX, GridSizeY, GridSizeZ }, m_properties);
-	
-		m_properties.SetKeywords({ m_passKeywords[1] });
-		GraphicsAPI::DispatchCompute(m_computeCullClusters, { 1, 1, 1}, m_properties);
-		
-		GraphicsAPI::DispatchComputeIndirect(m_computeLightAssignment, m_clusterDispatchInfo->GetGraphicsID(), 0, m_properties);
+		GraphicsAPI::DispatchCompute(m_computeLightAssignment, { 1,1, GridSizeZ / 4 }, m_properties);
 	}
 	
 	void LightsManager::DrawDebug() { GraphicsAPI::Blit(m_debugVisualize, m_properties); }

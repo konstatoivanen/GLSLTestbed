@@ -54,13 +54,13 @@ namespace PK::Utilities
 
         DEFINE_HASH_CACHE(pk_Lights)
         DEFINE_HASH_CACHE(pk_LightMatrices)
+        DEFINE_HASH_CACHE(pk_LightDirections)
         DEFINE_HASH_CACHE(pk_LightCount)
         DEFINE_HASH_CACHE(pk_ClusterFrustumInfo)
         DEFINE_HASH_CACHE(pk_GlobalLightsList)
         DEFINE_HASH_CACHE(pk_LightTiles)
         DEFINE_HASH_CACHE(pk_FDepthRanges)
-        DEFINE_HASH_CACHE(pk_ClusterDispatchInfo)
-        DEFINE_HASH_CACHE(pk_VisibleClusters)
+        DEFINE_HASH_CACHE(pk_GlobalListListIndex)
 
         #undef DEFINE_HASH_CACHE
     };
