@@ -544,7 +544,6 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="src\Utilities\StringHashID.h" />
     <ClInclude Include="src\Core\Time.h" />
     <ClInclude Include="src\Rendering\Objects\TextureXD.h" />
-    <ClInclude Include="include\stb_image\stb_image.h" />
     <ClInclude Include="src\Rendering\Objects\Texture.h" />
     <ClInclude Include="src\Core\Window.h" />
     <ClInclude Include="src\Utilities\StringUtilities.h" />
@@ -817,12 +816,6 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClCompile Include="src\Utilities\StringHashID.cpp" />
     <ClCompile Include="src\Core\Time.cpp" />
     <ClCompile Include="src\Rendering\Objects\TextureXD.cpp" />
-    <ClCompile Include="include\stb_image\stb_image.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="src\Core\Window.cpp" />
     <ClCompile Include="src\Utilities\StringUtilities.cpp" />
   </ItemGroup>

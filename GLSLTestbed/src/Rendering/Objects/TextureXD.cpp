@@ -1,7 +1,6 @@
 #include "PrecompiledHeader.h"
 #include "Utilities/Log.h"
 #include "Rendering/Objects/TextureXD.h"
-#include <stb_image.h>
 #include <KTX/ktx.h>
 
 namespace PK::Rendering::Objects
@@ -72,50 +71,25 @@ void PK::Core::AssetImporters::Import(const std::string& filepath, Utilities::Re
 
 	auto wrapmode = PK::Rendering::Objects::Texture::GetWrapmodeFromString(filepath.c_str());
 
-	if (filepath.find(".ktx") != std::string::npos)
-	{
-		ktxTexture* kTexture;
-		KTX_error_code result;
-		GLenum target, glerror;
+	ktxTexture* kTexture;
+	KTX_error_code result;
+	GLenum target, glerror;
 
-		result = ktxTexture_CreateFromNamedFile(filepath.c_str(), KTX_TEXTURE_CREATE_NO_FLAGS, &kTexture);
+	result = ktxTexture_CreateFromNamedFile(filepath.c_str(), KTX_TEXTURE_CREATE_NO_FLAGS, &kTexture);
 
-		PK_CORE_ASSERT(result == KTX_SUCCESS, "Failed to load ktx!");
+	PK_CORE_ASSERT(result == KTX_SUCCESS, "Failed to load ktx!");
 
-		PK::Rendering::Objects::Texture::GetDescirptorFromKTX(kTexture, &texture->m_descriptor, &texture->m_channels);
+	PK::Rendering::Objects::Texture::GetDescirptorFromKTX(kTexture, &texture->m_descriptor, &texture->m_channels);
 
-		glGenTextures(1, &texture->m_graphicsId);
+	glGenTextures(1, &texture->m_graphicsId);
 
-		result = ktxTexture_GLUpload(kTexture, &texture->m_graphicsId, &target, &glerror);
-		
-		PK_CORE_ASSERT(result == KTX_SUCCESS, "Failed to upload ktx!");
+	result = ktxTexture_GLUpload(kTexture, &texture->m_graphicsId, &target, &glerror);
+	
+	PK_CORE_ASSERT(result == KTX_SUCCESS, "Failed to upload ktx!");
 
-		glTextureParameteri(texture->m_graphicsId, GL_TEXTURE_MIN_FILTER, texture->m_descriptor.filtermin);
-		glTextureParameteri(texture->m_graphicsId, GL_TEXTURE_MAG_FILTER, texture->m_descriptor.filtermag);
-		texture->SetWrapMode(wrapmode, wrapmode, wrapmode);
+	glTextureParameteri(texture->m_graphicsId, GL_TEXTURE_MIN_FILTER, texture->m_descriptor.filtermin);
+	glTextureParameteri(texture->m_graphicsId, GL_TEXTURE_MAG_FILTER, texture->m_descriptor.filtermag);
+	texture->SetWrapMode(wrapmode, wrapmode, wrapmode);
 
-		ktxTexture_Destroy(kTexture);
-		return;
-	}
-
-	texture->m_descriptor.wrapmodex = texture->m_descriptor.wrapmodey = texture->m_descriptor.wrapmodez = wrapmode;
-	auto desiredChannelCount = PK::Rendering::Objects::Texture::GetChannelCount(texture->m_channels);
-
-	int width, height, channels;
-	stbi_set_flip_vertically_on_load(1);
-
-	stbi_uc* data = nullptr;
-	{
-		data = stbi_load(filepath.c_str(), &width, &height, &channels, desiredChannelCount);
-	}
-
-	PK_CORE_ASSERT(data, "Failed to load image!");
-	PK_CORE_ASSERT(channels == desiredChannelCount, "Failed to load image with the desired channel count!");
-
-	texture->m_descriptor.resolution = { (uint32_t)width, (uint32_t)width, 0 };
-
-	PK::Rendering::Objects::Texture::CreateTextureStorage(texture->m_graphicsId, texture->m_descriptor);
-	texture->SetData(data, texture->GetSize(), 0);
-
-	stbi_image_free(data);
+	ktxTexture_Destroy(kTexture);
 }

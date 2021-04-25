@@ -53,5 +53,4 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 - [GLFW](https://www.glfw.org/)
 - [GLM](https://github.com/g-truc/glm)
 - [mikktspace](http://www.mikktspace.com/)
-- [stb_image](https://github.com/nothings/stb) (To be deprecated by ktx)
 - [tinyobjloader](https://github.com/tinyobjloader/tinyobjloader)
