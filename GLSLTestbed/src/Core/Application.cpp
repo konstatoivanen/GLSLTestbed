@@ -13,7 +13,7 @@
 #include "ECS/Contextual/Engines/EngineEditorCamera.h"
 #include "ECS/Contextual/Engines/DebugEngine.h"
 #include "ECS/Contextual/Engines/EngineUpdateTransforms.h"
-#include "Rendering/Graphics.h"
+#include "Rendering/GraphicsAPI.h"
 #include <math.h>
 
 namespace PK::Core

@@ -10,6 +10,11 @@ namespace PK::Rendering::Objects
     {
     }
     
+    void Texture::Clear(uint level, const void* clearValue) const
+    {
+        glClearTexImage(m_graphicsId, level, m_channels, GetFormatDataType(m_descriptor.colorFormat), clearValue);
+    }
+
     void Texture::SetWrapMode(GLenum x, GLenum y, GLenum z)
     {
         m_descriptor.wrapmodex = x;
@@ -75,54 +80,58 @@ namespace PK::Rendering::Objects
     {
         switch (format)
         {
-            case GL_R8:
             case GL_R8I: 
             case GL_R8UI: 
-            case GL_R16:
             case GL_R16I:
             case GL_R16UI:
-            case GL_R16F:
             case GL_R32I: 
             case GL_R32UI: 
+                return GL_RED_INTEGER;
+            case GL_R8:
+            case GL_R16:
+            case GL_R16F:
             case GL_R32F: 
                 return GL_RED;
-            case GL_RG8:
             case GL_RG8I:
             case GL_RG8UI:
-            case GL_RG16:
             case GL_RG16I:
             case GL_RG16UI:
-            case GL_RG16F:
             case GL_RG32I:
             case GL_RG32UI:
+                return GL_RG_INTEGER;
+            case GL_RG8:
+            case GL_RG16:
+            case GL_RG16F:
             case GL_RG32F:
                 return GL_RG;
+            case GL_RGB8I:
+            case GL_RGB8UI:
+            case GL_RGB16I:
+            case GL_RGB16UI:
+            case GL_RGB32UI:
+            case GL_RGB32I:
+                return GL_RGB_INTEGER;
             case GL_RGB4:
             case GL_RGB5:
             case GL_RGB565:
             case GL_RGB8:
-            case GL_RGB8I:
-            case GL_RGB8UI:
             case GL_RGB10:
             case GL_RGB16:
-            case GL_RGB16I:
-            case GL_RGB16UI:
             case GL_RGB16F:
-            case GL_RGB32I:
-            case GL_RGB32UI:
             case GL_RGB32F:
                 return GL_RGB;
-            case GL_RGBA4:
-            case GL_RGBA8:
             case GL_RGBA8I:
             case GL_RGBA8UI:
-            case GL_RGBA12:
-            case GL_RGBA16:
             case GL_RGBA16I:
             case GL_RGBA16UI:
-            case GL_RGBA16F:
             case GL_RGBA32I:
             case GL_RGBA32UI:
+                return GL_RGBA_INTEGER;
+            case GL_RGBA4:
+            case GL_RGBA8:
+            case GL_RGBA12:
+            case GL_RGBA16:
+            case GL_RGBA16F:
             case GL_RGBA32F:
                 return GL_RGBA;
             case GL_DEPTH24_STENCIL8:
@@ -276,9 +285,13 @@ namespace PK::Rendering::Objects
         switch (channels)
         {
             case GL_RED: return 1;
+            case GL_RED_INTEGER: return 1;
             case GL_RG: return 2;
+            case GL_RG_INTEGER: return 2;
             case GL_RGB: return 3;
+            case GL_RGB_INTEGER: return 3;
             case GL_RGBA: return 4;
+            case GL_RGBA_INTEGER: return 4;
             case GL_DEPTH_STENCIL: return 1;
             case GL_DEPTH_COMPONENT: return 1;
         }

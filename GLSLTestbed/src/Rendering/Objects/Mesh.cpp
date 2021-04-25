@@ -1,7 +1,7 @@
 #include "PrecompiledHeader.h"
 #include "Utilities/Log.h"
 #include "Rendering/Objects/Mesh.h"
-#include "Rendering/Graphics.h"
+#include "Rendering/GraphicsAPI.h"
 #include "Rendering/MeshUtility.h"
 #include <glad/glad.h>
 #include <hlslmath.h>

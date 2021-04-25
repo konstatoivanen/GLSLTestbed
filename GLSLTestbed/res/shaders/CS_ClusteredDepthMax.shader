@@ -12,7 +12,5 @@ void main()
 
     float depth = LinearizeDepth(texelFetch(pk_ScreenDepth, int2(pxcoord), 0).r);
 
-    uint tileIndex = uint(uint(pxcoord.x / CLUSTER_SIZE_PX) + CLUSTER_TILE_COUNT_X * uint(pxcoord.y / CLUSTER_SIZE_PX));
-
-    atomicMax(PK_BUFFER_DATA(pk_TileMaxDepths, tileIndex), floatBitsToUint(depth));
+    atomicMax(PK_BUFFER_DATA(pk_TileMaxDepths, GetDepthTileIndex(pxcoord)), floatBitsToUint(depth));
 }

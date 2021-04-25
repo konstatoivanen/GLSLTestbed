@@ -1,5 +1,5 @@
 ﻿#include "PrecompiledHeader.h"
-#include "Rendering/Graphics.h"
+#include "Rendering/GraphicsAPI.h"
 #include "Rendering/Objects/Shader.h"
 #include "Rendering/RenderQueueInfo.h"
 #include "Utilities/StringHashID.h"
@@ -153,6 +153,11 @@ namespace PK::Rendering::Objects
 				case GL_IMAGE_2D:
 				case GL_IMAGE_2D_ARRAY:
 				case GL_IMAGE_3D:
+				case GL_UNSIGNED_INT_IMAGE_1D:
+				case GL_UNSIGNED_INT_IMAGE_1D_ARRAY:
+				case GL_UNSIGNED_INT_IMAGE_2D:
+				case GL_UNSIGNED_INT_IMAGE_2D_ARRAY:
+				case GL_UNSIGNED_INT_IMAGE_3D:
 					return true;
 			}
 

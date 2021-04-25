@@ -4,8 +4,6 @@
 
 #include HLSLSupport.glsl
 
-uniform sampler2D pk_Bluenoise256;
-
 float NoiseUV(float u, float v)
 {
     return fract(43758.5453 * sin(dot(float2(12.9898, 78.233), float2(u, v))));
@@ -103,11 +101,6 @@ float NoiseScroll(float3 pos, float time, float scale, float3 dir, float amount,
 
 	f = max(f, 0.0);
 	return lerp(1.0, f, amount);
-}
-
-float3 NoiseBlue(uint2 coord)
-{
-	return texelFetch(pk_Bluenoise256, int2(coord.x % 256, coord.y % 256), 0).xyz;
 }
 
 float bayermatrix[4][4] =

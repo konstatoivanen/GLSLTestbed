@@ -1,6 +1,6 @@
 #include "PrecompiledHeader.h"
 #include "FilterAO.h"
-#include "Rendering/Graphics.h"
+#include "Rendering/GraphicsAPI.h"
 #include "Utilities/HashCache.h"
 
 namespace PK::Rendering::PostProcessing

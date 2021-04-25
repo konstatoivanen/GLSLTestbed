@@ -2,7 +2,7 @@
 #include "Utilities/Utilities.h"
 #include "Utilities/HashCache.h"
 #include "Rendering/Batching.h"
-#include "Rendering/Graphics.h"
+#include "Rendering/GraphicsAPI.h"
 
 namespace PK::Rendering::Batching
 {

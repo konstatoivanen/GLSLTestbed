@@ -4,7 +4,7 @@
 #include "Utilities/HashCache.h"
 #include "Utilities/Utilities.h"
 #include "Rendering/RenderPipeline.h"
-#include "Rendering/Graphics.h"
+#include "Rendering/GraphicsAPI.h"
 #include "Rendering/MeshUtility.h"
 #include "ECS/Contextual/EntityViews/EntityViews.h"
 
@@ -97,6 +97,7 @@ namespace PK::Rendering
 			{CG_TYPE::FLOAT4, "pk_DeltaTime"},
 			{CG_TYPE::FLOAT4, "pk_WorldSpaceCameraPos"},
 			{CG_TYPE::FLOAT4, "pk_ProjectionParams"},
+			{CG_TYPE::FLOAT4, "pk_ExpProjectionParams"},
 			{CG_TYPE::FLOAT4, "pk_ScreenParams"},
 			{CG_TYPE::FLOAT4X4, "pk_MATRIX_V"},
 			{CG_TYPE::FLOAT4X4, "pk_MATRIX_I_V"},
@@ -110,10 +111,14 @@ namespace PK::Rendering
 			{CG_TYPE::HANDLE, "pk_ShadowmapAtlas"},
 			{CG_TYPE::HANDLE, "pk_ScreenOcclusion"},
 			{CG_TYPE::HANDLE, "pk_LightCookies"},
+			{CG_TYPE::HANDLE, "pk_Bluenoise256"},
 			{CG_TYPE::FLOAT, "pk_SceneOEM_Exposure"},
 		}));
 
+		auto bluenoiseTex = assetDatabase->Find<TextureXD>("T_Bluenoise256_repeat");
 		auto cookies = assetDatabase->Find<TextureXD>("T_LightCookies");
+
+		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_Bluenoise256, bluenoiseTex->GetBindlessHandleResident());
 		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_LightCookies, cookies->GetBindlessHandleResident());
 		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenDepth, m_PreZRenderTarget->GetDepthBuffer()->GetBindlessHandleResident());
 		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenNormals, m_PreZRenderTarget->GetColorBuffer(0)->GetBindlessHandleResident());
@@ -178,11 +183,9 @@ namespace PK::Rendering
 			Culling::CullingGroup::CameraFrustum, 
 			(ushort)(ECS::Components::RenderHandleFlags::Renderer | ECS::Components::RenderHandleFlags::Light));
 	
-		auto projectionParams = *m_constantsPerFrame->GetPropertyPtr<float4>(HashCache::Get()->pk_ProjectionParams);
-
 		UpdateDynamicBatches(m_entityDb, m_visibilityCache, m_dynamicBatches);
 
-		m_lightsManager.Preprocess(m_entityDb, m_visibilityCache.GetList(Culling::CullingGroup::CameraFrustum, (int)ECS::Components::RenderHandleFlags::Light), resolution, projectionParams.y, projectionParams.z);
+		m_lightsManager.Preprocess(m_entityDb, m_visibilityCache.GetList(Culling::CullingGroup::CameraFrustum, (int)ECS::Components::RenderHandleFlags::Light), resolution);
 	}
 	
 	void RenderPipeline::OnRender()

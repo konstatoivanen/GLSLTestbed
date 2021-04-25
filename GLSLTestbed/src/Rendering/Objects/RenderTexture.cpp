@@ -1,6 +1,6 @@
 #include "PrecompiledHeader.h"
 #include "Rendering/Objects/RenderTexture.h"
-#include "Rendering/Graphics.h"
+#include "Rendering/GraphicsAPI.h"
 
 namespace PK::Rendering::Objects
 {

@@ -43,7 +43,7 @@ namespace PK::Rendering
         public:
             LightsManager(AssetDatabase* assetDatabase);
 
-            void Preprocess(PK::ECS::EntityDatabase* entityDb, Core::BufferView<uint> visibleLights, const uint2& resolution, float znear, float zfar);
+            void Preprocess(PK::ECS::EntityDatabase* entityDb, Core::BufferView<uint> visibleLights, const uint2& resolution);
 
             void UpdateLightTiles(const uint2& resolution);
 
@@ -76,7 +76,7 @@ namespace PK::Rendering
             Utilities::Ref<ComputeBuffer> m_lightDirectionsBuffer;
             Utilities::Ref<ComputeBuffer> m_globalLightsList;
             Utilities::Ref<ComputeBuffer> m_globalLightIndex;
-            Utilities::Ref<ComputeBuffer> m_lightTiles;
+            Utilities::Ref<RenderBuffer> m_lightTiles;
             Utilities::Ref<ComputeBuffer> m_depthTiles;
     };
 }

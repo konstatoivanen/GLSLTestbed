@@ -3,7 +3,7 @@
 #include "Utilities/HashCache.h"
 #include "Utilities/Utilities.h"
 #include "Rendering/GizmoRenderer.h"
-#include "Rendering/Graphics.h"
+#include "Rendering/GraphicsAPI.h"
 
 namespace PK::Rendering
 {

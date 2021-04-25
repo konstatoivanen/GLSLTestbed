@@ -538,7 +538,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="src\PrecompiledHeader.h" />
     <ClInclude Include="src\Utilities\Ref.h" />
     <ClInclude Include="src\Rendering\Objects\Shader.h" />
-    <ClInclude Include="src\Rendering\Graphics.h" />
+    <ClInclude Include="src\Rendering\GraphicsAPI.h" />
     <ClInclude Include="include\GLFW\glfw3.h" />
     <ClInclude Include="include\GLFW\glfw3native.h" />
     <ClInclude Include="src\Utilities\StringHashID.h" />
@@ -812,7 +812,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\Rendering\Objects\Shader.cpp" />
-    <ClCompile Include="src\Rendering\Graphics.cpp" />
+    <ClCompile Include="src\Rendering\GraphicsAPI.cpp" />
     <ClCompile Include="src\Core\Application.cpp" />
     <ClCompile Include="src\Utilities\StringHashID.cpp" />
     <ClCompile Include="src\Core\Time.cpp" />

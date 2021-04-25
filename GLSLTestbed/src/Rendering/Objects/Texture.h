@@ -77,6 +77,7 @@ namespace PK::Rendering::Objects
             void MakeImageHandleResident(GLenum format, GLenum access, int level, int layer, bool layered) const { glMakeImageHandleResidentARB(glGetImageHandleARB(m_graphicsId, level, layered, layer, format), access); }
             void MakeImageHandleNonResident(GLenum format, int level, int layer, bool layered) const { glMakeImageHandleNonResidentARB(glGetImageHandleARB(m_graphicsId, level, layered, layer, format)); }
 
+            void Clear(uint level, const void* clearValue) const;
             void SetWrapMode(GLenum x, GLenum y, GLenum z);
             void SetFilterMode(GLenum min, GLenum mag);
     

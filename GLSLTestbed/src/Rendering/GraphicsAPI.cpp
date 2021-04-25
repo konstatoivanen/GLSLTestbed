@@ -1,6 +1,6 @@
 #include "PrecompiledHeader.h"
 #include "Utilities/HashCache.h"
-#include "Rendering/Graphics.h"
+#include "Rendering/GraphicsAPI.h"
 #include <hlslmath.h>
 
 namespace PK::Rendering::GraphicsAPI
@@ -230,7 +230,8 @@ namespace PK::Rendering::GraphicsAPI
 		auto n = -projection[3][2] / (projection[2][2] + 1.0f);
 		auto vp = projection * view;
 
-		SetGlobalFloat4(hashCache->pk_ProjectionParams, { 1.0f, n, f, 1.0f / f });
+		SetGlobalFloat4(hashCache->pk_ProjectionParams, { n, f, f - n, 1.0f / f });
+		SetGlobalFloat4(hashCache->pk_ExpProjectionParams, { 1.0f / glm::log2(f/n), -log2(n) / log2(f/n), f/n, 1.0f/n });
 		SetGlobalFloat4(hashCache->pk_WorldSpaceCameraPos, cameraMatrix[3]);
 		SetGlobalFloat4x4(hashCache->pk_MATRIX_V, view);
 		SetGlobalFloat4x4(hashCache->pk_MATRIX_I_V, cameraMatrix);

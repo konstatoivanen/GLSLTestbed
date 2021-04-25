@@ -2,7 +2,7 @@
 #include "Utilities/Log.h"
 #include "Core/Input.h"
 #include "Core/UpdateStep.h"
-#include "Rendering/Graphics.h"
+#include "Rendering/GraphicsAPI.h"
 
 namespace PK::Core
 {

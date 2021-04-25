@@ -71,19 +71,17 @@ layout(local_size_x = CLUSTER_TILE_COUNT_X, local_size_y = CLUSTER_TILE_COUNT_Y,
 void main() 
 {
     uint numBatches = (pk_LightCount + CLUSTER_TILE_COUNT_XY - 1) / CLUSTER_TILE_COUNT_XY;
-    uint tileIndex = gl_LocalInvocationIndex + gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z * gl_WorkGroupID.z;
     uint2 tileCoord = gl_GlobalInvocationID.xy;
     uint depthTileIndex = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * CLUSTER_TILE_COUNT_X;
 
-    uint zcoord = TileToZCoord(tileIndex);
-    float near = ZCoordToLinearDepth(zcoord);
-    float far = ZCoordToLinearDepth(zcoord + 1);
+    float near = ZCoordToLinearDepth(gl_GlobalInvocationID.z);
+    float far = ZCoordToLinearDepth(gl_GlobalInvocationID.z + 1);
     float maxfar = LOAD_MAX_DEPTH(depthTileIndex);
 
     far = min(far, maxfar);
 
     float2 invstep = 1.0f / float2(CLUSTER_TILE_COUNT_X, CLUSTER_TILE_COUNT_X * (pk_ScreenParams.y / pk_ScreenParams.x));
-    float4 screenminmax = float4(tileCoord.xy * invstep, (tileCoord.xy + 1.0f) * invstep);
+    float4 screenminmax = float4(gl_GlobalInvocationID.xy * invstep, (gl_GlobalInvocationID.xy + 1.0f) * invstep);
 
     bool discardTile = near > maxfar || screenminmax.y > 1.0f;
 
@@ -142,5 +140,5 @@ void main()
         PK_BUFFER_DATA(pk_GlobalLightsList, offset + i) = visibleLightIndices[i];
     }
 
-    PK_BUFFER_DATA(pk_LightTiles, tileIndex) = (visibleLightCount << 24) | (offset & 0xFFFFFF);
+    imageStore(pk_LightTiles, int3(gl_GlobalInvocationID), uint4((visibleLightCount << 24) | (offset & 0xFFFFFF)));
 }

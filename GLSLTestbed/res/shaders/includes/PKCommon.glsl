@@ -34,8 +34,10 @@ PK_DECLARE_CBUFFER(pk_PerFrameConstants)
     
     // World space position of the camera.
     float4 pk_WorldSpaceCameraPos;
-    // x is 1.0, y is the camera’s near plane, z is the camera’s far plane and w is 1/FarPlane.
+    // x = n, y = f, z = f - n, w = 1.0f / f.
     float4 pk_ProjectionParams;
+    // x = 1.0f / log2(f / n), y = -log2(n) / log2(f / n), z = f / n, w = 1.0f / n.
+    float4 pk_ExpProjectionParams;
     // x is the width of the camera’s target texture in pixels, y is the height of the camera’s target texture in pixels, z is 1.0 + 1.0/width and w is 1.0 + 1.0/height.
     float4 pk_ScreenParams;
     
@@ -64,6 +66,8 @@ PK_DECLARE_CBUFFER(pk_PerFrameConstants)
     sampler2D pk_ScreenOcclusion;
     // Array of light cookies
     sampler2DArray pk_LightCookies;
+    // Global blue noise texture
+    sampler2D pk_Bluenoise256;
 
     // Scene reflections exposure
     float pk_SceneOEM_Exposure;
@@ -96,6 +100,10 @@ float LinearizeDepth(float z)
     return 1.0f / (pk_MATRIX_I_P[2][3] * (z * 2.0f - 1.0f) + pk_MATRIX_I_P[3][3]);
 } 
 
+float3 GlobalNoiseBlue(uint2 coord)
+{
+	return texelFetch(pk_Bluenoise256, int2(coord.x % 256, coord.y % 256), 0).xyz;
+}
 
 float4 WorldToClipPos( in float3 pos) { return mul(pk_MATRIX_VP, float4(pos, 1.0)); }
 

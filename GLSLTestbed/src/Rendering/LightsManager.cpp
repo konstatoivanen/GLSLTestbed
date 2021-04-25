@@ -1,7 +1,7 @@
 #include "PrecompiledHeader.h"
 #include "Utilities/Utilities.h"
 #include "Utilities/HashCache.h"
-#include "Rendering/Graphics.h"
+#include "Rendering/GraphicsAPI.h"
 #include "LightsManager.h"
 #include "ECS/Contextual/EntityViews/EntityViews.h"
 
@@ -121,11 +121,18 @@ namespace PK::Rendering
 		descriptor.resolution = { ShadowmapData::TileSize * ShadowmapData::TileCountPerAxis, ShadowmapData::TileSize * ShadowmapData::TileCountPerAxis, 0 };
 		m_shadowmapData.ShadowmapAtlas = CreateRef<RenderTexture>(descriptor);
 
-		m_depthTiles = CreateRef<ComputeBuffer>(BufferLayout(
-		{
-			{CG_TYPE::UINT, "DEPTHMAX"},
-		}), GridSizeX * GridSizeY, true, GL_NONE);
-	
+		TextureDescriptor imageDescriptor;
+		imageDescriptor.dimension = GL_TEXTURE_3D;
+		imageDescriptor.colorFormat = GL_R32UI;
+		imageDescriptor.miplevels = 0;
+		imageDescriptor.filtermag = GL_NEAREST;
+		imageDescriptor.filtermin = GL_NEAREST;
+		imageDescriptor.wrapmodex = GL_CLAMP_TO_EDGE;
+		imageDescriptor.wrapmodey = GL_CLAMP_TO_EDGE;
+		imageDescriptor.wrapmodez = GL_CLAMP_TO_EDGE;
+		imageDescriptor.resolution = { GridSizeX, GridSizeY, GridSizeZ };
+		m_lightTiles = CreateRef<RenderBuffer>(imageDescriptor);
+
 		m_lightsBuffer = CreateRef<ComputeBuffer>(BufferLayout(
 		{
 			{CG_TYPE::FLOAT4, "COLOR"},
@@ -136,28 +143,11 @@ namespace PK::Rendering
 			{CG_TYPE::UINT, "TYPE"},
 		}), 32, false, GL_STREAM_DRAW);
 	
-		m_lightMatricesBuffer = CreateRef<ComputeBuffer>(BufferLayout(
-		{
-			{CG_TYPE::FLOAT4X4, "MATRIX"}
-		}), 32, false, GL_STREAM_DRAW);
-	
-		m_lightDirectionsBuffer = CreateRef<ComputeBuffer>(BufferLayout(
-		{
-			{CG_TYPE::FLOAT4, "DIRECTION"}
-		}), 32, false, GL_STREAM_DRAW);
-
-		m_globalLightsList = CreateRef<ComputeBuffer>(BufferLayout(
-		{
-			{CG_TYPE::INT, "INDEX" }
-		}), ClusterCount * MaxLightsPerTile, true, GL_NONE);
-	
-		m_lightTiles = CreateRef<ComputeBuffer>(BufferLayout(
-		{
-			{CG_TYPE::INT, "INDEX"},
-		}), ClusterCount, true, GL_NONE);
-
-		m_globalLightIndex = CreateRef<ComputeBuffer>(BufferLayout({ {CG_TYPE::UINT, "INDEX"} }), 1, false, GL_STREAM_DRAW);
-
+		m_depthTiles = CreateRef<ComputeBuffer>(BufferLayout({{CG_TYPE::UINT, "DEPTHMAX"}}), GridSizeX * GridSizeY, true, GL_NONE);
+		m_lightMatricesBuffer = CreateRef<ComputeBuffer>(BufferLayout({{CG_TYPE::FLOAT4X4, "MATRIX"}}), 32, false, GL_STREAM_DRAW);
+		m_lightDirectionsBuffer = CreateRef<ComputeBuffer>(BufferLayout({{CG_TYPE::FLOAT4, "DIRECTION"}}), 32, false, GL_STREAM_DRAW);
+		m_globalLightsList = CreateRef<ComputeBuffer>(BufferLayout({{CG_TYPE::INT, "INDEX"}}), ClusterCount * MaxLightsPerTile, true, GL_NONE);
+		m_globalLightIndex = CreateRef<ComputeBuffer>(BufferLayout({{CG_TYPE::UINT, "INDEX"}}), 1, false, GL_STREAM_DRAW);
 		m_properties.SetComputeBuffer(HashCache::Get()->pk_TileMaxDepths, m_depthTiles->GetGraphicsID());
 		m_properties.SetComputeBuffer(HashCache::Get()->pk_LightDirections, m_lightDirectionsBuffer->GetGraphicsID());
 		m_properties.SetComputeBuffer(HashCache::Get()->pk_GlobalListListIndex, m_globalLightIndex->GetGraphicsID());
@@ -185,7 +175,7 @@ namespace PK::Rendering
 			auto& typedata = m_shadowmapData.LightIndices[typeIdx];
 			auto batchCount = (uint)std::ceil(typedata.viewCount / (float)ShadowmapData::BatchSize);
 
-			for (auto batch = 0; batch < batchCount; ++batch)
+			for (auto batch = 0u; batch < batchCount; ++batch)
 			{
 				auto batchSize = std::min(typedata.viewCount - batch * ShadowmapData::BatchSize, ShadowmapData::BatchSize);
 				auto baseLightIndex = typedata.viewFirst + batch * ShadowmapData::BatchSize;
@@ -273,7 +263,7 @@ namespace PK::Rendering
 
 			if (view->light->castShadows && i < ShadowmapData::TotalTileCount)
 			{
-				view->light->shadowmapIndex = i;
+				view->light->shadowmapIndex = (uint)i;
 				auto& indicesView = m_shadowmapData.LightIndices[(uint)view->light->lightType];
 				indicesView.viewFirst = std::min(indicesView.viewFirst, (uint)i);
 				++indicesView.viewCount;
@@ -325,31 +315,20 @@ namespace PK::Rendering
 		}
 	}
 	
-	void LightsManager::Preprocess(PK::ECS::EntityDatabase* entityDb, Core::BufferView<uint> visibleLights, const uint2& resolution, float znear, float zfar)
+	void LightsManager::Preprocess(PK::ECS::EntityDatabase* entityDb, Core::BufferView<uint> visibleLights, const uint2& resolution)
 	{
 		UpdateLightBuffers(entityDb, visibleLights);
 
-		float frustuminfo[5] = 
-		{ 
-			(float)GridSizeZ / glm::log2(zfar / znear),
-			-(float)GridSizeZ * glm::log2(znear) / log2(zfar / znear), 
-			std::ceilf(resolution.x / (float)GridSizeX), 
-			znear,
-			zfar / znear
-		};
-	
 		auto hashCache = HashCache::Get();
 	
-		auto zero = 0u;
-		m_globalLightIndex->SubmitData(&zero, 0, sizeof(uint));
-
+		m_globalLightIndex->Clear();
+		m_depthTiles->Clear();
 		GraphicsAPI::SetGlobalInt(hashCache->pk_LightCount, m_visibleLightCount);
 		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_Lights, m_lightsBuffer->GetGraphicsID());
 		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_LightMatrices, m_lightMatricesBuffer->GetGraphicsID());
-		GraphicsAPI::SetGlobalFloat(hashCache->pk_ClusterFrustumInfo, frustuminfo, 5);
+		GraphicsAPI::SetGlobalFloat(hashCache->pk_ClusterSizePx, std::ceilf(resolution.x / (float)GridSizeX));
 		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_GlobalLightsList, m_globalLightsList->GetGraphicsID());
-		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_LightTiles, m_lightTiles->GetGraphicsID());
-
+		GraphicsAPI::SetGlobalImage(hashCache->pk_LightTiles, m_lightTiles->GetImageBindDescriptor(GL_READ_WRITE, 0, 0, true));
 		UpdateShadowmaps(entityDb);
 	}
 	
@@ -357,11 +336,12 @@ namespace PK::Rendering
 	{
 		auto depthCountX = (uint)std::ceilf(resolution.x / 16.0f);
 		auto depthCountY = (uint)std::ceilf(resolution.y / 16.0f);
-	
-		m_depthTiles->Clear();
-		GraphicsAPI::DispatchCompute(m_computeDepthTiles, { depthCountX, depthCountY, 1 }, m_properties);
-		GraphicsAPI::DispatchCompute(m_computeLightAssignment, { 1,1, GridSizeZ / 4 }, m_properties);
+		GraphicsAPI::DispatchCompute(m_computeDepthTiles, { depthCountX, depthCountY, 1 }, m_properties, GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
+		GraphicsAPI::DispatchCompute(m_computeLightAssignment, { 1,1, GridSizeZ / 4 }, m_properties, GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 	}
 	
-	void LightsManager::DrawDebug() { GraphicsAPI::Blit(m_debugVisualize, m_properties); }
+	void LightsManager::DrawDebug() 
+	{ 
+		GraphicsAPI::Blit(m_debugVisualize, m_properties);
+	}
 }

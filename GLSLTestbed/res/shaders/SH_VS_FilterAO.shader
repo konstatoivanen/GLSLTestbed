@@ -42,7 +42,7 @@ float SampleDepth(float2 uv)
 float GetDepthBlurFactor(float2 uv)
 {
     // @TODO solve this correctly later
-    float d = 1.0f - (LinearizeDepth(tex2D(pk_ScreenDepth, uv).r) - pk_ProjectionParams.y) / pk_ProjectionParams.z;
+    float d = 1.0f - (LinearizeDepth(tex2D(pk_ScreenDepth, uv).r) - pk_ProjectionParams.x) * pk_ProjectionParams.w;
     return d * d * d * d * d * d * d * d * d * d * d * d * d * d * d * d;
 }
 
@@ -55,7 +55,7 @@ float3 GetSampleDirection(float2 uv, float3 normal, float index)
 {
     float ngrad = NoiseGradient(uv * TARGETSCALE, pk_ScreenParams.xy);
 
-    float theta = (NoiseUV(1, index) + ngrad) * PK_PI * 2;
+    float theta = (NoiseUV(1, index) + ngrad) * PK_TWO_PI;
 
     float nuv = fract(NoiseUV(0, index) + ngrad) * 2 - 1;
 

@@ -1,6 +1,6 @@
 #include "PrecompiledHeader.h"
 #include "FilterVolumetricFog.h"
-#include "Rendering/Graphics.h"
+#include "Rendering/GraphicsAPI.h"
 
 namespace PK::Rendering::PostProcessing
 {
@@ -55,17 +55,10 @@ namespace PK::Rendering::PostProcessing
         m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_NoiseFogScale"), config.VolumeNoiseFogScale);
         m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_WindSpeed"), config.VolumeWindSpeed);
         m_volumeResources->SetResourceHandle(StringHashID::StringToID("pk_Volume_ScatterRead"), m_volumeScatter->GetBindlessHandleResident());
-
         m_volumeResources->FlushBufer();
-        //m_volumeResources->SetResourceHandle(StringHashID::StringToID("pk_Volume_Inject"), bufferInject->GetImageHandleResident(GL_RGBA16F, GL_READ_WRITE, 0, 0, true));
-        //m_volumeResources->SetResourceHandle(StringHashID::StringToID("pk_Volume_InjectRead"), bufferInject->GetTextureHandleResident());
 
-        auto bluenoiseTex = assetDatabase->Find<TextureXD>("T_Bluenoise256_repeat");
-        m_properties.SetTexture(StringHashID::StringToID("pk_Bluenoise256"), bluenoiseTex->GetGraphicsID());
-
-        m_properties.SetImage(StringHashID::StringToID("pk_Volume_Inject"), { m_volumeLightDensity->GetGraphicsID(), GL_RGBA16F, GL_READ_WRITE, 0, 0, true });
-        m_properties.SetImage(StringHashID::StringToID("pk_Volume_Scatter"), { m_volumeScatter->GetGraphicsID(), GL_RGBA16F, GL_READ_WRITE, 0, 0, true });
-
+        m_properties.SetImage(StringHashID::StringToID("pk_Volume_Inject"), m_volumeLightDensity->GetImageBindDescriptor(GL_READ_WRITE, 0, 0, true));
+        m_properties.SetImage(StringHashID::StringToID("pk_Volume_Scatter"), m_volumeScatter->GetImageBindDescriptor(GL_READ_WRITE, 0, 0, true));
         m_properties.SetConstantBuffer(StringHashID::StringToID("pk_VolumeResources"), m_volumeResources->GetGraphicsID());
     }
     
@@ -78,9 +71,8 @@ namespace PK::Rendering::PostProcessing
         auto groupsInject = uint3(VolumeResolution.x / InjectThreadCount.x, VolumeResolution.y / InjectThreadCount.y, VolumeResolution.z / InjectThreadCount.z);
         auto groupsScatter = uint3(VolumeResolution.x / ScatterThreadCount.x, VolumeResolution.y / ScatterThreadCount.y, 1);
 
-        GraphicsAPI::DispatchCompute(m_computeInject, groupsInject, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-        GraphicsAPI::DispatchCompute(m_computeScatter, groupsScatter, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-
+        GraphicsAPI::DispatchCompute(m_computeInject, groupsInject, m_properties, GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        GraphicsAPI::DispatchCompute(m_computeScatter, groupsScatter, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT);
         GraphicsAPI::Blit(destination, m_shader, m_properties);
     }
 }

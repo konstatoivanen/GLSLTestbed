@@ -33,7 +33,7 @@
     <ClInclude Include="src\Utilities\StringHashID.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Graphics.h">
+    <ClInclude Include="src\Rendering\GraphicsAPI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Rendering\ShaderPropertyIds.h">
@@ -1658,7 +1658,7 @@
     <ClCompile Include="src\Utilities\StringHashID.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Graphics.cpp">
+    <ClCompile Include="src\Rendering\GraphicsAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="include\stb_image\stb_image.cpp">

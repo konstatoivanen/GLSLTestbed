@@ -1,7 +1,7 @@
 #include "PrecompiledHeader.h"
 #include "EngineEditorCamera.h"
 #include "Core/Application.h"
-#include "Rendering/Graphics.h"
+#include "Rendering/GraphicsAPI.h"
 
 namespace PK::ECS::Engines
 {

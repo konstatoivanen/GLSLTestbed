@@ -1,64 +1,37 @@
 #pragma once
 #include HLSLSupport.glsl
 
-uniform float[5] pk_ClusterFrustumInfo;
+uniform float pk_ClusterSizePx;
 
 #define CLUSTER_TILE_COUNT_X 16
 #define CLUSTER_TILE_COUNT_Y 9
 #define CLUSTER_TILE_COUNT_Z 24
 #define CLUSTER_TILE_COUNT_XY 144 // 16 * 9
 #define CLUSTER_TILE_COUNT_MAX (16 * 9 * 24)
-#define CLUSTER_DEPTH_SCALE pk_ClusterFrustumInfo[0]
-#define CLUSTER_DEPTH_BIAS pk_ClusterFrustumInfo[1]
-#define CLUSTER_SIZE_PX pk_ClusterFrustumInfo[2]
-#define CLUSTER_ZNEAR pk_ClusterFrustumInfo[3]
-#define CLUSTER_ZFARNEAR pk_ClusterFrustumInfo[4]
-
-uint LinearDepthToZCoord(float depth)
-{
-    return uint(max(log2(depth) * CLUSTER_DEPTH_SCALE + CLUSTER_DEPTH_BIAS, 0.0));
-}
+#define CLUSTER_SIZE_PX pk_ClusterSizePx
 
 float ZCoordToLinearDepth(float index)
 {
-    return CLUSTER_ZNEAR * pow(CLUSTER_ZFARNEAR, index / CLUSTER_TILE_COUNT_Z);
+    return pk_ProjectionParams.x * pow(pk_ExpProjectionParams.z, index / CLUSTER_TILE_COUNT_Z);
 }
 
-uint2 ScreenToCoord2D(float2 screenpos)
+uint GetDepthTileIndex(float2 pxcoord)
 {
-    return uint2(screenpos / CLUSTER_SIZE_PX);
+    return uint(uint(pxcoord.x / CLUSTER_SIZE_PX) + CLUSTER_TILE_COUNT_X * uint(pxcoord.y / CLUSTER_SIZE_PX));
 }
 
-uint TileToZCoord(uint index)
+int3 GetTileIndex(float2 pxcoord, float lineardepth)
 {
-    return (index / CLUSTER_TILE_COUNT_XY);
+    int zTile = int(log2(lineardepth) * (CLUSTER_TILE_COUNT_Z * pk_ExpProjectionParams.x) + (CLUSTER_TILE_COUNT_Z * pk_ExpProjectionParams.y));
+    return int3(int2(pxcoord / CLUSTER_SIZE_PX), max(zTile, 0));
 }
 
-uint2 TileToCoord2D(uint index)
-{
-    return uint2(index % CLUSTER_TILE_COUNT_X, (index / CLUSTER_TILE_COUNT_X) % CLUSTER_TILE_COUNT_Y);
-}
-
-uint CoordToTile(uint3 coord)
-{
-    return uint(coord.x + CLUSTER_TILE_COUNT_X * coord.y + CLUSTER_TILE_COUNT_XY * coord.z); 
-}
-
-uint GetTileIndex(float2 pxcoord, float lineardepth)
-{
-    uint zTile = uint(max(log2(lineardepth) * CLUSTER_DEPTH_SCALE + CLUSTER_DEPTH_BIAS, 0.0));
-    uint3 tiles = uint3(uint2(pxcoord / CLUSTER_SIZE_PX), zTile);
-    return uint(tiles.x + CLUSTER_TILE_COUNT_X * tiles.y + CLUSTER_TILE_COUNT_XY * tiles.z); 
-}
-
-uint GetTileIndexFragment()
+int3 GetTileIndexFragment()
 {
     // Source: http://www.aortiz.me/2018/12/21/CG.html
     #if defined(SHADER_STAGE_FRAGMENT)
-        uint zTile = uint(max(log2(LinearizeDepth(gl_FragCoord.z)) * CLUSTER_DEPTH_SCALE + CLUSTER_DEPTH_BIAS, 0.0));
-        uint3 tiles = uint3( uint2( gl_FragCoord.xy / CLUSTER_SIZE_PX), zTile);
-        return uint(tiles.x + CLUSTER_TILE_COUNT_X * tiles.y + CLUSTER_TILE_COUNT_XY * tiles.z); 
+        return GetTileIndex(gl_FragCoord.xy, LinearizeDepth(gl_FragCoord.z));
     #else
-        return 0;
+        return int3(0);
     #endif
 }

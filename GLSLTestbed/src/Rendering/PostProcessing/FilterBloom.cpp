@@ -1,7 +1,7 @@
 #include "PrecompiledHeader.h"
 #include "FilterBloom.h"
 #include "Utilities/HashCache.h"
-#include "Rendering/Graphics.h"
+#include "Rendering/GraphicsAPI.h"
 
 namespace PK::Rendering::PostProcessing
 {

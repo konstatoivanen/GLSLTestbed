@@ -30,7 +30,6 @@ void main()
 
 	float3 worldpos = mul(pk_MATRIX_I_V, float4(ClipToViewPos(uv, depth), 1.0f)).xyz;
 
-
 	float3 color = SampleEnv(OctaUV(normalize(bluenoise - 0.5f + float3(0,1,0))), 1.0f);
 
 	LightTile tile = GetLightTile(GetTileIndex(uv * pk_ScreenParams.xy, depth));

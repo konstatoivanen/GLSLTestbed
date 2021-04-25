@@ -187,14 +187,12 @@ float3 GetVolumeLightColor(uint index, in float3 worldpos, float anistropy)
     return raw.color.xyz * attenuation;
 }
 
-LightTile GetLightTile(uint index)
+LightTile GetLightTile(int3 coord)
 {
     #if defined(PK_WRITE_CLUSTER_LIGHTS)
         return LightTile(0,0);
     #else
-        uint data = PK_BUFFER_DATA(pk_LightTiles, index);
-        uint offset = data & 0xFFFFFF;
-        return LightTile(offset, offset + (data >> 24));
+        return CreateLightTile(imageLoad(pk_LightTiles, coord).x);
     #endif
 }
 
