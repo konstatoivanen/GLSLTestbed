@@ -18,6 +18,12 @@ float Density(float3 pos)
 	return max(fog * pk_Volume_Density, 0.0);
 }
 
+float3 GetAmbientColor(float3 direction, float3 worldpos)
+{
+	float anistropy = GetLightAnistropy(worldpos, direction, pk_Volume_Anisotropy);
+	return SampleEnv(OctaUV(direction), 1.0f) * anistropy;
+}
+
 layout(local_size_x = 16, local_size_y = 2, local_size_z = 16) in;
 void main()
 {
@@ -30,7 +36,7 @@ void main()
 
 	float3 worldpos = mul(pk_MATRIX_I_V, float4(ClipToViewPos(uv, depth), 1.0f)).xyz;
 
-	float3 color = SampleEnv(OctaUV(normalize(bluenoise - 0.5f + float3(0,1,0))), 1.0f);
+	float3 color = GetAmbientColor(normalize(bluenoise - 0.5f + float3(0, 1, 0)), worldpos);
 
 	LightTile tile = GetLightTile(GetTileIndex(uv * pk_ScreenParams.xy, depth));
 

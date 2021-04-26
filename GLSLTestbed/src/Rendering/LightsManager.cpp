@@ -285,10 +285,18 @@ namespace PK::Rendering
 		for (size_t i = 0; i < m_visibleLightCount; ++i)
 		{
 			auto* view = m_visibleLights.at(i);
+			auto position = CG_FLOAT4_ZERO;
 
 			switch (view->light->lightType)
 			{
+				case LightType::Directional:
+					position = float4(view->transform->rotation * CG_FLOAT3_FORWARD, view->light->radius);
+					break;
+				case LightType::Point:
+					position = float4(view->transform->position, view->light->radius);
+					break;
 				case LightType::Spot: 
+					position = float4(view->transform->position, view->light->radius);
 					matricesBuffer[view->light->projectionIndex] = Functions::GetPerspective(view->light->angle, 1.0f, 0.1f, view->light->radius) * view->transform->worldToLocal; 
 					directionsBuffer[view->light->projectionIndex] = float4(view->transform->rotation * CG_FLOAT3_FORWARD, view->light->angle * CG_FLOAT_DEG2RAD);
 					break;
@@ -296,8 +304,8 @@ namespace PK::Rendering
 
 			lightsBuffer[i] = 
 			{ 
-				view->light->color, 
-				float4(view->transform->position, view->light->radius), 
+				view->light->color,
+				position,
 				view->light->shadowmapIndex, 
 				view->light->projectionIndex, 
 				(uint)view->light->cookie, 

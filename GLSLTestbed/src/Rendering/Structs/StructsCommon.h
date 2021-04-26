@@ -20,6 +20,7 @@ namespace PK::Rendering::Structs
         Square2 = 5,
         Triangle = 6,
         Star = 7,
+        NoCookie = 0xFFFFFFFF
     };
 
     struct FrustumTileAABB

@@ -40,7 +40,7 @@ namespace PK::ECS::Engines
 		return egid;
 	}
 	
-	static void CreateLight(EntityDatabase* entityDb, PK::Core::AssetDatabase* assetDatabase, const float3& position, const color& color, LightType type)
+	static void CreateLight(EntityDatabase* entityDb, PK::Core::AssetDatabase* assetDatabase, const float3& position, const color& color, bool castShadows, LightType type, LightCookie cookie)
 	{
 		auto egid = EGID(entityDb->ReserveEntityId(), (uint)ENTITY_GROUPS::ACTIVE);
 		auto implementer = entityDb->ResereveImplementer<Implementers::LightImplementer>();
@@ -58,7 +58,7 @@ namespace PK::ECS::Engines
 		lightSphereView->transformLight = static_cast<Components::Transform*>(implementer);
 	
 		implementer->position = position;
-		ECS::Builders::InitializeLightValues(implementer, color, type, LightCookie::Circle2, true, 90.0f);
+		ECS::Builders::InitializeLightValues(implementer, color, type, cookie, castShadows, 90.0f);
 
 		const auto intensityThreshold = 0.2f;
 		const auto sphereRadius = 0.2f;
@@ -76,6 +76,28 @@ namespace PK::ECS::Engines
 		lightSphereView->transformMesh = meshTransform->transform;
 	}
 	
+	static void CreateDirectionalLight(EntityDatabase* entityDb, PK::Core::AssetDatabase* assetDatabase, const float3& rotation, const color& color, bool castShadows)
+	{
+		auto egid = EGID(entityDb->ReserveEntityId(), (uint)ENTITY_GROUPS::ACTIVE);
+		auto implementer = entityDb->ResereveImplementer<Implementers::LightImplementer>();
+		auto transformView = entityDb->ReserveEntityView<EntityViews::TransformView>(egid);
+		auto baseView = entityDb->ReserveEntityView<EntityViews::BaseRenderable>(egid);
+		auto lightView = entityDb->ReserveEntityView<EntityViews::LightRenderable>(egid);
+
+		transformView->bounds = static_cast<Components::Bounds*>(implementer);
+		transformView->transform = static_cast<Components::Transform*>(implementer);
+		baseView->bounds = static_cast<Components::Bounds*>(implementer);
+		baseView->handle = static_cast<Components::RenderableHandle*>(implementer);
+		lightView->light = static_cast<Components::Light*>(implementer);
+		lightView->transform = static_cast<Components::Transform*>(implementer);
+		implementer->position = CG_FLOAT3_ZERO;
+		implementer->rotation = glm::quat(rotation * CG_FLOAT_DEG2RAD);
+		
+		ECS::Builders::InitializeLightValues(implementer, color, LightType::Directional, LightCookie::NoCookie, castShadows, 90.0f);
+
+		implementer->color = color;
+	}
+
 	DebugEngine::DebugEngine(AssetDatabase* assetDatabase, Time* time, EntityDatabase* entityDb, const ApplicationConfig& config)
 	{
 		m_entityDb = entityDb;
@@ -115,9 +137,12 @@ namespace PK::ECS::Engines
 		for (uint i = 0; i < config.LightCount; ++i)
 		{
 			auto type = flipperinotyperino ? LightType::Point : LightType::Spot;
-			CreateLight(entityDb, assetDatabase, Functions::RandomRangeFloat3(minpos, maxpos), Functions::HueToRGB(Functions::RandomRangeFloat(0.0f, 1.0f)) * Functions::RandomRangeFloat(2.0f, 6.0f), type);
+			auto cookie = flipperinotyperino ? LightCookie::NoCookie : LightCookie::Circle1;
+			CreateLight(entityDb, assetDatabase, Functions::RandomRangeFloat3(minpos, maxpos), Functions::HueToRGB(Functions::RandomRangeFloat(0.0f, 1.0f)) * Functions::RandomRangeFloat(2.0f, 6.0f), true, type, cookie);
 			flipperinotyperino ^= true;
 		}
+
+		CreateDirectionalLight(entityDb, assetDatabase, { -35, 145, 0 }, color(109.0f / 255.0f, 86.0f / 255.0f, 61.0f / 255.0f, 1.0f) * 0.2f, false);
 	}
 	
 	void DebugEngine::Step(Input* input)
@@ -159,6 +184,7 @@ namespace PK::ECS::Engines
 			lights[i].transformLight->rotation = rotation;
 			lights[i].transformMesh->rotation = rotation;
 		}
+
 		return;
 	
 		auto meshes = m_entityDb->Query<EntityViews::MeshRenderable>((int)ENTITY_GROUPS::ACTIVE);

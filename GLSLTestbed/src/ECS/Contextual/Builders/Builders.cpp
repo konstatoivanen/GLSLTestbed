@@ -13,16 +13,21 @@ void PK::ECS::Builders::InitializeLightValues(LightImplementer* implementer, con
 
 	switch (lightType)
 	{
+		case LightType::Directional:
+			implementer->isCullable = false;
+			implementer->localAABB = Functions::CreateBoundsCenterExtents(CG_FLOAT3_ZERO, CG_FLOAT3_ONE); 
+			break;
 		case LightType::Point: 
 			implementer->localAABB = Functions::CreateBoundsCenterExtents(CG_FLOAT3_ZERO, CG_FLOAT3_ONE * autoRadius); 
+			implementer->isCullable = true;
 			break;
 		case LightType::Spot:
 			auto a = autoRadius * glm::tan(angle * 0.5f * CG_FLOAT_DEG2RAD);
 			implementer->localAABB = Functions::CreateBoundsCenterExtents({ 0.0f, 0.0f, autoRadius * 0.5f }, { a, a, autoRadius * 0.5f });
+			implementer->isCullable = true;
 			break;
 	}
 
-	implementer->isCullable = true;
 	implementer->isVisible = false;
 	implementer->color = lightColor;
 	implementer->radius = autoRadius;

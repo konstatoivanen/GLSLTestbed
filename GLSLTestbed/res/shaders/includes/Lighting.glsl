@@ -17,9 +17,9 @@
 // Source: https://de45xmedrsdbp.cloudfront.net/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
 float GetAttenuation(float ldist, float lradius) { return pow2(saturate(1.0f - pow4(ldist/lradius))) / (pow2(ldist) + 1.0f); }
 
-float GetLightAnistropy(float3 lightPos, float3 lightToPos, float anistropy)
+float GetLightAnistropy(float3 worldPos, float3 lightToPos, float anistropy)
 {
-    float3 cameraToPos = normalize(lightPos - pk_WorldSpaceCameraPos.xyz);
+    float3 cameraToPos = normalize(worldPos - pk_WorldSpaceCameraPos.xyz);
 	float g = anistropy;
 	float gsq = g * g;
 	float denom = 1 + gsq - 2.0 * g * dot(cameraToPos, lightToPos);
@@ -106,12 +106,11 @@ float3 GetLightUV(PKRawLight light, float3 worldpos, float3 direction)
             float4x4 matrix = PK_BUFFER_DATA(pk_LightMatrices, light.projection_index);
             float4 coord = mul(matrix, float4(worldpos, 1.0f));
             coord = ClipToScreenPos(coord);
-
             return float3(coord.xy / coord.w, step(0.0f, coord.z * 0.5f));
         }
         case LIGHT_TYPE_DIRECTIONAL: 
         {
-            return float3(0.0f);
+            return float3(0.0f,0.0f,1.0f); //float3(coord.xy / coord.w, 1.0f);
         }
     }
 
@@ -132,16 +131,37 @@ float SampleLightShadowmap(PKRawLight light, float2 uv, float lightDistance)
     return difference > 0.01f ? LBR(variance / (variance + difference * difference)) : 1.0f;
 }
 
-float SampleLightCookie(PKRawLight raw, float2 uv)
+float SampleLightCookie(PKRawLight light, float2 uv)
 {
-    switch(raw.type)
+    if (light.cookie_index == LIGHT_PARAM_INVALID)
     {
-        case LIGHT_TYPE_POINT: return 1.0f;
-        case LIGHT_TYPE_SPOT: return tex2D(pk_LightCookies, float3(uv, float(raw.cookie_index))).r;
+        return 1.0f;
+    }
+
+    switch(light.type)
+    {
+        case LIGHT_TYPE_POINT:
+        case LIGHT_TYPE_SPOT: return tex2D(pk_LightCookies, float3(uv, float(light.cookie_index))).r;
         case LIGHT_TYPE_DIRECTIONAL: return 1.0f;
     }
 
     return 0.0f;
+}
+
+void GetLightParams(PKRawLight light, float3 worldpos, out float3 vector, out float lindist, out float attenuation)
+{
+    if (light.type == LIGHT_TYPE_DIRECTIONAL)
+    {
+        vector = light.position.xyz;
+        lindist = dot(vector, worldpos) + light.position.w;
+        attenuation = 1.0f;
+        return;
+    }
+
+    vector = light.position.xyz - worldpos;
+    lindist = sqrt(dot(vector, vector));
+    attenuation = GetAttenuation(lindist, light.position.w);
+    vector /= lindist;
 }
 
 PKLight GetSurfaceLight(uint index, in float3 worldpos)
@@ -149,10 +169,10 @@ PKLight GetSurfaceLight(uint index, in float3 worldpos)
     uint linearIndex = PK_BUFFER_DATA(pk_GlobalLightsList, index);
     PKRawLight raw = PK_BUFFER_DATA(pk_Lights, linearIndex);
 
-    float3 vector = raw.position.xyz - worldpos;
-    float lindist = sqrt(dot(vector, vector));
-    float attenuation = GetAttenuation(lindist, raw.position.w);
-    vector /= lindist;
+    float3 vector;
+    float lindist;
+    float attenuation;
+    GetLightParams(raw, worldpos, vector, lindist, attenuation);
 
     float3 lightuvw = GetLightUV(raw, worldpos, -vector);
 
@@ -172,15 +192,15 @@ float3 GetVolumeLightColor(uint index, in float3 worldpos, float anistropy)
     uint linearIndex = PK_BUFFER_DATA(pk_GlobalLightsList, index);
     PKRawLight raw = PK_BUFFER_DATA(pk_Lights, linearIndex);
 
-    float3 vector = raw.position.xyz - worldpos;
-    float lindist = sqrt(dot(vector, vector));
-    float attenuation = GetAttenuation(lindist, raw.position.w);
-    vector /= lindist;
+    float3 vector;
+    float lindist;
+    float attenuation;
+    GetLightParams(raw, worldpos, vector, lindist, attenuation);
 
     float3 lightuvw = GetLightUV(raw, worldpos, -vector);
 
     attenuation *= lightuvw.z;
-	attenuation *= GetLightAnistropy(raw.position.xyz, vector, anistropy);
+	attenuation *= GetLightAnistropy(worldpos, vector, anistropy);
     attenuation *= SampleLightCookie(raw, lightuvw.xy);
     attenuation *= SampleLightShadowmap(raw, lightuvw.xy, lindist);
 
