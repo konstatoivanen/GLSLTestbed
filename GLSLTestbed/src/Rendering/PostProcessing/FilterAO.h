@@ -16,9 +16,9 @@ namespace PK::Rendering::PostProcessing
             void Execute(const RenderTexture* source, const RenderTexture* destination) override;
 
         private:
-            float m_intensity;
-            float m_radius;
-            bool m_downsample;
+            float m_intensity = 0.0f;
+            float m_radius = 0.0f;
+            bool m_downsample = false;
             Ref<RenderTexture> m_renderTargets[2];
             Ref<ComputeBuffer> m_passBuffer;
             uint m_passKeywords[3];

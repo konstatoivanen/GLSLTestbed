@@ -16,7 +16,7 @@ namespace PK::Rendering::PostProcessing
             virtual void Execute(const RenderTexture* source, const RenderTexture* destination) = 0;
         protected: 
             Structs::ShaderPropertyBlock m_properties;
-            Shader* m_shader;
-            virtual ~FilterBase() = 0 {}
+            Shader* m_shader = nullptr;
+            virtual ~FilterBase() = default;
     };
 }

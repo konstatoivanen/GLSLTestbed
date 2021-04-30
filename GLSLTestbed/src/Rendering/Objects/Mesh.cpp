@@ -34,6 +34,7 @@ namespace PK::Rendering::Objects
 	{
 		PK_CORE_ASSERT(vertexBuffer->GetLayout().GetElements().size(), "Vertex Buffer has no layout!");
 	
+		// @TODO Refactor to use shared vertex array objects for buffer layouts
 		glBindVertexArray(m_graphicsId);
 		GraphicsAPI::SetVertexBuffer(vertexBuffer.get());
 	

@@ -17,12 +17,12 @@ namespace PK::Core
 			virtual ~Application();
 			void Close();
 		
-			static Application& Get() { return *s_Instance; }
+			inline static Application& Get() { return *s_Instance; }
 			
 			template<typename T>
-			static T* GetService() { return Get().m_services->Get<T>(); }
+			inline static T* GetService() { return Get().m_services->Get<T>(); }
 	
-			static const Window& GetWindow() { return *(Get().m_window); }
+			inline static const Window& GetWindow() { return *(Get().m_window); }
 	
 		private:
 			void Run();

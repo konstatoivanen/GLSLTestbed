@@ -4,7 +4,7 @@
 
 namespace PK::Utilities::Debug
 {
-    inline unsigned short constexpr ComposeConsoleColor(unsigned short fore, unsigned short back)
+    constexpr unsigned short ComposeConsoleColor(unsigned short fore, unsigned short back)
     {
         return ((unsigned)back << 4) | (unsigned)fore;
     }

@@ -9,6 +9,9 @@
 #define VOLUME_SIZE_XY float2(159.0f, 89.0f)
 #define VOLUME_SIZE_XYZ float3(159.0f, 89.0f, 127.0f)
 
+#define VOLUME_ACCUMULATION_LD (35.0f * max(pk_DeltaTime.x, 0.01f))
+#define VOLUME_ACCUMULATION_SC (14.0f * max(pk_DeltaTime.x, 0.01f))
+
 PK_DECLARE_CBUFFER(pk_VolumeResources)
 {
     float4 pk_Volume_WindDir;
@@ -44,7 +47,6 @@ float GetVolumeSliceWidth(int index)
     float far = GetVolumeCellDepth(index + 1);
     return (far - near) / pk_ProjectionParams.z;
 }
-
 
 float3 GetVolumeCellNoise(uint3 id)
 {

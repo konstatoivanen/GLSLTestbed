@@ -9,30 +9,55 @@
 #define SRC_ROUGHNESS z
 #define SHADOW_USE_LBR 
 #define SHADOW_LBR 0.1f
+#define SHADOWMAP_CASCADE_LINEARITY 0.5f
+#define SHADOWMAP_CASCADES 4
 #define SHADOWMAP_TILE_SIZE 512
 #define SHADOWMAP_ATLAS_SIZE 4096
 #define SHADOWMAP_TILES_PER_AXIS 8
 #define SHADOWMAP_BORDER_SIZE (1.0f / SHADOWMAP_ATLAS_SIZE)
-
-// Source: https://de45xmedrsdbp.cloudfront.net/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
-float GetAttenuation(float ldist, float lradius) { return pow2(saturate(1.0f - pow4(ldist/lradius))) / (pow2(ldist) + 1.0f); }
-
-float GetLightAnistropy(float3 worldPos, float3 lightToPos, float anistropy)
-{
-    float3 cameraToPos = normalize(worldPos - pk_WorldSpaceCameraPos.xyz);
-	float g = anistropy;
-	float gsq = g * g;
-	float denom = 1 + gsq - 2.0 * g * dot(cameraToPos, lightToPos);
-	denom = denom * denom * denom;
-	denom = sqrt(max(0, denom));
-	return (1 - gsq) / denom;
-}
+uniform float4 pk_ShadowCascadeZSplits;
 
 #if defined(SHADOW_USE_LBR)
     float LBR(float shadow) { return smoothstep(SHADOW_LBR, 1.0f, shadow);}
 #else
     #define LBR(shadow) (shadow)
 #endif
+
+// Source: https://de45xmedrsdbp.cloudfront.net/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
+float GetAttenuation(float ldist, float lradius) { return pow2(saturate(1.0f - pow4(ldist/lradius))) / (pow2(ldist) + 1.0f); }
+
+float GetLightAnisotropy(float3 worldPos, float3 posToLight, float anistropy)
+{
+    float3 cameraToPos = normalize(worldPos - pk_WorldSpaceCameraPos.xyz);
+	float g = anistropy;
+	float gsq = g * g;
+	float denom = 1 + gsq - 2.0 * g * dot(cameraToPos, posToLight);
+	denom = denom * denom * denom;
+	denom = sqrt(max(0, denom));
+	return (1 - gsq) / denom;
+}
+
+uint GetShadowCascadeIndex(float linearDepth)
+{
+    for (uint i = SHADOWMAP_CASCADES - 1; i > 0; --i)
+    {
+        if (linearDepth > pk_ShadowCascadeZSplits[i])
+        {
+            return i;
+        }
+    }
+
+    return 0;
+}
+
+uint GetShadowCascadeIndexFragment()
+{
+    #if defined(SHADER_STAGE_FRAGMENT)
+        return GetShadowCascadeIndex(LinearizeDepth(gl_FragCoord.z));
+    #else
+        return 0u;
+    #endif
+}
 
 float3 GetShadowMapPaddedTileST(uint index)
 {
@@ -93,7 +118,7 @@ float SampleScreenSpaceOcclusion()
     #endif
 }
 
-float3 GetLightUV(PKRawLight light, float3 worldpos, float3 direction)
+float3 GetLightUV(PKRawLight light, float3 worldpos, float3 direction, uint cascade)
 {
     switch(light.type)
     {
@@ -110,24 +135,28 @@ float3 GetLightUV(PKRawLight light, float3 worldpos, float3 direction)
         }
         case LIGHT_TYPE_DIRECTIONAL: 
         {
-            return float3(0.0f,0.0f,1.0f); //float3(coord.xy / coord.w, 1.0f);
+            float4x4 matrix = PK_BUFFER_DATA(pk_LightMatrices, light.projection_index + cascade);
+            float4 coord = mul(matrix, float4(worldpos, 1.0f));
+            coord = ClipToScreenPos(coord);
+            return float3(coord.xy / coord.w, 1.0f);
         }
     }
 
     return float3(0.0f);
 }
 
-float SampleLightShadowmap(PKRawLight light, float2 uv, float lightDistance)
+float SampleLightShadowmap(PKRawLight light, float2 uv, float lightDistance, uint cascade)
 {
     if (light.shadowmap_index == LIGHT_PARAM_INVALID)
     {
         return 1.0f;
     }
 
-    float3 shadowST = GetShadowMapPaddedTileST(light.shadowmap_index);
-    float2 shadowval = tex2D(pk_ShadowmapAtlas, shadowST.xy + uv * shadowST.z).xy;
-    float variance = shadowval.y - shadowval.x * shadowval.x;
-    float difference = lightDistance - shadowval.x;
+    cascade = light.type == LIGHT_TYPE_DIRECTIONAL ? cascade : 0;
+    float3 shadowST = GetShadowMapPaddedTileST(light.shadowmap_index + cascade);
+    float2 moments = tex2D(pk_ShadowmapAtlas, shadowST.xy + uv * shadowST.z).xy;
+    float variance = moments.y - moments.x * moments.x;
+    float difference = lightDistance - moments.x;
     return difference > 0.01f ? LBR(variance / (variance + difference * difference)) : 1.0f;
 }
 
@@ -138,73 +167,65 @@ float SampleLightCookie(PKRawLight light, float2 uv)
         return 1.0f;
     }
 
-    switch(light.type)
-    {
-        case LIGHT_TYPE_POINT:
-        case LIGHT_TYPE_SPOT: return tex2D(pk_LightCookies, float3(uv, float(light.cookie_index))).r;
-        case LIGHT_TYPE_DIRECTIONAL: return 1.0f;
-    }
-
-    return 0.0f;
+    return tex2D(pk_LightCookies, float3(uv, float(light.cookie_index))).r;
 }
 
-void GetLightParams(PKRawLight light, float3 worldpos, out float3 vector, out float lindist, out float attenuation)
+void GetLightParams(PKRawLight light, float3 worldpos, out float3 posToLight, out float lindist, out float attenuation)
 {
     if (light.type == LIGHT_TYPE_DIRECTIONAL)
     {
-        vector = light.position.xyz;
-        lindist = dot(vector, worldpos) + light.position.w;
+        posToLight = -light.position.xyz;
+        lindist = dot(light.position.xyz, worldpos) + light.position.w;
         attenuation = 1.0f;
         return;
     }
 
-    vector = light.position.xyz - worldpos;
-    lindist = sqrt(dot(vector, vector));
+    posToLight = light.position.xyz - worldpos;
+    lindist = sqrt(dot(posToLight, posToLight));
     attenuation = GetAttenuation(lindist, light.position.w);
-    vector /= lindist;
+    posToLight /= lindist;
 }
 
-PKLight GetSurfaceLight(uint index, in float3 worldpos)
+PKLight GetSurfaceLight(uint index, in float3 worldpos, uint cascade)
 {
     uint linearIndex = PK_BUFFER_DATA(pk_GlobalLightsList, index);
-    PKRawLight raw = PK_BUFFER_DATA(pk_Lights, linearIndex);
+    PKRawLight light = PK_BUFFER_DATA(pk_Lights, linearIndex);
 
-    float3 vector;
+    float3 posToLight;
     float lindist;
     float attenuation;
-    GetLightParams(raw, worldpos, vector, lindist, attenuation);
+    GetLightParams(light, worldpos, posToLight, lindist, attenuation);
 
-    float3 lightuvw = GetLightUV(raw, worldpos, -vector);
+    float3 lightuvw = GetLightUV(light, worldpos, -posToLight, cascade);
 
     attenuation *= lightuvw.z;
-    attenuation *= SampleLightCookie(raw, lightuvw.xy);
-    attenuation *= SampleLightShadowmap(raw, lightuvw.xy, lindist);
+    attenuation *= SampleLightCookie(light, lightuvw.xy);
+    attenuation *= SampleLightShadowmap(light, lightuvw.xy, lindist, cascade);
 
-    PKLight l;
-    l.color = raw.color.xyz * attenuation;
-    l.direction = vector;
-
-    return l;
+    PKLight outlight;
+    outlight.color = light.color.xyz * attenuation;
+    outlight.direction = posToLight;
+    return outlight;
 }
 
-float3 GetVolumeLightColor(uint index, in float3 worldpos, float anistropy)
+float3 GetVolumeLightColor(uint index, in float3 worldpos, uint cascade, float anisotropy)
 {
     uint linearIndex = PK_BUFFER_DATA(pk_GlobalLightsList, index);
-    PKRawLight raw = PK_BUFFER_DATA(pk_Lights, linearIndex);
+    PKRawLight light = PK_BUFFER_DATA(pk_Lights, linearIndex);
 
-    float3 vector;
+    float3 posToLight;
     float lindist;
     float attenuation;
-    GetLightParams(raw, worldpos, vector, lindist, attenuation);
+    GetLightParams(light, worldpos, posToLight, lindist, attenuation);
 
-    float3 lightuvw = GetLightUV(raw, worldpos, -vector);
+    float3 lightuvw = GetLightUV(light, worldpos, -posToLight, cascade);
 
     attenuation *= lightuvw.z;
-	attenuation *= GetLightAnistropy(worldpos, vector, anistropy);
-    attenuation *= SampleLightCookie(raw, lightuvw.xy);
-    attenuation *= SampleLightShadowmap(raw, lightuvw.xy, lindist);
+	attenuation *= GetLightAnisotropy(worldpos, posToLight, anisotropy);
+    attenuation *= SampleLightCookie(light, lightuvw.xy);
+    attenuation *= SampleLightShadowmap(light, lightuvw.xy, lindist, cascade);
 
-    return raw.color.xyz * attenuation;
+    return light.color.xyz * attenuation;
 }
 
 LightTile GetLightTile(int3 coord)
@@ -251,11 +272,12 @@ float4 PhysicallyBasedShading(SurfaceData surf, float3 viewdir, float3 worldpos)
 
     color *= surf.occlusion;
 
+    uint cascade = GetShadowCascadeIndexFragment();
     LightTile tile = GetLightTile();
 
     for (uint i = tile.start; i < tile.end; ++i)
     {
-        PKLight light = GetSurfaceLight(i, worldpos);
+        PKLight light = GetSurfaceLight(i, worldpos, cascade);
         color += BRDF_PBS_DEFAULT_DIRECT(light);
     }
 

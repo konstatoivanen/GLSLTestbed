@@ -11,8 +11,8 @@ namespace PK::Core
         public:
             Time(ECS::Sequencer* sequencer, float timeScale);
     
-            const float GetTimeScale() const { return (float)m_timeScale; }
-            void SetTimeScale(const float timeScale) { m_timeScale = (double)timeScale; }
+            inline const float GetTimeScale() const { return (float)m_timeScale; }
+            inline void SetTimeScale(const float timeScale) { m_timeScale = (double)timeScale; }
     
             static const clock_t GetClockTicks();
             static const double GetClockSeconds();
@@ -35,7 +35,7 @@ namespace PK::Core
             void Step(int condition) override;
     
         private:
-            ECS::Sequencer* m_sequencer;
+            ECS::Sequencer* m_sequencer = nullptr;
     
             std::chrono::time_point<std::chrono::steady_clock, std::chrono::duration<double>> m_frameStart;
             uint64_t m_frameIndex = 0;

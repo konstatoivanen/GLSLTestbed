@@ -11,9 +11,9 @@ namespace PK::Rendering::PostProcessing
 
     struct PassParams
     {
-        ulong source;
-        float2 offset;
-        uint2 readwrite;
+        ulong source = 0;
+        float2 offset = CG_FLOAT2_ZERO;
+        uint2 readwrite = CG_UINT2_ZERO;
     };
 
     FilterBloom::FilterBloom(Shader* shader, TextureXD* lensDirt, float exposure, float intensity, float lensDirtIntensity) : FilterBase(shader)

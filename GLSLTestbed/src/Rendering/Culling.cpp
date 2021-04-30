@@ -102,6 +102,39 @@ namespace PK::Rendering::Culling
 		}
 	}
 
+	void Culling::ExecuteOnVisibleItemsCascades(PK::ECS::EntityDatabase* entityDb, const float4x4* cascades, uint count, ushort typeMask, OnVisibleItemMulti onvisible, void* context)
+	{
+		FrustrumPlanes* frustums = PK_STACK_ALLOC(FrustrumPlanes, count);
+
+		for (auto i = 0u; i < count; ++i)
+		{
+			Functions::ExtractFrustrumPlanes(cascades[i], frustums + i, true);
+		}
+
+		auto cullables = entityDb->Query<ECS::EntityViews::BaseRenderable>((int)ECS::ENTITY_GROUPS::ACTIVE);
+
+		for (auto i = 0; i < cullables.count; ++i)
+		{
+			auto cullable = &cullables[i];
+
+			if (((ushort)cullable->handle->flags & typeMask) != typeMask)
+			{
+				continue;
+			}
+
+			for (auto j = 0u; j < count; ++j)
+			{
+				auto isVisible = !cullable->handle->isCullable || Functions::IntersectPlanesAABB(frustums[j].planes, 6, cullable->bounds->worldAABB);
+				cullable->handle->isVisible |= isVisible;
+
+				if (isVisible)
+				{
+					onvisible(entityDb, cullable->GID, j, Functions::PlaneDistanceToAABB(frustums[j].planes[4], cullable->bounds->worldAABB), context);
+				}
+			}
+		}
+	}
+
 	void Culling::ExecuteOnVisibleItemsAABB(PK::ECS::EntityDatabase* entityDb, const BoundingBox& aabb, ushort typeMask, OnVisibleItem onvisible, void* context)
 	{
 		auto cullables = entityDb->Query<ECS::EntityViews::BaseRenderable>((int)ECS::ENTITY_GROUPS::ACTIVE);

@@ -11,27 +11,27 @@ namespace PK::ECS
 {
     class IBaseStep
     {
-        protected: virtual ~IBaseStep() = 0 {};
+        protected: virtual ~IBaseStep() = default;
     };
 
     template <typename T>
     class IStep : public IBaseStep
     {
-        protected: virtual ~IStep() = 0 {};
+        protected: virtual ~IStep() = default;
         public: virtual void Step(T* token) = 0;
     };
 
     template <typename T>
     class IConditionalStep : public IBaseStep
     {
-        protected: virtual ~IConditionalStep() = 0 {};
+        protected: virtual ~IConditionalStep() = default;
         public: virtual void Step(T* token, int condition) = 0;
     };
 
     class ISimpleStep : public IConditionalStep<void>
     {
         protected:
-            virtual ~ISimpleStep() = 0 {};
+            virtual ~ISimpleStep() = default;
         public:
             virtual void Step(int condition) = 0;
             void Step(void* token, int condition) { Step(condition); }
@@ -48,8 +48,8 @@ namespace PK::ECS
             To(std::initializer_list<BranchSteps::value_type> branchSteps, std::initializer_list<StepPtr> commonSteps);
             To(std::initializer_list<StepPtr> commonSteps, std::initializer_list<BranchSteps::value_type> steps);
 
-            const std::vector<StepPtr>* GetSteps(int condition);
-            const std::vector<StepPtr>* GetCommonSteps() const { return &m_commonSteps; }
+            inline const std::vector<StepPtr>* GetSteps(int condition);
+            inline const std::vector<StepPtr>* GetCommonSteps() const { return &m_commonSteps; }
  
         private:
             BranchSteps m_branchSteps;
@@ -65,7 +65,7 @@ namespace PK::ECS
             void SetRootSequence(std::initializer_list<int> sequence);
             void ExecuteRootSequence();
 
-            const void* GetRoot() { return this; }
+            inline const void* GetRoot() { return this; }
 
             template<typename T>
             void Next(const void* engine, T* token, int condition)
@@ -86,7 +86,7 @@ namespace PK::ECS
                 InvokeSteps(target.GetCommonSteps(), token, condition);
             }
 
-            void Release() { m_steps.clear(); }
+            inline void Release() { m_steps.clear(); }
 
         private:
             template<typename T>

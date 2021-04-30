@@ -93,7 +93,7 @@ namespace PK::ECS::Engines
 		implementer->position = CG_FLOAT3_ZERO;
 		implementer->rotation = glm::quat(rotation * CG_FLOAT_DEG2RAD);
 		
-		ECS::Builders::InitializeLightValues(implementer, color, LightType::Directional, LightCookie::NoCookie, castShadows, 90.0f);
+		ECS::Builders::InitializeLightValues(implementer, color, LightType::Directional, LightCookie::NoCookie, castShadows, 90.0f, 50.0f);
 
 		implementer->color = color;
 	}
@@ -115,8 +115,8 @@ namespace PK::ECS::Engines
 		cornellBoxMaterial = assetDatabase->Find<Material>("M_Metal_Panel");
 		cornellBox = assetDatabase->Find<Mesh>("cornell_box");
 	
-		auto minpos = float3(-40, -5, -40);
-		auto maxpos = float3(40, 0, 40);
+		auto minpos = float3(0, -5, -40);
+		auto maxpos = float3(40, 5, 40);
 
 		srand(config.RandomSeed);
 
@@ -142,7 +142,7 @@ namespace PK::ECS::Engines
 			flipperinotyperino ^= true;
 		}
 
-		CreateDirectionalLight(entityDb, assetDatabase, { -35, 145, 0 }, color(109.0f / 255.0f, 86.0f / 255.0f, 61.0f / 255.0f, 1.0f) * 0.2f, false);
+		CreateDirectionalLight(entityDb, assetDatabase, { 35, -35, 0 }, color(109.0f / 255.0f, 86.0f / 255.0f, 61.0f / 255.0f, 1.0f) * 2.5f, true);
 	}
 	
 	void DebugEngine::Step(Input* input)
@@ -197,26 +197,43 @@ namespace PK::ECS::Engines
 	
 	void DebugEngine::Step(Rendering::GizmoRenderer* gizmos)
 	{
+		auto time = Application::GetService<Time>()->GetTime();
 		auto aspect = Application::GetWindow().GetAspect();
-		auto proj = Functions::GetPerspective(50.0f, aspect, 0.1f, 4.0f);
-		auto view = Functions::GetMatrixInvTRS(CG_FLOAT3_ZERO, CG_QUATERNION_IDENTITY, CG_FLOAT3_ONE);
+		auto proj = Functions::GetPerspective(50.0f, aspect, 0.2f, 100.0f);
+		auto view = Functions::GetMatrixInvTRS(CG_FLOAT3_ZERO, { 0, 0, 0 }, CG_FLOAT3_ONE);
 		auto vp = proj * view;
 	
+
+		float4x4 localToWorld = Functions::GetMatrixTRS(CG_FLOAT3_ZERO, float3(35, -35, 0) * CG_FLOAT_DEG2RAD, CG_FLOAT3_ONE);
+		float4x4 worldToLocal = glm::inverse(localToWorld);
+		float4x4 invvp = glm::inverse(vp);
+		float4x4 cascades[4];
+
+		float minNear, maxFar;
+		Functions::GetShadowCascadeMatrices(worldToLocal, invvp, 0.2f, 100.0f, 0.5f, -15.0f, 4, cascades, &minNear, &maxFar);
+
+		for (auto i = 0; i < 4; ++i)
+		{
+			gizmos->SetColor(CG_COLOR_GREEN);
+			gizmos->DrawFrustrum(cascades[i]);
+		}
+
 		gizmos->SetColor(CG_COLOR_RED);
 		gizmos->DrawFrustrum(vp);
-		
-		auto znear = 4.0f;
-		auto zfar = 200.0f;
 
-		for (int i = 0; i < 24; ++i)
+		auto znear = 0.2f;
+		auto zfar = 100.0f;
+
+		for (int i = 0; i < 4; ++i)
 		{
-			float n = znear * pow(zfar / znear, (float)i / 24);
-			float f = znear * pow(zfar / znear, (float)(i + 1) / 24);
+			float n = Functions::CascadeDepth(znear, zfar, 0.5f, (float)i / 4);
+			float f = Functions::CascadeDepth(znear, zfar, 0.5f, (float)(i + 1) / 4);
 
 			auto proj = Functions::GetOffsetPerspective(-1, 1, -1, 1, 50.0f, aspect, n, f);
 			vp = proj * view;
 			gizmos->DrawFrustrum(vp);
 		}
+		return;
 
 		auto cullables = m_entityDb->Query<EntityViews::BaseRenderable>((int)ENTITY_GROUPS::ACTIVE);
 	

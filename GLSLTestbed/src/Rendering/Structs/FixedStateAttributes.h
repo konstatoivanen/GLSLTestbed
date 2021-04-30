@@ -14,13 +14,13 @@ namespace PK::Rendering::Structs
 	
 	struct FixedStateAttributes
 	{
-		bool ZWriteEnabled;
-		bool ZTestEnabled;
-		bool BlendEnabled;
-		bool CullEnabled;
+		bool ZWriteEnabled = false;
+		bool ZTestEnabled = false;
+		bool BlendEnabled = false;
+		bool CullEnabled = false;
 		GLenum ZTest = GL_FALSE;
 		GLenum CullMode = GL_FALSE;
 		BlendMode Blend;
-		unsigned char ColorMask;
+		unsigned char ColorMask = 0;
 	};
 }

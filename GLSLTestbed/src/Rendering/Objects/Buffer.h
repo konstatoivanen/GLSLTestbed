@@ -21,8 +21,8 @@ namespace PK::Rendering::Objects
 	
 			void SetData(const void* data, size_t size);
 		
-			const BufferLayout& GetLayout() const { return m_layout; }
-			void SetLayout(const BufferLayout& layout) { m_layout = layout; }
+			inline const BufferLayout& GetLayout() const { return m_layout; }
+			inline void SetLayout(const BufferLayout& layout) { m_layout = layout; }
 	
 		private:
 			BufferLayout m_layout;
@@ -35,7 +35,7 @@ namespace PK::Rendering::Objects
 			IndexBuffer(uint* indices, uint count, bool immutable);
 			~IndexBuffer();
 		
-			uint GetCount() const { return m_count; }
+			inline uint GetCount() const { return m_count; }
 
 		private:
 			uint m_count;
@@ -84,10 +84,10 @@ namespace PK::Rendering::Objects
 	
 			void EndMapBuffer();
 			
-			const BufferLayout& GetLayout() const { return m_layout; }
-			size_t GetSize() const { return m_count * m_layout.GetPaddedStride(); }
-			size_t GetStride() const { return m_layout.GetPaddedStride(); }
-			size_t GetCount() const { return m_count; }
+			inline const BufferLayout& GetLayout() const { return m_layout; }
+			inline size_t GetSize() const { return m_count * m_layout.GetPaddedStride(); }
+			inline size_t GetStride() const { return m_layout.GetPaddedStride(); }
+			inline size_t GetCount() const { return m_count; }
 		private:
 			BufferLayout m_layout;
 			size_t m_count;

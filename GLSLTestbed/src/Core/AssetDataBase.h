@@ -17,13 +17,13 @@ namespace PK::Core
         friend class AssetDatabase;
     
         public:
-            virtual ~Asset() = 0 {};
+            virtual ~Asset() = default;
     
-            AssetID GetAssetID() const { return m_assetId; }
+            inline AssetID GetAssetID() const { return m_assetId; }
     
-            const std::string& GetFileName() const { return StringHashID::IDToString(m_assetId); }
+            inline const std::string& GetFileName() const { return StringHashID::IDToString(m_assetId); }
     
-            bool IsFileAsset() const { return m_assetId != 0; }
+            inline bool IsFileAsset() const { return m_assetId != 0; }
     
             bool operator==(const Asset& other) const { return m_assetId == ((Asset&)other).m_assetId; }
     
@@ -255,16 +255,10 @@ namespace PK::Core
             }
     
             template<typename T>
-            void Unload(const std::string& filepath)
-            {
-                Unload<T>(StringHashID::StringToID(filepath));
-            }
+            void Unload(const std::string& filepath) { Unload<T>(StringHashID::StringToID(filepath)); }
     
             template<typename T>
-            void Unload()
-            {
-                m_assets.erase(std::type_index(typeid(T)));
-            }
+            inline void Unload() { m_assets.erase(std::type_index(typeid(T))); }
     
             const void Unload() { m_assets.clear(); };
     

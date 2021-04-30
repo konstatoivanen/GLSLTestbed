@@ -12,14 +12,14 @@ namespace PK::Rendering::Objects
 
 	struct ShaderPropertyInfo
 	{
-		ushort location;
-		CG_TYPE type;
+		ushort location = 0xFFFF;
+		CG_TYPE type = CG_TYPE::INVALID;
 	};
 
 	struct ShaderInstancingInfo
 	{
-		bool supportsInstancing;
-		bool hasInstancedProperties;
+		bool supportsInstancing = false;
+		bool hasInstancedProperties = false;
 		BufferLayout propertyLayout;
 	};
 	
@@ -53,12 +53,12 @@ namespace PK::Rendering::Objects
 	
 		public:
 			~Shader();
-			const FixedStateAttributes& GetFixedStateAttributes() const { return m_stateAttributes; }
-			const ShaderInstancingInfo& GetInstancingInfo() const { return m_instancingInfo; }
-			const uint32_t GetRenderQueueIndex() const { return m_renderQueueIndex; }
+			inline const FixedStateAttributes& GetFixedStateAttributes() const { return m_stateAttributes; }
+			inline const ShaderInstancingInfo& GetInstancingInfo() const { return m_instancingInfo; }
+			inline const uint32_t GetRenderQueueIndex() const { return m_renderQueueIndex; }
 			const Ref<ShaderVariant>& GetActiveVariant();
 	
-			void SetPropertyBlock(const ShaderPropertyBlock& propertyBlock) { m_variants.at(m_activeIndex)->SetPropertyBlock(propertyBlock); }
+			inline void SetPropertyBlock(const ShaderPropertyBlock& propertyBlock) { m_variants.at(m_activeIndex)->SetPropertyBlock(propertyBlock); }
 			void ResetKeywords();
 			void SetKeywords(const std::vector<uint32_t>& keywords);
 			void ListProperties();

@@ -11,13 +11,13 @@ namespace PK::Rendering::MeshUtility
     {
         struct PKMeshData
         {
-            const float* vertices;
-            const float* normals;
-            float* tangents;
-            const float* texcoords;
-            const unsigned int* indices;
-            unsigned int vcount;
-            unsigned int icount;
+            const float* vertices = nullptr;
+            const float* normals = nullptr;
+            float* tangents = nullptr;
+            const float* texcoords = nullptr;
+            const unsigned int* indices = nullptr;
+            unsigned int vcount = 0;
+            unsigned int icount = 0;
         };
 
         // Returns the number of faces (triangles/quads) on the mesh to be processed.
@@ -87,15 +87,15 @@ namespace PK::Rendering::MeshUtility
     {
         struct PKMeshData
         {
-            float* vertices;
-            unsigned int stride;
-            unsigned int vertexOffset;
-            unsigned int normalOffset;
-            unsigned int tangentOffset;
-            unsigned int texcoordOffset;
-            const unsigned int* indices;
-            unsigned int vcount;
-            unsigned int icount;
+            float* vertices = nullptr;
+            unsigned int stride = 0;
+            unsigned int vertexOffset = 0;
+            unsigned int normalOffset = 0;
+            unsigned int tangentOffset = 0;
+            unsigned int texcoordOffset = 0;
+            const unsigned int* indices = nullptr;
+            unsigned int vcount = 0;
+            unsigned int icount = 0;
         };
 
         // Returns the number of faces (triangles/quads) on the mesh to be processed.

@@ -15,10 +15,10 @@ namespace PK::Rendering::Objects
         public:
             Material() {}
             Material(Shader* shader) { m_shader = shader; m_cachedShaderAssetId = shader->GetAssetID(); }
-            Shader* GetShader() const { return m_shader; }
-            AssetID GetShaderAssetID() const { return m_cachedShaderAssetId; }
-            const uint32_t GetRenderQueueIndex() const { return m_renderQueueIndex; }
-            const bool SupportsInstancing() const { return m_shader->GetInstancingInfo().supportsInstancing; }
+            inline Shader* GetShader() const { return m_shader; }
+            inline AssetID GetShaderAssetID() const { return m_cachedShaderAssetId; }
+            inline const uint32_t GetRenderQueueIndex() const { return m_renderQueueIndex; }
+            inline const bool SupportsInstancing() const { return m_shader->GetInstancingInfo().supportsInstancing; }
 
         private:
             std::vector<char> m_cachedInstancedProperties;

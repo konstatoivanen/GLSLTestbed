@@ -185,7 +185,10 @@ namespace PK::Rendering
 	
 		UpdateDynamicBatches(m_entityDb, m_visibilityCache, m_dynamicBatches);
 
-		m_lightsManager.Preprocess(m_entityDb, m_visibilityCache.GetList(Culling::CullingGroup::CameraFrustum, (int)ECS::Components::RenderHandleFlags::Light), resolution);
+		const float4x4& inverseViewProjection = *m_context.ShaderProperties.GetPropertyPtr<float4x4>(HashCache::Get()->pk_MATRIX_I_VP);
+		const float4 projParams = *m_context.ShaderProperties.GetPropertyPtr<float4>(HashCache::Get()->pk_ProjectionParams);
+
+		m_lightsManager.Preprocess(m_entityDb, m_visibilityCache.GetList(Culling::CullingGroup::CameraFrustum, (int)ECS::Components::RenderHandleFlags::Light), resolution, inverseViewProjection, projParams.x, projParams.y);
 	}
 	
 	void RenderPipeline::OnRender()

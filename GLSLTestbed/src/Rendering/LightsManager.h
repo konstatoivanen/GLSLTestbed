@@ -18,11 +18,12 @@ namespace PK::Rendering
     struct ShadowmapLightTypeData
     {
         Utilities::Ref<RenderTexture> SceneRenderTarget;
-        Shader* ShaderRenderShadows;
-        Shader* ShaderBlur;
-        uint viewFirst;
-        uint viewCount;
+        Shader* ShaderRenderShadows = nullptr;
+        Shader* ShaderBlur = nullptr;
+        uint viewFirst = 0;
+        uint viewCount = 0;
         uint atlasBaseIndex = 0;
+        uint maxBatchSize = 0;
     };
     
     struct ShadowmapData
@@ -32,10 +33,11 @@ namespace PK::Rendering
         Utilities::Ref<RenderTexture> MapIntermediate;
         Utilities::Ref<RenderTexture> ShadowmapAtlas;
 
-        static const uint BatchSize = 4;
-        static const uint TileSize = 512;
-        static const uint TileCountPerAxis = 8; 
-        static const uint TotalTileCount = 8 * 8; 
+        static constexpr uint BatchSize = 4;
+        static constexpr uint TileSize = 512;
+        static constexpr uint TileCountPerAxis = 8; 
+        static constexpr uint TotalTileCount = 8 * 8; 
+        static constexpr float CascadeLinearity = 0.5f;
     };
 
     class LightsManager : public PK::Core::NoCopy
@@ -43,7 +45,7 @@ namespace PK::Rendering
         public:
             LightsManager(AssetDatabase* assetDatabase);
 
-            void Preprocess(PK::ECS::EntityDatabase* entityDb, Core::BufferView<uint> visibleLights, const uint2& resolution);
+            void Preprocess(PK::ECS::EntityDatabase* entityDb, Core::BufferView<uint> visibleLights, const uint2& resolution, const float4x4& inverseViewProjection, float zNear, float zFar);
 
             void UpdateLightTiles(const uint2& resolution);
 
@@ -52,8 +54,8 @@ namespace PK::Rendering
             const Ref<RenderTexture>& GetShadowmapAtlas() const { return m_shadowmapData.ShadowmapAtlas; }
 
         private:
-            void UpdateShadowmaps(PK::ECS::EntityDatabase* entityDb);
-            void UpdateLightBuffers(PK::ECS::EntityDatabase* entityDb, Core::BufferView<uint> visibleLights);
+            void UpdateShadowmaps(PK::ECS::EntityDatabase* entityDb, const float4x4& inverseViewProjection, float znear, float zfar);
+            void UpdateLightBuffers(PK::ECS::EntityDatabase* entityDb, Core::BufferView<uint> visibleLights, const float4x4& inverseViewProjection, float znear, float zfar);
 
             const uint MaxLightsPerTile = 64;
             const uint GridSizeX = 16;

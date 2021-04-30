@@ -52,6 +52,8 @@ namespace PK::Rendering::Culling
     void ExecuteOnVisibleItemsCubeFaces(PK::ECS::EntityDatabase* entityDb, const BoundingBox& aabb, ushort typeMask, OnVisibleItemMulti onvisible, void* context);
 
     void ExecuteOnVisibleItemsFrustum(PK::ECS::EntityDatabase* entityDb, const float4x4& matrix, ushort typeMask, OnVisibleItemMulti onvisible, void* context);
+    
+    void ExecuteOnVisibleItemsCascades(PK::ECS::EntityDatabase* entityDb, const float4x4* cascades, uint count, ushort typeMask, OnVisibleItemMulti onvisible, void* context);
 
     void ExecuteOnVisibleItemsAABB(PK::ECS::EntityDatabase* entityDb, const BoundingBox& aabb, ushort typeMask, OnVisibleItem onvisible, void* context);
 

@@ -15,7 +15,7 @@ namespace PK::Rendering
         struct GizmoVertex
         {
             float3 position;
-            float  zoffset;
+            float  zoffset = 0.0f;
             float4 color;
         };
     
@@ -35,10 +35,10 @@ namespace PK::Rendering
         private:
             GizmoVertex* ReserveVertices(uint count);
     
-            ECS::Sequencer* m_sequencer;
+            ECS::Sequencer* m_sequencer = nullptr;
             FrustrumPlanes m_frustrumPlanes;
             Ref<ComputeBuffer> m_vertexBuffer;
-            Shader* m_gizmoShader;
+            Shader* m_gizmoShader = nullptr;
             std::vector<GizmoVertex> m_vertices;
             uint m_vertexCount = 0;
             color m_color = CG_COLOR_WHITE;

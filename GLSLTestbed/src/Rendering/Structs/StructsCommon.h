@@ -31,8 +31,8 @@ namespace PK::Rendering::Structs
 
     struct LightTile
     {
-        uint offset;
-        uint count;
+        uint offset = 0;
+        uint count = 0;
     };
 
     struct Vertex_Simple
@@ -53,15 +53,15 @@ namespace PK::Rendering::Structs
     {
         float4 color;
         float4 position;
-        uint shadowmap_index;
-        uint projection_index;
-        uint cookie_index;
-        uint type;
+        uint shadowmap_index = 0;
+        uint projection_index = 0;
+        uint cookie_index = 0;
+        uint type = 0;
     };
 
     struct IndexRange
     {
-        uint offset;
-        uint count;
+        uint offset = 0;
+        uint count = 0;
     };
 }

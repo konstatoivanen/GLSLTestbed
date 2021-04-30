@@ -1642,11 +1642,13 @@
     <None Include="res\shaders\includes\VolumeFogShared.glsl" />
     <None Include="res\textures\T_Bluenoise256_repeat.ktx" />
     <None Include="res\shaders\CS_VolumeFogScatter.shader" />
-    <None Include="res\shaders\SH_VS_ShadowmapBlurProj.shader" />
-    <None Include="res\shaders\SH_WS_ShadowmapProj.shader" />
+    <None Include="res\shaders\SH_VS_ShadowmapBlurPersp.shader" />
+    <None Include="res\shaders\SH_WS_ShadowmapPersp.shader" />
     <None Include="res\shaders\includes\Shadowmapping.glsl" />
     <None Include="res\textures\T_LightCookies.ktx" />
     <None Include="res\shaders\CS_ClusteredDepthMax.shader" />
+    <None Include="res\shaders\SH_WS_ShadowmapOrtho.shader" />
+    <None Include="res\shaders\SH_VS_ShadowmapBlurOrtho.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">

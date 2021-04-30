@@ -334,12 +334,32 @@ namespace PK::Math
 		return m;
 	}
 	
-	float4x4 Functions::GetPerspective(float fov, float aspect, float nearClip, float farClip)
+	float4x4 Functions::GetPerspective(float fov, float aspect, float zNear, float zFar)
 	{
-		auto proj = glm::perspective(fov * CG_FLOAT_DEG2RAD, aspect, nearClip, farClip);
-		proj[2][2] *= -1;
-		proj[2][3] *= -1;
+		const float tanHalfFovy = tan(fov * CG_FLOAT_DEG2RAD / 2.0f);
+		float4x4 proj(0.0f);
+		proj[0][0] = 1.0f / (aspect * tanHalfFovy);
+		proj[1][1] = 1.0f / (tanHalfFovy);
+		proj[2][2] = (zFar + zNear) / (zFar - zNear);
+		proj[2][3] = 1.0;
+		proj[3][2] = -(2.0f * zFar * zNear) / (zFar - zNear);
 		return proj;
+	}
+
+	float4x4 Functions::GetOrtho(float left, float right, float bottom, float top, float zNear, float zFar)
+	{
+		const float rcpRL = 1.0f / (right - left);
+		const float rcpTB = 1.0f / (top - bottom);
+		const float rcpFN = 1.0f / (zFar - zNear);
+
+		float4x4 Result(1);
+		Result[0][0] = -2.0f * rcpRL;
+		Result[1][1] = -2.0f * rcpTB;
+		Result[2][2] = 2.0f * rcpFN;
+		Result[3][0] = (right + left) * rcpRL;
+		Result[3][1] = (top + bottom) * rcpTB;
+		Result[3][2] = -(zFar + zNear) * rcpFN;
+		return Result;
 	}
 	
 	float4x4 Functions::GetOffsetPerspective(float left, float right, float bottom, float top, float fovy, float aspect, float zNear, float zFar)
@@ -380,7 +400,63 @@ namespace PK::Math
 	
 		return Functions::GetOffsetPerspective(x, x + ix, y, y + iy, fovy, aspect, znear + zrange * z, znear + zrange * (z + iz));
 	}
-	
+
+	float4x4 Functions::GetFrustumBoundingOrthoMatrix(const float4x4& worldToLocal, const float4x4& inverseViewProjection, const float3& paddingLD, const float3& paddingRU, float* outZNear, float* outZFar)
+	{
+		auto aabb = Functions::GetInverseFrustumBounds(worldToLocal * inverseViewProjection);
+
+		*outZNear = (aabb.min.z + paddingLD.z);
+		*outZFar = (aabb.max.z + paddingRU.z);
+
+		return GetOrtho(aabb.min.x + paddingLD.x,
+						aabb.max.x + paddingRU.x,
+						aabb.min.y + paddingLD.y,
+						aabb.max.y + paddingRU.y,
+						aabb.min.z + paddingLD.z,
+						aabb.max.z + paddingRU.z) * worldToLocal;
+	}
+
+	void Functions::GetShadowCascadeMatrices(const float4x4& worldToLocal, const float4x4& inverseViewProjection, float zNear, float zFar, float linearity, float zPadding, uint count, float4x4* matrices, float* minNear, float* maxFar)
+	{
+		auto matrix = worldToLocal * inverseViewProjection;
+		auto zstep = 1.0f / count;
+		*minNear = std::numeric_limits<float>().max();
+		*maxFar = -std::numeric_limits<float>().max();
+
+		BoundingBox* aabbs = reinterpret_cast<BoundingBox*>(alloca(sizeof(BoundingBox) * count));
+
+		for (auto i = 0u; i < count; ++i)
+		{
+			auto lnear = (Functions::CascadeDepth(zNear, zFar, linearity, zstep * i) - zNear) / (zFar - zNear);
+			auto lfar = (Functions::CascadeDepth(zNear, zFar, linearity, zstep * (i + 1)) - zNear) / (zFar - zNear);
+
+			aabbs[i] = Functions::GetInverseFrustumBounds(matrix, lnear, lfar);
+
+			if (aabbs[i].min.z < *minNear)
+			{
+				*minNear = aabbs[i].min.z;
+			}
+
+			if (aabbs[i].max.z > *maxFar)
+			{
+				*maxFar = aabbs[i].max.z;
+			}
+		}
+
+		for (auto i = 0u; i < count; ++i)
+		{
+			matrices[i] = Functions::GetOrtho(
+				aabbs[i].min.x,
+				aabbs[i].max.x,
+				aabbs[i].min.y,
+				aabbs[i].max.y,
+				*minNear + zPadding,
+				aabbs[i].max.z) * worldToLocal;
+		}
+
+		*minNear += zPadding;
+	}
+
 	size_t Functions::GetNextExponentialSize(size_t start, size_t min)
 	{
 		if (start < 1)
@@ -600,5 +676,93 @@ namespace PK::Math
 		}
 	
 		return out;
+	}
+
+	BoundingBox Functions::GetInverseFrustumBounds(const float4x4& inverseMatrix)
+	{
+		float4 positions[8];
+		positions[0] = inverseMatrix * float4(-1, -1, -1, 1);
+		positions[1] = inverseMatrix * float4(-1,  1, -1, 1);
+		positions[2] = inverseMatrix * float4( 1,  1, -1, 1);
+		positions[3] = inverseMatrix * float4( 1, -1, -1, 1);
+		positions[4] = inverseMatrix * float4(-1, -1,  1, 1);
+		positions[5] = inverseMatrix * float4(-1,  1,  1, 1);
+		positions[6] = inverseMatrix * float4( 1,  1,  1, 1);
+		positions[7] = inverseMatrix * float4( 1, -1,  1, 1);
+		float3 min = { std::numeric_limits<float>().max(), std::numeric_limits<float>().max(), std::numeric_limits<float>().max() };
+		float3 max = { -std::numeric_limits<float>().min(), -std::numeric_limits<float>().max(), -std::numeric_limits<float>().max() };
+
+		for (auto i = 0; i < 8; ++i)
+		{
+			positions[i] /= positions[i].w;
+			max = glm::max(float3(positions[i].xyz), max);
+			min = glm::min(float3(positions[i].xyz), min);
+		}
+
+		return CreateBoundsMinMax(min, max);
+	}
+
+	BoundingBox Functions::GetInverseFrustumBounds(const float4x4& inverseMatrix, float lznear, float lzfar)
+	{
+		float4 positions[8];
+		positions[0] = inverseMatrix * float4(-1,  -1, -1, 1);
+		positions[1] = inverseMatrix * float4(-1,   1, -1, 1);
+		positions[2] = inverseMatrix * float4( 1,   1, -1, 1);
+		positions[3] = inverseMatrix * float4( 1,  -1, -1, 1);
+		
+		positions[4] = inverseMatrix * float4(-1,  -1,  1, 1);
+		positions[5] = inverseMatrix * float4(-1,   1,  1, 1);
+		positions[6] = inverseMatrix * float4( 1,   1,  1, 1);
+		positions[7] = inverseMatrix * float4( 1,  -1,  1, 1);
+
+		for (auto i = 0; i < 4; ++i)
+		{
+			positions[i] /= positions[i].w;
+			positions[i + 4] /= positions[i + 4].w;
+
+			auto pnear = glm::mix(positions[i], positions[i + 4], lznear);
+			auto pfar = glm::mix(positions[i], positions[i + 4], lzfar);
+
+			positions[i] = pnear;
+			positions[i + 4] = pfar;
+		}
+
+		float3 min = { std::numeric_limits<float>().max(), std::numeric_limits<float>().max(), std::numeric_limits<float>().max() };
+		float3 max = { -std::numeric_limits<float>().min(), -std::numeric_limits<float>().max(), -std::numeric_limits<float>().max() };
+
+		for (auto i = 0; i < 8; ++i)
+		{
+			max = glm::max(float3(positions[i].xyz), max);
+			min = glm::min(float3(positions[i].xyz), min);
+		}
+
+		return CreateBoundsMinMax(min, max);
+	}
+
+	BoundingBox Functions::GetInverseFrustumBounds(const float4x4& worldToLocal, const float4x4& inverseMatrix)
+	{
+		float4 positions[8];
+		positions[0] = float4(-1, -1, -1, 1);
+		positions[1] = float4(-1,  1, -1, 1);
+		positions[2] = float4( 1,  1, -1, 1);
+		positions[3] = float4( 1, -1, -1, 1);
+		positions[4] = float4(-1, -1,  1, 1);
+		positions[5] = float4(-1,  1,  1, 1);
+		positions[6] = float4( 1,  1,  1, 1);
+		positions[7] = float4( 1, -1,  1, 1);
+
+		float3 min = { std::numeric_limits<float>().max(), std::numeric_limits<float>().max(), std::numeric_limits<float>().max() };
+		float3 max = { -std::numeric_limits<float>().min(), -std::numeric_limits<float>().max(), -std::numeric_limits<float>().max() };
+
+		for (auto i = 0; i < 8; ++i)
+		{
+			positions[i] = inverseMatrix * positions[i];
+			positions[i] /= positions[i].w;
+			positions[i] = worldToLocal * positions[i];
+			max = glm::max(float3(positions[i].xyz), max);
+			min = glm::min(float3(positions[i].xyz), min);
+		}
+
+		return CreateBoundsMinMax(min, max);
 	}
 }

@@ -79,18 +79,18 @@ namespace PK::Rendering
     {
         float3 nearCorners[4];
         float3 farCorners[4];
-        FrustrumPlanes frustrum;
+        FrustrumPlanes frustum;
     
-        Functions::ExtractFrustrumPlanes(matrix, &frustrum, true);
+        Functions::ExtractFrustrumPlanes(matrix, &frustum, true);
     
-        auto temp = frustrum.planes[1];
-        frustrum.planes[1] = frustrum.planes[2];
-        frustrum.planes[2] = temp;
+        auto temp = frustum.planes[1];
+        frustum.planes[1] = frustum.planes[2];
+        frustum.planes[2] = temp;
     
         for (auto i = 0; i < 4; ++i)
         {
-            nearCorners[i] = Functions::IntesectPlanes3(frustrum.planes[4], frustrum.planes[i], frustrum.planes[(i + 1) % 4]);
-            farCorners[i] = Functions::IntesectPlanes3(frustrum.planes[5], frustrum.planes[i], frustrum.planes[(i + 1) % 4]);
+            nearCorners[i] = Functions::IntesectPlanes3(frustum.planes[4], frustum.planes[i], frustum.planes[(i + 1) % 4]);
+            farCorners[i] = Functions::IntesectPlanes3(frustum.planes[5], frustum.planes[i], frustum.planes[(i + 1) % 4]);
         }
     
         auto vertices = ReserveVertices(24);

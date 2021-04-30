@@ -22,13 +22,13 @@ uint GetDepthTileIndex(float2 pxcoord)
 
 int3 GetTileIndex(float2 pxcoord, float lineardepth)
 {
+    // Source: http://www.aortiz.me/2018/12/21/CG.html
     int zTile = int(log2(lineardepth) * (CLUSTER_TILE_COUNT_Z * pk_ExpProjectionParams.x) + (CLUSTER_TILE_COUNT_Z * pk_ExpProjectionParams.y));
     return int3(int2(pxcoord / CLUSTER_SIZE_PX), max(zTile, 0));
 }
 
 int3 GetTileIndexFragment()
 {
-    // Source: http://www.aortiz.me/2018/12/21/CG.html
     #if defined(SHADER_STAGE_FRAGMENT)
         return GetTileIndex(gl_FragCoord.xy, LinearizeDepth(gl_FragCoord.z));
     #else

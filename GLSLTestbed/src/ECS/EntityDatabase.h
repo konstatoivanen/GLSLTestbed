@@ -22,18 +22,18 @@ namespace PK::ECS
     struct EGID
     {
         public:
-            uint entityID() const { return (uint)(_GID & 0xFFFFFFFF); }
-            uint groupID() const { return (uint)(_GID >> 32); }
+            inline uint entityID() const { return (uint)(_GID & 0xFFFFFFFF); }
+            inline uint groupID() const { return (uint)(_GID >> 32); }
             EGID() : _GID(0) {}
             EGID(const EGID& other) : _GID(other._GID) {}
             EGID(ulong identifier) : _GID(identifier) {}
             EGID(uint entityID, uint groupID) : _GID((ulong)groupID << 32 | ((ulong)(uint)entityID & 0xFFFFFFFF)) {}
-            bool IsValid() const { return _GID > 0; }
+            inline bool IsValid() const { return _GID > 0; }
             
-            bool operator ==(const EGID& obj2) const { return _GID == obj2._GID; }
-            bool operator !=(const EGID& obj2) const { return _GID != obj2._GID; }
-            bool operator <(const EGID& obj2) const { return _GID < obj2._GID; }
-            bool operator >(const EGID& obj2) const { return _GID > obj2._GID; }
+            inline bool operator ==(const EGID& obj2) const { return _GID == obj2._GID; }
+            inline bool operator !=(const EGID& obj2) const { return _GID != obj2._GID; }
+            inline bool operator <(const EGID& obj2) const { return _GID < obj2._GID; }
+            inline bool operator >(const EGID& obj2) const { return _GID > obj2._GID; }
 
         private:
             ulong _GID;
@@ -44,13 +44,13 @@ namespace PK::ECS
 
     struct IImplementer
     {
-        virtual ~IImplementer() = 0 {}
+        virtual ~IImplementer() = default;
     };
 
     struct IEntityView
     {
         EGID GID;
-        virtual ~IEntityView() = 0 {}
+        virtual ~IEntityView() = default;
     };
     
     const uint PK_ECS_BUCKET_SIZE = 32000;
@@ -80,7 +80,7 @@ namespace PK::ECS
         std::type_index type;
         uint group;
         
-        bool operator < (const ViewCollectionKey& r) const noexcept
+        inline bool operator < (const ViewCollectionKey& r) const noexcept
         {
             return (type < r.type) || ((type == r.type) && (group < r.group));
         }
@@ -90,7 +90,7 @@ namespace PK::ECS
     class EntityDatabase : public IService
     {
         public:
-            int ReserveEntityId() { return ++m_idCounter; }
+            inline int ReserveEntityId() { return ++m_idCounter; }
 
             template<typename T>
             T* ResereveImplementer()

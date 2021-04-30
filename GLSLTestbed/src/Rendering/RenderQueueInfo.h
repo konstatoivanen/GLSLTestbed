@@ -6,12 +6,13 @@
 
 namespace PK::Rendering
 {
+    // @TODO A bit prematurely implemented. Utilize when multiple passes become relevant.
     class RenderQueueInfo : public PK::Core::IService, public PK::Core::ISingleton<RenderQueueInfo>
     {
         struct RenderQueue
         {
             std::string name;
-            uint32_t queueIndex;
+            uint32_t queueIndex = 0;
         };
 
         public:

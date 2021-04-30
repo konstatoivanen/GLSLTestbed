@@ -21,13 +21,13 @@ namespace PK::Rendering::Objects
 		
 			void AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer);
 			void SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer);
-			void SetSubMeshes(const std::initializer_list<IndexRange>& indexRanges) { m_indexRanges = indexRanges; }
-			void SetSubMeshes(const std::vector<IndexRange>& indexRanges) { m_indexRanges = indexRanges; }
+			inline void SetSubMeshes(const std::initializer_list<IndexRange>& indexRanges) { m_indexRanges = indexRanges; }
+			inline void SetSubMeshes(const std::vector<IndexRange>& indexRanges) { m_indexRanges = indexRanges; }
 		
-			const std::vector<Ref<VertexBuffer>>& GetVertexBuffers() const { return m_vertexBuffers; }
-			const Ref<IndexBuffer>& GetIndexBuffer() const { return m_indexBuffer; }
+			inline const std::vector<Ref<VertexBuffer>>& GetVertexBuffers() const { return m_vertexBuffers; }
+			inline const Ref<IndexBuffer>& GetIndexBuffer() const { return m_indexBuffer; }
 			const IndexRange GetSubmeshIndexRange(int submesh) const;
-			const uint GetSubmeshCount() const { return glm::max(1, (int)m_indexRanges.size()); }
+			inline const uint GetSubmeshCount() const { return glm::max(1, (int)m_indexRanges.size()); }
 	
 		private:
 			uint32_t m_vertexBufferIndex = 0;

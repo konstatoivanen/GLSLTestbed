@@ -16,12 +16,12 @@ namespace PK::Rendering::Structs
         ShaderPropertyBlock ShaderProperties;
         FixedStateAttributes FixedStateAttributes;
         ResourceBindState ResourceBindState;
-        const RenderTexture* ActiveRenderTarget;
+        const RenderTexture* ActiveRenderTarget = nullptr;
         Ref<ShaderVariant> ActiveShader;
         Ref<Mesh> BlitQuad;
-        Shader* BlitShader;
-        uint4 ViewPort;
-        color ClearColor;
-        float ClearDepth;
+        Shader* BlitShader = nullptr;
+        uint4 ViewPort = CG_UINT4_ZERO;
+        color ClearColor = CG_COLOR_CLEAR;
+        float ClearDepth = 0.0f;
     };
 }

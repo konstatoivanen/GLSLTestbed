@@ -226,8 +226,8 @@ namespace PK::Rendering::GraphicsAPI
 
 		auto cameraMatrix = glm::inverse(view);
 
-		auto f = -projection[3][2] / (projection[2][2] - 1.0f);
-		auto n = -projection[3][2] / (projection[2][2] + 1.0f);
+		auto n = Functions::GetZNearFromProj(projection);
+		auto f = Functions::GetZFarFromProj(projection);
 		auto vp = projection * view;
 
 		SetGlobalFloat4(hashCache->pk_ProjectionParams, { n, f, f - n, 1.0f / f });

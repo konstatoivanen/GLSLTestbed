@@ -28,7 +28,7 @@ void main()
 		accumulation.a *= transmittance;
 
 		float4 preval = imageLoad(pk_Volume_Scatter, pos);
-		float4 outval = lerp(preval, accumulation, 0.5f);
+		float4 outval = lerp(preval, accumulation, VOLUME_ACCUMULATION_SC);
 
 		imageStore(pk_Volume_Scatter, pos, outval);
 	}

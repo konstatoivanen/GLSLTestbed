@@ -730,10 +730,12 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
       <DeploymentContent>true</DeploymentContent>
     </None>
     <None Include="res\shaders\SH_VS_ShadowmapBlurCube.shader" />
-    <None Include="res\shaders\SH_VS_ShadowmapBlurProj.shader" />
+    <None Include="res\shaders\SH_VS_ShadowmapBlurOrtho.shader" />
+    <None Include="res\shaders\SH_VS_ShadowmapBlurPersp.shader" />
     <None Include="res\shaders\SH_WS_ShadowmapCube.shader" />
     <None Include="res\shaders\SH_WS_DepthNormals.shader" />
-    <None Include="res\shaders\SH_WS_ShadowmapProj.shader" />
+    <None Include="res\shaders\SH_WS_ShadowmapOrtho.shader" />
+    <None Include="res\shaders\SH_WS_ShadowmapPersp.shader" />
     <None Include="res\textures\T_Bloom_LensDirt.ktx" />
     <None Include="res\textures\T_Bluenoise256_repeat.ktx" />
     <None Include="res\textures\T_Gravel_D.ktx" />

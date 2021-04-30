@@ -22,16 +22,16 @@ namespace PK::Core
 			Window(const WindowProperties& properties);
 			~Window();
 		
-			uint32_t GetWidth() const { return m_properties.width; }
-			uint32_t GetHeight() const { return m_properties.height; }
-			float GetAspect() const { return (float)m_properties.width / m_properties.height; }
-			bool IsAlive() const { return m_alive; }
-			bool IsMinimized() const { return m_minimized; }
-			bool IsVSync() const { return m_properties.vsync; }
+			inline uint32_t GetWidth() const { return m_properties.width; }
+			inline uint32_t GetHeight() const { return m_properties.height; }
+			inline float GetAspect() const { return (float)m_properties.width / m_properties.height; }
+			inline bool IsAlive() const { return m_alive; }
+			inline bool IsMinimized() const { return m_minimized; }
+			inline bool IsVSync() const { return m_properties.vsync; }
 			void SetVSync(bool enabled);
 			void SetActive();
-			void PollEvents() const { glfwPollEvents(); }
-			GLFWwindow* GetNativeWindow() const { return m_window; }
+			inline void PollEvents() const { glfwPollEvents(); }
+			inline GLFWwindow* GetNativeWindow() const { return m_window; }
 		
 		public:
 			std::function<void(int width, int height)> OnResize;

@@ -23,31 +23,31 @@ namespace PK::Rendering::Objects
     
     struct ImageBindDescriptor
     {
-        GraphicsID graphicsId;
-        GLenum format;
-        GLenum access;
-        int level;
-        int layer;
-        bool layered;
+        GraphicsID graphicsId = 0;
+        GLenum format = GL_RGBA32F;
+        GLenum access = GL_READ_WRITE;
+        int level = 0;
+        int layer = 0;
+        bool layered = false;
     };
 
     class Texture : public GraphicsObject
     {
         public:
             Texture(const TextureDescriptor& descriptor);
-            virtual ~Texture() = 0 {};
+            virtual ~Texture() = default;
     
-            TextureDescriptor GetDescriptor() const { return m_descriptor; }
-            uint2 GetResolution2D() const { return m_descriptor.resolution.xy; }
-            uint3 GetResolution3D() const { return m_descriptor.resolution; }
-            uint GetWidth() const { return m_descriptor.resolution.x; }
-            uint GetHeight() const { return m_descriptor.resolution.y; }
-            uint GetDepth() const { return m_descriptor.resolution.z; }
-            uint GetSize() const { return m_descriptor.resolution.x * m_descriptor.resolution.y * m_descriptor.resolution.z * GetTexelSize(m_descriptor.colorFormat); }
-            uint8_t GetChannelCount() const { return GetChannelCount(m_channels); }
-            GLenum GetDimension() const { return m_descriptor.dimension; }
+            inline TextureDescriptor GetDescriptor() const { return m_descriptor; }
+            inline uint2 GetResolution2D() const { return m_descriptor.resolution.xy; }
+            inline uint3 GetResolution3D() const { return m_descriptor.resolution; }
+            inline uint GetWidth() const { return m_descriptor.resolution.x; }
+            inline uint GetHeight() const { return m_descriptor.resolution.y; }
+            inline uint GetDepth() const { return m_descriptor.resolution.z; }
+            inline uint GetSize() const { return m_descriptor.resolution.x * m_descriptor.resolution.y * m_descriptor.resolution.z * GetTexelSize(m_descriptor.colorFormat); }
+            inline uint8_t GetChannelCount() const { return GetChannelCount(m_channels); }
+            inline GLenum GetDimension() const { return m_descriptor.dimension; }
 
-            GLuint64 GetBindlessHandle() const { return glGetTextureHandleARB(m_graphicsId); }
+            inline GLuint64 GetBindlessHandle() const { return glGetTextureHandleARB(m_graphicsId); }
             GLuint64 GetBindlessHandleResident() const 
             { 
                 auto handle = glGetTextureHandleARB(m_graphicsId);
@@ -58,11 +58,11 @@ namespace PK::Rendering::Objects
                 }
                 return handle; 
             }
-            void MakeHandleResident() const { glMakeTextureHandleResidentARB(glGetTextureHandleARB(m_graphicsId)); }
-            void MakeHandleNonResident() const { glMakeTextureHandleNonResidentARB(glGetTextureHandleARB(m_graphicsId)); }
+            inline void MakeHandleResident() const { glMakeTextureHandleResidentARB(glGetTextureHandleARB(m_graphicsId)); }
+            inline void MakeHandleNonResident() const { glMakeTextureHandleNonResidentARB(glGetTextureHandleARB(m_graphicsId)); }
 
-            ImageBindDescriptor GetImageBindDescriptor(GLenum access, int level, int layer, bool layered) const { return { m_graphicsId, m_descriptor.colorFormat, access, level, layer, layered }; }
-            GLuint64 GetImageHandle(GLenum format, int level, int layer, bool layered) const { return glGetImageHandleARB(m_graphicsId, level, layered, layer, format); }
+            inline ImageBindDescriptor GetImageBindDescriptor(GLenum access, int level, int layer, bool layered) const { return { m_graphicsId, m_descriptor.colorFormat, access, level, layer, layered }; }
+            inline GLuint64 GetImageHandle(GLenum format, int level, int layer, bool layered) const { return glGetImageHandleARB(m_graphicsId, level, layered, layer, format); }
             GLuint64 GetImageHandleResident(GLenum format, GLenum access, int level, int layer, bool layered) const 
             { 
                 auto handle = glGetImageHandleARB(m_graphicsId, level, layered, layer, format);
@@ -74,8 +74,8 @@ namespace PK::Rendering::Objects
 
                 return handle;
             }
-            void MakeImageHandleResident(GLenum format, GLenum access, int level, int layer, bool layered) const { glMakeImageHandleResidentARB(glGetImageHandleARB(m_graphicsId, level, layered, layer, format), access); }
-            void MakeImageHandleNonResident(GLenum format, int level, int layer, bool layered) const { glMakeImageHandleNonResidentARB(glGetImageHandleARB(m_graphicsId, level, layered, layer, format)); }
+            inline void MakeImageHandleResident(GLenum format, GLenum access, int level, int layer, bool layered) const { glMakeImageHandleResidentARB(glGetImageHandleARB(m_graphicsId, level, layered, layer, format), access); }
+            inline void MakeImageHandleNonResident(GLenum format, int level, int layer, bool layered) const { glMakeImageHandleNonResidentARB(glGetImageHandleARB(m_graphicsId, level, layered, layer, format)); }
 
             void Clear(uint level, const void* clearValue) const;
             void SetWrapMode(GLenum x, GLenum y, GLenum z);

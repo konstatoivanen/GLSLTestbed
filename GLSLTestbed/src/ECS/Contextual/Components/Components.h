@@ -16,17 +16,17 @@ namespace PK::ECS::Components
         float4x4 localToWorld = CG_FLOAT4X4_IDENTITY;
         float4x4 worldToLocal = CG_FLOAT4X4_IDENTITY;
 
-        float4x4 GetLocalToWorld() const { return Functions::GetMatrixTRS(position, rotation, scale); }
-        float4x4 GetWorldToLocal() const { return Functions::GetMatrixInvTRS(position, rotation, scale); }
+        inline float4x4 GetLocalToWorld() const { return Functions::GetMatrixTRS(position, rotation, scale); }
+        inline float4x4 GetWorldToLocal() const { return Functions::GetMatrixInvTRS(position, rotation, scale); }
 
-        virtual ~Transform() = 0 {}
+        virtual ~Transform() = default;
     };
     
     struct Bounds
     {
         BoundingBox localAABB;
         BoundingBox worldAABB;
-        virtual ~Bounds() = 0 {}
+        virtual ~Bounds() = default;
     };
     
     enum class RenderHandleFlags : ushort
@@ -47,19 +47,19 @@ namespace PK::ECS::Components
         bool isVisible = false;
         bool isCullable = true;
         RenderHandleFlags flags = RenderHandleFlags::Renderer;
-        virtual ~RenderableHandle() = 0 {}
+        virtual ~RenderableHandle() = default;
     };
     
     struct MeshReference
     {
-        Mesh* sharedMesh;
-        virtual ~MeshReference() = 0 {}
+        Mesh* sharedMesh = nullptr;
+        virtual ~MeshReference() = default;
     };
     
     struct Materials
     {
         std::vector<Material*> sharedMaterials;
-        virtual ~Materials() = 0 {}
+        virtual ~Materials() = default;
     };
     
     struct Light
@@ -68,11 +68,11 @@ namespace PK::ECS::Components
         float radius = 1.0f;
         float angle = 45.0f;
         bool castShadows = true;
-        uint linearIndex;
-        uint shadowmapIndex;
-        uint projectionIndex;
-        LightCookie cookie;
-        LightType lightType;
-        virtual ~Light() = 0 {}
+        uint linearIndex = 0;
+        uint shadowmapIndex = 0;
+        uint projectionIndex = 0;
+        LightCookie cookie = LightCookie::NoCookie;
+        LightType lightType = LightType::Point;
+        virtual ~Light() = default;
     };
 }

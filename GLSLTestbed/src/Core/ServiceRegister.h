@@ -24,7 +24,7 @@ namespace PK::Core
                 return service;
             }
     
-            void Clear() { m_services.clear(); }
+            inline void Clear() { m_services.clear(); }
     
         private:
             std::unordered_map<std::type_index, Scope<IService>> m_services;

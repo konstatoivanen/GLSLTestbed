@@ -20,7 +20,7 @@ float Density(float3 pos)
 
 float3 GetAmbientColor(float3 direction, float3 worldpos)
 {
-	float anistropy = GetLightAnistropy(worldpos, direction, pk_Volume_Anisotropy);
+	float anistropy = GetLightAnisotropy(worldpos, direction, pk_Volume_Anisotropy);
 	return SampleEnv(OctaUV(direction), 1.0f) * anistropy;
 }
 
@@ -38,11 +38,12 @@ void main()
 
 	float3 color = GetAmbientColor(normalize(bluenoise - 0.5f + float3(0, 1, 0)), worldpos);
 
+	uint cascade = GetShadowCascadeIndex(depth);
 	LightTile tile = GetLightTile(GetTileIndex(uv * pk_ScreenParams.xy, depth));
 
 	for (uint i = tile.start; i < tile.end; ++i)
 	{
-		color += GetVolumeLightColor(i, worldpos, pk_Volume_Anisotropy);
+		color += GetVolumeLightColor(i, worldpos, cascade, pk_Volume_Anisotropy);
 	}
 	
 	float density = Density(worldpos);
@@ -50,5 +51,5 @@ void main()
 	float4 preval = imageLoad(pk_Volume_Inject, int3(id));
 	float4 curval = float4(pk_Volume_Intensity * density * color, density);
 	
-	imageStore(pk_Volume_Inject, int3(id),  lerp(preval, curval, 0.2f));
+	imageStore(pk_Volume_Inject, int3(id),  lerp(preval, curval, VOLUME_ACCUMULATION_LD));
 }
