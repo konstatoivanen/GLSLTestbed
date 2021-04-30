@@ -4,7 +4,7 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 ![Preview](T_Preview_01.jpg?raw=true "HDRI Preview")
 ![Preview](T_Preview_02.jpg?raw=true "Fog & Shadows Preview")
 ![Preview](T_Preview_03.jpg?raw=true "Cascaded Shadow Maps")
-![Preview](T_Preview_03.jpg?raw=true "Fog Ambient Anistropy Preview")
+![Preview](T_Preview_04.jpg?raw=true "Fog Ambient Anistropy Preview")
 
 ## Implemented Features
 - Instanced dynamic batching.
