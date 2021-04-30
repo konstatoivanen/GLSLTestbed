@@ -17,7 +17,7 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 - Volumetric fog & lighting.
 - Variance shadow mapping.
 - Light cookie support.
-- Point & spot light support.
+- Point, spot & directional light support.
 - PBR shading.
 - HDR bloom.
 - Tone mapping.
@@ -29,7 +29,7 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 
 ## Planned Features
 - A global illumination solution.
-- Directional light support.
+- Rectangular area light support.
 - Exponential variance shadow maps.
 - Color grading.
 - Documentation.
