@@ -28,7 +28,6 @@ namespace PK::Rendering
         private:
             void OnPreRender();
             void OnRender();
-            void OnPostRender();
     
             bool m_enableLightingDebug;
 

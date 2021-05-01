@@ -38,9 +38,12 @@ void main()
 
 	float4 color = float4(hsv2rgb(float3(maxfar, 1.0f, 1.0f)), 0.1f);
 
+	float2 border = 4.0f / CLUSTER_SIZE_PX.xy;
 	float2 griduv = gl_FragCoord.xy / CLUSTER_SIZE_PX;
+	griduv += border * 0.5f;
 	griduv -= floor(griduv);
-	color.xyz *= step(4.0f / CLUSTER_SIZE_PX, min(griduv.x, griduv.y));
+	color.xyz *= step(border.x, griduv.x);
+	color.xyz *= step(border.y, griduv.y);
 
 	SV_Target0 = color;
 };

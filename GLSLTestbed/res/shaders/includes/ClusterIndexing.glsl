@@ -1,13 +1,13 @@
 #pragma once
 #include HLSLSupport.glsl
 
-uniform float pk_ClusterSizePx;
+uniform float2 pk_ClusterSizePx;
 
 #define CLUSTER_TILE_COUNT_X 16
 #define CLUSTER_TILE_COUNT_Y 9
 #define CLUSTER_TILE_COUNT_Z 24
-#define CLUSTER_TILE_COUNT_XY 144 // 16 * 9
-#define CLUSTER_TILE_COUNT_MAX (16 * 9 * 24)
+#define CLUSTER_GROUP_SIZE_Z 4
+#define CLUSTER_GROUP_SIZE_XYZ 576 // 16 * 9 * 4
 #define CLUSTER_SIZE_PX pk_ClusterSizePx
 
 float ZCoordToLinearDepth(float index)
@@ -17,7 +17,7 @@ float ZCoordToLinearDepth(float index)
 
 uint GetDepthTileIndex(float2 pxcoord)
 {
-    return uint(uint(pxcoord.x / CLUSTER_SIZE_PX) + CLUSTER_TILE_COUNT_X * uint(pxcoord.y / CLUSTER_SIZE_PX));
+    return uint(uint(pxcoord.x / CLUSTER_SIZE_PX.x) + CLUSTER_TILE_COUNT_X * uint(pxcoord.y / CLUSTER_SIZE_PX.y));
 }
 
 int3 GetTileIndex(float2 pxcoord, float lineardepth)

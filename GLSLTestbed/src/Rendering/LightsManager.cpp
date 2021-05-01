@@ -1,9 +1,7 @@
 #include "PrecompiledHeader.h"
 #include "Utilities/Utilities.h"
 #include "Utilities/HashCache.h"
-#include "Rendering/GraphicsAPI.h"
 #include "LightsManager.h"
-#include "ECS/Contextual/EntityViews/EntityViews.h"
 
 namespace PK::Rendering
 {
@@ -394,7 +392,7 @@ namespace PK::Rendering
 			};
 		}
 
-		bufferLights[m_visibleLightCount] = { CG_COLOR_CLEAR, CG_FLOAT4_ZERO, 0u, 0u, 0u, 0u };
+		bufferLights[m_visibleLightCount] = { CG_COLOR_CLEAR, CG_FLOAT4_ZERO, 0xFFFFFFFF, 0u, 0xFFFFFFFF, 0xFFFFFFFF };
 		m_lightsBuffer->EndMapBuffer();
 
 		if (lightProjectionCount > 0)
@@ -414,22 +412,17 @@ namespace PK::Rendering
 		GraphicsAPI::SetGlobalInt(hashCache->pk_LightCount, m_visibleLightCount);
 		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_Lights, m_lightsBuffer->GetGraphicsID());
 		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_LightMatrices, m_lightMatricesBuffer->GetGraphicsID());
-		GraphicsAPI::SetGlobalFloat(hashCache->pk_ClusterSizePx, std::ceilf(resolution.x / (float)GridSizeX));
+		GraphicsAPI::SetGlobalFloat2(hashCache->pk_ClusterSizePx, { std::ceilf(resolution.x / (float)GridSizeX), std::ceilf(resolution.y / (float)GridSizeY)});
 		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_GlobalLightsList, m_globalLightsList->GetGraphicsID());
 		GraphicsAPI::SetGlobalImage(hashCache->pk_LightTiles, m_lightTiles->GetImageBindDescriptor(GL_READ_WRITE, 0, 0, true));
 		UpdateShadowmaps(entityDb, inverseViewProjection, zNear, zFar);
 	}
 	
 	void LightsManager::UpdateLightTiles(const uint2& resolution)
-	{
-		auto depthCountX = (uint)std::ceilf(resolution.x / 16.0f);
-		auto depthCountY = (uint)std::ceilf(resolution.y / 16.0f);
+	{	
+		auto depthCountX = (uint)std::ceilf(resolution.x / DepthGroupSizeX);
+		auto depthCountY = (uint)std::ceilf(resolution.y / DepthGroupSizeY);
 		GraphicsAPI::DispatchCompute(m_computeDepthTiles, { depthCountX, depthCountY, 1 }, m_properties, GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 		GraphicsAPI::DispatchCompute(m_computeLightAssignment, { 1,1, GridSizeZ / 4 }, m_properties, GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
-	}
-	
-	void LightsManager::DrawDebug() 
-	{ 
-		GraphicsAPI::Blit(m_debugVisualize, m_properties);
 	}
 }

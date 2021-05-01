@@ -147,7 +147,7 @@ namespace PK::Rendering
 			case UpdateStep::OpenFrame: GraphicsAPI::OpenContext(&m_context); break;
 			case UpdateStep::PreRender: OnPreRender(); break;
 			case UpdateStep::Render: OnRender(); break;
-			case UpdateStep::PostRender: OnPostRender(); break;
+			case UpdateStep::PostRender: GraphicsAPI::EndWindow(); break;
 			case UpdateStep::CloseFrame: GraphicsAPI::CloseContext(); break;
 		}
 	}
@@ -231,10 +231,5 @@ namespace PK::Rendering
 		{
 			m_lightsManager.DrawDebug();
 		}
-	}
-	
-	void RenderPipeline::OnPostRender()
-	{
-		GraphicsAPI::EndWindow();
 	}
 }

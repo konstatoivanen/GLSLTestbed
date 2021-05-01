@@ -23,7 +23,7 @@ struct AABB
 };
 
 AABB currentCell;
-shared SharedLight sharedLights[CLUSTER_TILE_COUNT_XY];
+shared SharedLight sharedLights[CLUSTER_GROUP_SIZE_XYZ];
 
 float cmax(float3 v) 
 {
@@ -67,10 +67,10 @@ bool IntersectionTest(uint lightIndex)
     return false;
 }
 
-layout(local_size_x = CLUSTER_TILE_COUNT_X, local_size_y = CLUSTER_TILE_COUNT_Y, local_size_z = 4) in;
+layout(local_size_x = CLUSTER_TILE_COUNT_X, local_size_y = CLUSTER_TILE_COUNT_Y, local_size_z = CLUSTER_GROUP_SIZE_Z) in;
 void main() 
 {
-    uint numBatches = (pk_LightCount + CLUSTER_TILE_COUNT_XY - 1) / CLUSTER_TILE_COUNT_XY;
+    uint numBatches = (pk_LightCount + CLUSTER_GROUP_SIZE_XYZ - 1) / CLUSTER_GROUP_SIZE_XYZ;
     uint2 tileCoord = gl_GlobalInvocationID.xy;
     uint depthTileIndex = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * CLUSTER_TILE_COUNT_X;
 
@@ -80,10 +80,10 @@ void main()
 
     far = min(far, maxfar);
 
-    float2 invstep = 1.0f / float2(CLUSTER_TILE_COUNT_X, CLUSTER_TILE_COUNT_X * (pk_ScreenParams.y / pk_ScreenParams.x));
+    float2 invstep = 1.0f / float2(CLUSTER_TILE_COUNT_X, CLUSTER_TILE_COUNT_Y);
     float4 screenminmax = float4(gl_GlobalInvocationID.xy * invstep, (gl_GlobalInvocationID.xy + 1.0f) * invstep);
 
-    bool discardTile = near > maxfar || screenminmax.y > 1.0f;
+    bool discardTile = near > maxfar;
 
     float3 min00 = ClipToViewPos(screenminmax.xy, near);
     float3 max00 = ClipToViewPos(screenminmax.xy, far);
@@ -102,7 +102,7 @@ void main()
 
     for (uint batch = 0; batch < numBatches; ++batch) 
     {
-        uint lightIndex = min(batch * CLUSTER_TILE_COUNT_XY + gl_LocalInvocationIndex, pk_LightCount);
+        uint lightIndex = min(batch * CLUSTER_GROUP_SIZE_XYZ + gl_LocalInvocationIndex, pk_LightCount);
 
         PKRawLight light = PK_BUFFER_DATA(pk_Lights, lightIndex);
         float4 direction = PK_BUFFER_DATA(pk_LightDirections, light.projection_index);
@@ -122,11 +122,11 @@ void main()
             continue;
         }
 
-        for (uint index = 0; index < CLUSTER_TILE_COUNT_XY && visibleLightCount < CLUSTER_TILE_MAX_LIGHT_COUNT; ++index)
+        for (uint index = 0; index < CLUSTER_GROUP_SIZE_XYZ && visibleLightCount < CLUSTER_TILE_MAX_LIGHT_COUNT; ++index)
         {
             if (IntersectionTest(index))
             {
-                visibleLightIndices[visibleLightCount++] = batch * CLUSTER_TILE_COUNT_XY + index;
+                visibleLightIndices[visibleLightCount++] = batch * CLUSTER_GROUP_SIZE_XYZ + index;
             }
         }
     }

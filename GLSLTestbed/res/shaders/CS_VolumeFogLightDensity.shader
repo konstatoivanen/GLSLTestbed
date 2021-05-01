@@ -18,9 +18,9 @@ float Density(float3 pos)
 	return max(fog * pk_Volume_Density, 0.0);
 }
 
-float3 GetAmbientColor(float3 direction, float3 worldpos)
+float3 GetAmbientColor(float3 direction, float3 viewdir)
 {
-	float anistropy = GetLightAnisotropy(worldpos, direction, pk_Volume_Anisotropy);
+	float anistropy = GetLightAnisotropy(viewdir, direction, pk_Volume_Anisotropy);
 	return SampleEnv(OctaUV(direction), 1.0f) * anistropy;
 }
 
@@ -30,20 +30,23 @@ void main()
 	uint3 id = gl_GlobalInvocationID;
 
 	float3 bluenoise = GetVolumeCellNoise(id);
+
 	float depth = GetVolumeCellDepth(id.z + NoiseUniformToTriangle(bluenoise.x));
 
 	float2 uv = (VOLUME_SIZE_ST.zz + id.xy) / VOLUME_SIZE_ST.xy;
 
 	float3 worldpos = mul(pk_MATRIX_I_V, float4(ClipToViewPos(uv, depth), 1.0f)).xyz;
 
-	float3 color = GetAmbientColor(normalize(bluenoise - 0.5f + float3(0, 1, 0)), worldpos);
+	float3 viewdir = normalize(worldpos - pk_WorldSpaceCameraPos.xyz);
+
+	float3 color = GetAmbientColor(normalize(bluenoise - 0.5f + float3(0, 1, 0)), viewdir);
 
 	uint cascade = GetShadowCascadeIndex(depth);
 	LightTile tile = GetLightTile(GetTileIndex(uv * pk_ScreenParams.xy, depth));
 
 	for (uint i = tile.start; i < tile.end; ++i)
 	{
-		color += GetVolumeLightColor(i, worldpos, cascade, pk_Volume_Anisotropy);
+		color += GetVolumeLightColor(i, worldpos, viewdir, cascade, pk_Volume_Anisotropy);
 	}
 	
 	float density = Density(worldpos);

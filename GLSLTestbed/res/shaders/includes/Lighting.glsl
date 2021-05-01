@@ -23,28 +23,31 @@
 // Source: https://de45xmedrsdbp.cloudfront.net/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
 float GetAttenuation(float ldist, float lradius) { return pow2(saturate(1.0f - pow4(ldist/lradius))) / (pow2(ldist) + 1.0f); }
 
-float GetLightAnisotropy(float3 worldPos, float3 posToLight, float anistropy)
+float GetLightAnisotropy(float3 viewdir, float3 posToLight, float anistropy)
 {
-    float3 cameraToPos = normalize(worldPos - pk_WorldSpaceCameraPos.xyz);
-	float g = anistropy;
-	float gsq = g * g;
-	float denom = 1 + gsq - 2.0 * g * dot(cameraToPos, posToLight);
-	denom = denom * denom * denom;
-	denom = sqrt(max(0, denom));
-	return (1 - gsq) / denom;
+	float gsq = pow2(anistropy);
+	float denom = 1.0 + gsq - 2.0 * anistropy * dot(viewdir, posToLight);
+	return (1.0 - gsq) * inversesqrt(max(0, pow3(denom)));
 }
 
 uint GetShadowCascadeIndex(float linearDepth)
 {
-    for (uint i = SHADOWMAP_CASCADES - 1; i > 0; --i)
+    if (linearDepth < pk_ShadowCascadeZSplits[1])
     {
-        if (linearDepth > pk_ShadowCascadeZSplits[i])
-        {
-            return i;
-        }
+        return 0;
     }
 
-    return 0;
+    if (linearDepth < pk_ShadowCascadeZSplits[2])
+    {
+        return 1;
+    }
+
+    if (linearDepth < pk_ShadowCascadeZSplits[3])
+    {
+        return 2;
+    }
+
+    return 3;
 }
 
 uint GetShadowCascadeIndexFragment()
@@ -73,113 +76,95 @@ float SampleScreenSpaceOcclusion()
     #endif
 }
 
-float3 GetLightUV(PKRawLight light, float3 worldpos, float3 direction, uint cascade)
+float3 GetLightProjectionUVW(in float3 worldpos, uint projectionIndex)
 {
-    switch(light.type)
-    {
-        case LIGHT_TYPE_POINT:
-        {
-            return float3(OctaEncode(direction), 1.0f);
-        }
-        case LIGHT_TYPE_SPOT:
-        {
-            float4x4 matrix = PK_BUFFER_DATA(pk_LightMatrices, light.projection_index);
-            float4 coord = mul(matrix, float4(worldpos, 1.0f));
-            coord = ClipToScreenPos(coord);
-            return float3(coord.xy / coord.w, step(0.0f, coord.z * 0.5f));
-        }
-        case LIGHT_TYPE_DIRECTIONAL: 
-        {
-            float4x4 matrix = PK_BUFFER_DATA(pk_LightMatrices, light.projection_index + cascade);
-            float4 coord = mul(matrix, float4(worldpos, 1.0f));
-            coord = ClipToScreenPos(coord);
-            return float3(coord.xy / coord.w, 1.0f);
-        }
-    }
-
-    return float3(0.0f);
+    float4 coord = mul(PK_BUFFER_DATA(pk_LightMatrices, projectionIndex), float4(worldpos, 1.0f));
+    coord.xy = (coord.xy * 0.5f + coord.ww * 0.5f) / coord.w;
+    return coord.xyz;
 }
 
-float SampleLightShadowmap(PKRawLight light, float2 uv, float lightDistance, uint cascade)
+float SampleLightShadowmap(uint shadowmapIndex, float2 uv, float lightDistance)
 {
-    if (light.shadowmap_index == LIGHT_PARAM_INVALID)
-    {
-        return 1.0f;
-    }
-
-    cascade = light.type == LIGHT_TYPE_DIRECTIONAL ? cascade : 0;
-    float2 moments = tex2D(pk_ShadowmapArray, float3(uv, light.shadowmap_index + cascade)).xy;
+    float2 moments = tex2D(pk_ShadowmapArray, float3(uv, shadowmapIndex)).xy;
     float variance = moments.y - moments.x * moments.x;
     float difference = lightDistance - moments.x;
     return difference > 0.01f ? LBR(variance / (variance + difference * difference)) : 1.0f;
 }
 
-float SampleLightCookie(PKRawLight light, float2 uv)
+
+void GetLight(uint index, in float3 worldpos, uint cascade, out float3 color, out float3 posToLight, out float attenuation)
 {
-    if (light.cookie_index == LIGHT_PARAM_INVALID)
+    uint linearIndex = PK_BUFFER_DATA(pk_GlobalLightsList, index);
+    PKRawLight light = PK_BUFFER_DATA(pk_Lights, linearIndex);
+    color = light.color.xyz;
+
+    float2 lightuv;
+    float linearDistance;
+
+    switch (light.type)
     {
-        return 1.0f;
+        case LIGHT_TYPE_POINT:
+        {
+            posToLight = light.position.xyz - worldpos;
+            linearDistance = length(posToLight);
+            attenuation = GetAttenuation(linearDistance, light.position.w);
+            posToLight /= linearDistance;
+            lightuv = OctaEncode(-posToLight);
+        }
+        break;
+        case LIGHT_TYPE_SPOT:
+        {
+            posToLight = light.position.xyz - worldpos;
+            linearDistance = length(posToLight);
+            attenuation = GetAttenuation(linearDistance, light.position.w);
+            posToLight /= linearDistance;
+
+            float3 coord = GetLightProjectionUVW(worldpos, light.projection_index);
+            lightuv = coord.xy;
+            attenuation *= step(0.0f, coord.z);
+        }
+        break;
+        case LIGHT_TYPE_DIRECTIONAL:
+        {
+            light.projection_index += cascade;
+            light.shadowmap_index += cascade;
+            posToLight = -light.position.xyz;
+            linearDistance = dot(light.position.xyz, worldpos) + light.position.w;
+            attenuation = 1.0f;
+            lightuv = GetLightProjectionUVW(worldpos, light.projection_index).xy;
+        }
+        break;
     }
 
-    return tex2D(pk_LightCookies, float3(uv, float(light.cookie_index))).r;
-}
-
-void GetLightParams(PKRawLight light, float3 worldpos, out float3 posToLight, out float lindist, out float attenuation)
-{
-    if (light.type == LIGHT_TYPE_DIRECTIONAL)
+    if (light.cookie_index != LIGHT_PARAM_INVALID)
     {
-        posToLight = -light.position.xyz;
-        lindist = dot(light.position.xyz, worldpos) + light.position.w;
-        attenuation = 1.0f;
-        return;
+        attenuation *= tex2D(pk_LightCookies, float3(lightuv, float(light.cookie_index))).r;
     }
 
-    posToLight = light.position.xyz - worldpos;
-    lindist = sqrt(dot(posToLight, posToLight));
-    attenuation = GetAttenuation(lindist, light.position.w);
-    posToLight /= lindist;
+    if (light.shadowmap_index != LIGHT_PARAM_INVALID)
+    {
+        attenuation *= SampleLightShadowmap(light.shadowmap_index, lightuv, linearDistance);
+    }
 }
 
 PKLight GetSurfaceLight(uint index, in float3 worldpos, uint cascade)
 {
-    uint linearIndex = PK_BUFFER_DATA(pk_GlobalLightsList, index);
-    PKRawLight light = PK_BUFFER_DATA(pk_Lights, linearIndex);
-
-    float3 posToLight;
-    float lindist;
+    float3 posToLight, color;
     float attenuation;
-    GetLightParams(light, worldpos, posToLight, lindist, attenuation);
 
-    float3 lightuvw = GetLightUV(light, worldpos, -posToLight, cascade);
+    GetLight(index, worldpos, cascade, color, posToLight, attenuation);
 
-    attenuation *= lightuvw.z;
-    attenuation *= SampleLightCookie(light, lightuvw.xy);
-    attenuation *= SampleLightShadowmap(light, lightuvw.xy, lindist, cascade);
-
-    PKLight outlight;
-    outlight.color = light.color.xyz * attenuation;
-    outlight.direction = posToLight;
-    return outlight;
+    return PKLight(color * attenuation, posToLight);
 }
 
-float3 GetVolumeLightColor(uint index, in float3 worldpos, uint cascade, float anisotropy)
+float3 GetVolumeLightColor(uint index, in float3 worldpos, float3 viewdir, uint cascade, float anisotropy)
 {
-    uint linearIndex = PK_BUFFER_DATA(pk_GlobalLightsList, index);
-    PKRawLight light = PK_BUFFER_DATA(pk_Lights, linearIndex);
-
-    float3 posToLight;
-    float lindist;
+    float3 posToLight, color;
     float attenuation;
-    GetLightParams(light, worldpos, posToLight, lindist, attenuation);
 
-    float3 lightuvw = GetLightUV(light, worldpos, -posToLight, cascade);
+    GetLight(index, worldpos, cascade, color, posToLight, attenuation);
 
-    attenuation *= lightuvw.z;
-	attenuation *= GetLightAnisotropy(worldpos, posToLight, anisotropy);
-    attenuation *= SampleLightCookie(light, lightuvw.xy);
-    attenuation *= SampleLightShadowmap(light, lightuvw.xy, lindist, cascade);
-
-    return light.color.xyz * attenuation;
+    return color * attenuation * GetLightAnisotropy(viewdir, posToLight, anisotropy);
 }
 
 LightTile GetLightTile(int3 coord)
@@ -207,21 +192,16 @@ float4 PhysicallyBasedShading(SurfaceData surf, float3 viewdir, float3 worldpos)
     float reflectivity = pk_DielectricSpecular.r + surf.metallic * pk_DielectricSpecular.a;
     surf.albedo *= 1.0f - reflectivity;
 
-    // this is necessary to handle transparency in physically correct way - only diffuse component gets affected by alpha
     #if defined(PK_TRANSPARENT_PBR)
         surf.albedo *= alpha;
         surf.alpha = reflectivity + surf.alpha * (1.0f - reflectivity);
     #endif
 
-    float2 specUV = OctaUV(reflect(-viewdir, surf.normal));
-    float2 diffUV = OctaUV(surf.normal);
-
-    PKIndirect indirect;
-    indirect.diffuse.xyz  = SampleEnv(diffUV, 1.0f);
-    indirect.specular.xyz = SampleEnv(specUV, surf.roughness);
-
     INIT_BRDF_CACHE(surf.albedo, specColor, surf.normal, viewdir, reflectivity, surf.roughness);
     
+    PKIndirect indirect;
+    indirect.diffuse.xyz = SampleEnv(OctaUV(surf.normal), 1.0f);
+    indirect.specular.xyz = SampleEnv(OctaUV(reflect(-viewdir, surf.normal)), surf.roughness);
     float3 color = BRDF_PBS_DEFAULT_INDIRECT(indirect);
 
     color *= surf.occlusion;

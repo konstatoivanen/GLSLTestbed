@@ -8,6 +8,7 @@
 #include "Rendering/Objects/Buffer.h"
 #include "Rendering/Objects/RenderTexture.h"
 #include "Rendering/Objects/TextureXD.h"
+#include "Rendering/GraphicsAPI.h"
 #include <hlslmath.h>
 
 namespace PK::Rendering
@@ -47,7 +48,7 @@ namespace PK::Rendering
 
             void UpdateLightTiles(const uint2& resolution);
 
-            void DrawDebug();
+            inline void DrawDebug() const { GraphicsAPI::Blit(m_debugVisualize, m_properties); };
 
             inline const Ref<RenderTexture>& GetShadowmapAtlas() const { return m_shadowmapData.ShadowmapAtlas; }
 
@@ -67,6 +68,8 @@ namespace PK::Rendering
             const uint GridSizeY = 9;
             const uint GridSizeZ = 24;
             const uint ClusterCount = GridSizeX * GridSizeY * GridSizeZ;
+            const float DepthGroupSizeX = 32.0f;
+            const float DepthGroupSizeY = 32.0f;
 
             const float m_cascadeLinearity;
             std::vector<PK::ECS::EntityViews::LightRenderable*> m_visibleLights;
