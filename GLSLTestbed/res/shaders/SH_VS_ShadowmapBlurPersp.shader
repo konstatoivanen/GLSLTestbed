@@ -36,7 +36,7 @@ void main()
 
     for (uint i = 0u; i < SAMPLE_COUNT; ++i)
     {
-        A += SAMPLE_SRC(ProcessShadowmapUV(vs_TEXCOORDS[i]), vs_SAMPLELAYER);
+        A += SAMPLE_SRC(vs_TEXCOORDS[i], vs_SAMPLELAYER);
     }
 
     SV_Target0 = A / SAMPLE_COUNT;

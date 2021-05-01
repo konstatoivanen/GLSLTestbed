@@ -35,7 +35,6 @@ namespace PK::Rendering
 
         static constexpr uint BatchSize = 4;
         static constexpr uint TileSize = 512;
-        static constexpr uint TileCountPerAxis = 8; 
         static constexpr uint TotalTileCount = 8 * 8; 
         static constexpr float CascadeLinearity = 0.5f;
     };

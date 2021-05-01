@@ -61,7 +61,7 @@ PK_DECLARE_CBUFFER(pk_PerFrameConstants)
     // Scene depth
     highp sampler2D pk_ScreenDepth;
     // Scene shadowmap atlas
-    highp sampler2D pk_ShadowmapAtlas;
+    highp sampler2DArray pk_ShadowmapArray;
     // Scene ambient occlusion
     sampler2D pk_ScreenOcclusion;
     // Array of light cookies

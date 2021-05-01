@@ -121,10 +121,10 @@ namespace PK::Rendering
 		descriptor.depthFormat = GL_NONE;
 		m_shadowmapData.MapIntermediate = CreateRef<RenderTexture>(descriptor);
 
-		descriptor.dimension = GL_TEXTURE_2D;
+		descriptor.dimension = GL_TEXTURE_2D_ARRAY;
 		descriptor.colorFormats = { GL_RG32F };
 		descriptor.depthFormat = GL_NONE;
-		descriptor.resolution = { ShadowmapData::TileSize * ShadowmapData::TileCountPerAxis, ShadowmapData::TileSize * ShadowmapData::TileCountPerAxis, 0 };
+		descriptor.resolution = { ShadowmapData::TileSize, ShadowmapData::TileSize, ShadowmapData::TotalTileCount };
 		m_shadowmapData.ShadowmapAtlas = CreateRef<RenderTexture>(descriptor);
 
 		TextureDescriptor imageDescriptor;
@@ -165,16 +165,15 @@ namespace PK::Rendering
 		m_properties.SetTexture(StringHashID::StringToID("_ShadowmapBatch0"), m_shadowmapData.LightIndices[(int)LightType::Spot].SceneRenderTarget->GetColorBuffer(0)->GetGraphicsID());
 		m_properties.SetTexture(StringHashID::StringToID("_ShadowmapBatch1"), m_shadowmapData.MapIntermediate->GetColorBuffer(0)->GetGraphicsID());
 
-		float4 viewports[3] = 
+		float4 viewports[2] = 
 		{
 			{0, 0, 256, 256},
 			{0, 0, ShadowmapData::TileSize, ShadowmapData::TileSize},
-			{0, 0, ShadowmapData::TileSize * ShadowmapData::TileCountPerAxis, ShadowmapData::TileSize * ShadowmapData::TileCountPerAxis},
 		};
 
 		const auto cullingMask = (ushort)(ECS::Components::RenderHandleFlags::Renderer | ECS::Components::RenderHandleFlags::ShadowCaster);
 
-		GraphicsAPI::SetViewPorts(0, viewports, 3);
+		GraphicsAPI::SetViewPorts(0, viewports, 2);
 
 		for (auto typeIdx = 0; typeIdx < (int)LightType::TypeCount; ++typeIdx)
 		{

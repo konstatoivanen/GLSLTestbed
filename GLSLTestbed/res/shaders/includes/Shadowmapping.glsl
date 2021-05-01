@@ -104,29 +104,13 @@ float4 GetCubeClipPos(float3 viewvec, float radius, uint faceIndex)
 	return float4(vpos.xy, 1.020202f * vpos.z - radius * 0.020202f, vpos.z);
 }
 
-float2 ProcessShadowmapUV(float2 uv)
-{
-    #if defined(SHADOW_BLUR_PASS1)
-    uv *= float2(1.0f) + 2.0f / SHADOWMAP_TILE_SIZE;
-    uv -= 1.0f / SHADOWMAP_TILE_SIZE;
-    uv = saturate(uv);
-    #endif
-    return uv;
-}
-
 void SHADOW_SET_VERTEX_STATE_ATTRIBUTES(float4 position, float2 baseuv, out uint sampleLayer)
 {
     #if defined(SHADER_STAGE_VERTEX)
         gl_Position = position;        
         sampleLayer = gl_InstanceID;
-        #if defined(SHADOW_BLUR_PASS0)                                                    
-            gl_Layer = gl_InstanceID;                                                     
-            gl_ViewportIndex = 1;                                                         
-        #else                                                                             
-            gl_ViewportIndex = 2;                                                         
-            float3 tilest = GetShadowMapTileST(gl_BaseInstance + gl_InstanceID);          
-            gl_Position.xy = lerp(-1.0f.xx, 1.0f.xx, tilest.xy + baseuv * tilest.z);
-        #endif                                                                            
+        gl_Layer = gl_BaseInstance + gl_InstanceID;                                                     
+        gl_ViewportIndex = 1;                                                                           
     #endif
 }
 
