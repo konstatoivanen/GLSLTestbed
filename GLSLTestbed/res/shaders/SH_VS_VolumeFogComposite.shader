@@ -36,7 +36,7 @@ void main()
 	
 	float3 offset = GlobalNoiseBlue(int2(vs_TEXCOORD * pk_ScreenParams.xy + pk_Time.ww * 1000));
 	offset.xy -= 0.5f;
-	offset.xy *= 4.0f / textureSize(pk_Volume_ScatterRead, 0).xy;
+	offset.xy *= VOLUME_COMPOSITE_DITHER_AMOUNT / textureSize(pk_Volume_ScatterRead, 0).xy;
 	offset.z  = offset.z * 2 - 1;
 	offset.z /= VOLUME_DEPTH;
 

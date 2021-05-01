@@ -7,8 +7,9 @@ layout(binding = 2) uniform highp sampler2DArray _ShadowmapBatch1;
 
 #define SAMPLE_COUNT 16u
 // @TODO Parameterize these later
-#define GET_SHADOW_BLUR_AMOUNT_3D pow5(0.125f)
-#define GET_SHADOW_BLUR_AMOUNT_2D 13.0f / 512.0f
+#define GET_SHADOW_BLUR_AMOUNT_POINT pow5(0.125f)
+#define GET_SHADOW_BLUR_AMOUNT_SPOT 13.0f / 512.0f
+#define GET_SHADOW_BLUR_AMOUNT_DIRECTIONAL 6.5f / 512.0f
 
 const float3 faceSigns[6] =
 {

@@ -224,6 +224,7 @@ namespace PK::Math
         void GetShadowCascadeMatrices(const float4x4& worldToLocal, const float4x4& inverseViewProjection, float zNear, float zFar, float linearity, float zPadding, uint count, float4x4* matrices, float* minNear, float* maxFar);
 
         color HueToRGB(float hue);
+        void GetCascadeDepths(float znear, float zfar, float linearity, float* cascades, uint count);
         inline float CascadeDepth(float znear, float zfar, float linearity, float interpolant) { return linearity * (znear * powf(zfar / znear, interpolant)) + (1.0f - linearity) * (znear + (zfar - znear) * interpolant); }
         inline float Cot(float value) { return cos(value) / sin(value); }
         inline float RandomFloat() { return (float)rand() / (float)RAND_MAX; }

@@ -479,6 +479,16 @@ namespace PK::Math
 		float B = 2 - abs(hue * 6 - 4);
 		return float4(glm::clamp(float3(R, G, B), CG_FLOAT3_ZERO, CG_FLOAT3_ONE), 1.0f);
 	}
+
+	void Functions::GetCascadeDepths(float znear, float zfar, float linearity, float* cascades, uint count)
+	{
+		cascades[0] = 0.0f;
+
+		for (auto i = 1; i < count; ++i)
+		{
+			cascades[i] = Functions::CascadeDepth(znear, zfar, linearity, i / (float)count);
+		}
+	}
 	
 	void Functions::NormalizePlane(float4* plane)
 	{

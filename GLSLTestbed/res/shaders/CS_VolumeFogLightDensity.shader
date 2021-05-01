@@ -32,7 +32,7 @@ void main()
 	float3 bluenoise = GetVolumeCellNoise(id);
 	float depth = GetVolumeCellDepth(id.z + NoiseUniformToTriangle(bluenoise.x));
 
-	float2 uv = id.xy / VOLUME_SIZE_XY;
+	float2 uv = (VOLUME_SIZE_ST.zz + id.xy) / VOLUME_SIZE_ST.xy;
 
 	float3 worldpos = mul(pk_MATRIX_I_V, float4(ClipToViewPos(uv, depth), 1.0f)).xyz;
 

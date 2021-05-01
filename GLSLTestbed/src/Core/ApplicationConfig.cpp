@@ -31,10 +31,14 @@ namespace PK::Core
 		WindowWidth = TryParse(properties["WindowWidth"], 512);
 		WindowHeight = TryParse(properties["WindowHeight"], 512);
 		CameraSpeed = TryParse(properties["CameraSpeed"], 5.0f);
+		CameraLookSensitivity = TryParse(properties["CameraLookSensitivity"], 1.0f);
+		CameraMoveSmoothing = TryParse(properties["CameraMoveSmoothing"], 0.0f);
+		CameraLookSmoothing = TryParse(properties["CameraLookSmoothing"], 0.0f);
 		CameraFov = TryParse(properties["CameraFov"], 75.0f);
 		CameraOrthoSize = TryParse(properties["CameraOrthoSize"], 10.0f);
 		CameraZNear = TryParse(properties["CameraZNear"], 0.1f);
 		CameraZFar = TryParse(properties["CameraZFar"], 200.0f);
+		CascadeLinearity = TryParse(properties["CascadeLinearity"], 0.5f);
 		TimeScale = TryParse(properties["TimeScale"], 1.0f); 
 
 		RandomSeed = TryParse(properties["RandomSeed"], 0u);

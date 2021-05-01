@@ -5,9 +5,8 @@
 #define VOLUME_DEPTH 128
 #define VOLUME_WIDTH 160
 #define VOLUME_HEIGHT 90
-#define VOLUME_DEPTH_FLOAT 127.0f
-#define VOLUME_SIZE_XY float2(159.0f, 89.0f)
-#define VOLUME_SIZE_XYZ float3(159.0f, 89.0f, 127.0f)
+#define VOLUME_SIZE_ST float3(160.0f, 90.0f, 0.5f)
+#define VOLUME_COMPOSITE_DITHER_AMOUNT 2.0f
 
 #define VOLUME_ACCUMULATION_LD (35.0f * max(pk_DeltaTime.x, 0.01f))
 #define VOLUME_ACCUMULATION_SC (14.0f * max(pk_DeltaTime.x, 0.01f))

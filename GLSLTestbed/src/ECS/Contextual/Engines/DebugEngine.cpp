@@ -115,8 +115,8 @@ namespace PK::ECS::Engines
 		cornellBoxMaterial = assetDatabase->Find<Material>("M_Metal_Panel");
 		cornellBox = assetDatabase->Find<Mesh>("cornell_box");
 	
-		auto minpos = float3(0, -5, -40);
-		auto maxpos = float3(40, 5, 40);
+		auto minpos = float3(-40, -5, -40);
+		auto maxpos = float3(40, 0, 40);
 
 		srand(config.RandomSeed);
 
@@ -142,7 +142,7 @@ namespace PK::ECS::Engines
 			flipperinotyperino ^= true;
 		}
 
-		CreateDirectionalLight(entityDb, assetDatabase, { 35, -35, 0 }, color(109.0f / 255.0f, 86.0f / 255.0f, 61.0f / 255.0f, 1.0f) * 2.5f, true);
+		CreateDirectionalLight(entityDb, assetDatabase, { 35, -35, 0 }, color(109.0f / 255.0f, 86.0f / 255.0f, 61.0f / 255.0f, 1.0f) * 1.0f, true);
 	}
 	
 	void DebugEngine::Step(Input* input)

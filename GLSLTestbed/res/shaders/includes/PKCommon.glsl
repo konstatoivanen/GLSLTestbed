@@ -40,7 +40,9 @@ PK_DECLARE_CBUFFER(pk_PerFrameConstants)
     float4 pk_ExpProjectionParams;
     // x is the width of the camera’s target texture in pixels, y is the height of the camera’s target texture in pixels, z is 1.0 + 1.0/width and w is 1.0 + 1.0/height.
     float4 pk_ScreenParams;
-    
+    // view space z axis splits for directional light shadow cascades
+    float4 pk_ShadowCascadeZSplits;
+
     // Current view matrix.
     float4x4 pk_MATRIX_V;
     // Current inverse view matrix.
@@ -83,17 +85,6 @@ PK_DECLARE_CBUFFER(pk_PerFrameConstants)
     // Current inverse model matrix.
     uniform float4x4 pk_MATRIX_I_M;
 #endif
-
-#define HDRFactor 8.0
-
-float4 HDREncode(float3 color) 
-{
-    color /= HDRFactor;
-    float alpha = ceil( max(max(color.r, color.g), color.b) * 255.0) / 255.0;
-    return float4(color / alpha, alpha);
-}
-
-float3 HDRDecode(float4 hdr) { return float3(hdr.rgb * hdr.a * HDRFactor); }
 
 float LinearizeDepth(float z) 
 { 

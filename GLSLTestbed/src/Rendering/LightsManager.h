@@ -35,14 +35,13 @@ namespace PK::Rendering
 
         static constexpr uint BatchSize = 4;
         static constexpr uint TileSize = 512;
-        static constexpr uint TotalTileCount = 8 * 8; 
-        static constexpr float CascadeLinearity = 0.5f;
+        static constexpr uint TotalTileCount = 64; 
     };
 
     class LightsManager : public PK::Core::NoCopy
     {
         public:
-            LightsManager(AssetDatabase* assetDatabase);
+            LightsManager(AssetDatabase* assetDatabase, float cascadeLinearity);
 
             void Preprocess(PK::ECS::EntityDatabase* entityDb, Core::BufferView<uint> visibleLights, const uint2& resolution, const float4x4& inverseViewProjection, float zNear, float zFar);
 
@@ -50,7 +49,14 @@ namespace PK::Rendering
 
             void DrawDebug();
 
-            const Ref<RenderTexture>& GetShadowmapAtlas() const { return m_shadowmapData.ShadowmapAtlas; }
+            inline const Ref<RenderTexture>& GetShadowmapAtlas() const { return m_shadowmapData.ShadowmapAtlas; }
+
+            inline const float4 GetCascadeZSplits(float znear, float zfar) const 
+            {
+                float4 cascadeSplits = CG_FLOAT4_ZERO;
+                Functions::GetCascadeDepths(znear, zfar, m_cascadeLinearity, glm::value_ptr(cascadeSplits), ShadowmapData::BatchSize);
+                return cascadeSplits;
+            }
 
         private:
             void UpdateShadowmaps(PK::ECS::EntityDatabase* entityDb, const float4x4& inverseViewProjection, float znear, float zfar);
@@ -62,6 +68,7 @@ namespace PK::Rendering
             const uint GridSizeZ = 24;
             const uint ClusterCount = GridSizeX * GridSizeY * GridSizeZ;
 
+            const float m_cascadeLinearity;
             std::vector<PK::ECS::EntityViews::LightRenderable*> m_visibleLights;
             uint m_visibleLightCount;
 

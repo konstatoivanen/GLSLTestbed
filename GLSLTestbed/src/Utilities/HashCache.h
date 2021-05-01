@@ -18,6 +18,7 @@ namespace PK::Utilities
         DEFINE_HASH_CACHE(pk_ProjectionParams)
         DEFINE_HASH_CACHE(pk_ExpProjectionParams)
         DEFINE_HASH_CACHE(pk_ScreenParams)
+        DEFINE_HASH_CACHE(pk_ShadowCascadeZSplits)
         DEFINE_HASH_CACHE(pk_MATRIX_M)
         DEFINE_HASH_CACHE(pk_MATRIX_I_M)
         DEFINE_HASH_CACHE(pk_MATRIX_V)

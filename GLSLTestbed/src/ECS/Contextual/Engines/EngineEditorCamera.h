@@ -21,9 +21,14 @@ namespace PK::ECS::Engines
 			float3 m_position = { 0, 40, 0 };
 			float3 m_eulerAngles = { 90 * CG_FLOAT_DEG2RAD, 0, 0 };
 			quaternion m_rotation = CG_QUATERNION_IDENTITY;
+			float3 m_smoothPosition = { 0, 40, 0 };
+			quaternion m_smoothRotation = CG_QUATERNION_IDENTITY;
 			float m_fieldOfView = 60.0f;
 			float m_zNear = 0.1f;
 			float m_zFar = 250.0f;
 			float m_moveSpeed = 5.0f;
+			float m_moveSmoothing = 0.0f;
+			float m_rotationSmoothing = 0.0f;
+			float m_sensitivity = 1.0f;
 	};
 }

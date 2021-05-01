@@ -85,7 +85,7 @@ namespace PK::Rendering
 		Batching::QueueDraw(&ctx->data->Batches, renderable->mesh->sharedMesh, { &renderable->transform->localToWorld, depth, index });
 	}
 
-	LightsManager::LightsManager(AssetDatabase* assetDatabase)
+	LightsManager::LightsManager(AssetDatabase* assetDatabase, float cascadeLinearity) : m_cascadeLinearity(cascadeLinearity)
 	{
 		m_computeLightAssignment = assetDatabase->Find<Shader>("CS_ClusteredLightAssignment");
 		m_computeDepthTiles = assetDatabase->Find<Shader>("CS_ClusteredDepthMax");
@@ -231,7 +231,7 @@ namespace PK::Rendering
 								inverseViewProjection, 
 								zNear, 
 								zFar, 
-								ShadowmapData::CascadeLinearity,
+								m_cascadeLinearity,
 								-lightview->light->radius, 
 								ShadowmapData::BatchSize, 
 								cascades, 
@@ -362,7 +362,7 @@ namespace PK::Rendering
 						inverseViewProjection,
 						znear,
 						zfar,
-						ShadowmapData::CascadeLinearity,
+						m_cascadeLinearity,
 						-view->light->radius,
 						ShadowmapData::BatchSize,
 						bufferMatrices.data + view->light->projectionIndex,
@@ -407,15 +407,6 @@ namespace PK::Rendering
 	void LightsManager::Preprocess(PK::ECS::EntityDatabase* entityDb, Core::BufferView<uint> visibleLights, const uint2& resolution, const float4x4& inverseViewProjection, float zNear, float zFar)
 	{
 		UpdateLightBuffers(entityDb, visibleLights, inverseViewProjection, zNear, zFar);
-
-		float4 cascadeSplits = CG_FLOAT4_ZERO;
-
-		for (auto i = 1; i < ShadowmapData::BatchSize; ++i)
-		{
-			cascadeSplits[i] = Functions::CascadeDepth(zNear, zFar, ShadowmapData::CascadeLinearity, i / (float)ShadowmapData::BatchSize);
-		}
-
-		GraphicsAPI::SetGlobalFloat4(StringHashID::StringToID("pk_ShadowCascadeZSplits"), cascadeSplits);
 
 		auto hashCache = HashCache::Get();
 		m_globalLightIndex->Clear();

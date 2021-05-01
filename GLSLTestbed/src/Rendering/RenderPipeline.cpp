@@ -60,7 +60,7 @@ namespace PK::Rendering
 			config.AmbientOcclusionRadius, 
 			config.AmbientOcclusionDownsample),
 		m_filterFog(assetDatabase, config),
-		m_lightsManager(assetDatabase)
+		m_lightsManager(assetDatabase, config.CascadeLinearity)
 	{
 		m_entityDb = entityDb;
 		m_context.BlitQuad = MeshUtility::GetQuad2D({ -1.0f,-1.0f }, { 1.0f, 1.0f });
@@ -99,6 +99,7 @@ namespace PK::Rendering
 			{CG_TYPE::FLOAT4, "pk_ProjectionParams"},
 			{CG_TYPE::FLOAT4, "pk_ExpProjectionParams"},
 			{CG_TYPE::FLOAT4, "pk_ScreenParams"},
+			{CG_TYPE::FLOAT4, "pk_ShadowCascadeZSplits"},
 			{CG_TYPE::FLOAT4X4, "pk_MATRIX_V"},
 			{CG_TYPE::FLOAT4X4, "pk_MATRIX_I_V"},
 			{CG_TYPE::FLOAT4X4, "pk_MATRIX_P"},
@@ -156,6 +157,8 @@ namespace PK::Rendering
 		GraphicsAPI::StartWindow();
 		GraphicsAPI::ResetResourceBindings();
 		auto resolution = GraphicsAPI::GetActiveWindowResolution();
+		const float4x4& inverseViewProjection = *m_context.ShaderProperties.GetPropertyPtr<float4x4>(HashCache::Get()->pk_MATRIX_I_VP);
+		const float4 projParams = *m_context.ShaderProperties.GetPropertyPtr<float4>(HashCache::Get()->pk_ProjectionParams);
 
 		SetOEMTextures(m_OEMTexture, m_constantsPerFrame, 1, m_OEMExposure);
 
@@ -166,6 +169,8 @@ namespace PK::Rendering
 			m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenDepth, m_PreZRenderTarget->GetDepthBuffer()->GetBindlessHandleResident());
 			m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenNormals, m_PreZRenderTarget->GetColorBuffer(0)->GetBindlessHandleResident());
 		}
+
+		m_constantsPerFrame->SetFloat4(HashCache::Get()->pk_ShadowCascadeZSplits, m_lightsManager.GetCascadeZSplits(projParams.x, projParams.y));
 
 		m_filterAO.OnPreRender(m_PreZRenderTarget.get());
 		m_filterBloom.OnPreRender(m_HDRRenderTarget.get());
@@ -185,10 +190,13 @@ namespace PK::Rendering
 	
 		UpdateDynamicBatches(m_entityDb, m_visibilityCache, m_dynamicBatches);
 
-		const float4x4& inverseViewProjection = *m_context.ShaderProperties.GetPropertyPtr<float4x4>(HashCache::Get()->pk_MATRIX_I_VP);
-		const float4 projParams = *m_context.ShaderProperties.GetPropertyPtr<float4>(HashCache::Get()->pk_ProjectionParams);
-
-		m_lightsManager.Preprocess(m_entityDb, m_visibilityCache.GetList(Culling::CullingGroup::CameraFrustum, (int)ECS::Components::RenderHandleFlags::Light), resolution, inverseViewProjection, projParams.x, projParams.y);
+		m_lightsManager.Preprocess(
+			m_entityDb, 
+			m_visibilityCache.GetList(Culling::CullingGroup::CameraFrustum, (int)ECS::Components::RenderHandleFlags::Light), 
+			resolution, 
+			inverseViewProjection, 
+			projParams.x, 
+			projParams.y);
 	}
 	
 	void RenderPipeline::OnRender()

@@ -18,10 +18,14 @@ namespace PK::Core
 
 		bool EnableOrthoGraphic;
 		float CameraSpeed;
+		float CameraLookSensitivity;
+		float CameraMoveSmoothing;
+		float CameraLookSmoothing;
 		float CameraFov;
 		float CameraOrthoSize;
 		float CameraZNear;
 		float CameraZFar;
+		float CascadeLinearity;
 		
 		float TimeScale;
 

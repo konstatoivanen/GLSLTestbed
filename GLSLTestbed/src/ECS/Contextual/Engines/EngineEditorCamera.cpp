@@ -14,16 +14,20 @@ namespace PK::ECS::Engines
 		m_fieldOfView = config.CameraFov;
 		m_zNear = config.CameraZNear;
 		m_zFar = config.CameraZFar;
+		m_moveSmoothing = glm::clamp(config.CameraMoveSmoothing, 0.0f, 1.0f);
+		m_rotationSmoothing = glm::clamp(config.CameraLookSmoothing, 0.0f, 1.0f);
+		m_sensitivity = config.CameraLookSensitivity / 1000.0f;
 	}
 	
 	void EngineEditorCamera::Step(Input* input)
 	{
 		auto deltaTime = m_time->GetDeltaTime();
+		deltaTime = glm::max(0.001f, deltaTime);
 	
 		if (input->GetKey(KeyCode::MOUSE1))
 		{
-			m_eulerAngles.x -= input->GetMouseDeltaY() * deltaTime;
-			m_eulerAngles.y -= input->GetMouseDeltaX() * deltaTime;
+			m_eulerAngles.x -= input->GetMouseDeltaY() * m_sensitivity;
+			m_eulerAngles.y -= input->GetMouseDeltaX() * m_sensitivity;
 		}
 	
 		auto speed = input->GetKey(KeyCode::LEFT_CONTROL) ? (m_moveSpeed * 0.25f) : input->GetKey(KeyCode::LEFT_SHIFT) ? (m_moveSpeed * 5) : m_moveSpeed;
@@ -45,8 +49,11 @@ namespace PK::ECS::Engines
 	
 		m_fieldOfView -= fdelta;
 	
+		m_smoothPosition = glm::mix(m_position, m_smoothPosition, m_moveSmoothing * (1.0f - deltaTime));
+		m_smoothRotation = glm::slerp(m_rotation, m_smoothRotation, m_rotationSmoothing * (1.0f - deltaTime));
+
 		auto proj = Functions::GetPerspective(m_fieldOfView, Application::GetWindow().GetAspect(), m_zNear, m_zFar);
-		auto view = Functions::GetMatrixInvTRS(m_position, m_rotation, CG_FLOAT3_ONE);
+		auto view = Functions::GetMatrixInvTRS(m_smoothPosition, m_smoothRotation, CG_FLOAT3_ONE);
 		Rendering::GraphicsAPI::SetViewProjectionMatrices(view, proj);
 	}
 }

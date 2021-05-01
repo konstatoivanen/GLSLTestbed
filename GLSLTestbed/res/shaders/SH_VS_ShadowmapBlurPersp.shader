@@ -17,7 +17,7 @@ void main()
 {
     SHADOW_SET_VERTEX_STATE_ATTRIBUTES(in_POSITION0, in_TEXCOORD0, vs_SAMPLELAYER);
 
-    float R = GET_SHADOW_BLUR_AMOUNT_2D;
+    float R = GET_SHADOW_BLUR_AMOUNT_SPOT;
 
     for (uint i = 0u; i < SAMPLE_COUNT; ++i)
     {
