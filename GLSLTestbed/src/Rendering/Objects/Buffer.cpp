@@ -103,7 +103,7 @@ namespace PK::Rendering::Objects
 		glDeleteBuffers(1, &m_graphicsId);
 	}
 	
-	void ConstantBuffer::FlushBufer()
+	void ConstantBuffer::FlushBuffer()
 	{
 		glInvalidateBufferSubData(m_graphicsId, 0, m_data.size());
 		glNamedBufferSubData(m_graphicsId, 0, m_data.size(), m_data.data());

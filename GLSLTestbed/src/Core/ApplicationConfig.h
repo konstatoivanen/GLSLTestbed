@@ -31,7 +31,11 @@ namespace PK::Core
 
 		uint LightCount;
 	
+		float AutoExposureLuminanceMin;
+		float AutoExposureLuminanceRange;
+		float AutoExposureSpeed;
 		float TonemapExposure;
+		float TonemapSaturation;
 		float BloomIntensity;
 		float BloomLensDirtIntensity;
 		std::string FileBloomDirt;

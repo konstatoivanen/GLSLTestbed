@@ -45,7 +45,11 @@ namespace PK::Core
 
 		LightCount = TryParse(properties["LightCount"], 256);
 	
+		AutoExposureLuminanceMin = TryParse(properties["AutoExposureLuminanceMin"], 1.0f);
+		AutoExposureLuminanceRange = TryParse(properties["AutoExposureLuminanceRange"], 1.0f);
+		AutoExposureSpeed = TryParse(properties["AutoExposureSpeed"], 1.0f);
 		TonemapExposure = TryParse(properties["TonemapExposure"], 1.0f);
+		TonemapSaturation = TryParse(properties["TonemapSaturation"], 1.0f);
 		BloomIntensity = TryParse(properties["BloomIntensity"], 0.0f);
 		BloomLensDirtIntensity = TryParse(properties["BloomLensDirtIntensity"], 0.0f);
 		FileBloomDirt = TryParse(properties["FileBloomDirt"], std::string("T_Bloom_LensDirt"));

@@ -7,34 +7,74 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 ![Preview](T_Preview_04.jpg?raw=true "Fog Ambient Anistropy Preview")
 
 ## Implemented Features
-- Instanced dynamic batching.
-- Frustum culling.
-- Light rigid entity component system.
-- Update sequencer.
-- Opengl object & function wrappers.
-- Shader material/property block system.
-- Clustered forward rendering path.
+- Clustered forward rendering.
 - Volumetric fog & lighting.
 - Variance shadow mapping.
-- Light cookie support.
-- Point, spot & directional light support.
-- PBR shading.
+- Light cookies.
+- Point, spot & directional lights.
+- Cacaded shadow maps for directional lights.
+- Physically based shading (Cook-Torrance brdf).
 - HDR bloom.
 - Tone mapping.
-- Ambient occlusion.
+- Auto exposure.
+- Screen space ambient occlusion.
+- Octahedron hdr environment maps.
 - Multi compile shader variants.
-- Octahedron environment maps.
-- Batched debug renderer.
 - Asset hot reloading.
+- Shader material/property block system.
+- Instanced dynamic batching.
 
 ## Planned Features
+- Color grading.
+- Depth of field.
 - A global illumination solution.
 - Rectangular area light support.
 - Exponential variance shadow maps.
-- Color grading.
+- Motion vectors.
+- Temporal reprojection for blending inter frame results of different effects.
 - Documentation.
 
-## Known Performance Drawbacks
+## Render Pipeline Execution Order
+A rough overview of the steps taken to render a frame. (Some steps are omitted to avoid repetition).
+
+- Cull geometry & lights.
+- Update lights system.
+	- Sort lights by type & shadowmap usage.
+	- Update light data buffers.
+	- Render shadowmaps for shadow casting lights.
+		- Render in batches of 4 (or 1 in the case of directional lights).
+		- Gather shadow casting geometry for the batch.
+		- Render intermediate shadow map.
+		- Perform blur.
+		- Blit into shadow map atlas.
+- Render scene depth & normals.
+- Compute light clusters.
+	- compute max depth per 2d tile.
+	- assign lights to clusters & cull clusters outside of max depth range.
+- Render screen space ambient occlusion from scene depth & normals.
+- Forward render opaque objects.
+	- Update instancing buffers.
+		- Gather material properties to per shader property buffers.
+		- Gather matrices to matrix buffers.
+	- Draw instanced (PBR fragment shader overview).
+		- Sample scene OEM for ambient specular & diffuse.
+		- Sample & apply SSAO (Only affects ambient lighting).
+		- Access contributing lights list from light clusters.
+		- Process each light in the list through the material's BRDF.
+- Render Volumetrics.
+	- Compute Lighting & density per volume cell.
+	- Compute integrated scattering per volume cell.
+	- Composite with forward output.
+- (TODO) Render transparent objects.
+- Bloom & Tonemapping
+	- Compute luminance histogram from forward output.
+	- Compute & interpolate auto exposure from luminance histogram.
+	- Render bloom layers (35 passes of separable blur outputted into 6 different bloom layers).
+	- Composite bloom layers.
+	- Apply auto exposure & tonemapping.
+	- Apply gamma correction.
+
+## Known Issues & Performance Drawbacks
 - Matrix buffers are currently mapped per pass. Which is causing a lot of data duplication & some driver stalls.
 	- A more optimal solution would be to gather matrices that contribute to the current frame into a single buffer & only build index buffers per pass.
 - OpenGL doesn't support multiple command queues or async dispatches. Which leads to otherwise easily multithreadable passes having to be executed consecutively.
@@ -43,12 +83,21 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 	- Shader property instancing currently uses bindless texture handles for material properties. 
 	  Creating a sparse texture atlas for them would probably be more cache friendly.
 - Culling of for each pass is currently done on the cpu. This could be moved to the gpu instead.
+- Vertex shader input attribute layouts are not ensured to match with vao attribute layouts in anyway.
+- Vertex array objects are not shared among meshes but instead created per mesh.
+	- A better approach could be to have attribute layout based vao cache & switch vertex buffers between drawcalls instead.
+- Volumetric sample dithering causes artifacts on far away high frequency lighting effects.
+	- This could be fixed by breaking up the low resolution sampling pattern in the composite pass with high frequency noise & then using temporal AA to hide the high frequency noise.
+
 
 ## Asset Sources
 - [HDRI Haven](https://hdrihaven.com)
 - [CC0 Textures](https://cc0textures.com/)
 
-## Library Dependencies
+## Libraries & Other Dependencies
+- C++ 17 support required
+- OpenGL ARB Bindless texture & viewport array extension support required.
+- OpenGL 4.6 support required.
 - [KTX](https://github.com/KhronosGroup/KTX-Software)
 - [yaml-cpp](https://github.com/jbeder/yaml-cpp)
 - [Glad](https://glad.dav1d.de/)

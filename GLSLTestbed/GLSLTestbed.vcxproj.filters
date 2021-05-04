@@ -1650,6 +1650,8 @@
     <None Include="res\shaders\SH_WS_ShadowmapOrtho.shader" />
     <None Include="res\shaders\SH_VS_ShadowmapBlurOrtho.shader" />
     <None Include="res\shaders\includes\Encoding.glsl" />
+    <None Include="res\shaders\CS_LuminanceHistogram.shader" />
+    <None Include="res\shaders\includes\Tonemapping.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">

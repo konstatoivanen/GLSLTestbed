@@ -21,6 +21,7 @@ void main()
     
     float R = GET_SHADOW_BLUR_AMOUNT_POINT;
 
+    #pragma unroll SAMPLE_COUNT
     for (uint i = 0u; i < SAMPLE_COUNT; ++i)
     {
         vs_OFFSETS[i] = DistributeHammersley3D(SAMPLES_HAMMERSLEY_3D[i], R);
@@ -43,6 +44,7 @@ void main()
     float3 H = float3(0.0f);
     float2 A = float2(0.0f);
 
+    #pragma unroll SAMPLE_COUNT
     for (uint i = 0u; i < SAMPLE_COUNT; ++i)
     {
         H = T * vs_OFFSETS[i].x + B * vs_OFFSETS[i].y + N * vs_OFFSETS[i].z;

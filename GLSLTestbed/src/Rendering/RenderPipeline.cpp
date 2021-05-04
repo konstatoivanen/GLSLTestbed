@@ -48,12 +48,7 @@ namespace PK::Rendering
 	}
 	
 	RenderPipeline::RenderPipeline(AssetDatabase* assetDatabase, ECS::EntityDatabase* entityDb, const ApplicationConfig& config) :
-		m_filterBloom(
-			assetDatabase->Find<Shader>("SH_VS_FilterBloom"), 
-			assetDatabase->Find<TextureXD>(config.FileBloomDirt.c_str()), 
-			config.TonemapExposure, 
-			config.BloomIntensity, 
-			config.BloomLensDirtIntensity),
+		m_filterBloom(assetDatabase, config),
 		m_filterAO(
 			assetDatabase->Find<Shader>("SH_VS_FilterAO"),
 			config.AmbientOcclusionIntensity, 
@@ -176,7 +171,7 @@ namespace PK::Rendering
 		m_filterBloom.OnPreRender(m_HDRRenderTarget.get());
 
 		m_constantsPerFrame->CopyFrom(m_context.ShaderProperties);
-		m_constantsPerFrame->FlushBufer();
+		m_constantsPerFrame->FlushBuffer();
 		GraphicsAPI::SetGlobalConstantBuffer(HashCache::Get()->pk_PerFrameConstants, m_constantsPerFrame->GetGraphicsID());
 	
 		Culling::ResetEntityVisibilities(m_entityDb);

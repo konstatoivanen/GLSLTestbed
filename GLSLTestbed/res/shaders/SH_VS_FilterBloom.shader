@@ -2,10 +2,10 @@
 #extension GL_ARB_bindless_texture : require
 #extension GL_ARB_shader_viewport_layer_array : require
 
-#multi_compile BLOOM_PASS0 BLOOM_PASS1 BLOOM_PASS2
+#multi_compile PASS_COMPOSITE PASS_DOWNSAMPLE PASS_BLUR
 
 #include includes/PKCommon.glsl
-#include includes/HLSLSupport.glsl
+#include includes/Tonemapping.glsl
 
 struct PassData
 {
@@ -37,34 +37,6 @@ struct VaryingsUV4
 	float3 uv22;
 	float3 uv23;
 };
-
-float3 TonemapHejlDawson(half3 color, float exposure)
-{
-	const half a = 6.2;
-	const half b = 0.5;
-	const half c = 1.7;
-	const half d = 0.06;
-
-	color *= exposure;
-	color = max(float3(0.0), color - 0.004);
-	color = (color * (a * color + b)) / (color * (a * color + c) + d);
-	return color * color;
-}
-
-float3 Saturation(float3 color, float amount) 
-{
-	float grayscale = dot(color, float3(0.3, 0.59, 0.11));
-	return lerp_true(grayscale.xxx, color, 0.8f);
-}
-
-float3 LinearToGamma(float3 color)
-{
-	//Source: http://chilliant.blogspot.com.au/2012/08/srgb-approximations-for-hlsl.html?m=1
-	float3 S1 = sqrt(color);
-	float3 S2 = sqrt(S1);
-	float3 S3 = sqrt(S2);
-	return 0.662002687 * S1 + 0.684122060 * S2 - 0.323583601 * S3 - 0.0225411470 * color;
-}
 
 //----------VERTEX PROGRAMS----------//
 float2 VertexSimple(float3 texcoord, sampler2DArray source, float2 offset)
@@ -101,16 +73,8 @@ VaryingsUV8 VertexBlurUV8(float3 texcoord, sampler2DArray source, float2 offset)
 float4 FragmentComposite(float2 uv, sampler2DArray source)
 {
 	float3 uvw = float3(uv, 0);
-	PassData pass30 = PK_BUFFER_DATA(_BloomPassParams, 30);
-	PassData pass31 = PK_BUFFER_DATA(_BloomPassParams, 31);
-
-	float bloomIntensity = pass30.offset.x;
-	float bloomDirtIntensity = pass30.offset.y;
-	float toneMappingExposure = pass31.offset.x;
-	float saturation = pass31.offset.y;
-
-	float3 color = tex2D(pass30.source, uvw).rgb;
-	float3 lensdirt = tex2D(pass31.source, uvw).rgb;
+	float3 color = tex2D(pk_HDRScreenTex, uv).rgb;
+	float3 lensdirt = tex2D(pk_BloomLensDirtTex, uv).rgb;
 	float3 b0 = tex2D(PK_BUFFER_DATA(_BloomPassParams, 1).source, uvw).rgb;
 	float3 b1 = tex2D(PK_BUFFER_DATA(_BloomPassParams, 6).source, uvw).rgb;
 	float3 b2 = tex2D(PK_BUFFER_DATA(_BloomPassParams, 11).source, uvw).rgb;
@@ -124,11 +88,11 @@ float4 FragmentComposite(float2 uv, sampler2DArray source)
 	bloom /= 2.2f;
 	bloomLens /= 3.2f;
 
-	color = lerp(color, bloom, float3(bloomIntensity));
-	color.rgb = lerp(color.rgb, bloomLens.rgb, saturate(lensdirt.rgb * bloomDirtIntensity));
+	color = lerp(color, bloom, float3(pk_BloomIntensity));
+	color.rgb = lerp(color.rgb, bloomLens.rgb, saturate(lensdirt.rgb * pk_BloomDirtIntensity));
 	
-	color = Saturation(color, 0.8f);
-	color = TonemapHejlDawson(color, toneMappingExposure);
+	color = Saturation(color, pk_Saturation);
+	color = TonemapHejlDawson(color, GetAutoExposure());
 	color = LinearToGamma(color);
 
 	return float4(color, 1.0f);
@@ -155,15 +119,15 @@ float4 FragmentBlurUV8(VaryingsUV8 i, sampler2DArray source)
 	return float4(color, 1.0f);
 }
 
-#if defined(BLOOM_PASS0)
+#if defined(PASS_COMPOSITE)
 	#define VS_VARYINGS float2
 	#define FUNC_VERTEX VertexSimple
 	#define FUNC_FRAG FragmentComposite
-#elif defined(BLOOM_PASS1)
+#elif defined(PASS_DOWNSAMPLE)
 	#define VS_VARYINGS VaryingsUV4
 	#define FUNC_VERTEX VertexBlurUV4
 	#define FUNC_FRAG FragmentBlurUV4
-#elif defined(BLOOM_PASS2)
+#elif defined(PASS_BLUR)
 	#define VS_VARYINGS VaryingsUV8
 	#define FUNC_VERTEX VertexBlurUV8
 	#define FUNC_FRAG FragmentBlurUV8

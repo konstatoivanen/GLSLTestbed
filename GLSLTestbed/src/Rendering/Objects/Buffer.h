@@ -47,7 +47,7 @@ namespace PK::Rendering::Objects
 		public:
 			ConstantBuffer(const BufferLayout& layout);
 			~ConstantBuffer();
-			void FlushBufer();
+			void FlushBuffer();
 		private:
 	};
 	

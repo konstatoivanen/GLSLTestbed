@@ -1,8 +1,33 @@
+// Based on: https://github.com/keijiro/KinoObscurance
+//
+// Kino/Obscurance - Screen space ambient obscurance image effect
+//
+// Copyright (C) 2016 Keijiro Takahashi
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//
+
 #version 460
 #extension GL_ARB_bindless_texture : require
 #extension GL_ARB_shader_viewport_layer_array : require
 
-#multi_compile AO_PASS0 AO_PASS1 AO_PASS2
+#multi_compile AO_PASS0 AO_PASS1
 
 #include includes/PKCommon.glsl
 #include includes/Reconstruction.glsl
@@ -43,7 +68,7 @@ float GetDepthBlurFactor(float2 uv)
 {
     // @TODO solve this correctly later
     float d = 1.0f - (LinearizeDepth(tex2D(pk_ScreenDepth, uv).r) - pk_ProjectionParams.x) * pk_ProjectionParams.w;
-    return d * d * d * d * d * d * d * d * d * d * d * d * d * d * d * d;
+    return d * d * d * d * d * d * d * d * d * d * d * d * d * d * d * d; //pow16
 }
 
 float CompareNormal(float3 normal0, float3 normal1)
@@ -53,13 +78,12 @@ float CompareNormal(float3 normal0, float3 normal1)
 
 float3 GetSampleDirection(float2 uv, float3 normal, float index)
 {
-    float ngrad = NoiseGradient(uv * TARGETSCALE, pk_ScreenParams.xy);
+    float noiseg = NoiseGradient(uv * TARGETSCALE, pk_ScreenParams.xy);
 
-    float theta = (NoiseUV(1, index) + ngrad) * PK_TWO_PI;
+    float noiseuv = fract(NoiseUV(0.0, index) + noiseg) * 2.0f - 1.0f;
+    float theta = (NoiseUV(1.0, index) + noiseg) * PK_TWO_PI;
 
-    float nuv = fract(NoiseUV(0, index) + ngrad) * 2 - 1;
-
-    float3 direction = float3(float2(cos(theta), sin(theta)) * sqrt(1 - nuv * nuv), nuv);
+    float3 direction = float3(float2(cos(theta), sin(theta)) * sqrt(1.0f - noiseuv * noiseuv), noiseuv);
 
     direction *= sqrt((index + 1) / SAMPLE_COUNT) * RADIUS;
 
@@ -85,6 +109,7 @@ float ComputeCoarseAO(float3 uvw, sampler2DArray source, float2 offset)
 
     float AO = 0.0f;
 
+    #pragma unroll SAMPLE_COUNT
     for (int index = 0; index < SAMPLE_COUNT; ++index)
     {
         float3 direction = GetSampleDirection(uv, vnormal, index);
@@ -102,7 +127,7 @@ float ComputeCoarseAO(float3 uvw, sampler2DArray source, float2 offset)
     return pow(AO * RADIUS * INTENSITY / SAMPLE_COUNT, 0.6f);
 }
 
-half SeparableBlurLarge(float3 uvw, sampler2DArray source, float2 offset)
+half SeparableBlur(float3 uvw, sampler2DArray source, float2 offset)
 {
     float2 uv = uvw.xy;
     float2 delta = (offset / textureSize(source, 0).xy) * GetDepthBlurFactor(uv);
@@ -135,32 +160,10 @@ half SeparableBlurLarge(float3 uvw, sampler2DArray source, float2 offset)
     return s / (w00 + w10 + w11 + w20 + w21 + w30 + w31);
 }
 
-half SeparableBlurSmall(float3 uvw, sampler2DArray source, float2 offset)
-{
-    float2 uv = uvw.xy;
-    float2 delta = (offset / textureSize(source, 0).xy) * GetDepthBlurFactor(uv);
-
-    float2 uv0 = uv - delta;
-    float2 uv1 = uv + delta;
-
-    float3 normal = SampleViewSpaceNormal(uv);
-
-    float w1 = CompareNormal(normal, SampleViewSpaceNormal(uv0));
-    float w2 = CompareNormal(normal, SampleViewSpaceNormal(uv1));
-
-    float s = tex2D(source, uvw).r * 2.0f;
-    s += tex2D(source, float3(uv0, uvw.z)).r * w1;
-    s += tex2D(source, float3(uv1, uvw.z)).r * w2;
-
-    return s / (2.0f + w1 + w2);
-}
-
 #if defined(AO_PASS0)
 #define FUNC_FRAG ComputeCoarseAO
 #elif defined(AO_PASS1)
-#define FUNC_FRAG SeparableBlurLarge
-#elif defined(AO_PASS2)
-#define FUNC_FRAG SeparableBlurSmall
+#define FUNC_FRAG SeparableBlur
 #endif
 
 #pragma PROGRAM_VERTEX

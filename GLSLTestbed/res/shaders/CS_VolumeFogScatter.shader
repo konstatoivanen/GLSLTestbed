@@ -1,4 +1,3 @@
-
 #version 460
 #extension GL_ARB_bindless_texture : require
 
@@ -11,6 +10,7 @@ void main()
 	float4 accumulation = float4(0, 0, 0, 1);
 	int3 pos = int3(gl_GlobalInvocationID.xy, 0);
 
+	#pragma unroll VOLUME_DEPTH
 	for (uint z = 0; z < VOLUME_DEPTH; ++z)
 	{
 		pos.z = int(z);

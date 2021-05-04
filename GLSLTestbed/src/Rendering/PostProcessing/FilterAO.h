@@ -21,6 +21,6 @@ namespace PK::Rendering::PostProcessing
             bool m_downsample = false;
             Ref<RenderTexture> m_renderTargets[2];
             Ref<ComputeBuffer> m_passBuffer;
-            uint m_passKeywords[3];
+            uint m_passKeywords[2];
     };
 }

@@ -55,7 +55,7 @@ namespace PK::Rendering::PostProcessing
         m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_NoiseFogScale"), config.VolumeNoiseFogScale);
         m_volumeResources->SetFloat(StringHashID::StringToID("pk_Volume_WindSpeed"), config.VolumeWindSpeed);
         m_volumeResources->SetResourceHandle(StringHashID::StringToID("pk_Volume_ScatterRead"), m_volumeScatter->GetBindlessHandleResident());
-        m_volumeResources->FlushBufer();
+        m_volumeResources->FlushBuffer();
 
         m_properties.SetImage(StringHashID::StringToID("pk_Volume_Inject"), m_volumeLightDensity->GetImageBindDescriptor(GL_READ_WRITE, 0, 0, true));
         m_properties.SetImage(StringHashID::StringToID("pk_Volume_Scatter"), m_volumeScatter->GetImageBindDescriptor(GL_READ_WRITE, 0, 0, true));

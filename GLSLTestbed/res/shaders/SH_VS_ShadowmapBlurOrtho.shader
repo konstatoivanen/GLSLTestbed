@@ -19,6 +19,7 @@ void main()
 
     float R = GET_SHADOW_BLUR_AMOUNT_DIRECTIONAL / (vs_SAMPLELAYER + 1);
 
+    #pragma unroll SAMPLE_COUNT
     for (uint i = 0u; i < SAMPLE_COUNT; ++i)
     {
         vs_TEXCOORDS[i] = in_TEXCOORD0 + DistributeHammersley2D(SAMPLES_HAMMERSLEY_2D[i], R);
@@ -34,6 +35,7 @@ void main()
 {
     float2 A = float2(0.0f);
 
+    #pragma unroll SAMPLE_COUNT
     for (uint i = 0u; i < SAMPLE_COUNT; ++i)
     {
         A += SAMPLE_SRC(vs_TEXCOORDS[i], vs_SAMPLELAYER);

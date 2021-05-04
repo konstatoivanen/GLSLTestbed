@@ -702,6 +702,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\models\cornell_box.mtl" />
     <None Include="res\shaders\CS_ClusteredDepthMax.shader" />
     <None Include="res\shaders\CS_ClusteredLightAssignment.shader" />
+    <None Include="res\shaders\CS_LuminanceHistogram.shader" />
     <None Include="res\shaders\includes\BlitCommon.glsl">
       <DeploymentContent>true</DeploymentContent>
     </None>
@@ -717,6 +718,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\includes\Encoding.glsl" />
     <None Include="res\shaders\includes\Reconstruction.glsl" />
     <None Include="res\shaders\includes\Shadowmapping.glsl" />
+    <None Include="res\shaders\includes\Tonemapping.glsl" />
     <None Include="res\shaders\includes\VolumeFogShared.glsl" />
     <None Include="res\shaders\SH_VS_ClusterDebug.shader" />
     <None Include="res\shaders\SH_VS_FilterAO.shader" />
