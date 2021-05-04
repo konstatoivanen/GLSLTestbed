@@ -74,6 +74,27 @@ A rough overview of the steps taken to render a frame. (Some steps are omitted t
 	- Apply auto exposure & tonemapping.
 	- Apply gamma correction.
 
+## Performance Metrics
+- Average frame timings profiled on a NVIDIA RTX 2080 TI
+- The test scene has only 512 objects with 3 different materials & 2 different meshes.
+- Light types are distributed so that there exists one directional light & an equal amount point & spot lights.
+- Light radii are set at 40m to achieve good saturation in light clusters.
+- The test scene has all features enabled (a test without volumetrics would probably run a lot faster).
+
+Results with shadow casting lights:
+- 0 lights : 1.4ms
+- 5 lights : 2.1ms
+- 17 lights : 3.0ms
+- 33 lights : 4.3ms
+- 54 lights : 5.8ms
+
+Results with non shadow casting lights:
+- 32 lights : 1.9ms
+- 64 lights : 2.4ms
+- 128 lights : 3.5ms
+- 256 lights : 5.8ms
+- 512 lights : 7.2ms
+
 ## Known Issues & Performance Drawbacks
 - Matrix buffers are currently mapped per pass. Which is causing a lot of data duplication & some driver stalls.
 	- A more optimal solution would be to gather matrices that contribute to the current frame into a single buffer & only build index buffers per pass.
