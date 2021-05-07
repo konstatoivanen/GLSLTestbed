@@ -35,7 +35,7 @@ namespace PK::Core
 	
 		PK::Rendering::GraphicsAPI::Initialize();
 		
-		m_window = CreateScope<Window>(WindowProperties(name, config.WindowWidth, config.WindowHeight, config.EnableVsync));
+		m_window = CreateScope<Window>(WindowProperties(name, config.InitialWidth, config.InitialHeight, config.EnableVsync, config.ShowCursor));
 		m_services = CreateScope<ServiceRegister>();
 		
 		m_services->Create<StringHashID>();

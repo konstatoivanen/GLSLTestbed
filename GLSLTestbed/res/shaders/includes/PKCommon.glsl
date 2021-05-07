@@ -91,6 +91,16 @@ float LinearizeDepth(float z)
     return 1.0f / (pk_MATRIX_I_P[2][3] * (z * 2.0f - 1.0f) + pk_MATRIX_I_P[3][3]);
 } 
 
+float4 LinearizeDepth(float4 z) 
+{ 
+    return 1.0f / (pk_MATRIX_I_P[2][3] * (z * 2.0f - 1.0f) + pk_MATRIX_I_P[3][3]);
+} 
+
+float SampleLinearDepth(float2 uv)
+{
+    return LinearizeDepth(tex2D(pk_ScreenDepth, uv).r);
+}
+
 float3 GlobalNoiseBlue(uint2 coord)
 {
 	return texelFetch(pk_Bluenoise256, int2(coord.x % 256, coord.y % 256), 0).xyz;

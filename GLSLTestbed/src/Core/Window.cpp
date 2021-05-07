@@ -102,6 +102,7 @@ namespace PK::Core
 		glfwSetCursorPosCallback(m_window, [](GLFWwindow* nativeWindow, double xPos, double yPos) {SafeInvokeFunction(GetWindowPtr(nativeWindow)->OnCursorInput, xPos, yPos); });
 		glfwSetErrorCallback([](int error, const char* description) {PK_CORE_ERROR("GLFW Error (%i) : %s", error, description); });
 		SetVSync(props.vsync);
+		SetCursorVisible(props.cursorVisible);
 
 		// @TODO fix this being called per window
 		int gladstatus = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
@@ -127,6 +128,12 @@ namespace PK::Core
 		}
 	}
 	
+	void Window::SetCursorVisible(bool value)
+	{
+		glfwSetInputMode(m_window, GLFW_CURSOR, value ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN);
+		m_properties.cursorVisible = value;
+	}
+
 	void Window::SetVSync(bool enabled)
 	{
 		glfwSwapInterval(enabled ? 1 : 0);

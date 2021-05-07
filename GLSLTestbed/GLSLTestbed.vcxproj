@@ -511,6 +511,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="src\Rendering\PostProcessing\FilterAO.h" />
     <ClInclude Include="src\Rendering\PostProcessing\FilterBase.h" />
     <ClInclude Include="src\Rendering\PostProcessing\FilterBloom.h" />
+    <ClInclude Include="src\Rendering\PostProcessing\FilterDof.h" />
     <ClInclude Include="src\Rendering\PostProcessing\FilterVolumetricFog.h" />
     <ClInclude Include="src\Rendering\RenderPipeline.h" />
     <ClInclude Include="src\Rendering\RenderQueueInfo.h" />
@@ -700,6 +701,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\materials\M_Metal_Rust.material" />
     <None Include="res\materials\M_Wood_Floor.material" />
     <None Include="res\models\cornell_box.mtl" />
+    <None Include="res\shaders\CS_AutoFocus.shader" />
     <None Include="res\shaders\CS_ClusteredDepthMax.shader" />
     <None Include="res\shaders\CS_ClusteredLightAssignment.shader" />
     <None Include="res\shaders\CS_LuminanceHistogram.shader" />
@@ -709,6 +711,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\includes\ClusterIndexing.glsl" />
     <None Include="res\shaders\includes\ClusteringCommon.glsl" />
     <None Include="res\shaders\CS_VolumeFogScatter.shader" />
+    <None Include="res\shaders\includes\DepthOfFieldShared.glsl" />
     <None Include="res\shaders\includes\Instancing.glsl" />
     <None Include="res\shaders\includes\Lighting.glsl">
       <DeploymentContent>true</DeploymentContent>
@@ -721,6 +724,8 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\includes\Tonemapping.glsl" />
     <None Include="res\shaders\includes\VolumeFogShared.glsl" />
     <None Include="res\shaders\SH_VS_ClusterDebug.shader" />
+    <None Include="res\shaders\SH_VS_DOFBlur.shader" />
+    <None Include="res\shaders\SH_VS_DOFComposite.shader" />
     <None Include="res\shaders\SH_VS_FilterAO.shader" />
     <None Include="res\shaders\SH_VS_IBLBackground.shader">
       <DeploymentContent>true</DeploymentContent>
@@ -728,7 +733,6 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\SH_VS_Internal_Blit.shader">
       <DeploymentContent>true</DeploymentContent>
     </None>
-    <None Include="res\shaders\includes\SphericalHarmonics.glsl" />
     <None Include="res\shaders\includes\Test.glsl">
       <DeploymentContent>true</DeploymentContent>
     </None>
@@ -798,6 +802,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClCompile Include="src\ECS\Sequencer.cpp" />
     <ClCompile Include="src\Rendering\PostProcessing\FilterAO.cpp" />
     <ClCompile Include="src\Rendering\PostProcessing\FilterBloom.cpp" />
+    <ClCompile Include="src\Rendering\PostProcessing\FilterDof.cpp" />
     <ClCompile Include="src\Rendering\PostProcessing\FilterVolumetricFog.cpp" />
     <ClCompile Include="src\Rendering\RenderPipeline.cpp" />
     <ClCompile Include="src\Rendering\Structs\PropertyBlock.cpp" />

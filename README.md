@@ -17,6 +17,7 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 - HDR bloom.
 - Tone mapping.
 - Auto exposure.
+- Depth of field with auto focus.
 - Screen space ambient occlusion.
 - Octahedron hdr environment maps.
 - Multi compile shader variants.
@@ -26,7 +27,6 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 
 ## Planned Features
 - Color grading.
-- Depth of field.
 - A global illumination solution.
 - Rectangular area light support.
 - Exponential variance shadow maps.

@@ -49,11 +49,8 @@ namespace PK::Rendering
 	
 	RenderPipeline::RenderPipeline(AssetDatabase* assetDatabase, ECS::EntityDatabase* entityDb, const ApplicationConfig& config) :
 		m_filterBloom(assetDatabase, config),
-		m_filterAO(
-			assetDatabase->Find<Shader>("SH_VS_FilterAO"),
-			config.AmbientOcclusionIntensity, 
-			config.AmbientOcclusionRadius, 
-			config.AmbientOcclusionDownsample),
+		m_filterDof(assetDatabase, config),
+		m_filterAO(assetDatabase, config),
 		m_filterFog(assetDatabase, config),
 		m_lightsManager(assetDatabase, config.CascadeLinearity)
 	{
@@ -169,6 +166,7 @@ namespace PK::Rendering
 
 		m_filterAO.OnPreRender(m_PreZRenderTarget.get());
 		m_filterBloom.OnPreRender(m_HDRRenderTarget.get());
+		m_filterDof.OnPreRender(m_HDRRenderTarget.get());
 
 		m_constantsPerFrame->CopyFrom(m_context.ShaderProperties);
 		m_constantsPerFrame->FlushBuffer();
@@ -216,6 +214,7 @@ namespace PK::Rendering
 		Batching::DrawBatches(&m_dynamicBatches, 0);
 
 		m_filterFog.Execute(m_HDRRenderTarget.get(), m_HDRRenderTarget.get());
+		m_filterDof.Execute(m_HDRRenderTarget.get(), m_HDRRenderTarget.get());
 		m_filterBloom.Execute(m_HDRRenderTarget.get(), GraphicsAPI::GetBackBuffer());
 
 		// Required for gizmos depth testing

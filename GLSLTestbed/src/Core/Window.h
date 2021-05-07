@@ -10,8 +10,10 @@ namespace PK::Core
 		uint32_t width;
 		uint32_t height;
 		bool vsync;
+		bool cursorVisible;
 	
-		WindowProperties(const std::string& title = "OpenGL Window", uint32_t width = 1600, uint32_t height = 900, bool vsync = true) : title(title), width(width), height(height), vsync(vsync)
+		WindowProperties(const std::string& title = "OpenGL Window", uint32_t width = 1600, uint32_t height = 900, bool vsync = true, bool cursorVisible = true) : 
+			title(title), width(width), height(height), vsync(vsync), cursorVisible(cursorVisible)
 		{
 		}
 	};
@@ -28,6 +30,7 @@ namespace PK::Core
 			inline bool IsAlive() const { return m_alive; }
 			inline bool IsMinimized() const { return m_minimized; }
 			inline bool IsVSync() const { return m_properties.vsync; }
+			void SetCursorVisible(bool value);
 			void SetVSync(bool enabled);
 			void SetActive();
 			inline void PollEvents() const { glfwPollEvents(); }

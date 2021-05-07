@@ -60,7 +60,7 @@ void main()
 
         if (gl_LocalInvocationIndex == 0)
         {
-            float numpx = pk_ScreenParams.x * pk_ScreenParams.x;
+            float numpx = pk_ScreenParams.x * pk_ScreenParams.y;
             float weightedLogAverage = (HistogramShared[0] / max(numpx - countForThisBin, 1.0)) - 1.0;
             float weightedAverageLuminance = exp2((weightedLogAverage / 254.0) * LOG_LUMINANCE_RANGE + LOG_LUMINANCE_MIN);
 

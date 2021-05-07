@@ -9,20 +9,19 @@ namespace PK::Rendering::PostProcessing
     using namespace PK::Utilities;
     using namespace PK::Rendering::Objects;
 
-    class FilterAO : public FilterBase
+    class FilterDof : public FilterBase
     {
         public:
-            FilterAO(AssetDatabase* assetDatabase, const ApplicationConfig& config);
+            FilterDof(AssetDatabase* assetDatabase, const ApplicationConfig& config);
             void OnPreRender(const RenderTexture* source) override;
             void Execute(const RenderTexture* source, const RenderTexture* destination) override;
 
         private:
-            float m_intensity = 0.0f;
-            float m_radius = 0.0f;
-            bool m_downsample = false;
-            bool m_updateParams = false;
-            Ref<RenderTexture> m_renderTargets[2];
-            Ref<ComputeBuffer> m_passBuffer;
+            Ref<RenderTexture> m_renderTarget;
+            Ref<ConstantBuffer> m_paramsBuffer;
+            Ref<ComputeBuffer> m_autoFocusBuffer;
+            Shader* m_shaderComposite;
+            Shader* m_shaderAutoFocus;
             uint m_passKeywords[2];
     };
 }

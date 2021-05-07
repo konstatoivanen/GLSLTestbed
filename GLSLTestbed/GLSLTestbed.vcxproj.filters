@@ -1167,6 +1167,9 @@
     <ClInclude Include="src\ECS\Contextual\Builders\Builders.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Rendering\PostProcessing\FilterDof.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\glfw3.lib" />
@@ -1597,7 +1600,6 @@
     <None Include="res\shaders\includes\HLSLSupport.glsl" />
     <None Include="res\shaders\includes\Lighting.glsl" />
     <None Include="res\shaders\includes\PKCommon.glsl" />
-    <None Include="res\shaders\includes\SphericalHarmonics.glsl" />
     <None Include="res\shaders\includes\Test.glsl" />
     <None Include="res\shaders\includes\LightingBRDF.glsl" />
     <None Include="res\models\cornell_box.mtl" />
@@ -1652,6 +1654,10 @@
     <None Include="res\shaders\includes\Encoding.glsl" />
     <None Include="res\shaders\CS_LuminanceHistogram.shader" />
     <None Include="res\shaders\includes\Tonemapping.glsl" />
+    <None Include="res\shaders\SH_VS_DOFBlur.shader" />
+    <None Include="res\shaders\SH_VS_DOFComposite.shader" />
+    <None Include="res\shaders\includes\DepthOfFieldShared.glsl" />
+    <None Include="res\shaders\CS_AutoFocus.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">
@@ -1769,6 +1775,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ECS\Contextual\Builders\Builders.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rendering\PostProcessing\FilterDof.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

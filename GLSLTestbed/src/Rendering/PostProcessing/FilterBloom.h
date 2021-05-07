@@ -23,6 +23,7 @@ namespace PK::Rendering::PostProcessing
             Ref<ComputeBuffer> m_passBuffer;
             Ref<ComputeBuffer> m_histogram;
             Ref<ConstantBuffer> m_paramatersBuffer;
+            bool m_updateParameters;
             uint m_passKeywords[5];
     };
 }

@@ -46,11 +46,18 @@ namespace PK::Rendering::PostProcessing
             {CG_TYPE::HANDLE, "pk_HDRScreenTex"},
         }));
         
+        m_passBuffer = CreateRef<ComputeBuffer>(BufferLayout(
+        {
+            { CG_TYPE::HANDLE, "SOURCE"},
+            { CG_TYPE::FLOAT2, "OFFSET" },
+            { CG_TYPE::UINT2, "READWRITE" }
+        }), 31, true, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
+
         m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_MinLogLuminance"), config.AutoExposureLuminanceMin);
         m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_InvLogLuminanceRange"), 1.0f / config.AutoExposureLuminanceRange);
         m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_LogLuminanceRange"), config.AutoExposureLuminanceRange);
         m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_TargetExposure"), config.TonemapExposure);
-        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_AutoExposureSpeed"), 5.0f);
+        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_AutoExposureSpeed"), config.AutoExposureSpeed);
         m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_BloomIntensity"), glm::exp(config.BloomIntensity) - 1.0f);
         m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_BloomDirtIntensity"), glm::exp(config.BloomLensDirtIntensity) - 1.0f);
         m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_Saturation"), config.TonemapSaturation);
@@ -59,51 +66,48 @@ namespace PK::Rendering::PostProcessing
 
         m_properties.SetConstantBuffer(StringHashID::StringToID("pk_TonemappingParams"), m_paramatersBuffer->GetGraphicsID());
         m_properties.SetComputeBuffer(StringHashID::StringToID("pk_Histogram"), m_histogram->GetGraphicsID());
-    }
 
-    void FilterBloom::OnPreRender(const RenderTexture* source)
-    {
-        auto descriptor = source->GetCompoundDescriptor();
+        auto descriptor = RenderTextureDescriptor();
         descriptor.dimension = GL_TEXTURE_2D_ARRAY;
+        descriptor.resolution = { config.InitialWidth, config.InitialHeight, 2 };
         descriptor.resolution.z = 2;
         descriptor.depthFormat = GL_NONE;
         descriptor.colorFormats = { GL_RGBA16F };
         descriptor.miplevels = 0;
         descriptor.filtermag = GL_LINEAR;
         descriptor.filtermin = GL_LINEAR;
-
-        auto hasdelta = false;
+        descriptor.wrapmodex = GL_CLAMP_TO_EDGE;
+        descriptor.wrapmodey = GL_CLAMP_TO_EDGE;
+        descriptor.wrapmodez = GL_CLAMP_TO_EDGE;
 
         for (int i = 0; i < 6; ++i)
         {
             descriptor.resolution.x /= 2;
             descriptor.resolution.y /= 2;
-
-            if (m_renderTargets[i] == nullptr)
-            {
-                m_renderTargets[i] = CreateRef<RenderTexture>(descriptor);
-                hasdelta = true;
-            }
-            else
-            {
-                hasdelta |= m_renderTargets[i]->ValidateResolution(descriptor.resolution);
-            }
+            m_renderTargets[i] = CreateRef<RenderTexture>(descriptor);
         }
 
-        if (m_passBuffer == nullptr)
+        m_updateParameters = true;
+    }
+
+    void FilterBloom::OnPreRender(const RenderTexture* source)
+    {
+        auto resolution = source->GetResolution3D();
+        resolution.z = 2;
+
+        for (int i = 0; i < 6; ++i)
         {
-            m_passBuffer = CreateRef<ComputeBuffer>(BufferLayout(
-            { 
-                { CG_TYPE::HANDLE, "SOURCE"}, 
-                { CG_TYPE::FLOAT2, "OFFSET" }, 
-                { CG_TYPE::UINT2, "READWRITE" } 
-            }), 31, true, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
+            resolution.x /= 2;
+            resolution.y /= 2;
+            m_updateParameters |= m_renderTargets[i]->ValidateResolution(resolution);
         }
 
-        if (!hasdelta)
+        if (!m_updateParameters)
         {
             return;
         }
+
+        m_updateParameters = false;
 
         // Kinda volatile not to do this every frame but whatever.
         m_paramatersBuffer->SetResourceHandle(StringHashID::StringToID("pk_HDRScreenTex"), source->GetColorBuffer(0)->GetBindlessHandleResident());

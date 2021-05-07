@@ -28,8 +28,9 @@ namespace PK::Core
 		EnableGizmos = TryParse(properties["EnableGizmos"], false);
 		EnableLightingDebug = TryParse(properties["EnableLightingDebug"], false);
 		EnableOrthoGraphic = TryParse(properties["EnableOrthoGraphic"], false);
-		WindowWidth = TryParse(properties["WindowWidth"], 512);
-		WindowHeight = TryParse(properties["WindowHeight"], 512);
+		ShowCursor = TryParse(properties["ShowCursor"], true);
+		InitialWidth = TryParse(properties["InitialWidth"], 1024);
+		InitialHeight = TryParse(properties["InitialHeight"], 512);
 		CameraSpeed = TryParse(properties["CameraSpeed"], 5.0f);
 		CameraLookSensitivity = TryParse(properties["CameraLookSensitivity"], 1.0f);
 		CameraMoveSmoothing = TryParse(properties["CameraMoveSmoothing"], 0.0f);
@@ -45,6 +46,10 @@ namespace PK::Core
 
 		LightCount = TryParse(properties["LightCount"], 256);
 	
+		CameraFocalLength = TryParse(properties["CameraFocalLength"], 0.05f);
+		CameraFNumber = TryParse(properties["CameraFNumber"], 1.40f);
+		CameraFilmHeight = TryParse(properties["CameraFilmHeight"], 0.024f);
+		CameraFocusSpeed = TryParse(properties["CameraFocusSpeed"], 5.0f);
 		AutoExposureLuminanceMin = TryParse(properties["AutoExposureLuminanceMin"], 1.0f);
 		AutoExposureLuminanceRange = TryParse(properties["AutoExposureLuminanceRange"], 1.0f);
 		AutoExposureSpeed = TryParse(properties["AutoExposureSpeed"], 1.0f);

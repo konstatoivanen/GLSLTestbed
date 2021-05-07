@@ -10,9 +10,10 @@ namespace PK::Core
 		bool EnableVsync;
 		bool EnableGizmos;
 		bool EnableLightingDebug;
-	
-		int	WindowWidth;
-		int	WindowHeight;
+		bool ShowCursor;
+
+		int	InitialWidth;
+		int	InitialHeight;
 		
 		uint RandomSeed;
 
@@ -31,6 +32,10 @@ namespace PK::Core
 
 		uint LightCount;
 	
+		float CameraFocalLength;
+		float CameraFNumber;
+		float CameraFilmHeight;
+		float CameraFocusSpeed;
 		float AutoExposureLuminanceMin;
 		float AutoExposureLuminanceRange;
 		float AutoExposureSpeed;
