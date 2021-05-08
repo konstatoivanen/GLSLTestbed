@@ -1170,6 +1170,9 @@
     <ClInclude Include="src\Rendering\PostProcessing\FilterDof.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Core\YamlSerializers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\glfw3.lib" />

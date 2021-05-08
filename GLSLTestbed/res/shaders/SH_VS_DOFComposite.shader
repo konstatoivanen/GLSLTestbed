@@ -31,7 +31,8 @@ void main()
     const int2 OFFS0[4] = { int2(-1, 0), int2( 1,0), int2(0,1), int2(0,-1) };
     const int2 OFFS1[4] = { int2(-1,-1), int2(-1,1), int2(1,1), int2(1,-1) };
 
-    // @TODO Could maybe optimize this by having a half res depth texture instead...?
+    // @TODO Could maybe reduce some of the artifacts by having a half res depth texture instead...?
+    // @TODO Test if using coc values for weighting would reduce artifacts.
     float4 Z0 = textureGatherOffsets(pk_ScreenDepth, vs_TEXCOORD0, OFFS0);
     float4 Z1 = textureGatherOffsets(pk_ScreenDepth, vs_TEXCOORD0, OFFS1);
 

@@ -3,6 +3,7 @@
 #include "Core/IService.h"
 #include "Utilities/Ref.h"
 
+// @TODO Replace this nastyness with templates or smth.
 #define PK_STEP_T(S, D) static_cast<PK::ECS::IStep<D>*>(S)
 #define PK_STEP_C(S, D) static_cast<PK::ECS::IConditionalStep<D>*>(S)
 #define PK_STEP_S(S) static_cast<PK::ECS::ISimpleStep*>(S)

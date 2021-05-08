@@ -15,7 +15,7 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 - Cacaded shadow maps for directional lights.
 - Physically based shading (Cook-Torrance brdf).
 - HDR bloom.
-- Tone mapping.
+- Tone mapping & color grading.
 - Auto exposure.
 - Depth of field with auto focus.
 - Screen space ambient occlusion.
@@ -26,7 +26,6 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 - Instanced dynamic batching.
 
 ## Planned Features
-- Color grading.
 - A global illumination solution.
 - Rectangular area light support.
 - Exponential variance shadow maps.

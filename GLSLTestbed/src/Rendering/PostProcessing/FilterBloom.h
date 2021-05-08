@@ -17,7 +17,6 @@ namespace PK::Rendering::PostProcessing
             void Execute(const RenderTexture* source, const RenderTexture* destination) override;
     
         private:
-            TextureXD* m_lensDirtTexture = nullptr;
             Shader* m_computeHistogram = nullptr;
             Ref<RenderTexture> m_renderTargets[6];
             Ref<ComputeBuffer> m_passBuffer;

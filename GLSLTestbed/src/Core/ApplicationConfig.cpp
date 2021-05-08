@@ -2,6 +2,7 @@
 #include "Utilities/Log.h"
 #include "Utilities/StringUtilities.h"
 #include "Core/ApplicationConfig.h"
+#include "Core/YamlSerializers.h"
 #include <GLFW\glfw3.h>
 #include <yaml-cpp/yaml.h>
 
@@ -54,7 +55,22 @@ namespace PK::Core
 		AutoExposureLuminanceRange = TryParse(properties["AutoExposureLuminanceRange"], 1.0f);
 		AutoExposureSpeed = TryParse(properties["AutoExposureSpeed"], 1.0f);
 		TonemapExposure = TryParse(properties["TonemapExposure"], 1.0f);
-		TonemapSaturation = TryParse(properties["TonemapSaturation"], 1.0f);
+		CC_Contribution = TryParse(properties["CC_Contribution"], 1.0f);
+		CC_TemperatureShift = TryParse(properties["CC_TemperatureShift"], 0.0f);
+		CC_Tint = TryParse(properties["CC_Tint"], 0.0f);
+		CC_Hue = TryParse(properties["CC_Hue"], 0.0f);
+		CC_Saturation = TryParse(properties["CC_Saturation"], 1.0f);
+		CC_Vibrance = TryParse(properties["CC_Vibrance"], 0.0f);
+		CC_Value = TryParse(properties["CC_Value"], 1.0f);
+		CC_Contrast = TryParse(properties["CC_Contrast"], 1.0f);
+		CC_Gain = TryParse(properties["CC_Gain"], 1.0f);
+		CC_Gamma = TryParse(properties["CC_Gamma"], 1.0f);
+		CC_Shadows = Functions::HexToRGB(TryParse<uint>(properties["CC_Shadows"], 0x000000FF));
+		CC_Midtones = Functions::HexToRGB(TryParse<uint>(properties["CC_Midtones"], 0x7F7F7FFF));
+		CC_Highlights = Functions::HexToRGB(TryParse<uint>(properties["CC_Highlights"], 0xFFFFFFFF));
+		CC_ChannelMixerRed = Functions::HexToRGB(TryParse<uint>(properties["CC_ChannelMixerRed"], 0xFF0000FF));
+		CC_ChannelMixerGreen = Functions::HexToRGB(TryParse<uint>(properties["CC_ChannelMixerGreen"], 0x00FF00FF));
+		CC_ChannelMixerBlue = Functions::HexToRGB(TryParse<uint>(properties["CC_ChannelMixerBlue"], 0x0000FFFF));
 		BloomIntensity = TryParse(properties["BloomIntensity"], 0.0f);
 		BloomLensDirtIntensity = TryParse(properties["BloomLensDirtIntensity"], 0.0f);
 		FileBloomDirt = TryParse(properties["FileBloomDirt"], std::string("T_Bloom_LensDirt"));

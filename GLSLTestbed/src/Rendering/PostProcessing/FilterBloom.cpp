@@ -21,7 +21,7 @@ namespace PK::Rendering::PostProcessing
 
     FilterBloom::FilterBloom(AssetDatabase* assetDatabase, const ApplicationConfig& config) : FilterBase(assetDatabase->Find<Shader>("SH_VS_FilterBloom"))
     {
-        m_lensDirtTexture = assetDatabase->Find<TextureXD>(config.FileBloomDirt.c_str());
+        auto lensDirtTexture = assetDatabase->Load<TextureXD>(config.FileBloomDirt.c_str());
         m_computeHistogram = assetDatabase->Find<Shader>("CS_LuminanceHistogram");
 
         m_passKeywords[0] = StringHashID::StringToID("PASS_COMPOSITE");
@@ -41,7 +41,16 @@ namespace PK::Rendering::PostProcessing
             {CG_TYPE::FLOAT, "pk_AutoExposureSpeed"},
             {CG_TYPE::FLOAT, "pk_BloomIntensity"},
             {CG_TYPE::FLOAT, "pk_BloomDirtIntensity"},
-            {CG_TYPE::FLOAT, "pk_Saturation"},
+            {CG_TYPE::FLOAT, "pk_Vibrance"},
+            {CG_TYPE::FLOAT4, "pk_WhiteBalance"},
+            {CG_TYPE::FLOAT4, "pk_Lift"},
+            {CG_TYPE::FLOAT4, "pk_Gamma"},
+            {CG_TYPE::FLOAT4, "pk_Gain"},
+            {CG_TYPE::FLOAT4, "pk_ContrastGainGammaContribution"},
+            {CG_TYPE::FLOAT4, "pk_HSV"},
+            {CG_TYPE::FLOAT4, "pk_ChannelMixerRed"},
+            {CG_TYPE::FLOAT4, "pk_ChannelMixerGreen"},
+            {CG_TYPE::FLOAT4, "pk_ChannelMixerBlue"},
             {CG_TYPE::HANDLE, "pk_BloomLensDirtTex"},
             {CG_TYPE::HANDLE, "pk_HDRScreenTex"},
         }));
@@ -60,8 +69,21 @@ namespace PK::Rendering::PostProcessing
         m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_AutoExposureSpeed"), config.AutoExposureSpeed);
         m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_BloomIntensity"), glm::exp(config.BloomIntensity) - 1.0f);
         m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_BloomDirtIntensity"), glm::exp(config.BloomLensDirtIntensity) - 1.0f);
-        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_Saturation"), config.TonemapSaturation);
-        m_paramatersBuffer->SetResourceHandle(StringHashID::StringToID("pk_BloomLensDirtTex"), m_lensDirtTexture->GetBindlessHandleResident());
+
+        color lift, gamma, gain;
+        Functions::GenerateLiftGammaGain(config.CC_Shadows, config.CC_Midtones, config.CC_Highlights, &lift, &gamma, &gain);
+        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_Vibrance"), config.CC_Vibrance);
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_WhiteBalance"), Functions::GetWhiteBalance(config.CC_TemperatureShift, config.CC_Tint));
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_Lift"), lift);
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_Gamma"), gamma);
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_Gain"), gain);
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_ContrastGainGammaContribution"), float4(config.CC_Contrast, config.CC_Gain, 1.0f / config.CC_Gamma, config.CC_Contribution));
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_HSV"), float4(config.CC_Hue, config.CC_Saturation, config.CC_Value, 1.0f));
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_ChannelMixerRed"), config.CC_ChannelMixerRed);
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_ChannelMixerGreen"), config.CC_ChannelMixerGreen);
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_ChannelMixerBlue"), config.CC_ChannelMixerBlue);
+
+        m_paramatersBuffer->SetResourceHandle(StringHashID::StringToID("pk_BloomLensDirtTex"), lensDirtTexture->GetBindlessHandleResident());
         m_paramatersBuffer->FlushBuffer();
 
         m_properties.SetConstantBuffer(StringHashID::StringToID("pk_TonemappingParams"), m_paramatersBuffer->GetGraphicsID());

@@ -26,8 +26,5 @@ namespace PK::ECS::Engines
 			EntityDatabase* m_entityDb;
 			AssetDatabase* m_assetDatabase;
 			Time* m_time;
-		
-			Mesh* cornellBox;
-			Material* cornellBoxMaterial;
 	};
 }

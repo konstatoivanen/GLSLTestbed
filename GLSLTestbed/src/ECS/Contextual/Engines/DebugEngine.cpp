@@ -109,11 +109,9 @@ namespace PK::ECS::Engines
 		auto sphereMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Sphere", Rendering::MeshUtility::GetSphere(CG_FLOAT3_ZERO, 1.0f));
 		auto planeMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Plane16x16", Rendering::MeshUtility::GetPlane(CG_FLOAT2_ZERO, CG_FLOAT2_ONE, { 16, 16 }));
 	
-		auto materialMetal = assetDatabase->Find<Material>("M_Metal_Panel");
-		auto materialGravel = assetDatabase->Find<Material>("M_Gravel");
-		auto materialWood = assetDatabase->Find<Material>("M_Wood_Floor");
-		cornellBoxMaterial = assetDatabase->Find<Material>("M_Metal_Panel");
-		cornellBox = assetDatabase->Find<Mesh>("cornell_box");
+		auto materialMetal = assetDatabase->Load<Material>("res/materials/M_Metal_Panel.material");
+		auto materialGravel = assetDatabase->Load<Material>("res/materials/M_Gravel.material");
+		auto materialWood = assetDatabase->Load<Material>("res/materials/M_Wood_Floor.material");
 	
 		auto minpos = float3(-40, -5, -40);
 		auto maxpos = float3(40, 0, 40);
@@ -142,7 +140,8 @@ namespace PK::ECS::Engines
 			flipperinotyperino ^= true;
 		}
 
-		CreateDirectionalLight(entityDb, assetDatabase, { 35, -35, 0 }, color(109.0f / 255.0f, 86.0f / 255.0f, 61.0f / 255.0f, 1.0f) * 1.0f, true);
+		auto color = Functions::HexToRGB(0x66D1FFFF); // 0x6D563DFF
+		CreateDirectionalLight(entityDb, assetDatabase, { 35, -35, 0 }, color, true);
 	}
 	
 	void DebugEngine::Step(Input* input)

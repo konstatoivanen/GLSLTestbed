@@ -43,6 +43,7 @@ namespace PK::Core
             template<typename T>
             T* Load(const std::string& filepath, AssetID assetId)
             {
+                static_assert(std::is_base_of<Asset, T>::value, "Template argument type does not derive from Asset!");
                 PK_CORE_ASSERT(std::filesystem::exists(filepath), "Asset not found at path: %s", filepath.c_str());
     
                 auto& collection = m_assets[std::type_index(typeid(T))];
@@ -64,6 +65,7 @@ namespace PK::Core
             template<typename T>
             T* Reload(const std::string& filepath, AssetID assetId)
             {
+                static_assert(std::is_base_of<Asset, T>::value, "Template argument type does not derive from Asset!");
                 PK_CORE_ASSERT(std::filesystem::exists(filepath), "Asset not found at path: %s", filepath.c_str());
                 
                 auto& collection = m_assets[std::type_index(typeid(T))];
@@ -89,6 +91,7 @@ namespace PK::Core
             template<typename T, typename ... Args>
             T* CreateProcedural(std::string name, Args&& ... args)
             {
+                static_assert(std::is_base_of<Asset, T>::value, "Template argument type does not derive from Asset!");
                 auto& collection = m_assets[std::type_index(typeid(T))];
                 auto assetId = StringHashID::StringToID(name);
     
@@ -104,6 +107,8 @@ namespace PK::Core
             template<typename T, typename ... Args>
             T* RegisterProcedural(std::string name, Ref<T> asset)
             {
+                static_assert(std::is_base_of<Asset, T>::value, "Template argument type does not derive from Asset!");
+
                 auto& collection = m_assets[std::type_index(typeid(T))];
                 auto assetId = StringHashID::StringToID(name);
     
@@ -118,6 +123,8 @@ namespace PK::Core
             template<typename T>
             T* Find(const char* name)
             {
+                static_assert(std::is_base_of<Asset, T>::value, "Template argument type does not derive from Asset!");
+
                 auto type = std::type_index(typeid(T));
     
                 if (m_assets.count(type) > 0)
@@ -160,6 +167,8 @@ namespace PK::Core
             template<typename T>
             void LoadDirectory(const std::string& directory, std::initializer_list<const char*> extensions)
             {
+                static_assert(std::is_base_of<Asset, T>::value, "Template argument type does not derive from Asset!");
+
                 if (!std::filesystem::exists(directory))
                 {
                     return;
@@ -190,6 +199,8 @@ namespace PK::Core
             template<typename T>
             void ReloadDirectory(const std::string& directory, std::initializer_list<const char*> extensions)
             {
+                static_assert(std::is_base_of<Asset, T>::value, "Template argument type does not derive from Asset!");
+
                 if (!std::filesystem::exists(directory))
                 {
                     return;
@@ -220,6 +231,8 @@ namespace PK::Core
             template<typename T>
             void UnloadDirectory(const std::string& directory, std::initializer_list<const char*> extensions)
             {
+                static_assert(std::is_base_of<Asset, T>::value, "Template argument type does not derive from Asset!");
+
                 if (!std::filesystem::exists(directory))
                 {
                     return;
@@ -250,17 +263,26 @@ namespace PK::Core
             template<typename T>
             void Unload(AssetID assetId)
             {
+                static_assert(std::is_base_of<Asset, T>::value, "Template argument type does not derive from Asset!");
                 auto& collection = m_assets[std::type_index(typeid(T))];
                 collection.erase(assetId);
             }
     
             template<typename T>
-            void Unload(const std::string& filepath) { Unload<T>(StringHashID::StringToID(filepath)); }
+            inline void Unload(const std::string& filepath) 
+            { 
+                static_assert(std::is_base_of<Asset, T>::value, "Template argument type does not derive from Asset!");
+                Unload<T>(StringHashID::StringToID(filepath)); 
+            }
     
             template<typename T>
-            inline void Unload() { m_assets.erase(std::type_index(typeid(T))); }
+            inline void Unload() 
+            {
+                static_assert(std::is_base_of<Asset, T>::value, "Template argument type does not derive from Asset!");
+                m_assets.erase(std::type_index(typeid(T))); 
+            }
     
-            const void Unload() { m_assets.clear(); };
+            inline void Unload() { m_assets.clear();  };
     
         private:
             std::unordered_map<std::type_index, std::unordered_map<AssetID, Ref<Asset>>> m_assets;

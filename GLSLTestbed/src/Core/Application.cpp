@@ -54,9 +54,11 @@ namespace PK::Core
 		m_window->OnClose = PK_BIND_FUNCTION(Application::Close);
 		
 		assetDatabase->LoadDirectory<Shader>("res/shaders/", { ".shader" });
-		assetDatabase->LoadDirectory<TextureXD>("res/textures/", { ".png", ".ktx" });
-		assetDatabase->LoadDirectory<Mesh>("res/models/", { ".obj" });
-		assetDatabase->LoadDirectory<Material>("res/materials/", { ".material" });
+		
+		// Load these based on usage instead.
+		//assetDatabase->LoadDirectory<TextureXD>("res/textures/", { ".ktx" });
+		//assetDatabase->LoadDirectory<Mesh>("res/models/", { ".obj" });
+		//assetDatabase->LoadDirectory<Material>("res/materials/", { ".material" });
 	
 		auto renderPipeline = m_services->Create<RenderPipeline>(assetDatabase, entityDb, config);
 		auto engineEditorCamera = m_services->Create<ECS::Engines::EngineEditorCamera>(time, config);

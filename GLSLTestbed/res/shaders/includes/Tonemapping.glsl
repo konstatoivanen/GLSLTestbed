@@ -14,7 +14,16 @@ PK_DECLARE_CBUFFER(pk_TonemappingParams)
     float pk_AutoExposureSpeed;
     float pk_BloomIntensity;
     float pk_BloomDirtIntensity;
-    float pk_Saturation;
+    float pk_Vibrance;
+    float4 pk_WhiteBalance;
+	float4 pk_Lift;
+	float4 pk_Gamma;
+	float4 pk_Gain;
+	float4 pk_ContrastGainGammaContribution;
+	float4 pk_HSV;
+	float4 pk_ChannelMixerRed;
+	float4 pk_ChannelMixerGreen;
+	float4 pk_ChannelMixerBlue;
     sampler2D pk_BloomLensDirtTex;
     sampler2D pk_HDRScreenTex;
 };
@@ -26,6 +35,16 @@ PK_DECLARE_BUFFER(uint, pk_Histogram);
 #define LOG_LUMINANCE_RANGE pk_LogLuminanceRange
 #define TARGET_EXPOSURE pk_TargetExposure
 #define EXPOSURE_ADJUST_SPEED pk_AutoExposureSpeed
+
+const float3x3 LIN_2_LMS_MAT = float3x3(
+    3.90405e-1, 5.49941e-1, 8.92632e-3,
+    7.08416e-2, 9.63172e-1, 1.35775e-3,
+    2.31082e-2, 1.28021e-1, 9.36245e-1);
+
+const float3x3 LMS_2_LIN_MAT = float3x3(
+     2.85847e+0, -1.62879e+0, -2.48910e-2,
+    -2.10182e-1,  1.15820e+0,  3.24281e-4,
+    -4.18120e-2, -1.18169e-1,  1.06867e+0);
 
 float GetAutoExposure()
 {
@@ -99,4 +118,71 @@ float3 LinearToGamma(float3 color)
 	float3 S2 = sqrt(S1);
 	float3 S3 = sqrt(S2);
 	return 0.662002687 * S1 + 0.684122060 * S2 - 0.323583601 * S3 - 0.0225411470 * color;
+}
+
+float3 rgb_to_hsv(float3 c)
+{
+    float4 K = float4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    float4 p = lerp(float4(c.bg, K.wz), float4(c.gb, K.xy), step(c.b, c.g));
+    float4 q = lerp(float4(p.xyw, c.r), float4(c.r, p.yzx), step(p.x, c.r));
+    half d = q.x - min(q.w, q.y);
+    half e = 1.0e-4;
+    return float3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
+
+float3 hsv_to_rgb(float3 c)
+{
+    float4 K = float4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    float3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+    return c.z * lerp(K.xxx, saturate(p - K.xxx), c.y);
+}
+
+float3 ApplyColorGrading(float3 color)
+{
+    float3 final = color;
+
+    float contrast = pk_ContrastGainGammaContribution.x;
+    float gain = pk_ContrastGainGammaContribution.y;
+    float gamma = pk_ContrastGainGammaContribution.z;
+    float contribution = pk_ContrastGainGammaContribution.w;
+
+    // White balance
+    float3 lms = mul(LIN_2_LMS_MAT, final);
+    lms *= pk_WhiteBalance.xyz;
+    final = mul(LMS_2_LIN_MAT, lms);
+
+    // Lift/gamma/gain
+    final = pk_Gain.xyz * (pk_Lift.xyz * (1.0 - final) + pow(final, pk_Gamma.xyz));
+    final = max(final, 0.0);
+
+    // Hue/saturation/value
+    float3 hsv = rgb_to_hsv(final);
+    hsv.x = mod(hsv.x + pk_HSV.x, 1.0);
+    hsv.yz *= pk_HSV.yz;
+    final = saturate(hsv_to_rgb(hsv));
+    
+    // Vibrance
+    float sat = max(final.r, max(final.g, final.b)) - min(final.r, min(final.g, final.b));
+    final = lerp(dot(final, pk_Luminance.xyz).xxx, final, (1.0 + (pk_Vibrance * (1.0 - (sign(pk_Vibrance) * sat)))));
+    
+    // Contrast
+    final = saturate((final - 0.5) * contrast + 0.5);
+
+    // Gain
+    float f = pow(2.0, gain) * 0.5;
+    final.r = final.r < 0.5f ? pow(final.r, gain) * f : 1.0f - pow(1.0f - final.r, gain) * f;
+    final.g = final.g < 0.5f ? pow(final.g, gain) * f : 1.0f - pow(1.0f - final.g, gain) * f;
+    final.b = final.b < 0.5f ? pow(final.b, gain) * f : 1.0f - pow(1.0f - final.b, gain) * f;
+
+    // Gamma
+    final = pow(final, gamma.xxx);
+
+    // Color mixer
+    final = float3(
+        dot(final, pk_ChannelMixerRed.rgb),
+        dot(final, pk_ChannelMixerGreen.rgb),
+        dot(final, pk_ChannelMixerBlue.rgb)
+    );
+
+    return lerp(color, final, contribution);
 }

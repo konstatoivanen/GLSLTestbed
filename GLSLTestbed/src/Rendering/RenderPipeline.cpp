@@ -60,7 +60,7 @@ namespace PK::Rendering
 
 		m_depthNormalsShader = assetDatabase->Find<Shader>("SH_WS_DepthNormals");
 		m_OEMBackgroundShader = assetDatabase->Find<Shader>("SH_VS_IBLBackground");
-		m_OEMTexture = assetDatabase->Find<TextureXD>(config.FileBackgroundTexture.c_str());
+		m_OEMTexture = assetDatabase->Load<TextureXD>(config.FileBackgroundTexture.c_str());
 		m_OEMExposure = config.BackgroundExposure;
 
 		m_enableLightingDebug = config.EnableLightingDebug;
@@ -108,8 +108,8 @@ namespace PK::Rendering
 			{CG_TYPE::FLOAT, "pk_SceneOEM_Exposure"},
 		}));
 
-		auto bluenoiseTex = assetDatabase->Find<TextureXD>("T_Bluenoise256_repeat");
-		auto cookies = assetDatabase->Find<TextureXD>("T_LightCookies");
+		auto bluenoiseTex = assetDatabase->Load<TextureXD>("res/textures/T_Bluenoise256_repeat.ktx");
+		auto cookies = assetDatabase->Load<TextureXD>("res/textures/T_LightCookies.ktx");
 
 		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_Bluenoise256, bluenoiseTex->GetBindlessHandleResident());
 		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_LightCookies, cookies->GetBindlessHandleResident());

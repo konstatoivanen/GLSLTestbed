@@ -91,9 +91,14 @@ float4 FragmentComposite(float2 uv, sampler2DArray source)
 	color = lerp(color, bloom, float3(pk_BloomIntensity));
 	color.rgb = lerp(color.rgb, bloomLens.rgb, saturate(lensdirt.rgb * pk_BloomDirtIntensity));
 	
-	color = Saturation(color, pk_Saturation);
+	// Applying a bit of desaturation to reduce high intensity value color blowout
+	// A personal preference really (should probably try to deprecate this).
+	color = Saturation(color, 0.8f);
 	color = TonemapHejlDawson(color, GetAutoExposure());
 	color = LinearToGamma(color);
+	// This should perhaps be done before gamma corretion.
+	// But doing so invalidates configurations done using external software.
+	color = ApplyColorGrading(color);
 
 	return float4(color, 1.0f);
 }

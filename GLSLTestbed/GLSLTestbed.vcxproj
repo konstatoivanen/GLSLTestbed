@@ -549,6 +549,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="src\Core\Window.h" />
     <ClInclude Include="src\Utilities\StringUtilities.h" />
     <ClInclude Include="src\Utilities\Utilities.h" />
+    <ClInclude Include="src\Core\YamlSerializers.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\glfw3.lib" />
