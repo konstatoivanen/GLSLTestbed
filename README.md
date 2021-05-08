@@ -74,7 +74,7 @@ A rough overview of the steps taken to render a frame. (Some steps are omitted t
 	- Apply gamma correction.
 
 ## Performance Metrics
-- Average frame timings profiled on a NVIDIA RTX 2080 TI
+- Average frame timings profiled on a NVIDIA RTX 2080 TI at 1080p resolution.
 - The test scene has only 512 objects with 3 different materials & 2 different meshes.
 - Light types are distributed so that there exists one directional light & an equal amount point & spot lights.
 - Light radii are set at 40m to achieve good saturation in light clusters.
