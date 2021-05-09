@@ -40,6 +40,8 @@ namespace PK::Core
 		float AutoExposureLuminanceRange;
 		float AutoExposureSpeed;
 		float TonemapExposure;
+		float VignetteIntensity;
+		float VignettePower;
 		float CC_Contribution;
 		float CC_TemperatureShift;
 		float CC_Tint;

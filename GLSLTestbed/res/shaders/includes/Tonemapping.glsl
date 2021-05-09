@@ -15,6 +15,7 @@ PK_DECLARE_CBUFFER(pk_TonemappingParams)
     float pk_BloomIntensity;
     float pk_BloomDirtIntensity;
     float pk_Vibrance;
+    float4 pk_Vignette;
     float4 pk_WhiteBalance;
 	float4 pk_Lift;
 	float4 pk_Gamma;
@@ -56,8 +57,8 @@ void SetAutoExposure(float exposure)
     PK_BUFFER_DATA(pk_Histogram, 256) = floatBitsToUint(exposure);
 }
 
-// https://media.contentapi.ea.com/content/dam/eacom/frostbite/files/course-notes-moving-frostbite-to-pbr-v2.pdf
-float computeEV100( float aperture, float shutterTime, float ISO)
+// Source: https://media.contentapi.ea.com/content/dam/eacom/frostbite/files/course-notes-moving-frostbite-to-pbr-v2.pdf
+float ComputeEV100( float aperture, float shutterTime, float ISO)
 {
     // EV number is defined as:
     // 2^ EV_s = N^2 / t and EV_s = EV_100 + log2 (S /100)
@@ -69,7 +70,7 @@ float computeEV100( float aperture, float shutterTime, float ISO)
     return log2(pow2(aperture) / shutterTime * 100 / ISO);
 }
 
-float computeEV100FromAvgLuminance( float avgLuminance)
+float ComputeEV100FromAvgLuminance( float avgLuminance)
 {
     // We later use the middle gray at 12.7% in order to have
     // a middle gray at 18% with a sqrt (2) room for specular highlights
@@ -80,7 +81,7 @@ float computeEV100FromAvgLuminance( float avgLuminance)
     return log2(avgLuminance * 100.0f / 12.5f);
 }
 
-float convertEV100ToExposure( float EV100)
+float ConvertEV100ToExposure( float EV100)
 {
     // Compute the maximum luminance possible with H_sbs sensitivity
     // maxLum = 78 / ( S * q ) * N^2 / t
@@ -111,6 +112,12 @@ float3 Saturation(float3 color, float amount)
 	return lerp_true(grayscale.xxx, color, 0.8f);
 }
 
+float Vignette(float2 uv)
+{
+    uv *=  1.0 - uv.yx;   
+    return pow(uv.x * uv.y * pk_Vignette.x, pk_Vignette.y); 
+}
+
 float3 LinearToGamma(float3 color)
 {
 	//Source: http://chilliant.blogspot.com.au/2012/08/srgb-approximations-for-hlsl.html?m=1
@@ -120,7 +127,7 @@ float3 LinearToGamma(float3 color)
 	return 0.662002687 * S1 + 0.684122060 * S2 - 0.323583601 * S3 - 0.0225411470 * color;
 }
 
-float3 rgb_to_hsv(float3 c)
+float3 RgbToHsv(float3 c)
 {
     float4 K = float4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
     float4 p = lerp(float4(c.bg, K.wz), float4(c.gb, K.xy), step(c.b, c.g));
@@ -130,7 +137,7 @@ float3 rgb_to_hsv(float3 c)
     return float3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
 }
 
-float3 hsv_to_rgb(float3 c)
+float3 HsvToRgb(float3 c)
 {
     float4 K = float4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     float3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
@@ -139,7 +146,7 @@ float3 hsv_to_rgb(float3 c)
 
 float3 ApplyColorGrading(float3 color)
 {
-    float3 final = color;
+    float3 final = saturate(color);
 
     float contrast = pk_ContrastGainGammaContribution.x;
     float gain = pk_ContrastGainGammaContribution.y;
@@ -156,10 +163,10 @@ float3 ApplyColorGrading(float3 color)
     final = max(final, 0.0);
 
     // Hue/saturation/value
-    float3 hsv = rgb_to_hsv(final);
+    float3 hsv = RgbToHsv(final);
     hsv.x = mod(hsv.x + pk_HSV.x, 1.0);
     hsv.yz *= pk_HSV.yz;
-    final = saturate(hsv_to_rgb(hsv));
+    final = saturate(HsvToRgb(hsv));
     
     // Vibrance
     float sat = max(final.r, max(final.g, final.b)) - min(final.r, min(final.g, final.b));

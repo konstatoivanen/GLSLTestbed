@@ -42,6 +42,7 @@ namespace PK::Rendering::PostProcessing
             {CG_TYPE::FLOAT, "pk_BloomIntensity"},
             {CG_TYPE::FLOAT, "pk_BloomDirtIntensity"},
             {CG_TYPE::FLOAT, "pk_Vibrance"},
+            {CG_TYPE::FLOAT4, "pk_Vignette"},
             {CG_TYPE::FLOAT4, "pk_WhiteBalance"},
             {CG_TYPE::FLOAT4, "pk_Lift"},
             {CG_TYPE::FLOAT4, "pk_Gamma"},
@@ -73,6 +74,7 @@ namespace PK::Rendering::PostProcessing
         color lift, gamma, gain;
         Functions::GenerateLiftGammaGain(config.CC_Shadows, config.CC_Midtones, config.CC_Highlights, &lift, &gamma, &gain);
         m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_Vibrance"), config.CC_Vibrance);
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_Vignette"), { config.VignetteIntensity, config.VignettePower, 0.0f, 0.0f });
         m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_WhiteBalance"), Functions::GetWhiteBalance(config.CC_TemperatureShift, config.CC_Tint));
         m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_Lift"), lift);
         m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_Gamma"), gamma);

@@ -64,9 +64,9 @@ void main()
             float weightedLogAverage = (HistogramShared[0] / max(numpx - countForThisBin, 1.0)) - 1.0;
             float weightedAverageLuminance = exp2((weightedLogAverage / 254.0) * LOG_LUMINANCE_RANGE + LOG_LUMINANCE_MIN);
 
-            float EV100 = computeEV100FromAvgLuminance(weightedAverageLuminance);
+            float EV100 = ComputeEV100FromAvgLuminance(weightedAverageLuminance);
 
-            float targetExposure = TARGET_EXPOSURE * convertEV100ToExposure(EV100);
+            float targetExposure = TARGET_EXPOSURE * ConvertEV100ToExposure(EV100);
             float exposure = GetAutoExposure();
             exposure = lerp(exposure, targetExposure, pk_DeltaTime.x * EXPOSURE_ADJUST_SPEED);
 

@@ -15,7 +15,6 @@ void main()
 
 #pragma PROGRAM_FRAGMENT
 
-#define _MainTex_TexelSize (1.0f / textureSize(_MainTex, 0).xy)
 #define EPSILON 0.0001f
 
 uniform sampler2DArray _MainTex;
@@ -32,7 +31,6 @@ void main()
     const int2 OFFS1[4] = { int2(-1,-1), int2(-1,1), int2(1,1), int2(1,-1) };
 
     // @TODO Could maybe reduce some of the artifacts by having a half res depth texture instead...?
-    // @TODO Test if using coc values for weighting would reduce artifacts.
     float4 Z0 = textureGatherOffsets(pk_ScreenDepth, vs_TEXCOORD0, OFFS0);
     float4 Z1 = textureGatherOffsets(pk_ScreenDepth, vs_TEXCOORD0, OFFS1);
 
@@ -40,8 +38,12 @@ void main()
                                           max(max(max(depth01, Z0.x), Z0.z), Z1.y),
                                           max(max(max(depth01, Z0.y), Z0.z), Z1.z),
                                           max(max(max(depth01, Z0.y), Z0.w), Z1.w)));
+
+    // Reduce foreground - background blur artifacts by using 0-1 circle of confusion values for weights instead.
+    float4 cocs = GetCirclesOfConfusion01(depths);
+    float coc = GetCircleOfConfusion01(linearDepth);
     
-    float4 weights = float4(1.0f / (EPSILON + abs(linearDepth.xxxx - depths)));
+    float4 weights = float4(1.0f / (EPSILON + abs(coc.xxxx - cocs)));
     float weight = dot(weights, float4(1.0f));
 
     float3 uvw = float3(vs_TEXCOORD0, 1);
@@ -52,7 +54,6 @@ void main()
            color += textureOffset(_MainTex, uvw, int2( 1, -1)) * weights.w;
            color /= weight;
 
-    float coc = GetCircleOfConfusion01(linearDepth);
 
     SV_Target0 = lerp(color, tex2D(_MainTex, uvw), coc);
 };

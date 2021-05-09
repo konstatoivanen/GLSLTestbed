@@ -66,6 +66,12 @@ float GetCircleOfConfusion01(float linearDepth)
     return min(1.0f, abs(linearDepth - data.Distance) * data.LensCoefficient / linearDepth / pk_MaximumCoC);
 }
 
+float4 GetCirclesOfConfusion01(float4 linearDepths)
+{
+    AutoFocusData data = PK_ATOMIC_DATA(pk_AutoFocusParams);
+    return min(float4(1.0f), abs(linearDepths - data.Distance) * data.LensCoefficient / linearDepths / pk_MaximumCoC);
+}
+
 float4 GetCirclesOfConfusion(float4 linearDepths)
 {
     AutoFocusData data = PK_ATOMIC_DATA(pk_AutoFocusParams);

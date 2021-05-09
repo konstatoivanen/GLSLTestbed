@@ -55,6 +55,8 @@ namespace PK::Core
 		AutoExposureLuminanceRange = TryParse(properties["AutoExposureLuminanceRange"], 1.0f);
 		AutoExposureSpeed = TryParse(properties["AutoExposureSpeed"], 1.0f);
 		TonemapExposure = TryParse(properties["TonemapExposure"], 1.0f);
+		VignetteIntensity = TryParse(properties["VignetteIntensity"], 15.0f);
+		VignettePower = TryParse(properties["VignettePower"], 0.25f);
 		CC_Contribution = TryParse(properties["CC_Contribution"], 1.0f);
 		CC_TemperatureShift = TryParse(properties["CC_TemperatureShift"], 0.0f);
 		CC_Tint = TryParse(properties["CC_Tint"], 0.0f);
