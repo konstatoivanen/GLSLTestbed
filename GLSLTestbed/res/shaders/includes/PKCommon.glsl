@@ -38,7 +38,7 @@ PK_DECLARE_CBUFFER(pk_PerFrameConstants)
     float4 pk_ProjectionParams;
     // x = 1.0f / log2(f / n), y = -log2(n) / log2(f / n), z = f / n, w = 1.0f / n.
     float4 pk_ExpProjectionParams;
-    // x is the width of the camera’s target texture in pixels, y is the height of the camera’s target texture in pixels, z is 1.0 + 1.0/width and w is 1.0 + 1.0/height.
+    // x is the width of the camera’s target texture in pixels, y is the height of the camera’s target texture in pixels, z is 1.0/width and w is 1.0/height.
     float4 pk_ScreenParams;
     // view space z axis splits for directional light shadow cascades
     float4 pk_ShadowCascadeZSplits;
@@ -161,13 +161,13 @@ float3 ClipToViewPos(float2 uv, float linearDeth)
 
 float3 ScreenToViewPos(float3 screenpos) 
 {
-    float2 texCoord = screenpos.xy / pk_ScreenParams.xy;
+    float2 texCoord = screenpos.xy * pk_ScreenParams.zw;
     return ClipToViewPos(float3(texCoord.xy * 2.0f - 1.0f, screenpos.z));
 }
 
 float3 ScreenToViewPos(float2 screenpos, float linearDepth) 
 {
-    float2 texCoord = screenpos.xy / pk_ScreenParams.xy;
+    float2 texCoord = screenpos.xy * pk_ScreenParams.zw;
     return ClipToViewPos(texCoord.xy, linearDepth);
 }
 

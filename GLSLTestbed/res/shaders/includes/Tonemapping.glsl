@@ -27,7 +27,7 @@ PK_DECLARE_CBUFFER(pk_TonemappingParams)
 	float4 pk_ChannelMixerGreen;
 	float4 pk_ChannelMixerBlue;
     sampler2D pk_BloomLensDirtTex;
-    sampler2D pk_HDRScreenTex;
+    sampler2DArray pk_HDRScreenTex;
     sampler2D pk_FilmGrainTex;
 };
 

@@ -65,12 +65,12 @@ float3 SampleEnv(float2 uv, float roughness)
     return HDRDecode(env) * pk_SceneOEM_Exposure;
 }
 
-float SampleScreenSpaceOcclusion(float2 uv) { return 1.0f - tex2D(pk_ScreenOcclusion, uv).r; }
+float SampleScreenSpaceOcclusion(float2 uv) { return tex2D(pk_ScreenOcclusion, uv).r; }
 
 float SampleScreenSpaceOcclusion()
 {
     #if defined(SHADER_STAGE_FRAGMENT)
-        return SampleScreenSpaceOcclusion(gl_FragCoord.xy / pk_ScreenParams.xy);
+        return SampleScreenSpaceOcclusion(gl_FragCoord.xy * pk_ScreenParams.zw);
     #else
         return 1.0f;
     #endif

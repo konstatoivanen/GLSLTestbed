@@ -73,7 +73,7 @@ VaryingsUV8 VertexBlurUV8(float3 texcoord, sampler2DArray source, float2 offset)
 float4 FragmentComposite(float2 uv, sampler2DArray source)
 {
 	float3 uvw = float3(uv, 0);
-	float3 color = tex2D(pk_HDRScreenTex, uv).rgb;
+	float3 color = tex2D(source, uvw).rgb;
 	float3 lensdirt = tex2D(pk_BloomLensDirtTex, uv).rgb;
 	float3 b0 = tex2D(PK_BUFFER_DATA(_BloomPassParams, 1).source, uvw).rgb;
 	float3 b1 = tex2D(PK_BUFFER_DATA(_BloomPassParams, 6).source, uvw).rgb;

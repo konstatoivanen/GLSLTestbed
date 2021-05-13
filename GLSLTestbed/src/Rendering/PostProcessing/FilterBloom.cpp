@@ -117,11 +117,12 @@ namespace PK::Rendering::PostProcessing
         m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_ChannelMixerBlue"), config.CC_ChannelMixerBlue);
         m_paramatersBuffer->SetResourceHandle(StringHashID::StringToID("pk_FilmGrainTex"), m_filmGrainTexture->GetColorBuffer(0)->GetBindlessHandleResident());
         m_paramatersBuffer->SetResourceHandle(StringHashID::StringToID("pk_BloomLensDirtTex"), lensDirtTexture->GetBindlessHandleResident());
+        m_paramatersBuffer->SetResourceHandle(StringHashID::StringToID("pk_HDRScreenTex"), m_renderTargets[0]->GetColorBuffer(0)->GetBindlessHandleResident());
         m_paramatersBuffer->FlushBuffer();
 
         m_properties.SetConstantBuffer(StringHashID::StringToID("pk_TonemappingParams"), m_paramatersBuffer->GetGraphicsID());
         m_properties.SetComputeBuffer(StringHashID::StringToID("pk_Histogram"), m_histogram->GetGraphicsID());
-        
+
         m_updateParameters = true;
     }
 
@@ -145,7 +146,7 @@ namespace PK::Rendering::PostProcessing
         m_updateParameters = false;
 
         // Kinda volatile not to do this every frame but whatever.
-        m_paramatersBuffer->SetResourceHandle(StringHashID::StringToID("pk_HDRScreenTex"), source->GetColorBuffer(0)->GetBindlessHandleResident());
+        m_paramatersBuffer->SetResourceHandle(StringHashID::StringToID("pk_HDRScreenTex"), m_renderTargets[0]->GetColorBuffer(0)->GetBindlessHandleResident());
         m_paramatersBuffer->FlushBuffer();
 
         GLuint64 handles[7] =
@@ -184,19 +185,6 @@ namespace PK::Rendering::PostProcessing
     {
         m_properties.SetComputeBuffer(HashCache::Get()->_BloomPassParams, m_passBuffer->GetGraphicsID());
 
-        uint3 histogramGroupCount =
-        {
-            (uint)std::ceilf(source->GetWidth() / (float)HISTOGRAM_THREAD_COUNT),
-            (uint)std::ceilf(source->GetHeight() / (float)HISTOGRAM_THREAD_COUNT),
-            1
-        };
-
-        // Auto exposure histogram
-        m_properties.SetKeywords({ m_passKeywords[3] });
-        GraphicsAPI::DispatchCompute(m_computeHistogram, histogramGroupCount, m_properties);
-        m_properties.SetKeywords({ m_passKeywords[4] });
-        GraphicsAPI::DispatchCompute(m_computeHistogram, { 1,1,1 }, m_properties);
-
         GraphicsAPI::Blit(m_filmGrainTexture.get(), m_computeFilmgrain);
         glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 
@@ -229,6 +217,19 @@ namespace PK::Rendering::PostProcessing
             GraphicsAPI::BlitInstanced(i * 5 + 4, 1, m_shader, m_properties);            // horizontal blur
             glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
         }
+
+        uint3 histogramGroupCount =
+        {
+            (uint)std::ceilf(m_renderTargets[0]->GetWidth() / (float)HISTOGRAM_THREAD_COUNT),
+            (uint)std::ceilf(m_renderTargets[0]->GetHeight() / (float)HISTOGRAM_THREAD_COUNT),
+            1
+        };
+
+        // Auto exposure histogram
+        m_properties.SetKeywords({ m_passKeywords[3] });
+        GraphicsAPI::DispatchCompute(m_computeHistogram, histogramGroupCount, m_properties);
+        m_properties.SetKeywords({ m_passKeywords[4] });
+        GraphicsAPI::DispatchCompute(m_computeHistogram, { 1,1,1 }, m_properties);
 
         m_properties.SetKeywords({ m_passKeywords[0] });
         GraphicsAPI::SetRenderTarget(destination, false);

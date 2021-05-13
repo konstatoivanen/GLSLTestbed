@@ -94,8 +94,8 @@ float ComputeAO(float3 P, float3 N, float3 S, float D)
 {
     float3 V = S - P;
     float VdotV = dot(V, V) + 1e-4;
-    float NdotV = max(0, dot(N, V) - kNDotVBias * D);
-    return NdotV / VdotV;
+    float NdotV = max(dot(N, V) -kNDotVBias * D, 0.0f) * inversesqrt(VdotV);
+    return NdotV * max(-VdotV / (RADIUS * RADIUS) + 1.0f, 0.0f);
 }
 
 float ComputeCoarseAO(float3 uvw, sampler2DArray source, float2 offset)
@@ -124,7 +124,7 @@ float ComputeCoarseAO(float3 uvw, sampler2DArray source, float2 offset)
         AO += ComputeAO(vposition, vnormal, samplePosition, vdepth);
     }
 
-    return pow(AO * RADIUS * INTENSITY / SAMPLE_COUNT, 0.6f);
+    return 1.0f - pow(AO * INTENSITY / SAMPLE_COUNT, 0.6f);
 }
 
 half SeparableBlur(float3 uvw, sampler2DArray source, float2 offset)

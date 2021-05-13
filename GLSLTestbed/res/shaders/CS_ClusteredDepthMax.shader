@@ -11,7 +11,7 @@ void main()
     int2 coord = int2(gl_GlobalInvocationID.xy) * 2;
     coord.x = min(coord.x, int(pk_ScreenParams.x - 2));
     coord.y = min(coord.y, int(pk_ScreenParams.y - 2));
-    float2 uv = coord / pk_ScreenParams.xy;
+    float2 uv = coord * pk_ScreenParams.zw;
 
     float4 depths = LinearizeDepth(textureGatherOffsets(pk_ScreenDepth, uv, offsets));
 

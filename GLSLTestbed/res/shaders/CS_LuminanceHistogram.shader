@@ -30,9 +30,11 @@ void main()
         HistogramShared[gl_LocalInvocationIndex] = 0;
         barrier();
     
-        if (gl_GlobalInvocationID.x < pk_ScreenParams.x && gl_GlobalInvocationID.y < pk_ScreenParams.y)
+        float2 size = textureSize(pk_HDRScreenTex, 0).xy;
+
+        if (gl_GlobalInvocationID.x < size.x && gl_GlobalInvocationID.y < size.y)
         {
-            float3 hdrColor = texelFetch(pk_HDRScreenTex, int2(gl_GlobalInvocationID.xy), 0).xyz;
+            float3 hdrColor = texelFetch(pk_HDRScreenTex, int3(gl_GlobalInvocationID.xy, 0), 0).xyz;
             uint binIndex = HDRToHistogramBin(hdrColor);
             atomicAdd(HistogramShared[binIndex], 1);
         }
@@ -60,7 +62,9 @@ void main()
 
         if (gl_LocalInvocationIndex == 0)
         {
-            float numpx = pk_ScreenParams.x * pk_ScreenParams.y;
+            float2 size = textureSize(pk_HDRScreenTex, 0).xy;
+
+            float numpx = size.x * size.y;
             float weightedLogAverage = (HistogramShared[0] / max(numpx - countForThisBin, 1.0)) - 1.0;
             float weightedAverageLuminance = exp2((weightedLogAverage / 254.0) * LOG_LUMINANCE_RANGE + LOG_LUMINANCE_MIN);
 

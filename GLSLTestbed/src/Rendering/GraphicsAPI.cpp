@@ -207,7 +207,7 @@ namespace PK::Rendering::GraphicsAPI
 		context->ViewPort.w = height;
 
 		glViewport(x, y, width, height);
-		SetGlobalFloat4(HashCache::Get()->pk_ScreenParams, { (float)width, (float)height, 1.0f + 1.0f / (float)width, 1.0f + 1.0f / (float)height });
+		SetGlobalFloat4(HashCache::Get()->pk_ScreenParams, { (float)width, (float)height, 1.0f / (float)width, 1.0f / (float)height });
 	}
 
 	void GraphicsAPI::SetViewPorts(const uint32_t offset, const float4* viewports, const uint32_t count)
