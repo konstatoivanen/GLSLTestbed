@@ -57,6 +57,8 @@ namespace PK::Core
 		TonemapExposure = TryParse(properties["TonemapExposure"], 1.0f);
 		VignetteIntensity = TryParse(properties["VignetteIntensity"], 15.0f);
 		VignettePower = TryParse(properties["VignettePower"], 0.25f);
+		FilmGrainIntensity = TryParse(properties["FilmGrainIntensity"], 0.25f);
+		FilmGrainLuminance = TryParse(properties["FilmGrainLuminance"], 0.25f);
 		CC_Contribution = TryParse(properties["CC_Contribution"], 1.0f);
 		CC_TemperatureShift = TryParse(properties["CC_TemperatureShift"], 0.0f);
 		CC_Tint = TryParse(properties["CC_Tint"], 0.0f);

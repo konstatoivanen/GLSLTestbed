@@ -3,13 +3,14 @@
 #include Noise.glsl
 
 #define VOLUME_DEPTH 128
+#define VOLUME_INV_DEPTH 0.0078125f // 1.0f / 128.0f
 #define VOLUME_WIDTH 160
 #define VOLUME_HEIGHT 90
-#define VOLUME_SIZE_ST float3(160.0f, 90.0f, 0.5f)
-#define VOLUME_COMPOSITE_DITHER_AMOUNT 2.0f
+#define VOLUME_SIZE_ST float3(0.00625f, 0.0111111111111111f, 0.5f) // (1.0f / 160.0f, 1.0f / 90.0f, 0.5f)
+#define VOLUME_COMPOSITE_DITHER_AMOUNT 2.0f * float3(0.00625f, 0.0111111111111111f, 0.0078125f)
 
-#define VOLUME_ACCUMULATION_LD (35.0f * max(pk_DeltaTime.x, 0.01f))
-#define VOLUME_ACCUMULATION_SC (14.0f * max(pk_DeltaTime.x, 0.01f))
+#define VOLUME_ACCUMULATION_LD min(1.0f, 35.0f * max(pk_DeltaTime.x, 0.01f))
+#define VOLUME_ACCUMULATION_SC min(1.0f, 14.0f * max(pk_DeltaTime.x, 0.01f))
 
 PK_DECLARE_CBUFFER(pk_VolumeResources)
 {
@@ -42,9 +43,8 @@ float GetVolumeWCoord(float depth)
 
 float GetVolumeSliceWidth(int index)
 {
-    float near = GetVolumeCellDepth(index);
-    float far = GetVolumeCellDepth(index + 1);
-    return (far - near) / pk_ProjectionParams.z;
+    float2 nf = pk_ProjectionParams.xx * pow(pk_ExpProjectionParams.zz, float2(index, index + 1) * VOLUME_INV_DEPTH);
+    return nf.y - nf.x;
 }
 
 float3 GetVolumeCellNoise(uint3 id)

@@ -98,6 +98,7 @@ float4 FragmentComposite(float2 uv, sampler2DArray source)
 	// A personal preference really (should probably try to deprecate this).
 	color = Saturation(color, 0.8f);
 	color = TonemapHejlDawson(color, exposure);
+	color = FilmGrain(color, uv, pk_ScreenParams.xy);
 	color = LinearToGamma(color);
 	// This should perhaps be done before gamma corretion.
 	// But doing so invalidates configurations done using external tools.

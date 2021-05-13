@@ -43,7 +43,7 @@ layout(location = 0) in float4 in_POSITION0;
 layout(location = 1) in float2 in_TEXCOORD0;
 
 #if defined(PASS_PREFILTER)
-    out float2 vs_TEXCOORDS[4];
+    out float2 vs_TEXCOORD0;
 #else 
     out float3 vs_TEXCOORDS[SAMPLE_COUNT + 1];
 #endif
@@ -54,12 +54,7 @@ void main()
 
 #if defined(PASS_PREFILTER)
     gl_Layer = 0;
-
-    float3 offsets = _MainTex_TexelSize.xyx * float3(0.5, 0.5, -0.5);
-    vs_TEXCOORDS[0] = in_TEXCOORD0 - offsets.xy;
-    vs_TEXCOORDS[1] = in_TEXCOORD0 - offsets.zy;
-    vs_TEXCOORDS[2] = in_TEXCOORD0 + offsets.zy;
-    vs_TEXCOORDS[3] = in_TEXCOORD0 + offsets.xy;
+    vs_TEXCOORD0 = in_TEXCOORD0;
 #else 
     gl_Layer = 1;
 
@@ -79,7 +74,7 @@ void main()
 #pragma PROGRAM_FRAGMENT
 
 #if defined(PASS_PREFILTER)
-    in float2 vs_TEXCOORDS[4];
+    in float2 vs_TEXCOORD0;
 #else 
     in float3 vs_TEXCOORDS[SAMPLE_COUNT + 1];
 #endif
@@ -89,18 +84,17 @@ layout(location = 0) out float4 SV_Target0;
 void main()
 {
     #if defined(PASS_PREFILTER)
-        float4 depths = float4(SampleLinearDepth(vs_TEXCOORDS[0]),
-                               SampleLinearDepth(vs_TEXCOORDS[1]),
-                               SampleLinearDepth(vs_TEXCOORDS[2]),
-                               SampleLinearDepth(vs_TEXCOORDS[3]));
+        const int2 OFFS[4] = { int2(-1,-1), int2(1,1), int2(-1,1), int2(1,-1) };
+        float4 zvalues = textureGatherOffsets(pk_ScreenDepth, vs_TEXCOORD0, OFFS);
+        float4 depths = LinearizeDepth(zvalues);
 
         float4 cocs = GetCirclesOfConfusion(depths);
         float4 weights = saturate(abs(cocs) / pk_MaximumCoC);
 
-        float3 average  = tex2D(_MainTex, vs_TEXCOORDS[0]).rgb * weights.x;
-               average += tex2D(_MainTex, vs_TEXCOORDS[1]).rgb * weights.y; 
-               average += tex2D(_MainTex, vs_TEXCOORDS[2]).rgb * weights.z;
-               average += tex2D(_MainTex, vs_TEXCOORDS[3]).rgb * weights.w;
+        float3 average  = textureOffset(_MainTex, vs_TEXCOORD0, OFFS[0]).rgb * weights.x;
+               average += textureOffset(_MainTex, vs_TEXCOORD0, OFFS[1]).rgb * weights.y; 
+               average += textureOffset(_MainTex, vs_TEXCOORD0, OFFS[2]).rgb * weights.z;
+               average += textureOffset(_MainTex, vs_TEXCOORD0, OFFS[3]).rgb * weights.w;
                average /= dot(weights, float4(1.0f));
 
         SV_Target0 = float4(average, dot(cocs, float4(0.25f)));

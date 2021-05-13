@@ -14,11 +14,11 @@ struct Varyings
 #pragma PROGRAM_VERTEX
 layout(location = 0) in float4 in_POSITION0;
 layout(location = 1) in float2 in_TEXCOORD0;
-out float2 vs_TEXCOORD;
+out float4 vs_TEXCOORD;
 
 void main()
 {
-	vs_TEXCOORD = in_TEXCOORD0;
+	vs_TEXCOORD = float4(in_TEXCOORD0, in_TEXCOORD0 * pk_ScreenParams.xy + pk_Time.ww * 1000);
 	gl_Position = in_POSITION0;
 };
 
@@ -28,17 +28,16 @@ float SampleDepth(float2 uv)
 	return LinearizeDepth(tex2D(pk_ScreenDepth, uv).r);
 }
 
-in float2 vs_TEXCOORD;
+in float4 vs_TEXCOORD;
 layout(location = 0) out float4 SV_Target0;
 void main() 
 {
-	float w = GetVolumeWCoord(SampleDepth(vs_TEXCOORD));
-	
-	float3 offset = GlobalNoiseBlue(int2(vs_TEXCOORD * pk_ScreenParams.xy + pk_Time.ww * 1000));
-	offset.xy -= 0.5f;
-	offset.xy *= VOLUME_COMPOSITE_DITHER_AMOUNT / textureSize(pk_Volume_ScatterRead, 0).xy;
-	offset.z  = offset.z * 2 - 1;
-	offset.z /= VOLUME_DEPTH;
+	float d = LinearizeDepth(tex2D(pk_ScreenDepth, vs_TEXCOORD.xy).r);
+	float w = GetVolumeWCoord(d);
 
-	SV_Target0 = tex2D(pk_Volume_ScatterRead, float3(vs_TEXCOORD, w) + offset.xyz);
+	float3 offset = GlobalNoiseBlue(int2(vs_TEXCOORD.zw));
+	offset -= 0.5f;
+	offset *= VOLUME_COMPOSITE_DITHER_AMOUNT;
+
+	SV_Target0 = tex2D(pk_Volume_ScatterRead, float3(vs_TEXCOORD.xy, w) + offset.xyz);
 };

@@ -1661,6 +1661,7 @@
     <None Include="res\shaders\SH_VS_DOFComposite.shader" />
     <None Include="res\shaders\includes\DepthOfFieldShared.glsl" />
     <None Include="res\shaders\CS_AutoFocus.shader" />
+    <None Include="res\shaders\SH_VS_FilmGrain.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">

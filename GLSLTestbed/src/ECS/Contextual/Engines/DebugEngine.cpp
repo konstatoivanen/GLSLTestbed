@@ -93,7 +93,7 @@ namespace PK::ECS::Engines
 		implementer->position = CG_FLOAT3_ZERO;
 		implementer->rotation = glm::quat(rotation * CG_FLOAT_DEG2RAD);
 		
-		ECS::Builders::InitializeLightValues(implementer, color, LightType::Directional, LightCookie::NoCookie, castShadows, 90.0f, 50.0f);
+		ECS::Builders::InitializeLightValues(implementer, color, LightType::Directional, LightCookie::NoCookie, castShadows, 90.0f, 15.0f);
 
 		implementer->color = color;
 	}

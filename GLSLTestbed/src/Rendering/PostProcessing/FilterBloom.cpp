@@ -23,6 +23,7 @@ namespace PK::Rendering::PostProcessing
     {
         auto lensDirtTexture = assetDatabase->Load<TextureXD>(config.FileBloomDirt.c_str());
         m_computeHistogram = assetDatabase->Find<Shader>("CS_LuminanceHistogram");
+        m_computeFilmgrain = assetDatabase->Find<Shader>("SH_VS_FilmGrain");
 
         m_passKeywords[0] = StringHashID::StringToID("PASS_COMPOSITE");
         m_passKeywords[1] = StringHashID::StringToID("PASS_DOWNSAMPLE");
@@ -42,7 +43,7 @@ namespace PK::Rendering::PostProcessing
             {CG_TYPE::FLOAT, "pk_BloomIntensity"},
             {CG_TYPE::FLOAT, "pk_BloomDirtIntensity"},
             {CG_TYPE::FLOAT, "pk_Vibrance"},
-            {CG_TYPE::FLOAT4, "pk_Vignette"},
+            {CG_TYPE::FLOAT4, "pk_VignetteGrain"},
             {CG_TYPE::FLOAT4, "pk_WhiteBalance"},
             {CG_TYPE::FLOAT4, "pk_Lift"},
             {CG_TYPE::FLOAT4, "pk_Gamma"},
@@ -54,6 +55,7 @@ namespace PK::Rendering::PostProcessing
             {CG_TYPE::FLOAT4, "pk_ChannelMixerBlue"},
             {CG_TYPE::HANDLE, "pk_BloomLensDirtTex"},
             {CG_TYPE::HANDLE, "pk_HDRScreenTex"},
+            {CG_TYPE::HANDLE, "pk_FilmGrainTex"},
         }));
         
         m_passBuffer = CreateRef<ComputeBuffer>(BufferLayout(
@@ -62,39 +64,10 @@ namespace PK::Rendering::PostProcessing
             { CG_TYPE::FLOAT2, "OFFSET" },
             { CG_TYPE::UINT2, "READWRITE" }
         }), 31, true, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
-
-        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_MinLogLuminance"), config.AutoExposureLuminanceMin);
-        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_InvLogLuminanceRange"), 1.0f / config.AutoExposureLuminanceRange);
-        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_LogLuminanceRange"), config.AutoExposureLuminanceRange);
-        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_TargetExposure"), config.TonemapExposure);
-        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_AutoExposureSpeed"), config.AutoExposureSpeed);
-        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_BloomIntensity"), glm::exp(config.BloomIntensity) - 1.0f);
-        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_BloomDirtIntensity"), glm::exp(config.BloomLensDirtIntensity) - 1.0f);
-
-        color lift, gamma, gain;
-        Functions::GenerateLiftGammaGain(config.CC_Shadows, config.CC_Midtones, config.CC_Highlights, &lift, &gamma, &gain);
-        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_Vibrance"), config.CC_Vibrance);
-        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_Vignette"), { config.VignetteIntensity, config.VignettePower, 0.0f, 0.0f });
-        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_WhiteBalance"), Functions::GetWhiteBalance(config.CC_TemperatureShift, config.CC_Tint));
-        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_Lift"), lift);
-        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_Gamma"), gamma);
-        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_Gain"), gain);
-        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_ContrastGainGammaContribution"), float4(config.CC_Contrast, config.CC_Gain, 1.0f / config.CC_Gamma, config.CC_Contribution));
-        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_HSV"), float4(config.CC_Hue, config.CC_Saturation, config.CC_Value, 1.0f));
-        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_ChannelMixerRed"), config.CC_ChannelMixerRed);
-        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_ChannelMixerGreen"), config.CC_ChannelMixerGreen);
-        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_ChannelMixerBlue"), config.CC_ChannelMixerBlue);
-
-        m_paramatersBuffer->SetResourceHandle(StringHashID::StringToID("pk_BloomLensDirtTex"), lensDirtTexture->GetBindlessHandleResident());
-        m_paramatersBuffer->FlushBuffer();
-
-        m_properties.SetConstantBuffer(StringHashID::StringToID("pk_TonemappingParams"), m_paramatersBuffer->GetGraphicsID());
-        m_properties.SetComputeBuffer(StringHashID::StringToID("pk_Histogram"), m_histogram->GetGraphicsID());
-
+        
         auto descriptor = RenderTextureDescriptor();
         descriptor.dimension = GL_TEXTURE_2D_ARRAY;
         descriptor.resolution = { config.InitialWidth, config.InitialHeight, 2 };
-        descriptor.resolution.z = 2;
         descriptor.depthFormat = GL_NONE;
         descriptor.colorFormats = { GL_RGBA16F };
         descriptor.miplevels = 0;
@@ -111,6 +84,44 @@ namespace PK::Rendering::PostProcessing
             m_renderTargets[i] = CreateRef<RenderTexture>(descriptor);
         }
 
+        descriptor.dimension = GL_TEXTURE_2D;
+        descriptor.wrapmodex = GL_REPEAT;
+        descriptor.wrapmodey = GL_REPEAT;
+        descriptor.wrapmodez = GL_REPEAT;
+        descriptor.resolution.x = 256;
+        descriptor.resolution.y = 256;
+        descriptor.resolution.z = 0;
+        descriptor.colorFormats = { GL_RGB8 };
+        m_filmGrainTexture = CreateRef<RenderTexture>(descriptor);
+
+        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_MinLogLuminance"), config.AutoExposureLuminanceMin);
+        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_InvLogLuminanceRange"), 1.0f / config.AutoExposureLuminanceRange);
+        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_LogLuminanceRange"), config.AutoExposureLuminanceRange);
+        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_TargetExposure"), config.TonemapExposure);
+        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_AutoExposureSpeed"), config.AutoExposureSpeed);
+        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_BloomIntensity"), glm::exp(config.BloomIntensity) - 1.0f);
+        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_BloomDirtIntensity"), glm::exp(config.BloomLensDirtIntensity) - 1.0f);
+
+        color lift, gamma, gain;
+        Functions::GenerateLiftGammaGain(config.CC_Shadows, config.CC_Midtones, config.CC_Highlights, &lift, &gamma, &gain);
+        m_paramatersBuffer->SetFloat(StringHashID::StringToID("pk_Vibrance"), config.CC_Vibrance);
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_VignetteGrain"), { config.VignetteIntensity, config.VignettePower, config.FilmGrainLuminance, config.FilmGrainIntensity});
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_WhiteBalance"), Functions::GetWhiteBalance(config.CC_TemperatureShift, config.CC_Tint));
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_Lift"), lift);
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_Gamma"), gamma);
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_Gain"), gain);
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_ContrastGainGammaContribution"), float4(config.CC_Contrast, config.CC_Gain, 1.0f / config.CC_Gamma, config.CC_Contribution));
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_HSV"), float4(config.CC_Hue, config.CC_Saturation, config.CC_Value, 1.0f));
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_ChannelMixerRed"), config.CC_ChannelMixerRed);
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_ChannelMixerGreen"), config.CC_ChannelMixerGreen);
+        m_paramatersBuffer->SetFloat4(StringHashID::StringToID("pk_ChannelMixerBlue"), config.CC_ChannelMixerBlue);
+        m_paramatersBuffer->SetResourceHandle(StringHashID::StringToID("pk_FilmGrainTex"), m_filmGrainTexture->GetColorBuffer(0)->GetBindlessHandleResident());
+        m_paramatersBuffer->SetResourceHandle(StringHashID::StringToID("pk_BloomLensDirtTex"), lensDirtTexture->GetBindlessHandleResident());
+        m_paramatersBuffer->FlushBuffer();
+
+        m_properties.SetConstantBuffer(StringHashID::StringToID("pk_TonemappingParams"), m_paramatersBuffer->GetGraphicsID());
+        m_properties.SetComputeBuffer(StringHashID::StringToID("pk_Histogram"), m_histogram->GetGraphicsID());
+        
         m_updateParameters = true;
     }
 
@@ -185,6 +196,9 @@ namespace PK::Rendering::PostProcessing
         GraphicsAPI::DispatchCompute(m_computeHistogram, histogramGroupCount, m_properties);
         m_properties.SetKeywords({ m_passKeywords[4] });
         GraphicsAPI::DispatchCompute(m_computeHistogram, { 1,1,1 }, m_properties);
+
+        GraphicsAPI::Blit(m_filmGrainTexture.get(), m_computeFilmgrain);
+        glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 
         float4 viewports[7] =
         {

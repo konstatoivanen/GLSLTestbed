@@ -15,7 +15,7 @@ float Density(float3 pos)
 
 	fog *= NoiseScroll(warp, pk_Time.y * pk_Volume_WindSpeed, pk_Volume_NoiseFogScale, pk_Volume_WindDir.xyz, pk_Volume_NoiseFogAmount, -0.3, 8.0);
 
-	return max(fog * pk_Volume_Density, 0.0);
+	return max(fog * pk_Volume_Density, 0.0f);
 }
 
 float3 GetAmbientColor(float3 direction, float3 viewdir)
@@ -33,7 +33,7 @@ void main()
 
 	float depth = GetVolumeCellDepth(id.z + NoiseUniformToTriangle(bluenoise.x));
 
-	float2 uv = (VOLUME_SIZE_ST.zz + id.xy) / VOLUME_SIZE_ST.xy;
+	float2 uv = (VOLUME_SIZE_ST.zz + id.xy) * VOLUME_SIZE_ST.xy;
 
 	float3 worldpos = mul(pk_MATRIX_I_V, float4(ClipToViewPos(uv, depth), 1.0f)).xyz;
 
@@ -42,7 +42,7 @@ void main()
 	float3 color = GetAmbientColor(normalize(bluenoise - 0.5f + float3(0, 1, 0)), viewdir);
 
 	uint cascade = GetShadowCascadeIndex(depth);
-	LightTile tile = GetLightTile(GetTileIndex(uv * pk_ScreenParams.xy, depth));
+	LightTile tile = GetLightTile(GetTileIndexUV(uv, depth));
 
 	for (uint i = tile.start; i < tile.end; ++i)
 	{
@@ -52,7 +52,7 @@ void main()
 	float density = Density(worldpos);
 
 	float4 preval = imageLoad(pk_Volume_Inject, int3(id));
-	float4 curval = float4(pk_Volume_Intensity * density * color, density);
+	float4 curval = float4(pk_Volume_Intensity * density * color, max(density, 0.000001f));
 	
 	imageStore(pk_Volume_Inject, int3(id),  lerp(preval, curval, VOLUME_ACCUMULATION_LD));
 }

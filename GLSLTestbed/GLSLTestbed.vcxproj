@@ -727,6 +727,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\SH_VS_ClusterDebug.shader" />
     <None Include="res\shaders\SH_VS_DOFBlur.shader" />
     <None Include="res\shaders\SH_VS_DOFComposite.shader" />
+    <None Include="res\shaders\SH_VS_FilmGrain.shader" />
     <None Include="res\shaders\SH_VS_FilterAO.shader" />
     <None Include="res\shaders\SH_VS_IBLBackground.shader">
       <DeploymentContent>true</DeploymentContent>

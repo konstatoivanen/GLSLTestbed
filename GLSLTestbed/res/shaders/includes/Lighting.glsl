@@ -138,7 +138,7 @@ void GetLight(uint index, in float3 worldpos, uint cascade, out float3 color, ou
 
     if (light.cookie_index != LIGHT_PARAM_INVALID)
     {
-        attenuation *= tex2D(pk_LightCookies, float3(lightuv, float(light.cookie_index))).r;
+        attenuation *= tex2D(pk_LightCookies, float3(lightuv, light.cookie_index)).r;
     }
 
     if (light.shadowmap_index != LIGHT_PARAM_INVALID)

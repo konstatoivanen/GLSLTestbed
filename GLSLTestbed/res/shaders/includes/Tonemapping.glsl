@@ -5,6 +5,7 @@
 #define NUM_HISTOGRAM_BINS 256
 #define EPSILON 0.0001
 
+// @TODO refactor this to be just shared post fx params
 PK_DECLARE_CBUFFER(pk_TonemappingParams)
 {
     float pk_MinLogLuminance;
@@ -15,7 +16,7 @@ PK_DECLARE_CBUFFER(pk_TonemappingParams)
     float pk_BloomIntensity;
     float pk_BloomDirtIntensity;
     float pk_Vibrance;
-    float4 pk_Vignette;
+    float4 pk_VignetteGrain;
     float4 pk_WhiteBalance;
 	float4 pk_Lift;
 	float4 pk_Gamma;
@@ -27,6 +28,7 @@ PK_DECLARE_CBUFFER(pk_TonemappingParams)
 	float4 pk_ChannelMixerBlue;
     sampler2D pk_BloomLensDirtTex;
     sampler2D pk_HDRScreenTex;
+    sampler2D pk_FilmGrainTex;
 };
 
 PK_DECLARE_BUFFER(uint, pk_Histogram);
@@ -112,10 +114,21 @@ float3 Saturation(float3 color, float amount)
 	return lerp_true(grayscale.xxx, color, 0.8f);
 }
 
+float3 FilmGrain(float3 color, float2 uv, float2 size)
+{
+    uv *= size;
+    uv /= textureSize(pk_FilmGrainTex, 0).xy * 2.0f;
+
+    float3 grain = tex2D(pk_FilmGrainTex, uv).rgb;
+    float lum = 1.0 - sqrt(dot(pk_Luminance.xyz, saturate(color)));
+    lum = lerp(1.0, lum, pk_VignetteGrain.z);
+    return color.rgb + color.rgb * grain * pk_VignetteGrain.w * lum;
+}
+
 float Vignette(float2 uv)
 {
     uv *=  1.0 - uv.yx;   
-    return pow(uv.x * uv.y * pk_Vignette.x, pk_Vignette.y); 
+    return pow(uv.x * uv.y * pk_VignetteGrain.x, pk_VignetteGrain.y); 
 }
 
 float3 LinearToGamma(float3 color)

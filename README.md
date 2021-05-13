@@ -16,6 +16,7 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 - Physically based shading (Cook-Torrance brdf).
 - HDR bloom.
 - Tone mapping & color grading.
+- Film grain.
 - Auto exposure.
 - Depth of field with auto focus.
 - Screen space ambient occlusion.

@@ -18,7 +18,9 @@ namespace PK::Rendering::PostProcessing
     
         private:
             Shader* m_computeHistogram = nullptr;
+            Shader* m_computeFilmgrain = nullptr;
             Ref<RenderTexture> m_renderTargets[6];
+            Ref<RenderTexture> m_filmGrainTexture;
             Ref<ComputeBuffer> m_passBuffer;
             Ref<ComputeBuffer> m_histogram;
             Ref<ConstantBuffer> m_paramatersBuffer;

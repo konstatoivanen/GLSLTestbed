@@ -71,7 +71,7 @@ namespace PK::Rendering::PostProcessing
         auto groupsInject = uint3(VolumeResolution.x / InjectThreadCount.x, VolumeResolution.y / InjectThreadCount.y, VolumeResolution.z / InjectThreadCount.z);
         auto groupsScatter = uint3(VolumeResolution.x / ScatterThreadCount.x, VolumeResolution.y / ScatterThreadCount.y, 1);
 
-        GraphicsAPI::DispatchCompute(m_computeInject, groupsInject, m_properties, GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        GraphicsAPI::DispatchCompute(m_computeInject, groupsInject, m_properties, GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);
         GraphicsAPI::DispatchCompute(m_computeScatter, groupsScatter, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT);
         GraphicsAPI::Blit(destination, m_shader, m_properties);
     }

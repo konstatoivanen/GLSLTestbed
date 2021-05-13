@@ -42,6 +42,8 @@ namespace PK::Core
 		float TonemapExposure;
 		float VignetteIntensity;
 		float VignettePower;
+		float FilmGrainIntensity;
+		float FilmGrainLuminance;
 		float CC_Contribution;
 		float CC_TemperatureShift;
 		float CC_Tint;

@@ -11,18 +11,14 @@ void main()
 	int3 pos = int3(gl_GlobalInvocationID.xy, 0);
 
 	#pragma unroll VOLUME_DEPTH
-	for (uint z = 0; z < VOLUME_DEPTH; ++z)
+	for (;pos.z < VOLUME_DEPTH; ++pos.z)
 	{
-		pos.z = int(z);
-
 		float slicewidth = GetVolumeSliceWidth(pos.z);
 
 		float4 slice = imageLoad(pk_Volume_Inject, pos);
-		float density = max(slice.a, 0.000001f);
-		float3 light = slice.rgb;
 
-		float  transmittance = exp(-density * slicewidth);
-		float3 lightintegral = light * (1.0f - transmittance) / density;
+		float  transmittance = exp(-slice.a * slicewidth);
+		float3 lightintegral = slice.rgb * (1.0f - transmittance) / slice.a;
 
 		accumulation.rgb += lightintegral * accumulation.a;
 		accumulation.a *= transmittance;

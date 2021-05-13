@@ -6,6 +6,7 @@ uniform float2 pk_ClusterSizePx;
 #define CLUSTER_TILE_COUNT_X 16
 #define CLUSTER_TILE_COUNT_Y 9
 #define CLUSTER_TILE_COUNT_Z 24
+#define CLUSTER_TILE_COUNT_XY float2(16.0f, 9.0f)
 #define CLUSTER_GROUP_SIZE_Z 4
 #define CLUSTER_GROUP_SIZE_XYZ 576 // 16 * 9 * 4
 #define CLUSTER_SIZE_PX pk_ClusterSizePx
@@ -25,6 +26,13 @@ int3 GetTileIndex(float2 pxcoord, float lineardepth)
     // Source: http://www.aortiz.me/2018/12/21/CG.html
     int zTile = int(log2(lineardepth) * (CLUSTER_TILE_COUNT_Z * pk_ExpProjectionParams.x) + (CLUSTER_TILE_COUNT_Z * pk_ExpProjectionParams.y));
     return int3(int2(pxcoord / CLUSTER_SIZE_PX), max(zTile, 0));
+}
+
+int3 GetTileIndexUV(float2 uv, float lineardepth)
+{
+    // Source: http://www.aortiz.me/2018/12/21/CG.html
+    int zTile = int(log2(lineardepth) * (CLUSTER_TILE_COUNT_Z * pk_ExpProjectionParams.x) + (CLUSTER_TILE_COUNT_Z * pk_ExpProjectionParams.y));
+    return int3(int2(uv * CLUSTER_TILE_COUNT_XY), max(zTile, 0));
 }
 
 int3 GetTileIndexFragment()
