@@ -20,16 +20,14 @@ float2 ParallaxOffset(float height, float heightAmount, float3 viewdir)
     return (height * heightAmount - heightAmount / 2.0f) * (viewdir.xy / (viewdir.z + 0.42f));
 }
 
-float3 SampleWorldSpaceNormal(float2 uv)
-{
-    float3 normal = tex2D(pk_ScreenNormals, uv).xyz;
-    normal = normal * 2 - (NotEqual(normal, float3(0)) ? 1.0f : 0.0f);
-    return normal;
-}
-
 float3 SampleViewSpaceNormal(float2 uv)
 {
-    return mul(float3x3(pk_MATRIX_V), SampleWorldSpaceNormal(uv));
+    return tex2D(pk_ScreenNormals, uv).xyz;
+}
+
+float3 SampleWorldSpaceNormal(float2 uv)
+{
+    return mul(float3x3(pk_MATRIX_I_V), SampleViewSpaceNormal(uv));
 }
 
 #endif

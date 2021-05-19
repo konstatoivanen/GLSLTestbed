@@ -18,7 +18,7 @@ out float3 vs_NORMAL;
 void main()
 {
     gl_Position = ObjectToClipPos(float4(in_POSITION0, 0));
-    vs_NORMAL = ObjectToWorldDir(in_NORMAL.xyz);
+    vs_NORMAL = ObjectToViewDir(in_NORMAL.xyz);
 };
 
 #pragma PROGRAM_FRAGMENT
@@ -29,5 +29,6 @@ layout(location = 0) out float3 SV_Target0;
 
 void main()
 {
-    SV_Target0 = normalize(vs_NORMAL) * 0.5f + float3(0.5f);
+    //@TODO Profile properly. Testing if using pre-normalized viewspace normals gives a significant performance benefit over unpacking per sample.
+    SV_Target0 = normalize(vs_NORMAL);
 };

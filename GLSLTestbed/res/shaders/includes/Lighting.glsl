@@ -101,6 +101,7 @@ void GetLight(uint index, in float3 worldpos, uint cascade, out float3 color, ou
     float2 lightuv;
     float linearDistance;
 
+    // @TODO Maybe refactor lights to separate by type lists 
     switch (light.type)
     {
         case LIGHT_TYPE_POINT:

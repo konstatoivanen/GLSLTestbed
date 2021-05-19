@@ -46,6 +46,25 @@ uniform float3 _AOParams;
 const float kNDotVBias = 0.002;
 const float kGeometryAwareness = 50;
 const int SAMPLE_COUNT = 16;
+const float SAMPLE_RADII[SAMPLE_COUNT] =
+{
+    0.25f,
+    0.3535533905932738f,
+    0.4330127018922193f,
+    0.5f,
+    0.5590169943749474f,
+    0.6123724356957945f,
+    0.6614378277661476f,
+    0.7071067811865475f,
+    0.75f,
+    0.7905694150420948f,
+    0.82915619758885f,
+    0.8660254037844386f,
+    0.9013878188659973f,
+    0.9354143466934853f,
+    0.9682458365518542f,
+    1.0f,
+};
 
 #define INTENSITY _AOParams.x
 #define RADIUS _AOParams.y
@@ -71,12 +90,7 @@ float GetDepthBlurFactor(float2 uv)
     return d * d * d * d * d * d * d * d * d * d * d * d * d * d * d * d; //pow16
 }
 
-float CompareNormal(float3 normal0, float3 normal1)
-{
-    return pow((dot(normal0, normal1) + 1) * 0.5f, kGeometryAwareness);
-}
-
-float3 GetSampleDirection(float2 uv, float3 normal, float index)
+float3 GetSampleDirection(float2 uv, float3 normal, int index)
 {
     float noiseg = NoiseGradient(uv * TARGETSCALE, pk_ScreenParams.xy);
 
@@ -85,7 +99,7 @@ float3 GetSampleDirection(float2 uv, float3 normal, float index)
 
     float3 direction = float3(float2(cos(theta), sin(theta)) * sqrt(1.0f - noiseuv * noiseuv), noiseuv);
 
-    direction *= sqrt((index + 1) / SAMPLE_COUNT) * RADIUS;
+    direction *= SAMPLE_RADII[index] * RADIUS;
 
     return faceforward(direction, -normal, direction);
 }
@@ -127,37 +141,32 @@ float ComputeCoarseAO(float3 uvw, sampler2DArray source, float2 offset)
     return 1.0f - pow(AO * INTENSITY / SAMPLE_COUNT, 0.6f);
 }
 
-half SeparableBlur(float3 uvw, sampler2DArray source, float2 offset)
+half SeparableBlur(float3 uv00, sampler2DArray source, float2 offset)
 {
-    float2 uv = uvw.xy;
-    float2 delta = (offset / textureSize(source, 0).xy) * GetDepthBlurFactor(uv);
+    float3 delta = float3(offset * GetDepthBlurFactor(uv00.xy), 0);
+    float3 uv10 = uv00 - delta;
+    float3 uv11 = uv00 + delta;
+    float3 uv20 = uv00 - delta * 2.0f;
+    float3 uv21 = uv00 + delta * 2.0f;
+    float3 uv30 = uv00 - delta * 3.2307692308f;
+    float3 uv31 = uv00 + delta * 3.2307692308f;
 
-    float2 uv10 = uv - delta * 1.0f;
-    float2 uv11 = uv + delta * 1.0f;
-    float2 uv20 = uv - delta * 2.0f;
-    float2 uv21 = uv + delta * 2.0f;
-    float2 uv30 = uv - delta * 3.2307692308f;
-    float2 uv31 = uv + delta * 3.2307692308f;
+    float3 n = SampleViewSpaceNormal(uv00.xy);
 
-    float3 normal = SampleViewSpaceNormal(uv);
+    float4 vdots0 = float4(dot(n, SampleViewSpaceNormal(uv10.xy)),
+                           dot(n, SampleViewSpaceNormal(uv11.xy)),
+                           dot(n, SampleViewSpaceNormal(uv20.xy)),
+                           dot(n, SampleViewSpaceNormal(uv21.xy))) * 0.5f + 0.5f;
+    float2 vdots1 = float2(dot(n, SampleViewSpaceNormal(uv30.xy)),
+                           dot(n, SampleViewSpaceNormal(uv31.xy))) * 0.5f + 0.5f;
 
-    float w00 = 0.37004405286f;
-    float w10 = CompareNormal(normal, SampleViewSpaceNormal(uv10)) * 0.31718061674f;
-    float w11 = CompareNormal(normal, SampleViewSpaceNormal(uv11)) * 0.31718061674f;
-    float w20 = CompareNormal(normal, SampleViewSpaceNormal(uv20)) * 0.19823788546f;
-    float w21 = CompareNormal(normal, SampleViewSpaceNormal(uv21)) * 0.19823788546f;
-    float w30 = CompareNormal(normal, SampleViewSpaceNormal(uv30)) * 0.11453744493f;
-    float w31 = CompareNormal(normal, SampleViewSpaceNormal(uv31)) * 0.11453744493f;
+    float4 w0 = pow(vdots0, kGeometryAwareness.xxxx) * float4(0.31718061674f.xx, 0.19823788546f.xx);
+    float3 w1 = float3(0.37004405286f, pow(vdots1, kGeometryAwareness.xx) * 0.11453744493f.xx);
 
-    float s = tex2D(source, uvw).r * w00;
-    s += tex2D(source, float3(uv10, uvw.z)).r * w10;
-    s += tex2D(source, float3(uv11, uvw.z)).r * w11;
-    s += tex2D(source, float3(uv20, uvw.z)).r * w20;
-    s += tex2D(source, float3(uv21, uvw.z)).r * w21;
-    s += tex2D(source, float3(uv30, uvw.z)).r * w30;
-    s += tex2D(source, float3(uv31, uvw.z)).r * w31;
+    float4 s0 = float4(tex2D(source, uv10).r, tex2D(source, uv11).r, tex2D(source, uv20).r, tex2D(source, uv21).r);
+    float3 s1 = float3(tex2D(source, uv00).r, tex2D(source, uv30).r, tex2D(source, uv31).r);
 
-    return s / (w00 + w10 + w11 + w20 + w21 + w30 + w31);
+    return (dot(s0, w0) + dot(s1, w1)) / (dot(w0, 1.0f.xxxx) + dot(w1, 1.0f.xxx));
 }
 
 #if defined(AO_PASS0)
@@ -177,7 +186,7 @@ void main()
 {
     PassData passdata = PK_BUFFER_DATA(_AOPassParams, gl_BaseInstance);
     vs_MainTex = passdata.source;
-    vs_OFFSET = passdata.offset;
+    vs_OFFSET = passdata.offset / textureSize(passdata.source, 0).xy;
     vs_TEXCOORD0 = float3(in_TEXCOORD0, passdata.readwrite.x);
     gl_Layer = int(passdata.readwrite.y);
     gl_Position = in_POSITION0;
