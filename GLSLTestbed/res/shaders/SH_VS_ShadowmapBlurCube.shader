@@ -51,5 +51,5 @@ void main()
         A += SAMPLE_SRC_OCT(H, vs_SAMPLELAYER);
     }
 
-    SV_Target0 = A / SAMPLE_COUNT;
+    SV_Target0 = A * SAMPLE_COUNT_INV;
 };

@@ -52,7 +52,7 @@ namespace PK::Rendering
 		m_filterDof(assetDatabase, config),
 		m_filterAO(assetDatabase, config),
 		m_filterFog(assetDatabase, config),
-		m_lightsManager(assetDatabase, config.CascadeLinearity)
+		m_lightsManager(assetDatabase, config)
 	{
 		m_entityDb = entityDb;
 		m_context.BlitQuad = MeshUtility::GetQuad2D({ -1.0f,-1.0f }, { 1.0f, 1.0f });

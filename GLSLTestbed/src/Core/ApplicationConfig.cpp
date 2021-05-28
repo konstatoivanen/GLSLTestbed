@@ -46,6 +46,8 @@ namespace PK::Core
 		RandomSeed = TryParse(properties["RandomSeed"], 0u);
 
 		LightCount = TryParse(properties["LightCount"], 256);
+		ShadowmapTileSize = TryParse(properties["ShadowmapTileSize"], 512);
+		ShadowmapTileCount = TryParse(properties["ShadowmapTileCount"], 64);
 	
 		CameraFocalLength = TryParse(properties["CameraFocalLength"], 0.05f);
 		CameraFNumber = TryParse(properties["CameraFNumber"], 1.40f);

@@ -1,13 +1,10 @@
 #version 460
 #pragma PROGRAM_COMPUTE
-#define PK_WRITE_CLUSTER_LIGHTS
-#define PK_IMPORT_CLUSTER_DATA
-#include includes/Reconstruction.glsl
-#include includes/ClusterIndexing.glsl
+#include includes/VolumeFogShared.glsl
 
 const int2 offsets[4] = { int2(0,0), int2(0,1), int2(1,1), int2(1,0) };
 
-layout(local_size_x = CLUSTER_DEPTH_BATCH_SIZE_PX, local_size_y = CLUSTER_DEPTH_BATCH_SIZE_PX, local_size_z = 1) in;
+layout(local_size_x = VOLUME_DEPTH_BATCH_SIZE_PX, local_size_y = VOLUME_DEPTH_BATCH_SIZE_PX, local_size_z = 1) in;
 void main()
 {
     int2 coord = int2(gl_GlobalInvocationID.xy) * 2;
@@ -23,5 +20,5 @@ void main()
     depth = max(depth, depths.w);
 
     // Gathering can exceed the tile bounds by 1px. A negligible margin of error.
-    atomicMax(PK_BUFFER_DATA(pk_TileMaxDepths, GetDepthTileIndexUV(uv)), floatBitsToUint(depth));
+    atomicMax(PK_BUFFER_DATA(pk_VolumeMaxDepths, GetVolumeDepthTileIndex(uv)), floatBitsToUint(depth));
 }

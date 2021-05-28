@@ -6,16 +6,16 @@ Material:
     Properties:
         _AlbedoTexture:
             Type: TEXTURE
-            Value: res/textures/T_Gravel_D.ktx
+            Value: res/textures/T_Gravel_repeat_D.ktx
         _PBSTexture:
             Type: TEXTURE
-            Value: res/textures/T_Gravel_MAOR.ktx
+            Value: res/textures/T_Gravel_repeat_MAOR.ktx
         _NormalMap:
             Type: TEXTURE
-            Value: res/textures/T_Gravel_N.ktx
+            Value: res/textures/T_Gravel_repeat_N.ktx
         _HeightMap:
             Type: TEXTURE
-            Value: res/textures/T_Gravel_H.ktx
+            Value: res/textures/T_Gravel_repeat_H.ktx
         _Color:
             Type: FLOAT4
             Value: [1,1,1,1]

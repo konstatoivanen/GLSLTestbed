@@ -2,9 +2,10 @@
 
 #Blend SrcAlpha OneMinusSrcAlpha
 
+#define PK_IMPORT_CLUSTER_DATA
 #include includes/PKCommon.glsl
 #include includes/Reconstruction.glsl
-#include includes/ClusteringCommon.glsl
+#include includes/ClusterIndexing.glsl
 #include includes/LightingCommon.glsl
 
 #pragma PROGRAM_VERTEX
@@ -25,9 +26,9 @@ float3 hsv2rgb(float3 c)
 
 void main()
 {
-	float depth = LinearizeDepth(texelFetch(pk_ScreenDepth, int2(gl_FragCoord.xy), 0).r);
+	float depth = LinearizeDepth(tex2D(pk_ScreenDepth, vs_TEXCOORD0).r);
 
-	int3 tileCoord = GetTileIndex(gl_FragCoord.xy, depth);
+	int3 tileCoord = GetTileIndexUV(vs_TEXCOORD0, depth);
 
 	LightTile tile = CreateLightTile(imageLoad(pk_LightTiles, tileCoord).x);
 
@@ -38,8 +39,8 @@ void main()
 
 	float4 color = float4(hsv2rgb(float3(maxfar, 1.0f, 1.0f)), 0.1f);
 
-	float2 border = 4.0f / CLUSTER_SIZE_PX.xy;
-	float2 griduv = gl_FragCoord.xy / CLUSTER_SIZE_PX;
+	float2 border = 4.0f / ceil(pk_ScreenParams.xy / CLUSTER_TILE_COUNT_XY);
+	float2 griduv = vs_TEXCOORD0 * CLUSTER_TILE_COUNT_XY;
 	griduv += border * 0.5f;
 	griduv -= floor(griduv);
 	color.xyz *= step(border.x, griduv.x);

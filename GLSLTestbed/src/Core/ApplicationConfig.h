@@ -31,6 +31,8 @@ namespace PK::Core
 		float TimeScale;
 
 		uint LightCount;
+		uint ShadowmapTileSize; 
+		uint ShadowmapTileCount;
 	
 		float CameraFocalLength;
 		float CameraFNumber;

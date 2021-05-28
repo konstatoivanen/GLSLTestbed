@@ -28,7 +28,7 @@ namespace PK::ECS::Engines
 		meshView->mesh = static_cast<Components::MeshReference*>(implementer);
 		meshView->transform = static_cast<Components::Transform*>(implementer);
 	
-		implementer->localAABB = Functions::CreateBoundsCenterExtents(CG_FLOAT3_ZERO, CG_FLOAT3_ONE);
+		implementer->localAABB = mesh->GetLocalBounds();
 		implementer->isCullable = true;
 		implementer->isVisible = false;
 		implementer->position = position;
@@ -93,7 +93,7 @@ namespace PK::ECS::Engines
 		implementer->position = CG_FLOAT3_ZERO;
 		implementer->rotation = glm::quat(rotation * CG_FLOAT_DEG2RAD);
 		
-		ECS::Builders::InitializeLightValues(implementer, color, LightType::Directional, LightCookie::NoCookie, castShadows, 90.0f, 15.0f);
+		ECS::Builders::InitializeLightValues(implementer, color, LightType::Directional, LightCookie::NoCookie, castShadows, 90.0f, 50.0f);
 
 		implementer->color = color;
 	}
@@ -105,20 +105,24 @@ namespace PK::ECS::Engines
 		m_time = time;
 	
 		//meshCube = MeshUtilities::GetBox(CG_FLOAT3_ZERO, { 10.0f, 0.5f, 10.0f });
-	
+		auto libraryMesh = assetDatabase->Load<Mesh>("res/models/Library.mdl");
+
 		auto sphereMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Sphere", Rendering::MeshUtility::GetSphere(CG_FLOAT3_ZERO, 1.0f));
 		auto planeMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Plane16x16", Rendering::MeshUtility::GetPlane(CG_FLOAT2_ZERO, CG_FLOAT2_ONE, { 16, 16 }));
 	
 		auto materialMetal = assetDatabase->Load<Material>("res/materials/M_Metal_Panel.material");
 		auto materialGravel = assetDatabase->Load<Material>("res/materials/M_Gravel.material");
-		auto materialWood = assetDatabase->Load<Material>("res/materials/M_Wood_Floor.material");
+		auto materialGround = assetDatabase->Load<Material>("res/materials/M_Ground.material");
+		auto materialSand = assetDatabase->Load<Material>("res/materials/M_Wood_Floor.material");
 	
 		auto minpos = float3(-40, -5, -40);
 		auto maxpos = float3(40, 0, 40);
 
 		srand(config.RandomSeed);
 
-		CreateMeshRenderable(entityDb, float3(0,-5,0), { 90, 0, 0 }, 40.0f, planeMesh, materialWood);
+		CreateMeshRenderable(entityDb, float3(0,-5,0), { 90, 0, 0 }, 80.0f, planeMesh, materialGround);
+
+		CreateMeshRenderable(entityDb, float3(70, -5, -40), { 0, 0, 0 }, 1.0f, libraryMesh, materialSand);
 		
 		for (auto i = 0; i < 256; ++i)
 		{
@@ -140,7 +144,7 @@ namespace PK::ECS::Engines
 			flipperinotyperino ^= true;
 		}
 
-		auto color = Functions::HexToRGB(0x66D1FFFF); // 0x6D563DFF
+		auto color = Functions::HexToRGB(0xBFF7FFFF) * 1.0f; // 0x6D563DFF //0x66D1FFFF //0xF78B3DFF
 		CreateDirectionalLight(entityDb, assetDatabase, { 35, -35, 0 }, color, true);
 	}
 	
@@ -173,6 +177,7 @@ namespace PK::ECS::Engines
 	
 	void DebugEngine::Step(int condition)
 	{
+		return;
 		auto lights = m_entityDb->Query<EntityViews::LightSphere>((int)ENTITY_GROUPS::ACTIVE);
 		auto time = Application::GetService<Time>()->GetTime();
 	
@@ -184,7 +189,6 @@ namespace PK::ECS::Engines
 			lights[i].transformMesh->rotation = rotation;
 		}
 
-		return;
 	
 		auto meshes = m_entityDb->Query<EntityViews::MeshRenderable>((int)ENTITY_GROUPS::ACTIVE);
 	

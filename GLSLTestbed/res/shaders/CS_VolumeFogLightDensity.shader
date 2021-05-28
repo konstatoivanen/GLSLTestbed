@@ -28,12 +28,15 @@ layout(local_size_x = 16, local_size_y = 2, local_size_z = 16) in;
 void main()
 {
 	uint3 id = gl_GlobalInvocationID;
+	float2 uv = (VOLUME_SIZE_ST.zz + id.xy) * VOLUME_SIZE_ST.xy;
+
+	float zmax = VOLUME_LOAD_MAX_DEPTH(GetVolumeDepthTileIndex(uv));
 
 	float3 bluenoise = GetVolumeCellNoise(id);
 
 	float depth = GetVolumeCellDepth(id.z + NoiseUniformToTriangle(bluenoise.x));
-
-	float2 uv = (VOLUME_SIZE_ST.zz + id.xy) * VOLUME_SIZE_ST.xy;
+	
+	depth = max(pk_ProjectionParams.x, min(zmax, depth));
 
 	float3 worldpos = mul(pk_MATRIX_I_V, float4(ClipToViewPos(uv, depth), 1.0f)).xyz;
 
@@ -52,7 +55,10 @@ void main()
 	float density = Density(worldpos);
 
 	float4 preval = imageLoad(pk_Volume_Inject, int3(id));
-	float4 curval = float4(pk_Volume_Intensity * density * color, max(density, 0.000001f));
-	
-	imageStore(pk_Volume_Inject, int3(id),  lerp(preval, curval, VOLUME_ACCUMULATION_LD));
+	float4 curval = float4(pk_Volume_Intensity * density * color, density);
+
+	curval = lerp(preval, curval, VOLUME_ACCUMULATION_LD);
+	curval.a = max(curval.a, VOLUME_MIN_DENSITY);
+
+	imageStore(pk_Volume_Inject, int3(id), curval);
 }

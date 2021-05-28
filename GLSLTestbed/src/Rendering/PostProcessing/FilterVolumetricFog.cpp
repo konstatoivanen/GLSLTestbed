@@ -24,8 +24,11 @@ namespace PK::Rendering::PostProcessing
         m_volumeLightDensity = CreateRef<RenderBuffer>(descriptor);
         m_volumeScatter = CreateRef<RenderBuffer>(descriptor);
 
+        m_depthTiles = CreateRef<ComputeBuffer>(BufferLayout({ {CG_TYPE::UINT, "DEPTHMAX"} }), VolumeResolution.x * VolumeResolution.y, true, GL_NONE);
+
         m_computeInject = assetDatabase->Find<Shader>("CS_VolumeFogLightDensity");
         m_computeScatter = assetDatabase->Find<Shader>("CS_VolumeFogScatter");
+        m_computeDepthTiles = assetDatabase->Find<Shader>("CS_VolumeFogDepthMax");
 
         m_volumeResources = CreateRef<ConstantBuffer>(BufferLayout(
         {
@@ -60,6 +63,7 @@ namespace PK::Rendering::PostProcessing
         m_properties.SetImage(StringHashID::StringToID("pk_Volume_Inject"), m_volumeLightDensity->GetImageBindDescriptor(GL_READ_WRITE, 0, 0, true));
         m_properties.SetImage(StringHashID::StringToID("pk_Volume_Scatter"), m_volumeScatter->GetImageBindDescriptor(GL_READ_WRITE, 0, 0, true));
         m_properties.SetConstantBuffer(StringHashID::StringToID("pk_VolumeResources"), m_volumeResources->GetGraphicsID());
+        m_properties.SetComputeBuffer(StringHashID::StringToID("pk_VolumeMaxDepths"), m_depthTiles->GetGraphicsID());
     }
     
     void FilterVolumetricFog::OnPreRender(const RenderTexture* source)
@@ -68,9 +72,13 @@ namespace PK::Rendering::PostProcessing
     
     void FilterVolumetricFog::Execute(const RenderTexture* source, const RenderTexture* destination)
     {
+        auto depthCountX = (uint)std::ceilf(source->GetWidth() / 32.0f);
+        auto depthCountY = (uint)std::ceilf(source->GetHeight() / 32.0f);
         auto groupsInject = uint3(VolumeResolution.x / InjectThreadCount.x, VolumeResolution.y / InjectThreadCount.y, VolumeResolution.z / InjectThreadCount.z);
         auto groupsScatter = uint3(VolumeResolution.x / ScatterThreadCount.x, VolumeResolution.y / ScatterThreadCount.y, 1);
 
+        m_depthTiles->Clear();
+        GraphicsAPI::DispatchCompute(m_computeDepthTiles, { depthCountX, depthCountY, 1 }, m_properties, GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
         GraphicsAPI::DispatchCompute(m_computeInject, groupsInject, m_properties, GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);
         GraphicsAPI::DispatchCompute(m_computeScatter, groupsScatter, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT);
         GraphicsAPI::Blit(destination, m_shader, m_properties);

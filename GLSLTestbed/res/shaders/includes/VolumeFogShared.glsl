@@ -8,6 +8,8 @@
 #define VOLUME_HEIGHT 90
 #define VOLUME_SIZE_ST float3(0.00625f, 0.0111111111111111f, 0.5f) // (1.0f / 160.0f, 1.0f / 90.0f, 0.5f)
 #define VOLUME_COMPOSITE_DITHER_AMOUNT 2.0f * float3(0.00625f, 0.0111111111111111f, 0.0078125f)
+#define VOLUME_DEPTH_BATCH_SIZE_PX 16
+#define VOLUME_MIN_DENSITY 0.000001f
 
 #define VOLUME_ACCUMULATION_LD min(1.0f, 35.0f * max(pk_DeltaTime.x, 0.01f))
 #define VOLUME_ACCUMULATION_SC min(1.0f, 14.0f * max(pk_DeltaTime.x, 0.01f))
@@ -31,6 +33,10 @@ PK_DECLARE_CBUFFER(pk_VolumeResources)
 layout(rgba16f) uniform image3D pk_Volume_Inject;
 layout(rgba16f) uniform image3D pk_Volume_Scatter;
 
+PK_DECLARE_BUFFER(uint, pk_VolumeMaxDepths);
+
+#define VOLUME_LOAD_MAX_DEPTH(index) uintBitsToFloat(PK_BUFFER_DATA(pk_VolumeMaxDepths, index))
+
 float GetVolumeCellDepth(float index)
 {
     return pk_ProjectionParams.x * pow(pk_ExpProjectionParams.z, index / VOLUME_DEPTH);
@@ -50,4 +56,9 @@ float GetVolumeSliceWidth(int index)
 float3 GetVolumeCellNoise(uint3 id)
 {
     return GlobalNoiseBlue(id.xy + id.z * int2(VOLUME_WIDTH, VOLUME_HEIGHT) + int(pk_Time.w * 1000).xx);
+}
+
+uint GetVolumeDepthTileIndex(float2 uv)
+{
+    return uint(uv.x * VOLUME_WIDTH) + VOLUME_WIDTH * uint(uv.y * VOLUME_HEIGHT);
 }

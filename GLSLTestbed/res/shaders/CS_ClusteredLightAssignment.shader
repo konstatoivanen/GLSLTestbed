@@ -2,9 +2,10 @@
 
 #pragma PROGRAM_COMPUTE
 #define PK_WRITE_CLUSTER_LIGHTS
+#define PK_IMPORT_CLUSTER_DATA
 #include includes/PKCommon.glsl
 #include includes/LightingCommon.glsl
-#include includes/ClusteringCommon.glsl
+#include includes/ClusterIndexing.glsl
 
 struct SharedLight
 {
@@ -71,7 +72,6 @@ layout(local_size_x = CLUSTER_TILE_COUNT_X, local_size_y = CLUSTER_TILE_COUNT_Y,
 void main() 
 {
     uint numBatches = (pk_LightCount + CLUSTER_GROUP_SIZE_XYZ - 1) / CLUSTER_GROUP_SIZE_XYZ;
-    uint2 tileCoord = gl_GlobalInvocationID.xy;
     uint depthTileIndex = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * CLUSTER_TILE_COUNT_X;
 
     float near = ZCoordToLinearDepth(gl_GlobalInvocationID.z);

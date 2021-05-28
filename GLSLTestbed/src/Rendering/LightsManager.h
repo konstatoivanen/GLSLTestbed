@@ -1,6 +1,7 @@
 #pragma once
 #include "Utilities/Ref.h"
 #include "Core/NoCopy.h"
+#include "Core/ApplicationConfig.h"
 #include "ECS/EntityDatabase.h"
 #include "ECS/Contextual/EntityViews/EntityViews.h"
 #include "Rendering/Batching.h"
@@ -31,18 +32,14 @@ namespace PK::Rendering
     {
         ShadowmapLightTypeData LightIndices[(int)LightType::TypeCount];
         Batching::IndexedMeshBatchCollection Batches;
-        Utilities::Ref<RenderTexture> MapIntermediate;
         Utilities::Ref<RenderTexture> ShadowmapAtlas;
-
         static constexpr uint BatchSize = 4;
-        static constexpr uint TileSize = 512;
-        static constexpr uint TotalTileCount = 64; 
     };
 
     class LightsManager : public PK::Core::NoCopy
     {
         public:
-            LightsManager(AssetDatabase* assetDatabase, float cascadeLinearity);
+            LightsManager(AssetDatabase* assetDatabase, const ApplicationConfig& config);
 
             void Preprocess(PK::ECS::EntityDatabase* entityDb, Core::BufferView<uint> visibleLights, const uint2& resolution, const float4x4& inverseViewProjection, float zNear, float zFar);
 
@@ -68,12 +65,14 @@ namespace PK::Rendering
             const uint GridSizeY = 9;
             const uint GridSizeZ = 24;
             const uint ClusterCount = GridSizeX * GridSizeY * GridSizeZ;
-            const float DepthGroupSizeX = 32.0f;
-            const float DepthGroupSizeY = 32.0f;
+            const float DepthGroupSize = 32.0f;
 
             const float m_cascadeLinearity;
             std::vector<PK::ECS::EntityViews::LightRenderable*> m_visibleLights;
             uint m_visibleLightCount;
+            uint m_shadowmapCubeFaceSize;
+            uint m_shadowmapTileSize;
+            uint m_shadowmapTileCount;
 
             ShaderPropertyBlock m_properties;
             ShadowmapData m_shadowmapData;

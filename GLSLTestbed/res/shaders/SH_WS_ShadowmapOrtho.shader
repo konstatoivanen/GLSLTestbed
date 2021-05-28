@@ -12,7 +12,7 @@
 
 #pragma PROGRAM_VERTEX
 layout(location = 0) in float3 in_POSITION0;
-out noperspective float3 vs_VIEWVECTOR;
+out noperspective float vs_DEPTH;
 
 void main()
 {
@@ -27,7 +27,7 @@ void main()
 
 	gl_Position = mul(lightmatrix, float4(wpos, 1.0f));
 
-	vs_VIEWVECTOR = light.position.xyz * (dot(light.position.xyz, wpos) + light.position.w);
+	vs_DEPTH = ((gl_Position.z / gl_Position.w) + 1.0f) * light.position.w * 0.5f + SHADOW_NEAR_BIAS * (gl_Layer + 1);
 
 	gl_ViewportIndex = 1;
 };

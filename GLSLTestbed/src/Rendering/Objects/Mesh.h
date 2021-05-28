@@ -28,11 +28,14 @@ namespace PK::Rendering::Objects
 			inline const Ref<IndexBuffer>& GetIndexBuffer() const { return m_indexBuffer; }
 			const IndexRange GetSubmeshIndexRange(int submesh) const;
 			inline const uint GetSubmeshCount() const { return glm::max(1, (int)m_indexRanges.size()); }
+			inline const BoundingBox& GetLocalBounds() const { return m_localBounds; }
+			inline void SetLocalBounds(const BoundingBox& bounds) { m_localBounds = bounds; }
 	
 		private:
 			uint32_t m_vertexBufferIndex = 0;
 			std::vector<Ref<VertexBuffer>> m_vertexBuffers;
 			Ref<IndexBuffer> m_indexBuffer;
 			std::vector<IndexRange> m_indexRanges;
+			BoundingBox m_localBounds;
 	};
 }

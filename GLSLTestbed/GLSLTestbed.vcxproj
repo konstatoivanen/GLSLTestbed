@@ -698,19 +698,23 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="libs\ktx.dll" />
     <None Include="libs\ktx_read.dll" />
     <None Include="res\materials\M_Gravel.material" />
+    <None Include="res\materials\M_Ground.material" />
     <None Include="res\materials\M_Metal_Panel.material" />
     <None Include="res\materials\M_Metal_Rust.material" />
+    <None Include="res\materials\M_Sand.material" />
     <None Include="res\materials\M_Wood_Floor.material" />
+    <None Include="res\models\cornell_box.mdl" />
     <None Include="res\models\cornell_box.mtl" />
+    <None Include="res\models\Library.mdl" />
     <None Include="res\shaders\CS_AutoFocus.shader" />
     <None Include="res\shaders\CS_ClusteredDepthMax.shader" />
     <None Include="res\shaders\CS_ClusteredLightAssignment.shader" />
     <None Include="res\shaders\CS_LuminanceHistogram.shader" />
+    <None Include="res\shaders\CS_VolumeFogDepthMax.shader" />
     <None Include="res\shaders\includes\BlitCommon.glsl">
       <DeploymentContent>true</DeploymentContent>
     </None>
     <None Include="res\shaders\includes\ClusterIndexing.glsl" />
-    <None Include="res\shaders\includes\ClusteringCommon.glsl" />
     <None Include="res\shaders\CS_VolumeFogScatter.shader" />
     <None Include="res\shaders\includes\DepthOfFieldShared.glsl" />
     <None Include="res\shaders\includes\Instancing.glsl" />
@@ -739,18 +743,21 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
       <DeploymentContent>true</DeploymentContent>
     </None>
     <None Include="res\shaders\SH_VS_ShadowmapBlurCube.shader" />
-    <None Include="res\shaders\SH_VS_ShadowmapBlurOrtho.shader" />
-    <None Include="res\shaders\SH_VS_ShadowmapBlurPersp.shader" />
+    <None Include="res\shaders\SH_VS_ShadowmapBlurProj.shader" />
     <None Include="res\shaders\SH_WS_ShadowmapCube.shader" />
     <None Include="res\shaders\SH_WS_DepthNormals.shader" />
     <None Include="res\shaders\SH_WS_ShadowmapOrtho.shader" />
     <None Include="res\shaders\SH_WS_ShadowmapPersp.shader" />
     <None Include="res\textures\T_Bloom_LensDirt.ktx" />
     <None Include="res\textures\T_Bluenoise256_repeat.ktx" />
-    <None Include="res\textures\T_Gravel_D.ktx" />
-    <None Include="res\textures\T_Gravel_H.ktx" />
-    <None Include="res\textures\T_Gravel_MAOR.ktx" />
-    <None Include="res\textures\T_Gravel_N.ktx" />
+    <None Include="res\textures\T_Gravel_repeat_D.ktx" />
+    <None Include="res\textures\T_Gravel_repeat_H.ktx" />
+    <None Include="res\textures\T_Gravel_repeat_MAOR.ktx" />
+    <None Include="res\textures\T_Gravel_repeat_N.ktx" />
+    <None Include="res\textures\T_Ground_D.ktx" />
+    <None Include="res\textures\T_Ground_H.ktx" />
+    <None Include="res\textures\T_Ground_MAOR.ktx" />
+    <None Include="res\textures\T_Ground_N.ktx" />
     <None Include="res\textures\T_LightCookies.ktx" />
     <None Include="res\textures\T_Metal_Plates_D.ktx" />
     <None Include="res\textures\T_Metal_Plates_H.ktx" />
@@ -765,10 +772,15 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\textures\T_OEM_Night.ktx" />
     <None Include="res\textures\T_OEM_Park.ktx" />
     <None Include="res\textures\T_OEM_Quarry.ktx" />
-    <None Include="res\textures\T_Wood_Floor_D.ktx" />
-    <None Include="res\textures\T_Wood_Floor_H.ktx" />
-    <None Include="res\textures\T_Wood_Floor_MAOR.ktx" />
-    <None Include="res\textures\T_Wood_Floor_N.ktx" />
+    <None Include="res\textures\T_OEM_Trail.ktx" />
+    <None Include="res\textures\T_Sand_repeat_D.ktx" />
+    <None Include="res\textures\T_Sand_repeat_H.ktx" />
+    <None Include="res\textures\T_Sand_repeat_MAOR.ktx" />
+    <None Include="res\textures\T_Sand_repeat_N.ktx" />
+    <None Include="res\textures\T_Wood_Floor_repeat_D.ktx" />
+    <None Include="res\textures\T_Wood_Floor_repeat_H.ktx" />
+    <None Include="res\textures\T_Wood_Floor_repeat_MAOR.ktx" />
+    <None Include="res\textures\T_Wood_Floor_repeat_N.ktx" />
     <None Include="x64\Debug\GLImageProcessor.tlog\CL.command.1.tlog" />
     <None Include="x64\Debug\GLImageProcessor.tlog\GLImageProcessor.lastbuildstate" />
     <None Include="x64\Debug\GLImageProcessor.tlog\unsuccessfulbuild" />
@@ -878,11 +890,6 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <Image Include="res\textures\T_OEM_03.png">
       <DeploymentContent>true</DeploymentContent>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="res\models\cornell_box.obj">
-      <FileType>Document</FileType>
-    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

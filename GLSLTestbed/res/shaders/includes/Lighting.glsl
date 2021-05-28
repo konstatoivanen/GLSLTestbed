@@ -9,10 +9,8 @@
 #define SRC_OCCLUSION y
 #define SRC_ROUGHNESS z
 #define SHADOW_USE_LBR 
-#define SHADOW_LBR 0.1f
+#define SHADOW_LBR 0.2f
 #define SHADOWMAP_CASCADES 4
-#define SHADOWMAP_TILE_SIZE 512
-#define SHADOWMAP_TILE_COUNT 64
 
 #if defined(SHADOW_USE_LBR)
     float LBR(float shadow) { return smoothstep(SHADOW_LBR, 1.0f, shadow);}
@@ -32,22 +30,9 @@ float GetLightAnisotropy(float3 viewdir, float3 posToLight, float anistropy)
 
 uint GetShadowCascadeIndex(float linearDepth)
 {
-    if (linearDepth < pk_ShadowCascadeZSplits[1])
-    {
-        return 0;
-    }
-
-    if (linearDepth < pk_ShadowCascadeZSplits[2])
-    {
-        return 1;
-    }
-
-    if (linearDepth < pk_ShadowCascadeZSplits[3])
-    {
-        return 2;
-    }
-
-    return 3;
+    return linearDepth > pk_ShadowCascadeZSplits[1] ? 
+           linearDepth > pk_ShadowCascadeZSplits[2] ? 
+           linearDepth > pk_ShadowCascadeZSplits[3] ? 3 : 2 : 1 : 0;
 }
 
 uint GetShadowCascadeIndexFragment()
@@ -76,11 +61,11 @@ float SampleScreenSpaceOcclusion()
     #endif
 }
 
-float3 GetLightProjectionUVW(in float3 worldpos, uint projectionIndex)
+float4 GetLightProjectionUVW(in float3 worldpos, uint projectionIndex)
 {
     float4 coord = mul(PK_BUFFER_DATA(pk_LightMatrices, projectionIndex), float4(worldpos, 1.0f));
     coord.xy = (coord.xy * 0.5f + coord.ww * 0.5f) / coord.w;
-    return coord.xyz;
+    return coord;
 }
 
 float SampleLightShadowmap(uint shadowmapIndex, float2 uv, float lightDistance)
@@ -96,7 +81,7 @@ void GetLight(uint index, in float3 worldpos, uint cascade, out float3 color, ou
 {
     uint linearIndex = PK_BUFFER_DATA(pk_GlobalLightsList, index);
     PKRawLight light = PK_BUFFER_DATA(pk_Lights, linearIndex);
-    color = light.color.xyz;
+    color = light.color.rgb;
 
     float2 lightuv;
     float linearDistance;
@@ -120,7 +105,7 @@ void GetLight(uint index, in float3 worldpos, uint cascade, out float3 color, ou
             attenuation = GetAttenuation(linearDistance, light.position.w);
             posToLight /= linearDistance;
 
-            float3 coord = GetLightProjectionUVW(worldpos, light.projection_index);
+            float3 coord = GetLightProjectionUVW(worldpos, light.projection_index).xyz;
             lightuv = coord.xy;
             attenuation *= step(0.0f, coord.z);
         }
@@ -130,9 +115,11 @@ void GetLight(uint index, in float3 worldpos, uint cascade, out float3 color, ou
             light.projection_index += cascade;
             light.shadowmap_index += cascade;
             posToLight = -light.position.xyz;
-            linearDistance = dot(light.position.xyz, worldpos) + light.position.w;
             attenuation = 1.0f;
-            lightuv = GetLightProjectionUVW(worldpos, light.projection_index).xy;
+
+            float4 coord = GetLightProjectionUVW(worldpos, light.projection_index);
+            linearDistance = ((coord.z / coord.w) + 1.0f) * light.position.w * 0.5f;
+            lightuv = coord.xy;
         }
         break;
     }
@@ -152,9 +139,7 @@ PKLight GetSurfaceLight(uint index, in float3 worldpos, uint cascade)
 {
     float3 posToLight, color;
     float attenuation;
-
     GetLight(index, worldpos, cascade, color, posToLight, attenuation);
-
     return PKLight(color * attenuation, posToLight);
 }
 
@@ -162,9 +147,7 @@ float3 GetVolumeLightColor(uint index, in float3 worldpos, float3 viewdir, uint 
 {
     float3 posToLight, color;
     float attenuation;
-
     GetLight(index, worldpos, cascade, color, posToLight, attenuation);
-
     return color * attenuation * GetLightAnisotropy(viewdir, posToLight, anisotropy);
 }
 
@@ -177,7 +160,16 @@ LightTile GetLightTile(int3 coord)
     #endif
 }
 
-LightTile GetLightTile() { return GetLightTile(GetTileIndexFragment()); }
+LightTile GetLightTile() 
+{ 
+    #if defined(SHADER_STAGE_FRAGMENT)
+        float lineardepth = LinearizeDepth(gl_FragCoord.z);
+        int3 coord = GetTileIndexUV(gl_FragCoord.xy * pk_ScreenParams.zw, lineardepth);
+        return GetLightTile(coord); 
+    #else
+        return LightTile(0,0);
+    #endif
+}
 
 
 float4 PhysicallyBasedShading(SurfaceData surf, float3 viewdir, float3 worldpos)

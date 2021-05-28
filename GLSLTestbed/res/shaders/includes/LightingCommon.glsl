@@ -45,16 +45,6 @@ struct SurfaceData
     float alpha;
 };
 
-PKLight EmptyLight()
-{
-    return PKLight(float3(0,0,0), float3(0,1,0));
-}
-
-PKIndirect EmptyIndirect()
-{
-    return PKIndirect(float3(0,0,0), float3(0,0,0));
-}
-
 LightTile CreateLightTile(uint data)
 {
 	uint offset = data & 0xFFFFFF;

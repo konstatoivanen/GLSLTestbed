@@ -60,7 +60,6 @@ float3 BRDF_PBS_DEFAULT(float3 diffuse, float3 specular, float reflectivity, flo
     float nv = max(0.0f, dot(normal, viewDir));
     float nl = max(0.0f, dot(normal, light.direction.xyz));
     float nh = max(0.0f, dot(normal, halfDir));
-    float lv = max(0.0f, dot(light.direction.xyz, viewDir));
     float lh = max(0.0f, dot(light.direction.xyz, halfDir));
 
     float diffuseTerm = DisneyDiffuse(nv, nl, lh, perceptualRoughness) * nl * PK_INV_PI;
@@ -101,17 +100,17 @@ float3 BRDF_PBS_DEFAULT_INDIRECT(const PKIndirect gi)
 float3 BRDF_PBS_DEFAULT_DIRECT(const PKLight light)
 {
     float3 halfDir = normalize(light.direction.xyz + brdf_cache.viewdir);
-    float nl = max(0.0f, dot(brdf_cache.normal, light.direction.xyz));
-    float nh = max(0.0f, dot(brdf_cache.normal, halfDir));
-    float lv = max(0.0f, dot(light.direction.xyz, brdf_cache.viewdir));
-    float lh = max(0.0f, dot(light.direction.xyz, halfDir));
+    float3 ldots;
+    ldots.x = dot(brdf_cache.normal, light.direction.xyz); // NL
+    ldots.y = dot(brdf_cache.normal, halfDir); // NH
+    ldots.z = dot(light.direction.xyz, halfDir); // LH
+    ldots = max(0.0f.xxx, ldots);
 
-    float diffuseTerm = DisneyDiffuse(brdf_cache.nv, nl, lh, brdf_cache.perceptualRoughness) * nl * PK_INV_PI;
+    float diffuseTerm = DisneyDiffuse(brdf_cache.nv, ldots.x, ldots.z, brdf_cache.perceptualRoughness) * ldots.x * PK_INV_PI;
+    float G = GSF_SmithGGX(ldots.x, brdf_cache.nv, brdf_cache.roughness);
+    float D = NDF_GGX(ldots.y, brdf_cache.roughness);
     
-    float G = GSF_SmithGGX(nl, brdf_cache.nv, brdf_cache.roughness);
-    float D = NDF_GGX(nh, brdf_cache.roughness);
+    float specularTerm = max(0.0f, G * D * ldots.x);
     
-    float specularTerm = max(0, G * D * nl);
-    
-    return brdf_cache.diffuse * light.color.rgb * diffuseTerm + specularTerm * light.color.rgb * FresnelTerm(brdf_cache.specular, lh);
+    return brdf_cache.diffuse * light.color.rgb * diffuseTerm + specularTerm * light.color.rgb * FresnelTerm(brdf_cache.specular, ldots.z);
 }

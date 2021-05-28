@@ -12,7 +12,7 @@
 
 #pragma PROGRAM_VERTEX
 layout(location = 0) in float3 in_POSITION0;
-out noperspective float3 vs_VIEWVECTOR;
+out noperspective float vs_DEPTH;
 
 void main()
 {
@@ -21,7 +21,7 @@ void main()
 
 	PKRawLight light = PK_BUFFER_DATA(pk_Lights, indices.lightIndex);
 	float3 wpos = ObjectToWorldPos(in_POSITION0);
-	vs_VIEWVECTOR = wpos - light.position.xyz;
+	vs_DEPTH = length(wpos - light.position.xyz) + SHADOW_NEAR_BIAS;
 
 	gl_Position = mul(PK_BUFFER_DATA(pk_LightMatrices, light.projection_index), float4(wpos, 1.0f));
 	gl_ViewportIndex = 1;

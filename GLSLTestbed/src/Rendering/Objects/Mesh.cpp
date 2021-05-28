@@ -137,11 +137,22 @@ void PK::Core::AssetImporters::Import<PK::Rendering::Objects::Mesh>(const std::s
 
 	PK_CORE_ASSERT(err.empty(), err.c_str());
 	PK_CORE_ASSERT(!attrib.vertices.empty(), "Mesh doesn't contain vertices");
+	PK_CORE_ASSERT(!attrib.normals.empty(), "Mesh doesn't contain normals");
+	PK_CORE_ASSERT(!attrib.texcoords.empty(), "Mesh doesn't contain uvs");
 	PK_CORE_ASSERT(success, "Failed to load .obj");
 
 	uint indexCount = 0;
 	std::vector<uint> indices;
 	std::vector<PK::Rendering::Structs::IndexRange> submeshes;
+	std::vector<PK::Rendering::Structs::Vertex_Full> vertices;
+	float3 minpos =  CG_FLOAT3_ONE * std::numeric_limits<float>().max();
+	float3 maxpos = -CG_FLOAT3_ONE * std::numeric_limits<float>().max();
+
+	auto invertices = attrib.vertices.data();
+	auto innormals = attrib.normals.data();
+	auto inuvs = attrib.texcoords.data();
+
+	auto index = 0;
 
 	for (size_t i = 0; i < shapes.size(); ++i) 
 	{
@@ -152,36 +163,31 @@ void PK::Core::AssetImporters::Import<PK::Rendering::Objects::Mesh>(const std::s
 
 		for (uint j = 0; j < tcount; ++j)
 		{
-			indices.push_back(tris.at(j).vertex_index);
+			auto& tri = tris.at(j);
+
+			indices.push_back(index++);
+
+			PK::Rendering::Structs::Vertex_Full v;
+			v.position = *reinterpret_cast<float3*>(invertices + tri.vertex_index * 3);
+			v.normal = *reinterpret_cast<float3*>(innormals + tri.normal_index * 3);
+			v.tangent = CG_FLOAT4_ZERO;
+			v.texcoord = *reinterpret_cast<float2*>(inuvs + tri.texcoord_index * 2);
+			vertices.push_back(v);
+
+			maxpos = glm::max(v.position, maxpos);
+			minpos = glm::min(v.position, minpos);
 		}
 
 		indexCount += tcount;
 	}
 
-	auto vcount = attrib.vertices.size() / 3;
-	auto hasNormals = !attrib.normals.empty() && (attrib.normals.size() / 3) == vcount;
-	auto hasUVs = !attrib.texcoords.empty() && (attrib.texcoords.size() / 2) == vcount;
 
-	mesh->AddVertexBuffer(CreateRef<VertexBuffer>(attrib.vertices.data(), vcount, BufferLayout({ { CG_TYPE::FLOAT3, "POSITION" } }), true));
+	BufferLayout layout = { {CG_TYPE::FLOAT3, "POSITION"}, {CG_TYPE::FLOAT3, "NORMAL"}, {CG_TYPE::FLOAT4, "TANGENT"}, {CG_TYPE::FLOAT2, "TEXCOORD0"} };
 
-	if (hasNormals)
-	{
-		mesh->AddVertexBuffer(CreateRef<VertexBuffer>(attrib.normals.data(), vcount, BufferLayout({ { CG_TYPE::FLOAT3, "NORMAL" } }), true));
-	}
-	else
-	{
-		auto normals = PK_CONTIGUOUS_ALLOC(float3, vcount);
-		auto vertices = reinterpret_cast<float3*>(attrib.vertices.data());
-		PK::Rendering::MeshUtility::CalculateNormals(vertices, indices.data(), normals, (uint)vcount, (uint)indices.size());
-		mesh->AddVertexBuffer(CreateRef<VertexBuffer>(normals, vcount, BufferLayout({ { CG_TYPE::FLOAT3, "NORMAL" } }), true));
-		free(normals);
-	}
+	PK::Rendering::MeshUtility::CalculateTangents(reinterpret_cast<float*>(vertices.data()), layout.GetStride() / 4, 0, 3, 6, 10, indices.data(), (uint)vertices.size(), (uint)indices.size());
 
-	if (hasUVs)
-	{
-		mesh->AddVertexBuffer(CreateRef<VertexBuffer>(attrib.texcoords.data(), vcount, BufferLayout({ { CG_TYPE::FLOAT2, "TEXCOORD0" } }), true));
-	}
-
+	mesh->SetLocalBounds(PK::Math::Functions::CreateBoundsMinMax(minpos, maxpos));
+	mesh->AddVertexBuffer(CreateRef<VertexBuffer>(vertices.data(), vertices.size(), layout, true));
 	mesh->SetIndexBuffer(CreateRef<IndexBuffer>(indices.data(), (uint)indices.size(), true));
 	mesh->SetSubMeshes(submeshes);
 }

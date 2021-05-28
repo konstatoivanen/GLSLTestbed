@@ -165,7 +165,7 @@ namespace PK::Rendering::MeshUtility
     }
 
 
-    void CalculateNormals(const float3* vertices, const uint* indices, float3* normals, uint vcount, uint icount)
+    void CalculateNormals(const float3* vertices, const uint* indices, float3* normals, uint vcount, uint icount, float sign)
     {
         for (uint i = 0, j = 0; i < icount; i += 3)
         {
@@ -176,8 +176,8 @@ namespace PK::Rendering::MeshUtility
             auto v1 = vertices[i1];
             auto v2 = vertices[i2];
 
-            auto tangent = v1 - v0;
-            auto binormal = v2 - v0;
+            auto tangent = glm::normalize(v1 - v0);
+            auto binormal = glm::normalize(v2 - v0);
             auto normal = glm::normalize(glm::cross(tangent, binormal));
             normals[i0] += normal;
             normals[i1] += normal;
@@ -186,7 +186,7 @@ namespace PK::Rendering::MeshUtility
 
         for (uint i = 0; i < vcount; ++i)
         {
-            normals[i] = glm::normalize(normals[i]);
+            normals[i] = glm::normalize(normals[i]) * sign;
         }
 
     }
@@ -286,7 +286,9 @@ namespace PK::Rendering::MeshUtility
         };
     
         BufferLayout layout = { {CG_TYPE::FLOAT3, "POSITION"} };
-        return CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, 8, layout, true), CreateRef<IndexBuffer>(indices, 36, true));
+        auto mesh = CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, 8, layout, true), CreateRef<IndexBuffer>(indices, 36, true));
+        mesh->SetLocalBounds(PK::Math::Functions::CreateBoundsCenterExtents(offset, extents));
+        return mesh;
     }
     
     Ref<Mesh> GetBox(const float3& offset, const float3& extents)
@@ -378,7 +380,9 @@ namespace PK::Rendering::MeshUtility
         };
     
         BufferLayout layout = { {CG_TYPE::FLOAT3, "POSITION"}, {CG_TYPE::FLOAT3, "NORMAL"}, {CG_TYPE::FLOAT2, "TEXCOORD0"} };
-        return CreateRef<Mesh>(CreateRef<VertexBuffer>(reinterpret_cast<float*>(vertices), 24, layout, true), CreateRef<IndexBuffer>(indices, 36, true));
+        auto mesh = CreateRef<Mesh>(CreateRef<VertexBuffer>(reinterpret_cast<float*>(vertices), 24, layout, true), CreateRef<IndexBuffer>(indices, 36, true));
+        mesh->SetLocalBounds(PK::Math::Functions::CreateBoundsCenterExtents(offset, extents));
+        return mesh;
     }
     
     Ref<Mesh> GetQuad2D(const float2& min, const float2& max)
@@ -464,7 +468,8 @@ namespace PK::Rendering::MeshUtility
         CalculateTangents(reinterpret_cast<float*>(vertices), layout.GetStride() / 4, 0, 3, 6, 10, indices, vcount, icount);
 
         auto mesh = CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, vcount, layout, true), CreateRef<IndexBuffer>(indices, icount, true));
-    
+        mesh->SetLocalBounds(PK::Math::Functions::CreateBoundsCenterExtents({ center.x, center.y, 0.0f }, { extents.x, extents.y, 0.0f }));
+
         free(vertices);
         free(indices);
 
@@ -561,6 +566,7 @@ namespace PK::Rendering::MeshUtility
         CalculateTangents(reinterpret_cast<float*>(vertices), layout.GetStride() / 4, 0, 3, 6, 10, indices, vcount, icount);
 
         auto mesh = CreateRef<Mesh>(CreateRef<VertexBuffer>(reinterpret_cast<float*>(vertices), vcount, layout, true), CreateRef<IndexBuffer>(indices, icount, true));
+        mesh->SetLocalBounds(PK::Math::Functions::CreateBoundsCenterExtents(offset, CG_FLOAT3_ONE * radius));
 
         free(vertices);
         free(indices);

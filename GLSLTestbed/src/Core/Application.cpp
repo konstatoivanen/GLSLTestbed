@@ -57,7 +57,7 @@ namespace PK::Core
 		
 		// Load these based on usage instead.
 		//assetDatabase->LoadDirectory<TextureXD>("res/textures/", { ".ktx" });
-		//assetDatabase->LoadDirectory<Mesh>("res/models/", { ".obj" });
+		//assetDatabase->LoadDirectory<Mesh>("res/models/", { ".mdl" });
 		//assetDatabase->LoadDirectory<Material>("res/materials/", { ".material" });
 	
 		auto renderPipeline = m_services->Create<RenderPipeline>(assetDatabase, entityDb, config);

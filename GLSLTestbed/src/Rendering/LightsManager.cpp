@@ -83,18 +83,22 @@ namespace PK::Rendering
 		Batching::QueueDraw(&ctx->data->Batches, renderable->mesh->sharedMesh, { &renderable->transform->localToWorld, depth, index });
 	}
 
-	LightsManager::LightsManager(AssetDatabase* assetDatabase, float cascadeLinearity) : m_cascadeLinearity(cascadeLinearity)
+	LightsManager::LightsManager(AssetDatabase* assetDatabase, const ApplicationConfig& config) : m_cascadeLinearity(config.CascadeLinearity)
 	{
 		m_computeLightAssignment = assetDatabase->Find<Shader>("CS_ClusteredLightAssignment");
 		m_computeDepthTiles = assetDatabase->Find<Shader>("CS_ClusteredDepthMax");
 		m_debugVisualize = assetDatabase->Find<Shader>("SH_VS_ClusterDebug");
 	
+		m_shadowmapTileSize = config.ShadowmapTileSize;
+		m_shadowmapTileCount = config.ShadowmapTileCount;
+		m_shadowmapCubeFaceSize = (uint)sqrt((m_shadowmapTileSize * m_shadowmapTileSize) / 6);
+
 		m_shadowmapData.LightIndices[(int)LightType::Point].ShaderRenderShadows = assetDatabase->Find<Shader>("SH_WS_ShadowmapCube");
 		m_shadowmapData.LightIndices[(int)LightType::Spot].ShaderRenderShadows = assetDatabase->Find<Shader>("SH_WS_ShadowmapPersp");
 		m_shadowmapData.LightIndices[(int)LightType::Directional].ShaderRenderShadows = assetDatabase->Find<Shader>("SH_WS_ShadowmapOrtho");
 		m_shadowmapData.LightIndices[(int)LightType::Point].ShaderBlur = assetDatabase->Find<Shader>("SH_VS_ShadowmapBlurCube");
-		m_shadowmapData.LightIndices[(int)LightType::Spot].ShaderBlur = assetDatabase->Find<Shader>("SH_VS_ShadowmapBlurPersp");
-		m_shadowmapData.LightIndices[(int)LightType::Directional].ShaderBlur = assetDatabase->Find<Shader>("SH_VS_ShadowmapBlurOrtho");
+		m_shadowmapData.LightIndices[(int)LightType::Spot].ShaderBlur = assetDatabase->Find<Shader>("SH_VS_ShadowmapBlurProj");
+		m_shadowmapData.LightIndices[(int)LightType::Directional].ShaderBlur = assetDatabase->Find<Shader>("SH_VS_ShadowmapBlurProj");
 
 		m_shadowmapData.LightIndices[(int)LightType::Point].maxBatchSize = ShadowmapData::BatchSize;
 		m_shadowmapData.LightIndices[(int)LightType::Spot].maxBatchSize = ShadowmapData::BatchSize;
@@ -102,7 +106,7 @@ namespace PK::Rendering
 
 		auto descriptor = RenderTextureDescriptor();
 		descriptor.dimension = GL_TEXTURE_CUBE_MAP_ARRAY;
-		descriptor.resolution = { 256, 256, ShadowmapData::BatchSize };
+		descriptor.resolution = { m_shadowmapCubeFaceSize, m_shadowmapCubeFaceSize, ShadowmapData::BatchSize };
 		descriptor.colorFormats = { GL_RG32F };
 		descriptor.depthFormat = GL_DEPTH_COMPONENT16;
 		descriptor.wrapmodex = GL_CLAMP_TO_EDGE;
@@ -111,18 +115,15 @@ namespace PK::Rendering
 		m_shadowmapData.LightIndices[(int)LightType::Point].SceneRenderTarget = CreateRef<RenderTexture>(descriptor);
 
 		descriptor.dimension = GL_TEXTURE_2D_ARRAY;
-		descriptor.resolution = { ShadowmapData::TileSize, ShadowmapData::TileSize, ShadowmapData::BatchSize };
+		descriptor.resolution = { m_shadowmapTileSize, m_shadowmapTileSize, ShadowmapData::BatchSize };
 		descriptor.colorFormats = { GL_RG32F };
 		descriptor.depthFormat = GL_DEPTH_COMPONENT16;
 		m_shadowmapData.LightIndices[(int)LightType::Directional].SceneRenderTarget = m_shadowmapData.LightIndices[(int)LightType::Spot].SceneRenderTarget = CreateRef<RenderTexture>(descriptor);
 
-		descriptor.depthFormat = GL_NONE;
-		m_shadowmapData.MapIntermediate = CreateRef<RenderTexture>(descriptor);
-
 		descriptor.dimension = GL_TEXTURE_2D_ARRAY;
 		descriptor.colorFormats = { GL_RG32F };
 		descriptor.depthFormat = GL_NONE;
-		descriptor.resolution = { ShadowmapData::TileSize, ShadowmapData::TileSize, ShadowmapData::TotalTileCount };
+		descriptor.resolution = { m_shadowmapTileSize, m_shadowmapTileSize, m_shadowmapTileCount + ShadowmapData::BatchSize };
 		m_shadowmapData.ShadowmapAtlas = CreateRef<RenderTexture>(descriptor);
 
 		TextureDescriptor imageDescriptor;
@@ -161,12 +162,12 @@ namespace PK::Rendering
 	{
 		m_properties.SetTexture(StringHashID::StringToID("_ShadowmapBatchCube"), m_shadowmapData.LightIndices[(int)LightType::Point].SceneRenderTarget->GetColorBuffer(0)->GetGraphicsID());
 		m_properties.SetTexture(StringHashID::StringToID("_ShadowmapBatch0"), m_shadowmapData.LightIndices[(int)LightType::Spot].SceneRenderTarget->GetColorBuffer(0)->GetGraphicsID());
-		m_properties.SetTexture(StringHashID::StringToID("_ShadowmapBatch1"), m_shadowmapData.MapIntermediate->GetColorBuffer(0)->GetGraphicsID());
+		m_properties.SetTexture(StringHashID::StringToID("_ShadowmapBatch1"), m_shadowmapData.ShadowmapAtlas->GetColorBuffer(0)->GetGraphicsID());
 
 		float4 viewports[2] = 
 		{
-			{0, 0, 256, 256},
-			{0, 0, ShadowmapData::TileSize, ShadowmapData::TileSize},
+			{0, 0, m_shadowmapCubeFaceSize, m_shadowmapCubeFaceSize},
+			{0, 0, m_shadowmapTileSize, m_shadowmapTileSize},
 		};
 
 		const auto cullingMask = (ushort)(ECS::Components::RenderHandleFlags::Renderer | ECS::Components::RenderHandleFlags::ShadowCaster);
@@ -255,11 +256,11 @@ namespace PK::Rendering
 				Batching::DrawBatches(&m_shadowmapData.Batches, 0, typedata.ShaderRenderShadows, m_properties);
 
 				m_properties.SetKeywords({ StringHashID::StringToID("SHADOW_BLUR_PASS0") });
-				GraphicsAPI::SetRenderTarget(m_shadowmapData.MapIntermediate.get(), false);
-				GraphicsAPI::BlitInstanced(0, tileCount, typedata.ShaderBlur, m_properties);
-
-				m_properties.SetKeywords({ StringHashID::StringToID("SHADOW_BLUR_PASS1") });
 				GraphicsAPI::SetRenderTarget(m_shadowmapData.ShadowmapAtlas.get(), false);
+				GraphicsAPI::BlitInstanced(atlasIndex + ShadowmapData::BatchSize, tileCount, typedata.ShaderBlur, m_properties);
+
+				glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
+				m_properties.SetKeywords({ StringHashID::StringToID("SHADOW_BLUR_PASS1") });
 				GraphicsAPI::BlitInstanced(atlasIndex, tileCount, typedata.ShaderBlur, m_properties);
 			}
 		}
@@ -286,7 +287,7 @@ namespace PK::Rendering
 		}
 
 		auto lightProjectionCount = 0;
-		auto shadowMapCount = 0;
+		auto shadowMapCount = 0u;
 
 		// Get visible shadowmap tiles per light type so that tile indexing can be ordered by light type
 		for (size_t i = 0; i < m_visibleLightCount; ++i)
@@ -310,7 +311,7 @@ namespace PK::Rendering
 
 			view->light->shadowmapIndex = 0xFFFFFFFF;
 
-			if (!view->light->castShadows || shadowMapCount >= ShadowmapData::TotalTileCount)
+			if (!view->light->castShadows || shadowMapCount >= m_shadowmapTileCount)
 			{
 				continue;
 			}
@@ -322,7 +323,7 @@ namespace PK::Rendering
 					view->light->shadowmapIndex = shadowMapCount++;
 					break;
 				case LightType::Directional:
-					if (ShadowmapData::TotalTileCount - shadowMapCount >= ShadowmapData::BatchSize)
+					if (m_shadowmapTileCount - shadowMapCount >= ShadowmapData::BatchSize)
 					{
 						view->light->shadowmapIndex = shadowMapCount;
 						shadowMapCount += ShadowmapData::BatchSize;
@@ -367,7 +368,7 @@ namespace PK::Rendering
 						&lightNear,
 						&lightFar);
 
-					position = float4(view->transform->rotation * CG_FLOAT3_FORWARD, -lightNear);
+					position = float4(view->transform->rotation * CG_FLOAT3_FORWARD, lightFar - lightNear);
 					break;
 
 				case LightType::Point:
@@ -412,7 +413,6 @@ namespace PK::Rendering
 		GraphicsAPI::SetGlobalInt(hashCache->pk_LightCount, m_visibleLightCount);
 		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_Lights, m_lightsBuffer->GetGraphicsID());
 		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_LightMatrices, m_lightMatricesBuffer->GetGraphicsID());
-		GraphicsAPI::SetGlobalFloat2(hashCache->pk_ClusterSizePx, { std::ceilf(resolution.x / (float)GridSizeX), std::ceilf(resolution.y / (float)GridSizeY)});
 		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_GlobalLightsList, m_globalLightsList->GetGraphicsID());
 		GraphicsAPI::SetGlobalImage(hashCache->pk_LightTiles, m_lightTiles->GetImageBindDescriptor(GL_READ_WRITE, 0, 0, true));
 		UpdateShadowmaps(entityDb, inverseViewProjection, zNear, zFar);
@@ -420,8 +420,8 @@ namespace PK::Rendering
 	
 	void LightsManager::UpdateLightTiles(const uint2& resolution)
 	{	
-		auto depthCountX = (uint)std::ceilf(resolution.x / DepthGroupSizeX);
-		auto depthCountY = (uint)std::ceilf(resolution.y / DepthGroupSizeY);
+		auto depthCountX = (uint)std::ceilf(resolution.x / DepthGroupSize);
+		auto depthCountY = (uint)std::ceilf(resolution.y / DepthGroupSize);
 		GraphicsAPI::DispatchCompute(m_computeDepthTiles, { depthCountX, depthCountY, 1 }, m_properties, GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 		GraphicsAPI::DispatchCompute(m_computeLightAssignment, { 1,1, GridSizeZ / 4 }, m_properties, GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 	}

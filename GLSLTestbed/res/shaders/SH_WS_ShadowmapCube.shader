@@ -12,7 +12,7 @@
 
 #pragma PROGRAM_VERTEX
 layout(location = 0) in float3 in_POSITION0;
-out noperspective float3 vs_VIEWVECTOR;
+out noperspective float vs_DEPTH;
 
 void main()
 {
@@ -21,9 +21,10 @@ void main()
 
 	float4 light = PK_BUFFER_DATA(pk_Lights, indices.lightIndex).position;
 	float3 wpos = ObjectToWorldPos(in_POSITION0);
-	vs_VIEWVECTOR = wpos - light.xyz;
+	float3 vvec = wpos - light.xyz;
+	vs_DEPTH = length(vvec) + SHADOW_NEAR_BIAS;
 
-	gl_Position = GetCubeClipPos(vs_VIEWVECTOR, light.w, indices.faceIndex);
+	gl_Position = GetCubeClipPos(vvec, light.w, indices.faceIndex);
 	gl_ViewportIndex = 0;
 };
 
