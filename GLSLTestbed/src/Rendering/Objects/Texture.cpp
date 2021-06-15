@@ -133,6 +133,7 @@ namespace PK::Rendering::Objects
             case GL_RGBA16:
             case GL_RGBA16F:
             case GL_RGBA32F:
+            case GL_RGB10_A2:
                 return GL_RGBA;
             case GL_DEPTH24_STENCIL8:
                 return GL_DEPTH_STENCIL;
@@ -186,6 +187,8 @@ namespace PK::Rendering::Objects
             case GL_RGB565:
                 return GL_UNSIGNED_SHORT_5_6_5;
             case GL_RGB10:
+            case GL_RGB10_A2:
+            case GL_RGB10_A2UI:
                 return GL_UNSIGNED_INT_10_10_10_2;
             case GL_R32UI:
             case GL_RG32UI:
@@ -261,6 +264,8 @@ namespace PK::Rendering::Objects
             case GL_RGBA8: return 32; // 4 * 8
             case GL_RGBA8I: return 32; // 4 * 8
             case GL_RGBA8UI: return 32; // 4 * 8
+            case GL_RGB10_A2: return 32;  
+            case GL_RGB10_A2UI: return 32;  
             case GL_RGBA12: return 48; // 4 * 12
             case GL_RGBA16: return 64; // 4 * 16
             case GL_RGBA16I: return 64; // 4 * 16

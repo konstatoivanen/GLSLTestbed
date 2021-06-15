@@ -32,7 +32,10 @@ using namespace PK::Rendering::Objects;
 using namespace PK::Math;
 
 template<>
-void AssetImporters::Import<Material>(const std::string& filepath, Ref<Material>& material)
+bool AssetImporters::IsValidExtension<Material>(const std::filesystem::path& extension) { return extension.compare(".material") == 0; }
+
+template<>
+void AssetImporters::Import(const std::string& filepath, Ref<Material>& material)
 {
     material->Clear();
 
@@ -47,7 +50,6 @@ void AssetImporters::Import<Material>(const std::string& filepath, Ref<Material>
 	auto shaderPath = shaderPathProp.as<std::string>();
 	material->m_shader = Application::GetService<AssetDatabase>()->Load<Shader>(shaderPath);
 	material->m_cachedShaderAssetId = material->m_shader->GetAssetID();
-	material->m_renderQueueIndex = material->m_shader->GetRenderQueueIndex();
 
 	auto keywords = data["Keywords"];
 	

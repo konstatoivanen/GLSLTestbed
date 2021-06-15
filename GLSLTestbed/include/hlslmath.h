@@ -221,7 +221,7 @@ namespace PK::Math
         float4x4 GetOffsetPerspective(float left, float right, float bottom, float top, float fovy, float aspect, float zNear, float zFar);
         float4x4 GetPerspectiveSubdivision(int index, const int3& gridSize, float fovy, float aspect, float znear, float zfar);
         float4x4 GetFrustumBoundingOrthoMatrix(const float4x4& worldToLocal, const float4x4& inverseViewProjection, const float3& paddingLD, const float3& paddingRU, float* outZnear, float* outZFar);
-        void GetShadowCascadeMatrices(const float4x4& worldToLocal, const float4x4& inverseViewProjection, float zNear, float zFar, float linearity, float zPadding, uint count, float4x4* matrices, float* minNear, float* maxFar);
+        float GetShadowCascadeMatrices(const float4x4& worldToLocal, const float4x4& inverseViewProjection, const float* zPlanes, float zPadding, uint count, float4x4* matrices);
 
         inline color HexToRGB(uint hex) { return color((hex >> 24) & 0xFF, (hex >> 16) & 0xFF, (hex >> 8) & 0xFF, 255.0f) / 255.0f; }
         color HueToRGB(float hue);
@@ -234,6 +234,10 @@ namespace PK::Math
         inline float3 RandomRangeFloat3(const float3& min, const float3& max) { return float3(RandomRangeFloat(min.x, max.x), RandomRangeFloat(min.y, max.y), RandomRangeFloat(min.z, max.z)); }
         inline float3 RandomEuler() { return float3(RandomRangeFloat(-360.0f, 360.0f), RandomRangeFloat(-360.0f, 360.0f), RandomRangeFloat(-360.0f, 360.0f)); }
         size_t GetNextExponentialSize(size_t start, size_t min);
+        uint GetMaxMipLevel(uint resolution);
+        uint GetMaxMipLevel(uint2 resolution);
+        uint GetMaxMipLevel(uint3 resolution);
+        uint ByteArrayHash(const void* data, size_t count);
         
         // Color grading math
         color NormalizeColor(const color& color);

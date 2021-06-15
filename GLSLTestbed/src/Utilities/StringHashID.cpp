@@ -27,6 +27,6 @@ namespace PK::Utilities
             throw std::invalid_argument("Trying to get a string using an invalid id: " + std::to_string(id));
         }
     
-        return m_idStringMap[id];
+        return m_idStringMap.at(id);
     }
 }

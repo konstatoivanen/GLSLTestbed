@@ -416,30 +416,30 @@ namespace PK::Math
 						aabb.max.z + paddingRU.z) * worldToLocal;
 	}
 
-	void Functions::GetShadowCascadeMatrices(const float4x4& worldToLocal, const float4x4& inverseViewProjection, float zNear, float zFar, float linearity, float zPadding, uint count, float4x4* matrices, float* minNear, float* maxFar)
+	float Functions::GetShadowCascadeMatrices(const float4x4& worldToLocal, const float4x4& inverseViewProjection, const float* zPlanes, float zPadding, uint count, float4x4* matrices)
 	{
 		auto matrix = worldToLocal * inverseViewProjection;
-		auto zstep = 1.0f / count;
-		*minNear = std::numeric_limits<float>().max();
-		*maxFar = -std::numeric_limits<float>().max();
+		auto minNear = std::numeric_limits<float>().max();
+		auto maxFar = -std::numeric_limits<float>().max();
+		auto zrange = zPlanes[count] - zPlanes[0];
 
 		BoundingBox* aabbs = reinterpret_cast<BoundingBox*>(alloca(sizeof(BoundingBox) * count));
 
 		for (auto i = 0u; i < count; ++i)
 		{
-			auto lnear = (Functions::CascadeDepth(zNear, zFar, linearity, zstep * i) - zNear) / (zFar - zNear);
-			auto lfar = (Functions::CascadeDepth(zNear, zFar, linearity, zstep * (i + 1)) - zNear) / (zFar - zNear);
+			auto lnear = zPlanes[i] / zrange;
+			auto lfar = zPlanes[i + 1] / zrange;
 
 			aabbs[i] = Functions::GetInverseFrustumBounds(matrix, lnear, lfar);
 
-			if (aabbs[i].min.z < *minNear)
+			if (aabbs[i].min.z < minNear)
 			{
-				*minNear = aabbs[i].min.z;
+				minNear = aabbs[i].min.z;
 			}
 
-			if (aabbs[i].max.z > *maxFar)
+			if (aabbs[i].max.z > maxFar)
 			{
-				*maxFar = aabbs[i].max.z;
+				maxFar = aabbs[i].max.z;
 			}
 		}
 
@@ -450,11 +450,12 @@ namespace PK::Math
 				aabbs[i].max.x,
 				aabbs[i].min.y,
 				aabbs[i].max.y,
-				*minNear + zPadding,
+				minNear + zPadding,
 				aabbs[i].max.z) * worldToLocal;
 		}
 
-		*minNear += zPadding;
+		minNear += zPadding;
+		return maxFar - minNear;
 	}
 
 	size_t Functions::GetNextExponentialSize(size_t start, size_t min)
@@ -470,6 +471,44 @@ namespace PK::Math
 		}
 	
 		return start;
+	}
+
+	uint Functions::GetMaxMipLevel(uint resolution)
+	{
+		uint level = 1;
+
+		while (resolution > 1)
+		{
+			++level;
+			resolution >>= 1;
+		}
+		
+		return level;
+	}
+
+	uint Functions::GetMaxMipLevel(uint2 resolution) { return GetMaxMipLevel(glm::min(resolution.x, resolution.y)); }
+
+	uint Functions::GetMaxMipLevel(uint3 resolution) { return GetMaxMipLevel(glm::min(glm::min(resolution.x, resolution.y), resolution.z)); }
+
+	uint Functions::ByteArrayHash(const void* data, size_t count)
+	{
+		const char* bytes = reinterpret_cast<const char*>(data);
+
+		// Source: https://stackoverflow.com/questions/16340/how-do-i-generate-a-hashcode-from-a-byte-array-in-c
+		const auto p = 16777619;
+		auto hash = 2166136261;
+
+		for (int i = 0; i < count; ++i)
+		{
+			hash = (hash ^ bytes[i]) * p;
+		}
+
+		hash += hash << 13;
+		hash ^= hash >> 7;
+		hash += hash << 3;
+		hash ^= hash >> 17;
+		hash += hash << 5;
+		return (uint)hash;
 	}
 
 	color Functions::NormalizeColor(const color& c)
@@ -554,7 +593,11 @@ namespace PK::Math
 
 	void Functions::GetCascadeDepths(float znear, float zfar, float linearity, float* cascades, uint count)
 	{
-		cascades[0] = 0.0f;
+		assert(count > 2, "Cascade splits require at least 3 planes");
+
+		count--;
+		cascades[0] = znear;
+		cascades[count] = zfar;
 
 		for (auto i = 1u; i < count; ++i)
 		{

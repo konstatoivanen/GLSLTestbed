@@ -47,11 +47,12 @@ namespace PK::Rendering
 		Batching::UpdateBuffers(&batches);
 	}
 	
-	RenderPipeline::RenderPipeline(AssetDatabase* assetDatabase, ECS::EntityDatabase* entityDb, const ApplicationConfig& config) :
+	RenderPipeline::RenderPipeline(AssetDatabase* assetDatabase, ECS::EntityDatabase* entityDb, const ApplicationConfig* config) :
 		m_filterBloom(assetDatabase, config),
 		m_filterDof(assetDatabase, config),
 		m_filterAO(assetDatabase, config),
 		m_filterFog(assetDatabase, config),
+		m_filterSceneGi(assetDatabase, entityDb, config),
 		m_lightsManager(assetDatabase, config)
 	{
 		m_entityDb = entityDb;
@@ -60,10 +61,10 @@ namespace PK::Rendering
 
 		m_depthNormalsShader = assetDatabase->Find<Shader>("SH_WS_DepthNormals");
 		m_OEMBackgroundShader = assetDatabase->Find<Shader>("SH_VS_IBLBackground");
-		m_OEMTexture = assetDatabase->Load<TextureXD>(config.FileBackgroundTexture.c_str());
-		m_OEMExposure = config.BackgroundExposure;
+		m_OEMTexture = assetDatabase->Load<TextureXD>(config->FileBackgroundTexture.value.c_str());
+		m_OEMExposure = config->BackgroundExposure;
 
-		m_enableLightingDebug = config.EnableLightingDebug;
+		m_enableLightingDebug = config->EnableLightingDebug;
 	
 		auto renderTargetDescriptor = RenderTextureDescriptor();
 		renderTargetDescriptor.colorFormats = { GL_RGBA16F };
@@ -105,6 +106,7 @@ namespace PK::Rendering
 			{CG_TYPE::HANDLE, "pk_ScreenOcclusion"},
 			{CG_TYPE::HANDLE, "pk_LightCookies"},
 			{CG_TYPE::HANDLE, "pk_Bluenoise256"},
+			{CG_TYPE::HANDLE, "pk_ScreenSpaceGI"},
 			{CG_TYPE::FLOAT, "pk_SceneOEM_Exposure"},
 		}));
 
@@ -162,11 +164,13 @@ namespace PK::Rendering
 			m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenNormals, m_PreZRenderTarget->GetColorBuffer(0)->GetBindlessHandleResident());
 		}
 
-		m_constantsPerFrame->SetFloat4(HashCache::Get()->pk_ShadowCascadeZSplits, m_lightsManager.GetCascadeZSplits(projParams.x, projParams.y));
+		auto cascadeZSplits = m_lightsManager.GetCascadeZSplits(projParams.x, projParams.y);
+		m_constantsPerFrame->SetFloat4(HashCache::Get()->pk_ShadowCascadeZSplits, reinterpret_cast<float4*>(cascadeZSplits.planes));
 
 		m_filterAO.OnPreRender(m_PreZRenderTarget.get());
 		m_filterBloom.OnPreRender(m_HDRRenderTarget.get());
 		m_filterDof.OnPreRender(m_HDRRenderTarget.get());
+		m_filterSceneGi.OnPreRender(m_HDRRenderTarget.get());
 
 		m_constantsPerFrame->CopyFrom(m_context.ShaderProperties);
 		m_constantsPerFrame->FlushBuffer();
@@ -197,11 +201,12 @@ namespace PK::Rendering
 		GraphicsAPI::SetRenderTarget(m_PreZRenderTarget.get());
 		GraphicsAPI::Clear(CG_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		Batching::DrawBatches(&m_dynamicBatches, 0, m_depthNormalsShader);
+		Batching::DrawBatchesPredicated(&m_dynamicBatches, StringHashID::StringToID("PK_META_DEPTH_NORMALS"), m_depthNormalsShader);
 		
 		m_lightsManager.UpdateLightTiles(m_PreZRenderTarget->GetResolution2D());
 
 		m_filterAO.Execute(m_PreZRenderTarget.get(), nullptr);
+		m_filterSceneGi.Execute(nullptr, nullptr);
 
 		GraphicsAPI::SetRenderTarget(m_HDRRenderTarget.get());
 		GraphicsAPI::Clear(CG_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT);
@@ -211,7 +216,7 @@ namespace PK::Rendering
 		GraphicsAPI::Blit(m_OEMBackgroundShader);
 
 		// @Todo Implement render passes
-		Batching::DrawBatches(&m_dynamicBatches, 0);
+		Batching::DrawBatches(&m_dynamicBatches);
 
 		m_filterFog.Execute(m_HDRRenderTarget.get(), m_HDRRenderTarget.get());
 		m_filterDof.Execute(m_HDRRenderTarget.get(), m_HDRRenderTarget.get());

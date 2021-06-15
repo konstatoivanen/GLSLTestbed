@@ -101,8 +101,8 @@ const int2 sample_offsets_v1[4] = { int2( 0,-3), int2(0, 0), int2(0,3), int2(0,0
 
         return float2
         (
-            dot(valueR0, float4(0.0205, 0.0855, 0.0855, 0.0205)) + dot(valueR1, float3(0.232, 0.324, 0.232)),
-            dot(valueG0, float4(0.0205, 0.0855, 0.0855, 0.0205)) + dot(valueG1, float3(0.232, 0.324, 0.232))
+            dot(valueR0, 0.1428571428571429.xxxx) + dot(valueR1, 0.1428571428571429.xxx),
+            dot(valueG0, 0.1428571428571429.xxxx) + dot(valueG1, 0.1428571428571429.xxx)
         );
     }
 
@@ -118,8 +118,8 @@ const int2 sample_offsets_v1[4] = { int2( 0,-3), int2(0, 0), int2(0,3), int2(0,0
 
         return float2
         (
-            dot(valueR0, float4(0.0205, 0.0855, 0.0855, 0.0205)) + dot(valueR1, float3(0.232, 0.324, 0.232)),
-            dot(valueG0, float4(0.0205, 0.0855, 0.0855, 0.0205)) + dot(valueG1, float3(0.232, 0.324, 0.232))
+            dot(valueR0, 0.1428571428571429.xxxx) + dot(valueR1, 0.1428571428571429.xxx),
+            dot(valueG0, 0.1428571428571429.xxxx) + dot(valueG1, 0.1428571428571429.xxx)
         );
     }
 

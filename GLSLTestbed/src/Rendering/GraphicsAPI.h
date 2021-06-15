@@ -28,6 +28,7 @@ namespace PK::Rendering::GraphicsAPI
 	const RenderTexture* GetActiveRenderTarget();
 	const RenderTexture* GetBackBuffer();
 	int GetActiveShaderProgramId();
+	int GetMemoryUsageKB();
 
 	void ResetResourceBindings();
 	void ClearGlobalProperties();

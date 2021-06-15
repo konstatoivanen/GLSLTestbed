@@ -29,34 +29,37 @@ namespace PK::Utilities::Debug
         WHITE = 15,
         LOG_PARAMETER = ComposeConsoleColor(15, 0),
         LOG_HEADER = ComposeConsoleColor(0, 15),
-        LOG_ERROR = ComposeConsoleColor(0, 4)
+        LOG_ERROR = ComposeConsoleColor(0, 4),
+        LOG_WARNING = ComposeConsoleColor(0, 14),
+        LOG_INPUT = ComposeConsoleColor(11, 0)
     };
+
+    void ClearLineRemainder(int length);
+    void InsertNewLine();
+    inline void SetConsoleColor(int color) { SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color); }
 
     template<typename T, typename... Args>
     void PKLog(int color, const T* message, const Args&...args)
     {
-        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-        SetConsoleTextAttribute(hConsole, color);
-        printf(message, args...);
-        printf("\n");
+        SetConsoleColor(color);
+        ClearLineRemainder(printf(message, args...));
+        InsertNewLine();
     }
 
     template<typename T, typename... Args>
     void PKLogOverwrite(int color, const T* message, const Args&...args)
     {
-        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-        SetConsoleTextAttribute(hConsole, color);
-        printf(message, args...);
+        SetConsoleColor(color);
+        ClearLineRemainder(printf(message, args...));
         printf("\r");
     }
 
     template<typename T, typename ... Args>
     std::exception PKException(int color, const T* message, const Args&...args)
     {
-        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-        SetConsoleTextAttribute(hConsole, color);
-        printf(message, args...);
-        printf("\n");
+        SetConsoleColor(color);
+        ClearLineRemainder(printf(message, args...));
+        InsertNewLine();
         _getch();
         return std::exception(message);
     }
@@ -64,6 +67,7 @@ namespace PK::Utilities::Debug
 
 #define PK_CORE_LOG_HEADER(...) PK::Utilities::Debug::PKLog((unsigned short)PK::Utilities::Debug::ConsoleColor::LOG_HEADER, __VA_ARGS__)
 #define PK_CORE_LOG(...) PK::Utilities::Debug::PKLog((unsigned short)PK::Utilities::Debug::ConsoleColor::LOG_PARAMETER, __VA_ARGS__)
+#define PK_CORE_LOG_WARNING(...) PK::Utilities::Debug::PKLog((unsigned short)PK::Utilities::Debug::ConsoleColor::LOG_WARNING, __VA_ARGS__)
 #define PK_CORE_LOG_OVERWRITE(...) PK::Utilities::Debug::PKLogOverwrite((unsigned short)PK::Utilities::Debug::ConsoleColor::LOG_PARAMETER, __VA_ARGS__)
 #define PK_CORE_EXCEPTION(...) PK::Utilities::Debug::PKException((unsigned short)PK::Utilities::Debug::ConsoleColor::LOG_ERROR, __VA_ARGS__)
 #define PK_CORE_ERROR(...) throw PK_CORE_EXCEPTION(__VA_ARGS__)

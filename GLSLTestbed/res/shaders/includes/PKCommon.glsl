@@ -15,6 +15,9 @@
 #define PK_INV_FOUR_PI   0.07957747155f
 #define PK_HALF_PI       1.57079632679f
 #define PK_INV_HALF_PI   0.636619772367f
+#define PK_TWO_SQRT2 2.828427
+#define PK_SQRT2 1.414213
+#define PK_INV_SQRT2 0.707106
 
 #define pk_Grey float4(0.214041144, 0.214041144, 0.214041144, 0.5)
 // standard dielectric reflectivity coef at incident angle (= 4%)
@@ -70,6 +73,8 @@ PK_DECLARE_CBUFFER(pk_PerFrameConstants)
     sampler2DArray pk_LightCookies;
     // Global blue noise texture
     sampler2D pk_Bluenoise256;
+    // GI pass screen space output.
+	sampler2D pk_ScreenSpaceGI;
 
     // Scene reflections exposure
     float pk_SceneOEM_Exposure;
@@ -106,6 +111,18 @@ float3 GlobalNoiseBlue(uint2 coord)
 	return texelFetch(pk_Bluenoise256, int2(coord.x % 256, coord.y % 256), 0).xyz;
 }
 
+float3 GlobalNoiseBlueUV(float2 coord)
+{
+	return tex2D(pk_Bluenoise256, coord).xyz;
+}
+
+uint GetShadowCascadeIndex(float linearDepth)
+{
+    return linearDepth > pk_ShadowCascadeZSplits[1] ? 
+           linearDepth > pk_ShadowCascadeZSplits[2] ? 
+           linearDepth > pk_ShadowCascadeZSplits[3] ? 3 : 2 : 1 : 0;
+}
+
 float4 WorldToClipPos( in float3 pos) { return mul(pk_MATRIX_VP, float4(pos, 1.0)); }
 
 float4 ViewToClipPos( in float3 pos) { return mul(pk_MATRIX_P, float4(pos, 1.0)); }
@@ -129,6 +146,8 @@ float3 ObjectToWorldNormal( in float3 normal) { return normalize(mul(normal, flo
 float3 WorldToObjectPos(in float3 pos) { return mul(pk_MATRIX_I_M, float4(pos, 1.0f)).xyz; }
 
 float3 WorldToObjectVector( in float3 dir) { return mul(float3x3(pk_MATRIX_I_M), dir); }
+
+float3 WorldToViewDir(float3 dir) { return normalize(mul(float3x3(pk_MATRIX_V), dir)); }
 
 float3 WorldToObjectDir( in float3 dir) { return normalize(mul(float3x3(pk_MATRIX_I_M), dir)); }
 

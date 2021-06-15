@@ -36,3 +36,22 @@ float3 OctaDecode(float2 f)
 float2 OctaUV(float3 offset, float3 direction) { return offset.xy + OctaEncode(direction) * offset.z; }
 
 float2 OctaUV(float3 direction) { return OctaEncode(direction); }
+
+float3 RGBToHSV(float3 c)
+{
+	float4 k = float4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+	float4 p = lerp(float4(c.bg, k.wz), float4(c.gb, k.xy), step(c.b, c.g));
+	float4 q = lerp(float4(p.xyw, c.r), float4(c.r, p.yzx), step(p.x, c.r));
+
+	float d = q.x - min(q.w, q.y);
+	float e = 1.0e-10f;
+
+	return float3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
+
+float3 HSVToRGB(float3 c)
+{
+	float4 k = float4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+	float3 p = abs(fract(c.xxx + k.xyz) * 6.0 - k.www);
+	return c.zzz * lerp(k.xxx, saturate(p - k.xxx), c.y);
+}

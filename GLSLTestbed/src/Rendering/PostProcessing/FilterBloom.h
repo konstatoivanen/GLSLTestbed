@@ -12,9 +12,9 @@ namespace PK::Rendering::PostProcessing
     class FilterBloom : public FilterBase
     {
         public:
-            FilterBloom(AssetDatabase* assetDatabase, const ApplicationConfig& config);
-            void OnPreRender(const RenderTexture* source) override;
-            void Execute(const RenderTexture* source, const RenderTexture* destination) override;
+            FilterBloom(AssetDatabase* assetDatabase, const ApplicationConfig* config);
+            void OnPreRender(const RenderTexture* source) final;
+            void Execute(const RenderTexture* source, const RenderTexture* destination) final;
     
         private:
             Shader* m_computeHistogram = nullptr;

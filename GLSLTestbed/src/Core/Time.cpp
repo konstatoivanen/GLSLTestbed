@@ -39,7 +39,7 @@ namespace PK::Core
     
     void Time::LogFrameRate()
     {
-        PK_CORE_LOG_OVERWRITE("FPS: %4.1i, FIXED: %i, MIN: %i, MAX: %i, AVG: %i MS: %4.2f    ", m_framerate, m_framerateFixed, m_framerateMin, m_framerateMax, m_framerateAvg, m_unscaledDeltaTimeFixed * 1000.0f);
+        PK_CORE_LOG_OVERWRITE("FPS: %4.1i, FIXED: %i, MIN: %i, MAX: %i, AVG: %i MS: %4.2f", m_framerate, m_framerateFixed, m_framerateMin, m_framerateMax, m_framerateAvg, m_unscaledDeltaTimeFixed * 1000.0f);
     }
     
     void Time::Step(int condition)

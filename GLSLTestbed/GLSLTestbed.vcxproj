@@ -166,6 +166,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
   <ItemGroup>
     <ClInclude Include="src\Core\NoCopy.h" />
     <ClInclude Include="src\ECS\Contextual\Builders\Builders.h" />
+    <ClInclude Include="src\ECS\Contextual\Engines\CommandEngine.h" />
     <ClInclude Include="src\ECS\Contextual\Engines\EngineUpdateTransforms.h" />
     <ClInclude Include="src\ECS\Contextual\Components\Components.h" />
     <ClInclude Include="src\ECS\Contextual\EntityViews\EntityViews.h" />
@@ -174,6 +175,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="src\ECS\EntityDatabase.h" />
     <ClInclude Include="src\Rendering\Batching.h" />
     <ClInclude Include="src\Rendering\Culling.h" />
+    <ClInclude Include="src\Rendering\PostProcessing\FilterSceneGI.h" />
     <ClInclude Include="src\Rendering\GizmoRenderer.h" />
     <ClInclude Include="include\GLAD\glad.h" />
     <ClInclude Include="include\GLAD\khrplatform.h" />
@@ -514,7 +516,6 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="src\Rendering\PostProcessing\FilterDof.h" />
     <ClInclude Include="src\Rendering\PostProcessing\FilterVolumetricFog.h" />
     <ClInclude Include="src\Rendering\RenderPipeline.h" />
-    <ClInclude Include="src\Rendering\RenderQueueInfo.h" />
     <ClInclude Include="src\Rendering\Structs\BufferLayout.h" />
     <ClInclude Include="src\Rendering\Structs\FixedStateAttributes.h" />
     <ClInclude Include="src\Rendering\Structs\PropertyBlock.h" />
@@ -710,6 +711,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\CS_ClusteredDepthMax.shader" />
     <None Include="res\shaders\CS_ClusteredLightAssignment.shader" />
     <None Include="res\shaders\CS_LuminanceHistogram.shader" />
+    <None Include="res\shaders\CS_SceneGIMipmap.shader" />
     <None Include="res\shaders\CS_VolumeFogDepthMax.shader" />
     <None Include="res\shaders\includes\BlitCommon.glsl">
       <DeploymentContent>true</DeploymentContent>
@@ -725,6 +727,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\includes\Noise.glsl" />
     <None Include="res\shaders\includes\Encoding.glsl" />
     <None Include="res\shaders\includes\Reconstruction.glsl" />
+    <None Include="res\shaders\includes\SceneGIShared.glsl" />
     <None Include="res\shaders\includes\Shadowmapping.glsl" />
     <None Include="res\shaders\includes\Tonemapping.glsl" />
     <None Include="res\shaders\includes\VolumeFogShared.glsl" />
@@ -742,8 +745,10 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\includes\Test.glsl">
       <DeploymentContent>true</DeploymentContent>
     </None>
+    <None Include="res\shaders\SH_VS_SceneGI_Bake.shader" />
     <None Include="res\shaders\SH_VS_ShadowmapBlurCube.shader" />
     <None Include="res\shaders\SH_VS_ShadowmapBlurProj.shader" />
+    <None Include="res\shaders\SH_WS_SceneGI_Meta_White.shader" />
     <None Include="res\shaders\SH_WS_ShadowmapCube.shader" />
     <None Include="res\shaders\SH_WS_DepthNormals.shader" />
     <None Include="res\shaders\SH_WS_ShadowmapOrtho.shader" />
@@ -789,9 +794,11 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ECS\Contextual\Builders\Builders.cpp" />
+    <ClCompile Include="src\ECS\Contextual\Engines\CommandEngine.cpp" />
     <ClCompile Include="src\ECS\Contextual\Engines\EngineUpdateTransforms.cpp" />
     <ClCompile Include="src\Rendering\Batching.cpp" />
     <ClCompile Include="src\Rendering\Culling.cpp" />
+    <ClCompile Include="src\Rendering\PostProcessing\FilterSceneGI.cpp" />
     <ClCompile Include="src\Rendering\GizmoRenderer.cpp" />
     <ClCompile Include="include\GLAD\glad.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -837,6 +844,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClCompile Include="src\Rendering\Objects\Shader.cpp" />
     <ClCompile Include="src\Rendering\GraphicsAPI.cpp" />
     <ClCompile Include="src\Core\Application.cpp" />
+    <ClCompile Include="src\Utilities\Log.cpp" />
     <ClCompile Include="src\Utilities\StringHashID.cpp" />
     <ClCompile Include="src\Core\Time.cpp" />
     <ClCompile Include="src\Rendering\Objects\TextureXD.cpp" />
@@ -844,7 +852,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClCompile Include="src\Utilities\StringUtilities.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="res\ApplicationConfig.cfg">
+    <Text Include="res\configs\ApplicationConfig-Active.cfg">
       <DeploymentContent>true</DeploymentContent>
     </Text>
     <Text Include="res\shaders\CS_VolumeFogLightDensity.shader" />

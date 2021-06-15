@@ -49,7 +49,11 @@ namespace PK::Rendering::GraphicsAPI
 		DELTA_CHECK_SET(current.BlendEnabled, attributes.BlendEnabled, glToggle(GL_BLEND, attributes.BlendEnabled))
 		DELTA_CHECK_SET(current.CullEnabled, attributes.CullEnabled, glToggle(GL_CULL_FACE, attributes.CullEnabled))
 		DELTA_CHECK_SET(current.ZWriteEnabled, attributes.ZWriteEnabled, glDepthMask(attributes.ZWriteEnabled))
-		DELTA_CHECK_SET(current.ColorMask, attributes.ColorMask, glColorMask(attributes.ColorMask & (1 << 0), attributes.ColorMask & (1 << 1), attributes.ColorMask & (1 << 2), attributes.ColorMask & (1 << 3)))
+		DELTA_CHECK_SET(current.ColorMask, attributes.ColorMask, glColorMask(
+			(attributes.ColorMask & (1 << 0)) != 0, 
+			(attributes.ColorMask & (1 << 1)) != 0, 
+			(attributes.ColorMask & (1 << 2)) != 0, 
+			(attributes.ColorMask & (1 << 3)) != 0))
 
 		if (attributes.ZTestEnabled)
 		{
@@ -120,6 +124,20 @@ namespace PK::Rendering::GraphicsAPI
 		glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
 		return currentProgram;
     }
+
+	int GraphicsAPI::GetMemoryUsageKB()
+	{
+		#define GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX 0x9048
+		#define GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX 0x9049
+
+		GLint total_mem_kb = 0;
+		GLint cur_avail_mem_kb = 0;
+
+		glGetIntegerv(GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX, &total_mem_kb);
+		glGetIntegerv(GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX, &cur_avail_mem_kb);
+
+		return total_mem_kb - cur_avail_mem_kb;
+	}
 	
 	void GraphicsAPI::ResetResourceBindings() { RESOURCE_BINDINGS.ResetBindStates(); }
 

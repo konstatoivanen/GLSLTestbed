@@ -140,5 +140,11 @@ void main()
         PK_BUFFER_DATA(pk_GlobalLightsList, offset + i) = visibleLightIndices[i];
     }
 
-    imageStore(pk_LightTiles, int3(gl_GlobalInvocationID), uint4((visibleLightCount << 24) | (offset & 0xFFFFFF)));
+    uint base = 0;
+    base = bitfieldInsert(base, offset, 0, 20);
+    base = bitfieldInsert(base, visibleLightCount, 20, 8);
+    base = bitfieldInsert(base, offset, 0, 20);
+    base = bitfieldInsert(base, GetShadowCascadeIndex(lerp(near, far, 0.5f)), 28, 4);
+
+    imageStore(pk_LightTiles, int3(gl_GlobalInvocationID), uint4(base));
 }

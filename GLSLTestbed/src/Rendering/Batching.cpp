@@ -344,7 +344,7 @@ namespace PK::Rendering::Batching
     }
 
 
-    void DrawBatches(DynamicBatchCollection* collection, uint32_t renderQueueIndex)
+    void DrawBatches(DynamicBatchCollection* collection)
     {
         if (collection->TotalDrawCallCount < 1)
         {
@@ -392,7 +392,7 @@ namespace PK::Rendering::Batching
         GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, false);
     }
 
-    void DrawBatches(DynamicBatchCollection* collection, uint32_t renderQueueIndex, const Material* overrideMaterial)
+    void DrawBatches(DynamicBatchCollection* collection, const Material* overrideMaterial)
     {
         if (collection->TotalDrawCallCount < 1)
         {
@@ -416,7 +416,7 @@ namespace PK::Rendering::Batching
         GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, false);
     }
 
-    void DrawBatches(DynamicBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader, const ShaderPropertyBlock& propertyBlock)
+    void DrawBatches(DynamicBatchCollection* collection, Shader* overrideShader, const ShaderPropertyBlock& propertyBlock)
     {
         if (collection->TotalDrawCallCount < 1)
         {
@@ -440,7 +440,7 @@ namespace PK::Rendering::Batching
         GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, false);
     }
 
-    void DrawBatches(DynamicBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader)
+    void DrawBatches(DynamicBatchCollection* collection, Shader* overrideShader)
     {
         if (collection->TotalDrawCallCount < 1)
         {
@@ -462,10 +462,65 @@ namespace PK::Rendering::Batching
         }
 
         GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, false);
+    }
+
+    void DrawBatchesPredicated(DynamicBatchCollection* collection, const uint32_t keyword, Shader* fallbackShader)
+    {
+        if (collection->TotalDrawCallCount < 1)
+        {
+            return;
+        }
+
+        auto hashes = HashCache::Get();
+        GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingMatrices, collection->MatrixBuffer->GetGraphicsID());
+        GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingPropertyIndices, collection->PropertyIndices->GetGraphicsID());
+        GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, true);
+        GraphicsAPI::SetGlobalKeyword(keyword, true);
+
+        for (auto& meshBatch : collection->MeshBatches)
+        {
+            if (meshBatch.drawCallCount < 1)
+            {
+                continue;
+            }
+
+            auto shaderBatches = meshBatch.shaderBatches.data();
+
+            for (uint i = 0; i < meshBatch.shaderBatchCount; ++i)
+            {
+                auto* shaderBatch = &collection->ShaderBatches.at(shaderBatches[i]);
+                auto  instancedData = shaderBatch->instancedData.get();
+                auto* firstMaterial = &collection->MaterialBatches.at(shaderBatch->materialBatches.at(0));
+
+                if (!firstMaterial->material->SupportsKeyword(keyword))
+                {
+                    GraphicsAPI::DrawMeshInstanced(meshBatch.mesh, -1, shaderBatch->instancingOffset, (uint)shaderBatch->drawCallCount, fallbackShader);
+                }
+
+                if (instancedData != nullptr)
+                {
+                    GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancedProperties, instancedData->GetGraphicsID());
+                    GraphicsAPI::DrawMeshInstanced(meshBatch.mesh, shaderBatch->submesh, shaderBatch->instancingOffset, (uint)shaderBatch->drawCallCount, firstMaterial->material);
+                }
+                else
+                {
+                    auto materialBatchIndices = shaderBatch->materialBatches.data();
+
+                    for (uint j = 0; j < shaderBatch->materialBatchCount; ++j)
+                    {
+                        auto* materialBatch = &collection->MaterialBatches.at(materialBatchIndices[j]);
+                        GraphicsAPI::DrawMeshInstanced(meshBatch.mesh, shaderBatch->submesh, materialBatch->instancingOffset, (uint)materialBatch->drawCallCount, materialBatch->material);
+                    }
+                }
+            }
+        }
+
+        GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, false);
+        GraphicsAPI::SetGlobalKeyword(keyword, false);
     }
 
    
-    void DrawBatches(MeshBatchCollection* collection, uint32_t renderQueueIndex, const Material* overrideMaterial)
+    void DrawBatches(MeshBatchCollection* collection, const Material* overrideMaterial)
     {
         if (collection->TotalDrawCallCount < 1)
         {
@@ -489,7 +544,7 @@ namespace PK::Rendering::Batching
         GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, false);
     }
 
-    void DrawBatches(MeshBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader, const ShaderPropertyBlock& propertyBlock)
+    void DrawBatches(MeshBatchCollection* collection, Shader* overrideShader, const ShaderPropertyBlock& propertyBlock)
     {
         if (collection->TotalDrawCallCount < 1)
         {
@@ -513,7 +568,7 @@ namespace PK::Rendering::Batching
         GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, false);
     }
 
-    void DrawBatches(MeshBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader)
+    void DrawBatches(MeshBatchCollection* collection, Shader* overrideShader)
     {
         if (collection->TotalDrawCallCount < 1)
         {
@@ -537,7 +592,7 @@ namespace PK::Rendering::Batching
         GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, false);
     }
 
-    void DrawBatches(IndexedMeshBatchCollection* collection, uint32_t renderQueueIndex, const Material* overrideMaterial)
+    void DrawBatches(IndexedMeshBatchCollection* collection, const Material* overrideMaterial)
     {
         if (collection->TotalDrawCallCount < 1)
         {
@@ -562,7 +617,7 @@ namespace PK::Rendering::Batching
         GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, false);
     }
 
-    void DrawBatches(IndexedMeshBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader, const ShaderPropertyBlock& propertyBlock)
+    void DrawBatches(IndexedMeshBatchCollection* collection, Shader* overrideShader, const ShaderPropertyBlock& propertyBlock)
     {
         if (collection->TotalDrawCallCount < 1)
         {
@@ -587,7 +642,7 @@ namespace PK::Rendering::Batching
         GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, false);
     }
 
-    void DrawBatches(IndexedMeshBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader)
+    void DrawBatches(IndexedMeshBatchCollection* collection, Shader* overrideShader)
     {
         if (collection->TotalDrawCallCount < 1)
         {

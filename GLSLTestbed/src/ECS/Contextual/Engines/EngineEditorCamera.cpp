@@ -7,16 +7,16 @@ namespace PK::ECS::Engines
 {
 	using namespace PK::Math;
 
-	EngineEditorCamera::EngineEditorCamera(Time* time, const ApplicationConfig& config)
+	EngineEditorCamera::EngineEditorCamera(Time* time, const ApplicationConfig* config)
 	{
 		m_time = time;
-		m_moveSpeed = config.CameraSpeed;
-		m_fieldOfView = config.CameraFov;
-		m_zNear = config.CameraZNear;
-		m_zFar = config.CameraZFar;
-		m_moveSmoothing = glm::clamp(config.CameraMoveSmoothing, 0.0f, 1.0f);
-		m_rotationSmoothing = glm::clamp(config.CameraLookSmoothing, 0.0f, 1.0f);
-		m_sensitivity = config.CameraLookSensitivity / 1000.0f;
+		m_moveSpeed = config->CameraSpeed;
+		m_fieldOfView = config->CameraFov;
+		m_zNear = config->CameraZNear;
+		m_zFar = config->CameraZFar;
+		m_moveSmoothing = glm::clamp(config->CameraMoveSmoothing.value, 0.0f, 1.0f);
+		m_rotationSmoothing = glm::clamp(config->CameraLookSmoothing.value, 0.0f, 1.0f);
+		m_sensitivity = config->CameraLookSensitivity / 1000.0f;
 	}
 	
 	void EngineEditorCamera::Step(Input* input)

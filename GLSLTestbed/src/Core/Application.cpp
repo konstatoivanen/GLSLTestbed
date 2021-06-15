@@ -9,9 +9,9 @@
 #include "Core/ApplicationConfig.h"
 #include "Rendering/RenderPipeline.h"
 #include "Rendering/GizmoRenderer.h"
-#include "Rendering/RenderQueueInfo.h"
 #include "ECS/Contextual/Engines/EngineEditorCamera.h"
 #include "ECS/Contextual/Engines/DebugEngine.h"
+#include "ECS/Contextual/Engines/CommandEngine.h"
 #include "ECS/Contextual/Engines/EngineUpdateTransforms.h"
 #include "Rendering/GraphicsAPI.h"
 #include <math.h>
@@ -29,43 +29,37 @@ namespace PK::Core
 		PK_CORE_ASSERT(!s_Instance, "Application already exists!");
 		s_Instance = this;
 	
-		auto config = ApplicationConfig("res/ApplicationConfig.cfg");
-	
-		::ShowWindow(::GetConsoleWindow(), config.EnableConsole ? SW_SHOW : SW_HIDE);
-	
 		PK::Rendering::GraphicsAPI::Initialize();
 		
-		m_window = CreateScope<Window>(WindowProperties(name, config.InitialWidth, config.InitialHeight, config.EnableVsync, config.ShowCursor));
 		m_services = CreateScope<ServiceRegister>();
-		
 		m_services->Create<StringHashID>();
 		m_services->Create<HashCache>();
-		m_services->Create<RenderQueueInfo>();
-		
 		auto entityDb = m_services->Create<PK::ECS::EntityDatabase>();
 		auto sequencer = m_services->Create<PK::ECS::Sequencer>();
-		auto time = m_services->Create<Time>(sequencer, config.TimeScale);
 		auto assetDatabase = m_services->Create<AssetDatabase>();
-		auto input = m_services->Create<Input>(sequencer);
 		
+		assetDatabase->LoadDirectory<ApplicationConfig>("res/configs/");
+		auto config = assetDatabase->Find<ApplicationConfig>("Active");
+
+		auto time = m_services->Create<Time>(sequencer, config->TimeScale);
+		auto input = m_services->Create<Input>(sequencer);
+
+		m_window = CreateScope<Window>(WindowProperties(name, config->InitialWidth, config->InitialHeight, config->EnableVsync, config->EnableCursor));
+		Window::SetConsole(config->EnableConsole);
 		m_window->OnKeyInput = PK_BIND_MEMBER_FUNCTION(input, OnKeyInput);
 		m_window->OnScrollInput = PK_BIND_MEMBER_FUNCTION(input, OnScrollInput);
 		m_window->OnMouseButtonInput = PK_BIND_MEMBER_FUNCTION(input, OnMouseButtonInput);
 		m_window->OnClose = PK_BIND_FUNCTION(Application::Close);
 		
-		assetDatabase->LoadDirectory<Shader>("res/shaders/", { ".shader" });
-		
-		// Load these based on usage instead.
-		//assetDatabase->LoadDirectory<TextureXD>("res/textures/", { ".ktx" });
-		//assetDatabase->LoadDirectory<Mesh>("res/models/", { ".mdl" });
-		//assetDatabase->LoadDirectory<Material>("res/materials/", { ".material" });
+		assetDatabase->LoadDirectory<Shader>("res/shaders/");
 	
 		auto renderPipeline = m_services->Create<RenderPipeline>(assetDatabase, entityDb, config);
 		auto engineEditorCamera = m_services->Create<ECS::Engines::EngineEditorCamera>(time, config);
 		auto engineUpdateTransforms = m_services->Create<ECS::Engines::EngineUpdateTransforms>(entityDb);
 		auto engineDebug = m_services->Create<ECS::Engines::DebugEngine>(assetDatabase, time, entityDb, config);
-		auto gizmoRenderer = m_services->Create<GizmoRenderer>(sequencer, assetDatabase, config.EnableGizmos);
-		
+		auto gizmoRenderer = m_services->Create<GizmoRenderer>(sequencer, assetDatabase, config->EnableGizmos);
+		auto engineCommands = m_services->Create<ECS::Engines::CommandEngine>(assetDatabase, time, entityDb);
+
 		sequencer->SetSteps(
 		{
 			{
@@ -80,7 +74,14 @@ namespace PK::Core
 					{ (int)UpdateStep::CloseFrame,		{ PK_STEP_S(renderPipeline), input, time }},
 				}
 			},
-			{ input, { PK_STEP_T(engineDebug, Input), PK_STEP_T(engineEditorCamera, Input) } },
+			{ 
+				input, 
+				{ 
+					PK_STEP_T(engineDebug, Input), 
+					PK_STEP_T(engineCommands, Input), 
+					PK_STEP_T(engineEditorCamera, Input) 
+				} 
+			},
 			{ time, { PK_STEP_T(renderPipeline, Time) } },
 			{ gizmoRenderer, { PK_STEP_T(engineDebug, GizmoRenderer) }}
 		});

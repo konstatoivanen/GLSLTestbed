@@ -62,6 +62,9 @@ namespace PK::Rendering::Objects
 }
 
 template<>
+bool PK::Core::AssetImporters::IsValidExtension<PK::Rendering::Objects::TextureXD>(const std::filesystem::path& extension) { return extension.compare(".ktx") == 0; }
+
+template<>
 void PK::Core::AssetImporters::Import(const std::string& filepath, Utilities::Ref<PK::Rendering::Objects::TextureXD>& texture)
 {
 	if (texture->m_graphicsId != 0)

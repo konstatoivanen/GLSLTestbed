@@ -83,14 +83,14 @@ namespace PK::Rendering
 		Batching::QueueDraw(&ctx->data->Batches, renderable->mesh->sharedMesh, { &renderable->transform->localToWorld, depth, index });
 	}
 
-	LightsManager::LightsManager(AssetDatabase* assetDatabase, const ApplicationConfig& config) : m_cascadeLinearity(config.CascadeLinearity)
+	LightsManager::LightsManager(AssetDatabase* assetDatabase, const ApplicationConfig* config) : m_cascadeLinearity(config->CascadeLinearity)
 	{
 		m_computeLightAssignment = assetDatabase->Find<Shader>("CS_ClusteredLightAssignment");
 		m_computeDepthTiles = assetDatabase->Find<Shader>("CS_ClusteredDepthMax");
 		m_debugVisualize = assetDatabase->Find<Shader>("SH_VS_ClusterDebug");
 	
-		m_shadowmapTileSize = config.ShadowmapTileSize;
-		m_shadowmapTileCount = config.ShadowmapTileCount;
+		m_shadowmapTileSize = config->ShadowmapTileSize;
+		m_shadowmapTileCount = config->ShadowmapTileCount;
 		m_shadowmapCubeFaceSize = (uint)sqrt((m_shadowmapTileSize * m_shadowmapTileSize) / 6);
 
 		m_shadowmapData.LightIndices[(int)LightType::Point].ShaderRenderShadows = assetDatabase->Find<Shader>("SH_WS_ShadowmapCube");
@@ -158,11 +158,29 @@ namespace PK::Rendering
 		m_properties.SetComputeBuffer(HashCache::Get()->pk_GlobalListListIndex, m_globalLightIndex->GetGraphicsID());
 	}
 
+	ShadowCascades LightsManager::GetCascadeZSplits(float znear, float zfar) const
+	{
+		ShadowCascades cascadeSplits;
+		Functions::GetCascadeDepths(znear, zfar, m_cascadeLinearity, cascadeSplits.planes, 5);
+
+		// Snap z ranges to tile indices to make shader branching more coherent
+		auto scale = GridSizeZ / glm::log2(zfar / znear);
+		auto bias = GridSizeZ * -log2(znear) / log2(zfar / znear);
+
+		for (auto i = 1; i < 4; ++i)
+		{
+			float zTile = round(log2(cascadeSplits.planes[i]) * scale + bias);
+			cascadeSplits.planes[i] = znear * pow(zfar / znear, zTile / GridSizeZ);
+		}
+
+		return cascadeSplits;
+	}
+
 	void LightsManager::UpdateShadowmaps(ECS::EntityDatabase* entityDb, const float4x4& inverseViewProjection, float zNear, float zFar)
 	{
-		m_properties.SetTexture(StringHashID::StringToID("_ShadowmapBatchCube"), m_shadowmapData.LightIndices[(int)LightType::Point].SceneRenderTarget->GetColorBuffer(0)->GetGraphicsID());
-		m_properties.SetTexture(StringHashID::StringToID("_ShadowmapBatch0"), m_shadowmapData.LightIndices[(int)LightType::Spot].SceneRenderTarget->GetColorBuffer(0)->GetGraphicsID());
-		m_properties.SetTexture(StringHashID::StringToID("_ShadowmapBatch1"), m_shadowmapData.ShadowmapAtlas->GetColorBuffer(0)->GetGraphicsID());
+		m_properties.SetTexture(HashCache::Get()->_ShadowmapBatchCube, m_shadowmapData.LightIndices[(int)LightType::Point].SceneRenderTarget->GetColorBuffer(0)->GetGraphicsID());
+		m_properties.SetTexture(HashCache::Get()->_ShadowmapBatch0, m_shadowmapData.LightIndices[(int)LightType::Spot].SceneRenderTarget->GetColorBuffer(0)->GetGraphicsID());
+		m_properties.SetTexture(HashCache::Get()->_ShadowmapBatch1, m_shadowmapData.ShadowmapAtlas->GetColorBuffer(0)->GetGraphicsID());
 
 		float4 viewports[2] = 
 		{
@@ -170,6 +188,7 @@ namespace PK::Rendering
 			{0, 0, m_shadowmapTileSize, m_shadowmapTileSize},
 		};
 
+		auto cascadeSplits = GetCascadeZSplits(zNear, zFar);
 		const auto cullingMask = (ushort)(ECS::Components::RenderHandleFlags::Renderer | ECS::Components::RenderHandleFlags::ShadowCaster);
 
 		GraphicsAPI::SetViewPorts(0, viewports, 2);
@@ -201,49 +220,31 @@ namespace PK::Rendering
 					{
 						case LightType::Point:
 						{
-							if (radius > maxDistance)
-							{
-								maxDistance = radius;
-							}
-
+							maxDistance = glm::max(maxDistance, radius);
 							auto bounds = entityDb->Query<ECS::EntityViews::BaseRenderable>(lightview->GID)->bounds->worldAABB;
 							Culling::ExecuteOnVisibleItemsCubeFaces(entityDb, bounds, cullingMask, OnCullVisibleShadowmap, &ctx);
 							break;
 						}
 						case LightType::Spot:
 						{
-							if (radius > maxDistance)
-							{
-								maxDistance = radius;
-							}
-
+							maxDistance = glm::max(maxDistance, radius);
 							auto projection = Functions::GetPerspective(lightview->light->angle, 1.0f, 0.1f, lightview->light->radius) * lightview->transform->worldToLocal;
 							Culling::ExecuteOnVisibleItemsFrustum(entityDb, projection, cullingMask, OnCullVisibleShadowmap, &ctx);
 							break;
 						}
 						case LightType::Directional:
 						{
-							float lightNear, lightFar;
 							float4x4 cascades[ShadowmapData::BatchSize];
-							Functions::GetShadowCascadeMatrices(
+							auto lightRange = Functions::GetShadowCascadeMatrices(
 								lightview->transform->worldToLocal, 
 								inverseViewProjection, 
-								zNear, 
-								zFar, 
-								m_cascadeLinearity,
+								cascadeSplits.planes,
 								-lightview->light->radius, 
 								ShadowmapData::BatchSize, 
-								cascades, 
-								&lightNear, 
-								&lightFar);
+								cascades);
 
 							Culling::ExecuteOnVisibleItemsCascades(entityDb, cascades, ShadowmapData::BatchSize, cullingMask, OnCullVisibleShadowmap, &ctx);
-							
-							// Directional Lights rely on the projection matrix zrange plane for max distance
-							if (lightFar - lightNear > maxDistance)
-							{
-								maxDistance = lightFar - lightNear;
-							}
+							maxDistance = glm::max(maxDistance, lightRange);
 							break;
 						}
 					}
@@ -253,7 +254,7 @@ namespace PK::Rendering
 
 				GraphicsAPI::SetRenderTarget(typedata.SceneRenderTarget.get(), false);
 				GraphicsAPI::Clear(float4(maxDistance, maxDistance * maxDistance, 0, 0), 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-				Batching::DrawBatches(&m_shadowmapData.Batches, 0, typedata.ShaderRenderShadows, m_properties);
+				Batching::DrawBatches(&m_shadowmapData.Batches, typedata.ShaderRenderShadows, m_properties);
 
 				m_properties.SetKeywords({ StringHashID::StringToID("SHADOW_BLUR_PASS0") });
 				GraphicsAPI::SetRenderTarget(m_shadowmapData.ShadowmapAtlas.get(), false);
@@ -266,7 +267,7 @@ namespace PK::Rendering
 		}
 	}
 
-	void LightsManager::UpdateLightBuffers(PK::ECS::EntityDatabase* entityDb, Core::BufferView<uint> visibleLights, const float4x4& inverseViewProjection, float znear, float zfar)
+	void LightsManager::UpdateLightBuffers(PK::ECS::EntityDatabase* entityDb, Core::BufferView<uint> visibleLights, const float4x4& inverseViewProjection, float zNear, float zFar)
 	{
 		m_visibleLightCount = 0;
 
@@ -286,6 +287,7 @@ namespace PK::Rendering
 			m_shadowmapData.LightIndices[i].viewFirst = 0xFFFFFFFF;
 		}
 
+		auto cascades = GetCascadeZSplits(zNear, zFar);
 		auto lightProjectionCount = 0;
 		auto shadowMapCount = 0u;
 
@@ -355,20 +357,14 @@ namespace PK::Rendering
 			switch (view->light->lightType)
 			{
 				case LightType::Directional:
-					float lightNear, lightFar;
-					Functions::GetShadowCascadeMatrices(
-						view->transform->worldToLocal,
-						inverseViewProjection,
-						znear,
-						zfar,
-						m_cascadeLinearity,
-						-view->light->radius,
-						ShadowmapData::BatchSize,
-						bufferMatrices.data + view->light->projectionIndex,
-						&lightNear,
-						&lightFar);
-
-					position = float4(view->transform->rotation * CG_FLOAT3_FORWARD, lightFar - lightNear);
+					position = float4(view->transform->rotation * CG_FLOAT3_FORWARD, 0.0f);
+					position.w = Functions::GetShadowCascadeMatrices(
+						view->transform->worldToLocal, 
+						inverseViewProjection, 
+						cascades.planes, 
+						-view->light->radius, 
+						ShadowmapData::BatchSize, 
+						bufferMatrices.data + view->light->projectionIndex);
 					break;
 
 				case LightType::Point:

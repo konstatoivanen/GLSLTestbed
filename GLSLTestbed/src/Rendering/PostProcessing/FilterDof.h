@@ -12,9 +12,9 @@ namespace PK::Rendering::PostProcessing
     class FilterDof : public FilterBase
     {
         public:
-            FilterDof(AssetDatabase* assetDatabase, const ApplicationConfig& config);
-            void OnPreRender(const RenderTexture* source) override;
-            void Execute(const RenderTexture* source, const RenderTexture* destination) override;
+            FilterDof(AssetDatabase* assetDatabase, const ApplicationConfig* config);
+            void OnPreRender(const RenderTexture* source) final;
+            void Execute(const RenderTexture* source, const RenderTexture* destination) final;
 
         private:
             Ref<RenderTexture> m_renderTarget;

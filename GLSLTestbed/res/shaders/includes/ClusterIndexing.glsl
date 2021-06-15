@@ -15,7 +15,7 @@
 #define CLUSTER_GROUP_SIZE_Z 4
 #define CLUSTER_GROUP_SIZE_XYZ 576 // 16 * 9 * 4
 #define CLUSTER_DEPTH_BATCH_SIZE_PX 16
-#define CLUSTER_TILE_MAX_LIGHT_COUNT 64
+#define CLUSTER_TILE_MAX_LIGHT_COUNT 128
 
 float ZCoordToLinearDepth(float index)
 {

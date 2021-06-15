@@ -4,6 +4,8 @@
 #include "ECS/Contextual/EntityViews/EntityViews.h"
 #include "ECS/Contextual/Builders/Builders.h"
 #include "Rendering/MeshUtility.h"
+#include "Rendering/GraphicsAPI.h"
+#include "Utilities/HashCache.h"
 #include "Core/Application.h"
 
 namespace PK::ECS::Engines
@@ -68,7 +70,7 @@ namespace PK::ECS::Engines
 		auto mesh = assetDatabase->Find<Mesh>("Primitive_Sphere");
 		auto shader = assetDatabase->Find<Shader>("SH_WS_Unlit_Color");
 		auto material = assetDatabase->RegisterProcedural("M_Point_Light_" + std::to_string(egid.entityID()), CreateRef<Material>(shader));
-		material->SetFloat4(StringHashID::StringToID("_Color"), hdrColor);
+		material->SetFloat4(HashCache::Get()->_Color, hdrColor);
 		
 		auto meshEgid = CreateMeshRenderable(entityDb, position, CG_FLOAT3_ZERO, sphereRadius, mesh, material);
 		auto meshTransform = entityDb->Query<EntityViews::TransformView>(meshEgid);
@@ -98,7 +100,7 @@ namespace PK::ECS::Engines
 		implementer->color = color;
 	}
 
-	DebugEngine::DebugEngine(AssetDatabase* assetDatabase, Time* time, EntityDatabase* entityDb, const ApplicationConfig& config)
+	DebugEngine::DebugEngine(AssetDatabase* assetDatabase, Time* time, EntityDatabase* entityDb, const ApplicationConfig* config)
 	{
 		m_entityDb = entityDb;
 		m_assetDatabase = assetDatabase;
@@ -118,7 +120,7 @@ namespace PK::ECS::Engines
 		auto minpos = float3(-40, -5, -40);
 		auto maxpos = float3(40, 0, 40);
 
-		srand(config.RandomSeed);
+		srand(config->RandomSeed);
 
 		CreateMeshRenderable(entityDb, float3(0,-5,0), { 90, 0, 0 }, 80.0f, planeMesh, materialGround);
 
@@ -136,7 +138,7 @@ namespace PK::ECS::Engines
 	
 		bool flipperinotyperino = false;
 
-		for (uint i = 0; i < config.LightCount; ++i)
+		for (uint i = 0; i < config->LightCount; ++i)
 		{
 			auto type = flipperinotyperino ? LightType::Point : LightType::Spot;
 			auto cookie = flipperinotyperino ? LightCookie::NoCookie : LightCookie::Circle1;
@@ -156,17 +158,12 @@ namespace PK::ECS::Engines
 			return;
 		}
 	
-		if (input->GetKeyDown(KeyCode::T))
-		{
-			m_assetDatabase->Find<Shader>("SH_WS_PBR_Forward")->ListProperties();
-		}
-	
 		if (input->GetKeyDown(KeyCode::R))
 		{
-			m_assetDatabase->ReloadDirectory<Shader>("res/shaders/", { ".shader" });
-			PK_CORE_LOG("Reimported shaders!                                        ");
+			m_assetDatabase->ReloadDirectory<Shader>("res/shaders/");
+			PK_CORE_LOG("Reimported shaders!");
 		}
-	
+
 		if (input->GetKey(KeyCode::C))
 		{
 			m_time->Reset();
@@ -211,9 +208,10 @@ namespace PK::ECS::Engines
 		float4x4 worldToLocal = glm::inverse(localToWorld);
 		float4x4 invvp = glm::inverse(vp);
 		float4x4 cascades[4];
+		float zplanes[5];
 
-		float minNear, maxFar;
-		Functions::GetShadowCascadeMatrices(worldToLocal, invvp, 0.2f, 100.0f, 0.5f, -15.0f, 4, cascades, &minNear, &maxFar);
+		Functions::GetCascadeDepths(0.2f, 100.0f, 0.5f, zplanes, 5);
+		Functions::GetShadowCascadeMatrices(worldToLocal, invvp, zplanes, -15.0f, 4, cascades);
 
 		for (auto i = 0; i < 4; ++i)
 		{

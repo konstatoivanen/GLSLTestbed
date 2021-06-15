@@ -1,7 +1,6 @@
 ﻿#include "PrecompiledHeader.h"
 #include "Rendering/GraphicsAPI.h"
 #include "Rendering/Objects/Shader.h"
-#include "Rendering/RenderQueueInfo.h"
 #include "Utilities/StringHashID.h"
 #include "Utilities/StringUtilities.h"
 #include "Utilities/Log.h"
@@ -34,7 +33,70 @@ namespace PK::Rendering::Objects
 			}
 		}
 	}
+
+	void ShaderVariantMap::ListVariants()
+	{
+		std::vector<std::vector<std::string>> keywordlist;
+
+		for (auto& kv : keywords)
+		{
+			auto keyword = StringHashID::IDToString(kv.first);
+			auto index0 = (kv.second >> 4) & 0xF;
+			auto index1 = kv.second & 0xF;
+
+			if (keywordlist.size() <= index0)
+			{
+				keywordlist.resize(index0 + 1);
+			}
+
+			if (keywordlist.at(index0).size() <= index1)
+			{
+				keywordlist.at(index0).resize(index1 + 1);
+			}
+
+			keywordlist.at(index0)[index1] = keyword;
+		}
+
+		PK::Utilities::Debug::InsertNewLine();
+
+		for (auto j = 0u; j < variantcount; ++j)
+		{
+			std::string defines = "";
+			auto index = j;
+
+			for (auto i = 0; i < keywordlist.size(); ++i)
+			{
+				auto& declares = keywordlist.at(i);
+				auto& keyword = declares.at(index % declares.size());
+
+				if (!keyword.empty())
+				{
+					defines.append(keyword);
+					defines.append(" ");
+				}
+
+				index /= (uint32_t)declares.size();
+			}
+
+			PK_CORE_LOG(defines.c_str());
+		}
+
+		PK::Utilities::Debug::InsertNewLine();
+	}
 	
+	bool ShaderVariantMap::SupportsKeywords(const uint32_t* hashIds, const uint32_t count) const
+	{
+		for (auto i = 0u; i < count; ++i)
+		{
+			if (!SupportsKeyword(hashIds[i]))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	uint32_t ShaderVariantMap::GetActiveIndex() const
 	{
 		uint32_t idx = 0;
@@ -119,8 +181,16 @@ namespace PK::Rendering::Objects
 	
 	void Shader::ListProperties()
 	{
-		PK_CORE_LOG_HEADER("Listing uniforms for shader: %s", GetFileName());
+		PK::Utilities::Debug::InsertNewLine();
+		PK_CORE_LOG_HEADER("Listing uniforms for shader: %s", GetFileName().c_str());
 		m_variants.at(m_activeIndex)->ListProperties();
+		PK::Utilities::Debug::InsertNewLine();
+	}
+
+	void Shader::ListVariants()
+	{
+		PK_CORE_LOG_HEADER("Listing variants for shader: %s", GetFileName().c_str());
+		m_variantMap.ListVariants();
 	}
 	
 	void Shader::ResetKeywords() { m_variantMap.Reset(); }
@@ -455,27 +525,6 @@ namespace PK::Rendering::Objects
 				index /= (uint32_t)declares.size();
 			}
 		}
-	
-		static void LogVariantDefines(const std::vector<std::vector<std::string>>& keywords, uint32_t index)
-		{
-			std::string defines = "";
-	
-			for (auto i = 0; i < keywords.size(); ++i)
-			{
-				auto& declares = keywords.at(i);
-				auto& keyword = declares.at(index % declares.size());
-	
-				if (keyword != "_")
-				{
-					defines.append(keyword);
-					defines.append(" ");
-				}
-	
-				index /= (uint32_t)declares.size();
-			}
-	
-			PK_CORE_LOG(defines.c_str());
-		}
 		
 		static void ExtractMulticompiles(std::string& source, std::vector<std::vector<std::string>>& keywords, ShaderVariantMap& multicompilemap)
 		{
@@ -592,20 +641,6 @@ namespace PK::Rendering::Objects
 			GetCullModeFromString(Utilities::String::Trim(valueCull), parameters.CullMode, parameters.CullEnabled);
 		}
 		
-		static void ExtractRenderQueueIndex(std::string& source, uint32_t* queueIndex)
-		{
-			auto valueIdentifier = Utilities::String::ExtractToken("#RenderPass", source, false);
-
-			if (!valueIdentifier.empty())
-			{
-				*queueIndex = RenderQueueInfo::Get()->GetQueueIndex(valueIdentifier);
-			}
-			else
-			{
-				*queueIndex = 0;
-			}
-		}
-
 		static void ProcessShaderVersion(std::string& source)
 		{
 			auto versionToken = Utilities::String::ExtractToken("#version ", source, true);
@@ -887,6 +922,9 @@ namespace PK::Rendering::Objects
 	}
 }
 
+template<>
+bool PK::Core::AssetImporters::IsValidExtension<PK::Rendering::Objects::Shader>(const std::filesystem::path& extension) { return extension.compare(".shader") == 0; }
+
 template<> 
 void PK::Core::AssetImporters::Import(const std::string& filepath, PK::Utilities::Ref<PK::Rendering::Objects::Shader>& shader)
 {
@@ -905,7 +943,6 @@ void PK::Core::AssetImporters::Import(const std::string& filepath, PK::Utilities
 	PK::Rendering::Objects::ShaderCompiler::ReadFile(filepath, source);
 	PK::Rendering::Objects::ShaderCompiler::ExtractMulticompiles(source, mckeywords, shader->m_variantMap);
 	PK::Rendering::Objects::ShaderCompiler::ExtractStateAttributes(source, shader->m_stateAttributes);
-	PK::Rendering::Objects::ShaderCompiler::ExtractRenderQueueIndex(source, &shader->m_renderQueueIndex);
 	PK::Rendering::Objects::ShaderCompiler::ExtractInstancingInfo(source, shader->m_variantMap, shader->m_instancingInfo);
 
 	PK::Rendering::Objects::ShaderCompiler::GetSharedInclude(source, sharedInclude);

@@ -1,10 +1,11 @@
 #include "PrecompiledHeader.h"
 #include "FilterDof.h"
+#include "Utilities/HashCache.h"
 #include "Rendering/GraphicsAPI.h"
 
 namespace PK::Rendering::PostProcessing
 {
-    FilterDof::FilterDof(AssetDatabase* assetDatabase, const ApplicationConfig& config) : FilterBase(assetDatabase->Find<Shader>("SH_VS_DOFBlur"))
+    FilterDof::FilterDof(AssetDatabase* assetDatabase, const ApplicationConfig* config) : FilterBase(assetDatabase->Find<Shader>("SH_VS_DOFBlur"))
     {
         m_passKeywords[0] = StringHashID::StringToID("PASS_PREFILTER");
         m_passKeywords[1] = StringHashID::StringToID("PASS_DISKBLUR");
@@ -14,7 +15,7 @@ namespace PK::Rendering::PostProcessing
 
         auto descriptor = RenderTextureDescriptor();
         descriptor.dimension = GL_TEXTURE_2D_ARRAY;
-        descriptor.resolution = { config.InitialWidth, config.InitialHeight, 2 };
+        descriptor.resolution = { config->InitialWidth, config->InitialHeight, 2 };
         descriptor.depthFormat = GL_NONE;
         descriptor.colorFormats = { GL_RGBA16F };
         descriptor.miplevels = 0;
@@ -39,14 +40,14 @@ namespace PK::Rendering::PostProcessing
             {CG_TYPE::FLOAT, "pk_MaximumCoC"},
         }));
 
-        m_paramsBuffer->SetFloat(StringHashID::StringToID("pk_FocalLength"), config.CameraFocalLength);
-        m_paramsBuffer->SetFloat(StringHashID::StringToID("pk_FNumber"), config.CameraFNumber);
-        m_paramsBuffer->SetFloat(StringHashID::StringToID("pk_FilmHeight"), config.CameraFilmHeight);
-        m_paramsBuffer->SetFloat(StringHashID::StringToID("pk_FocusSpeed"), config.CameraFocusSpeed);
-        m_paramsBuffer->SetFloat(StringHashID::StringToID("pk_MaximumCoC"), std::min(0.05f, 10.0f / config.InitialHeight));
+        m_paramsBuffer->SetFloat(HashCache::Get()->pk_FocalLength, config->CameraFocalLength);
+        m_paramsBuffer->SetFloat(HashCache::Get()->pk_FNumber, config->CameraFNumber);
+        m_paramsBuffer->SetFloat(HashCache::Get()->pk_FilmHeight, config->CameraFilmHeight);
+        m_paramsBuffer->SetFloat(HashCache::Get()->pk_FocusSpeed, config->CameraFocusSpeed);
+        m_paramsBuffer->SetFloat(HashCache::Get()->pk_MaximumCoC, std::min(0.05f, 10.0f / config->InitialHeight));
         m_paramsBuffer->FlushBuffer();
-        m_properties.SetConstantBuffer(StringHashID::StringToID("pk_DofParams"), m_paramsBuffer->GetGraphicsID());
-        m_properties.SetComputeBuffer(StringHashID::StringToID("pk_AutoFocusParams"), m_autoFocusBuffer->GetGraphicsID());
+        m_properties.SetConstantBuffer(HashCache::Get()->pk_DofParams, m_paramsBuffer->GetGraphicsID());
+        m_properties.SetComputeBuffer(HashCache::Get()->pk_AutoFocusParams, m_autoFocusBuffer->GetGraphicsID());
     }
     
     void FilterDof::OnPreRender(const RenderTexture* source)
@@ -58,7 +59,7 @@ namespace PK::Rendering::PostProcessing
 
         if (m_renderTarget->ValidateResolution(resolution))
         {
-            m_paramsBuffer->SetFloat(StringHashID::StringToID("pk_MaximumCoC"), std::min(0.05f, 10.0f / source->GetHeight()));
+            m_paramsBuffer->SetFloat(HashCache::Get()->pk_MaximumCoC, std::min(0.05f, 10.0f / source->GetHeight()));
             m_paramsBuffer->FlushBuffer();
         }
     }

@@ -11,26 +11,26 @@ namespace PK::Rendering::Batching
     
     struct Drawcall
     {
-        float4x4* localToWorld;
-        float depth;
+        float4x4* localToWorld = nullptr;
+        float depth = 0.0f;
     };
 
     struct DrawcallIndexed
     {
-        float4x4* localToWorld;
-        float depth;
-        uint index;
+        float4x4* localToWorld = nullptr;
+        float depth = 0.0f;
+        uint index = 0;
     };
 
     struct BatchBase
     {
-        uint instancingOffset;
-        uint drawCallCount;
+        uint instancingOffset = 0;
+        uint drawCallCount = 0;
     };
 
     struct MaterialBatch : BatchBase
     {
-        const Material* material;
+        const Material* material = nullptr;
         std::vector<Drawcall> drawcalls;
     };
 
@@ -44,20 +44,20 @@ namespace PK::Rendering::Batching
 
     struct MeshBatch : BatchBase
     {
-        const Mesh* mesh;
+        const Mesh* mesh = nullptr;
         std::vector<uint> shaderBatches;
         uint shaderBatchCount = 0;
     };
 
     struct MeshOnlyBatch : BatchBase
     {
-        const Mesh* mesh;
+        const Mesh* mesh = nullptr;
         std::vector<Drawcall> drawcalls;
     };
 
     struct IndexedMeshBatch : BatchBase
     {
-        const Mesh* mesh;
+        const Mesh* mesh = nullptr;
         std::vector<DrawcallIndexed> drawcalls;
     };
 
@@ -71,7 +71,7 @@ namespace PK::Rendering::Batching
         // @TODO Consider using persistently mapped triple buffering instead
         Ref<ComputeBuffer> MatrixBuffer;
         Ref<ComputeBuffer> PropertyIndices;
-        uint TotalDrawCallCount;
+        uint TotalDrawCallCount = 0;
     };
 
     struct MeshBatchCollection
@@ -79,7 +79,7 @@ namespace PK::Rendering::Batching
         std::vector<MeshOnlyBatch> MeshBatches;
         std::unordered_map<ulong, uint> BatchMap;
         Ref<ComputeBuffer> MatrixBuffer;
-        uint TotalDrawCallCount;
+        uint TotalDrawCallCount = 0;
     };
 
     struct IndexedMeshBatchCollection
@@ -103,16 +103,17 @@ namespace PK::Rendering::Batching
     void UpdateBuffers(MeshBatchCollection* collection);
     void UpdateBuffers(IndexedMeshBatchCollection* collection);
 
-    void DrawBatches(DynamicBatchCollection* collection, uint32_t renderQueueIndex);
-    void DrawBatches(DynamicBatchCollection* collection, uint32_t renderQueueIndex, const Material* overrideMaterial);
-    void DrawBatches(DynamicBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader, const ShaderPropertyBlock& propertyBlock);
-    void DrawBatches(DynamicBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader);
+    void DrawBatches(DynamicBatchCollection* collection);
+    void DrawBatches(DynamicBatchCollection* collection, const Material* overrideMaterial);
+    void DrawBatches(DynamicBatchCollection* collection, Shader* overrideShader, const ShaderPropertyBlock& propertyBlock);
+    void DrawBatches(DynamicBatchCollection* collection, Shader* overrideShader);
+    void DrawBatchesPredicated(DynamicBatchCollection* collection, const uint32_t keyword, Shader* fallbackShader);
     
-    void DrawBatches(MeshBatchCollection* collection, uint32_t renderQueueIndex, const Material* overrideMaterial);
-    void DrawBatches(MeshBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader, const ShaderPropertyBlock& propertyBlock);
-    void DrawBatches(MeshBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader);
+    void DrawBatches(MeshBatchCollection* collection, const Material* overrideMaterial);
+    void DrawBatches(MeshBatchCollection* collection, Shader* overrideShader, const ShaderPropertyBlock& propertyBlock);
+    void DrawBatches(MeshBatchCollection* collection, Shader* overrideShader);
 
-    void DrawBatches(IndexedMeshBatchCollection* collection, uint32_t renderQueueIndex, const Material* overrideMaterial);
-    void DrawBatches(IndexedMeshBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader, const ShaderPropertyBlock& propertyBlock);
-    void DrawBatches(IndexedMeshBatchCollection* collection, uint32_t renderQueueIndex, Shader* overrideShader);
+    void DrawBatches(IndexedMeshBatchCollection* collection, const Material* overrideMaterial);
+    void DrawBatches(IndexedMeshBatchCollection* collection, Shader* overrideShader, const ShaderPropertyBlock& propertyBlock);
+    void DrawBatches(IndexedMeshBatchCollection* collection, Shader* overrideShader);
 }

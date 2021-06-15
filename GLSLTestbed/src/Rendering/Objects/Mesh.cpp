@@ -111,7 +111,10 @@ namespace PK::Rendering::Objects
 }
 
 template<>
-void PK::Core::AssetImporters::Import<PK::Rendering::Objects::Mesh>(const std::string& filepath, Ref<PK::Rendering::Objects::Mesh>& mesh)
+bool PK::Core::AssetImporters::IsValidExtension<PK::Rendering::Objects::Mesh>(const std::filesystem::path& extension) { return extension.compare(".mdl") == 0; }
+
+template<>
+void PK::Core::AssetImporters::Import(const std::string& filepath, Ref<PK::Rendering::Objects::Mesh>& mesh)
 {
 	using namespace PK::Rendering::Objects;
 	using namespace PK::Rendering::Structs;

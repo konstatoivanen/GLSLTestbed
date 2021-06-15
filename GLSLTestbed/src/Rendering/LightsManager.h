@@ -36,10 +36,12 @@ namespace PK::Rendering
         static constexpr uint BatchSize = 4;
     };
 
+    typedef struct ShadowCascades { float planes[5]; } ShadowCascades;
+
     class LightsManager : public PK::Core::NoCopy
     {
         public:
-            LightsManager(AssetDatabase* assetDatabase, const ApplicationConfig& config);
+            LightsManager(AssetDatabase* assetDatabase, const ApplicationConfig* config);
 
             void Preprocess(PK::ECS::EntityDatabase* entityDb, Core::BufferView<uint> visibleLights, const uint2& resolution, const float4x4& inverseViewProjection, float zNear, float zFar);
 
@@ -49,12 +51,7 @@ namespace PK::Rendering
 
             inline const Ref<RenderTexture>& GetShadowmapAtlas() const { return m_shadowmapData.ShadowmapAtlas; }
 
-            inline const float4 GetCascadeZSplits(float znear, float zfar) const 
-            {
-                float4 cascadeSplits = CG_FLOAT4_ZERO;
-                Functions::GetCascadeDepths(znear, zfar, m_cascadeLinearity, glm::value_ptr(cascadeSplits), ShadowmapData::BatchSize);
-                return cascadeSplits;
-            }
+            ShadowCascades GetCascadeZSplits(float znear, float zfar) const;
 
         private:
             void UpdateShadowmaps(PK::ECS::EntityDatabase* entityDb, const float4x4& inverseViewProjection, float znear, float zfar);

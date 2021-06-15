@@ -91,13 +91,13 @@ void main()
         float4 cocs = GetCirclesOfConfusion(depths);
         float4 weights = saturate(abs(cocs) / pk_MaximumCoC);
 
-        float3 average  = textureOffset(_MainTex, vs_TEXCOORD0, OFFS[0]).rgb * weights.x;
-               average += textureOffset(_MainTex, vs_TEXCOORD0, OFFS[1]).rgb * weights.y; 
-               average += textureOffset(_MainTex, vs_TEXCOORD0, OFFS[2]).rgb * weights.z;
-               average += textureOffset(_MainTex, vs_TEXCOORD0, OFFS[3]).rgb * weights.w;
-               average /= dot(weights, float4(1.0f));
+        float3 average;
+        average.r = dot(textureGatherOffsets(_MainTex, vs_TEXCOORD0, OFFS, 0), weights);
+        average.g = dot(textureGatherOffsets(_MainTex, vs_TEXCOORD0, OFFS, 1), weights);
+        average.b = dot(textureGatherOffsets(_MainTex, vs_TEXCOORD0, OFFS, 2), weights);
+        average /= dot(weights, 1.0f.xxxx);
 
-        SV_Target0 = float4(average, dot(cocs, float4(0.25f)));
+        SV_Target0 = float4(average, dot(cocs, 0.25f.xxxx));
     #else
         float4 center = tex2D(_MainTex, float3(vs_TEXCOORDS[0].xy, 0));
         float4 background = float4(0.0f); 

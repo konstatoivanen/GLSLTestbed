@@ -12,9 +12,9 @@ namespace PK::Rendering::PostProcessing
     class FilterAO : public FilterBase
     {
         public:
-            FilterAO(AssetDatabase* assetDatabase, const ApplicationConfig& config);
-            void OnPreRender(const RenderTexture* source) override;
-            void Execute(const RenderTexture* source, const RenderTexture* destination) override;
+            FilterAO(AssetDatabase* assetDatabase, const ApplicationConfig* config);
+            void OnPreRender(const RenderTexture* source) final;
+            void Execute(const RenderTexture* source, const RenderTexture* destination) final;
 
         private:
             float m_intensity = 0.0f;

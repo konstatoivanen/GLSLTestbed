@@ -17,12 +17,12 @@ namespace PK::Rendering::Objects
             Material(Shader* shader) { m_shader = shader; m_cachedShaderAssetId = shader->GetAssetID(); }
             inline Shader* GetShader() const { return m_shader; }
             inline AssetID GetShaderAssetID() const { return m_cachedShaderAssetId; }
-            inline const uint32_t GetRenderQueueIndex() const { return m_renderQueueIndex; }
+            inline bool SupportsKeyword(const uint32_t hashId) const { return m_shader->SupportsKeyword(hashId); }
+            inline bool SupportsKeywords(const uint32_t* hashIds, const uint32_t count) const { return m_shader->SupportsKeywords(hashIds, count); }
             inline const bool SupportsInstancing() const { return m_shader->GetInstancingInfo().supportsInstancing; }
 
         private:
             std::vector<char> m_cachedInstancedProperties;
-            uint32_t m_renderQueueIndex = 0;
             AssetID m_cachedShaderAssetId = 0;
             Shader* m_shader = nullptr;
     };

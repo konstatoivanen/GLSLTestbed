@@ -1,103 +1,89 @@
 #pragma once
 #include "PrecompiledHeader.h"
-#include "Input.h"
+#include "Core/YamlSerializers.h"
+#include "Core/Input.h"
 
 namespace PK::Core
 {
-	struct ApplicationConfig
+	using namespace YAML;
+
+	struct ApplicationConfig : YamlValueList, public Asset
 	{
-		bool EnableConsole;
-		bool EnableVsync;
-		bool EnableGizmos;
-		bool EnableLightingDebug;
-		bool ShowCursor;
-
-		int	InitialWidth;
-		int	InitialHeight;
+		BoxedValue<bool> EnableConsole = BoxedValue<bool>("EnableConsole", true);
+		BoxedValue<bool> EnableVsync = BoxedValue<bool>("EnableVsync", true);
+		BoxedValue<bool> EnableGizmos = BoxedValue<bool>("EnableGizmos", false);
+		BoxedValue<bool> EnableLightingDebug = BoxedValue<bool>("EnableLightingDebug", false);
+		BoxedValue<bool> EnableCursor = BoxedValue<bool>("EnableCursor", true);
+		BoxedValue<int> InitialWidth = BoxedValue<int>("InitialWidth", 1024);
+		BoxedValue<int>	InitialHeight = BoxedValue<int>("InitialHeight", 512);
 		
-		uint RandomSeed;
+		BoxedValue<uint> RandomSeed = BoxedValue<uint>("RandomSeed", 512);
 
-		bool EnableOrthoGraphic;
-		float CameraSpeed;
-		float CameraLookSensitivity;
-		float CameraMoveSmoothing;
-		float CameraLookSmoothing;
-		float CameraFov;
-		float CameraOrthoSize;
-		float CameraZNear;
-		float CameraZFar;
-		float CascadeLinearity;
+		BoxedValue<float> CameraSpeed = BoxedValue<float>("CameraSpeed", 5.0f);
+		BoxedValue<float> CameraLookSensitivity = BoxedValue<float>("CameraLookSensitivity", 1.0f);
+		BoxedValue<float> CameraMoveSmoothing = BoxedValue<float>("CameraMoveSmoothing", 0.0f);
+		BoxedValue<float> CameraLookSmoothing = BoxedValue<float>("CameraLookSmoothing", 0.0f);
+		BoxedValue<float> CameraFov = BoxedValue<float>("CameraFov", 75.0f);
+		BoxedValue<float> CameraZNear = BoxedValue<float>("CameraZNear", 0.1f);
+		BoxedValue<float> CameraZFar = BoxedValue<float>("CameraZFar", 200.0f);
+		BoxedValue<float> CascadeLinearity = BoxedValue<float>("CascadeLinearity", 0.5f);
 		
-		float TimeScale;
+		BoxedValue<float> TimeScale	= BoxedValue<float>("TimeScale", 1.0f);
 
-		uint LightCount;
-		uint ShadowmapTileSize; 
-		uint ShadowmapTileCount;
+		BoxedValue<uint> LightCount = BoxedValue<uint>("LightCount", 0u);
+		BoxedValue<uint> ShadowmapTileSize = BoxedValue<uint>("ShadowmapTileSize", 512);
+		BoxedValue<uint> ShadowmapTileCount = BoxedValue<uint>("ShadowmapTileCount", 32);
 	
-		float CameraFocalLength;
-		float CameraFNumber;
-		float CameraFilmHeight;
-		float CameraFocusSpeed;
-		float AutoExposureLuminanceMin;
-		float AutoExposureLuminanceRange;
-		float AutoExposureSpeed;
-		float TonemapExposure;
-		float VignetteIntensity;
-		float VignettePower;
-		float FilmGrainIntensity;
-		float FilmGrainLuminance;
-		float CC_Contribution;
-		float CC_TemperatureShift;
-		float CC_Tint;
-		float CC_Hue;
-		float CC_Saturation;
-		float CC_Vibrance;
-		float CC_Value;
-		float CC_Contrast;
-		float CC_Gain;
-		float CC_Gamma;
-		color CC_Shadows;
-		color CC_Midtones;
-		color CC_Highlights;
-		color CC_ChannelMixerRed;
-		color CC_ChannelMixerGreen;
-		color CC_ChannelMixerBlue;
-		float BloomIntensity;
-		float BloomLensDirtIntensity;
-		std::string FileBloomDirt;
+		BoxedValue<float> CameraFocalLength	= BoxedValue<float>("CameraFocalLength", 0.05f);
+		BoxedValue<float> CameraFNumber	= BoxedValue<float>("CameraFNumber", 1.40f);
+		BoxedValue<float> CameraFilmHeight = BoxedValue<float>("CameraFilmHeight", 0.024f);
+		BoxedValue<float> CameraFocusSpeed = BoxedValue<float>("CameraFocusSpeed", 5.0f);
+		BoxedValue<float> AutoExposureLuminanceMin = BoxedValue<float>("AutoExposureLuminanceMin", 1.0f);
+		BoxedValue<float> AutoExposureLuminanceRange = BoxedValue<float>("AutoExposureLuminanceRange", 1.0f);
+		BoxedValue<float> AutoExposureSpeed	= BoxedValue<float>("AutoExposureSpeed", 1.0f);
+		BoxedValue<float> TonemapExposure = BoxedValue<float>("TonemapExposure", 1.0f);
+		BoxedValue<float> VignetteIntensity	= BoxedValue<float>("VignetteIntensity", 15.0f);
+		BoxedValue<float> VignettePower	= BoxedValue<float>("VignettePower", 0.25f);
+		BoxedValue<float> FilmGrainIntensity = BoxedValue<float>("FilmGrainIntensity", 0.25f);
+		BoxedValue<float> FilmGrainLuminance = BoxedValue<float>("FilmGrainLuminance", 0.25f);
+		BoxedValue<float> CC_Contribution = BoxedValue<float>("CC_Contribution", 1.0f);
+		BoxedValue<float> CC_TemperatureShift = BoxedValue<float>("CC_TemperatureShift", 0.0f);
+		BoxedValue<float> CC_Tint = BoxedValue<float>("CC_Tint", 0.0f);
+		BoxedValue<float> CC_Hue = BoxedValue<float>("CC_Hue", 0.0f);
+		BoxedValue<float> CC_Saturation = BoxedValue<float>("CC_Saturation", 1.0f);
+		BoxedValue<float> CC_Vibrance = BoxedValue<float>("CC_Vibrance", 0.0f);
+		BoxedValue<float> CC_Value = BoxedValue<float>("CC_Value", 1.0f);
+		BoxedValue<float> CC_Contrast = BoxedValue<float>("CC_Contrast", 1.0f);
+		BoxedValue<float> CC_Gain = BoxedValue<float>("CC_Gain", 1.0f);
+		BoxedValue<float> CC_Gamma = BoxedValue<float>("CC_Gamma", 1.0f);
+		BoxedValue<uint> CC_Shadows = BoxedValue<uint>("CC_Shadows", 0x000000FF);
+		BoxedValue<uint> CC_Midtones = BoxedValue<uint>("CC_Midtones", 0x7F7F7FFF);
+		BoxedValue<uint> CC_Highlights = BoxedValue<uint>("CC_Highlights", 0xFFFFFFFF);
+		BoxedValue<uint> CC_ChannelMixerRed = BoxedValue<uint>("CC_ChannelMixerRed", 0xFF0000FF);
+		BoxedValue<uint> CC_ChannelMixerGreen = BoxedValue<uint>("CC_ChannelMixerGreen", 0x00FF00FF);
+		BoxedValue<uint> CC_ChannelMixerBlue = BoxedValue<uint>("CC_ChannelMixerBlue", 0x0000FFFF);
+		BoxedValue<float> BloomIntensity = BoxedValue<float>("BloomIntensity", 0.0f);
+		BoxedValue<float> BloomLensDirtIntensity = BoxedValue<float>("BloomLensDirtIntensity", 0.0f);
+		BoxedValue<std::string> FileBloomDirt = BoxedValue<std::string>("FileBloomDirt", "T_Bloom_LensDirt");
 
-		float AmbientOcclusionIntensity;
-		float AmbientOcclusionRadius;
-		bool AmbientOcclusionDownsample;
+		BoxedValue<float> AmbientOcclusionIntensity = BoxedValue<float>("AmbientOcclusionIntensity", 1.0f);
+		BoxedValue<float> AmbientOcclusionRadius = BoxedValue<float>("AmbientOcclusionRadius", 1.0f);
+		BoxedValue<bool> AmbientOcclusionDownsample = BoxedValue<bool>("AmbientOcclusionDownsample", true);
 
-		float VolumeConstantFog;
-		float VolumeHeightFogExponent;
-		float VolumeHeightFogOffset;
-		float VolumeHeightFogAmount;
-		float VolumeDensity;
-		float VolumeIntensity;
-		float VolumeAnisotropy;
-		float VolumeNoiseFogAmount;
-		float VolumeNoiseFogScale;
-		float VolumeWindSpeed;
+		BoxedValue<float> VolumeConstantFog	= BoxedValue<float>("VolumeConstantFog", 0.0f);
+		BoxedValue<float> VolumeHeightFogExponent = BoxedValue<float>("VolumeHeightFogExponent", 0.0f);
+		BoxedValue<float> VolumeHeightFogOffset	= BoxedValue<float>("VolumeHeightFogOffset", 0.0f);
+		BoxedValue<float> VolumeHeightFogAmount	= BoxedValue<float>("VolumeHeightFogAmount", 0.0f);
+		BoxedValue<float> VolumeDensity	= BoxedValue<float>("VolumeDensity", 0.0f);
+		BoxedValue<float> VolumeIntensity = BoxedValue<float>("VolumeIntensity", 0.0f);
+		BoxedValue<float> VolumeAnisotropy = BoxedValue<float>("VolumeAnisotropy", 0.0f);
+		BoxedValue<float> VolumeNoiseFogAmount = BoxedValue<float>("VolumeNoiseFogAmount", 0.0f);
+		BoxedValue<float> VolumeNoiseFogScale = BoxedValue<float>("VolumeNoiseFogScale", 0.0f);
+		BoxedValue<float> VolumeWindSpeed = BoxedValue<float>("VolumeWindSpeed", 0.0f);
 
-		std::string FileBackgroundTexture;
-		float BackgroundExposure;
-	
-		KeyCode input_shader_next;
-		KeyCode input_shader_reimport;
-		KeyCode input_shader_list_uniforms;
-		KeyCode input_timescale_increase;
-		KeyCode input_timescale_decrease;
-		KeyCode input_exit;
-	
-		KeyCode input_move_forward;
-		KeyCode input_move_backward;
-		KeyCode input_move_left;
-		KeyCode input_move_right;
-		KeyCode input_move_up;
-		KeyCode input_move_down;
-	
-		ApplicationConfig(const std::string& filepath);
+		BoxedValue<std::string> FileBackgroundTexture = BoxedValue<std::string>("FileBackgroundTexture", "T_OEM_Mountains");
+		BoxedValue<float> BackgroundExposure = BoxedValue<float>("BackgroundExposure", 1.0f);
+
+		ApplicationConfig();
 	};
 }

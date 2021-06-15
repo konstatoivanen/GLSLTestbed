@@ -1152,9 +1152,6 @@
     <ClInclude Include="src\Rendering\Culling.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\RenderQueueInfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Rendering\PostProcessing\FilterAO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1171,6 +1168,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\YamlSerializers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\PostProcessing\FilterSceneGI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\Contextual\Engines\CommandEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1673,6 +1676,10 @@
     <None Include="res\textures\T_Ground_MAOR.ktx" />
     <None Include="res\textures\T_Ground_N.ktx" />
     <None Include="res\shaders\CS_VolumeFogDepthMax.shader" />
+    <None Include="res\shaders\SH_WS_SceneGI_Meta_White.shader" />
+    <None Include="res\shaders\SH_VS_SceneGI_Bake.shader" />
+    <None Include="res\shaders\includes\SceneGIShared.glsl" />
+    <None Include="res\shaders\CS_SceneGIMipmap.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">
@@ -1795,13 +1802,22 @@
     <ClCompile Include="src\Rendering\PostProcessing\FilterDof.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Rendering\PostProcessing\FilterSceneGI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Utilities\Log.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ECS\Contextual\Engines\CommandEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="x64\Debug\GLImageProcessor.log" />
     <Text Include="x64\Debug\GLImageProcessor.Build.CppClean.log" />
     <Text Include="res\shaders\includes\MathUtilities.glsl" />
     <Text Include="res\shaders\includes\LightingCommon.glsl" />
-    <Text Include="res\ApplicationConfig.cfg" />
+    <Text Include="res\configs\ApplicationConfig-Active.cfg" />
     <Text Include="res\shaders\SH_WS_Gizmos.shader" />
     <Text Include="res\shaders\SH_VS_FilterBloom.shader" />
     <Text Include="res\shaders\SH_WS_PBR_Forward.shader" />

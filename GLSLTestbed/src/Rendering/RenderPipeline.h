@@ -14,6 +14,7 @@
 #include "Rendering/PostProcessing/FilterAO.h"
 #include "Rendering/PostProcessing/FilterVolumetricFog.h"
 #include "Rendering/PostProcessing/FilterDof.h"
+#include "Rendering/PostProcessing/FilterSceneGI.h"
 #include "Rendering/LightsManager.h"
 
 namespace PK::Rendering
@@ -21,7 +22,7 @@ namespace PK::Rendering
     class RenderPipeline : public IService, public PK::ECS::ISimpleStep, public PK::ECS::IStep<Time>
     {
         public:
-            RenderPipeline(AssetDatabase* assetDatabase, PK::ECS::EntityDatabase* entityDb, const ApplicationConfig& config);
+            RenderPipeline(AssetDatabase* assetDatabase, PK::ECS::EntityDatabase* entityDb, const ApplicationConfig* config);
     
             void Step(Time* token) override;
             void Step(int condition) override;
@@ -41,6 +42,7 @@ namespace PK::Rendering
             PostProcessing::FilterAO m_filterAO;
             PostProcessing::FilterVolumetricFog m_filterFog;
             PostProcessing::FilterDof m_filterDof;
+            PostProcessing::FilterSceneGI m_filterSceneGi;
     
             Utilities::Ref<RenderTexture> m_PreZRenderTarget;
             Utilities::Ref<RenderTexture> m_HDRRenderTarget;

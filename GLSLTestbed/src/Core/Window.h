@@ -30,6 +30,7 @@ namespace PK::Core
 			inline bool IsAlive() const { return m_alive; }
 			inline bool IsMinimized() const { return m_minimized; }
 			inline bool IsVSync() const { return m_properties.vsync; }
+			inline static void SetConsole(bool enabled) { ::ShowWindow(::GetConsoleWindow(), enabled ? SW_SHOW : SW_HIDE); }
 			void SetCursorVisible(bool value);
 			void SetVSync(bool enabled);
 			void SetActive();

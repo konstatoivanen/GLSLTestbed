@@ -109,4 +109,55 @@ namespace YAML
 			return true;
 		}
 	};
+
+	struct ParsableValue
+	{
+		virtual void Parse(const YAML::Node& parent) = 0;
+		virtual void TryParse(const YAML::Node& parent) = 0;
+	};
+
+	template<typename T>
+	struct BoxedValue : ParsableValue
+	{
+		std::string key;
+		T value;
+		T defaultValue;
+
+		BoxedValue(const char* ckey, const T& initialValue) : key(ckey), value(initialValue), defaultValue(initialValue) {}
+
+		inline void Parse(const YAML::Node& parent) final { value = parent[key.c_str()] ? parent[key.c_str()].as<T>() : defaultValue; }
+
+		inline void TryParse(const YAML::Node& parent) final { if (parent[key.c_str()]) value = parent[key.c_str()].as<T>(); }
+
+		operator T& () { return value; }
+		operator T() const { return value; }
+	};
+
+	struct YamlValueList
+	{
+		std::vector<ParsableValue*> values;
+
+		inline void Load(const std::string& filepath)
+		{
+			auto properties = YAML::LoadFile(filepath);
+			PK_CORE_ASSERT(properties, "Failed to open config file at: %s", filepath.c_str());
+			Parse(properties);
+		}
+
+		inline void Parse(const YAML::Node& parent)
+		{
+			for (auto& value : values)
+			{
+				value->Parse(parent);
+			}
+		}
+
+		inline void TryParse(const YAML::Node& parent)
+		{
+			for (auto& value : values)
+			{
+				value->TryParse(parent);
+			}
+		}
+	};
 }

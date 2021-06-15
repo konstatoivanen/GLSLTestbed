@@ -13,7 +13,7 @@ namespace PK::ECS::Engines
 	class EngineEditorCamera : public IService, public IStep<Input>
 	{
 	    public:
-			EngineEditorCamera(Time* time, const ApplicationConfig& config);
+			EngineEditorCamera(Time* time, const ApplicationConfig* config);
 			void Step(Input* input) override;
 	
 	    private:

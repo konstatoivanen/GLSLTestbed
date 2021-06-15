@@ -31,12 +31,20 @@ void main()
 	float2 uv = (VOLUME_SIZE_ST.zz + id.xy) * VOLUME_SIZE_ST.xy;
 
 	float zmax = VOLUME_LOAD_MAX_DEPTH(GetVolumeDepthTileIndex(uv));
+	// Triangle dither range is -1.5 - 1.5 and due to trilinear interpolation we also need to have 2 texels worth of coverage.
+	//float zmin = GetVolumeCellDepth(id.z - 3.0f);
 
 	float3 bluenoise = GetVolumeCellNoise(id);
 
 	float depth = GetVolumeCellDepth(id.z + NoiseUniformToTriangle(bluenoise.x));
-	
-	depth = max(pk_ProjectionParams.x, min(zmax, depth));
+
+	// Texel is inside dither & trilinear interpolation range. Let's clamp it so that we can avoid light leaking through thin surfaces.
+	//if (zmin < zmax)
+	{
+		depth = min(zmax, depth);
+	}
+
+	depth = max(pk_ProjectionParams.x, depth);
 
 	float3 worldpos = mul(pk_MATRIX_I_V, float4(ClipToViewPos(uv, depth), 1.0f)).xyz;
 
@@ -44,12 +52,11 @@ void main()
 
 	float3 color = GetAmbientColor(normalize(bluenoise - 0.5f + float3(0, 1, 0)), viewdir);
 
-	uint cascade = GetShadowCascadeIndex(depth);
 	LightTile tile = GetLightTile(GetTileIndexUV(uv, depth));
 
 	for (uint i = tile.start; i < tile.end; ++i)
 	{
-		color += GetVolumeLightColor(i, worldpos, viewdir, cascade, pk_Volume_Anisotropy);
+		color += GetVolumeLightColor(i, worldpos, viewdir, tile.cascade, pk_Volume_Anisotropy);
 	}
 	
 	float density = Density(worldpos);

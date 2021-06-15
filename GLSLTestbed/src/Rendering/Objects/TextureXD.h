@@ -8,7 +8,7 @@ namespace PK::Rendering::Objects
 
 	class TextureXD : public Texture, public Asset
 	{
-		friend void AssetImporters::Import(const std::string& filepath, Ref<TextureXD>& shader);
+		friend void AssetImporters::Import(const std::string& filepath, Ref<TextureXD>& texture);
 	
 		public:
 			TextureXD();

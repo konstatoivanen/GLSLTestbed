@@ -10,6 +10,7 @@ struct LightTile
 {
     uint start;
     uint end;
+    uint cascade;
 };
 
 struct PKRawLight
@@ -47,8 +48,10 @@ struct SurfaceData
 
 LightTile CreateLightTile(uint data)
 {
-	uint offset = data & 0xFFFFFF;
-	return LightTile(offset, offset + (data >> 24));
+	uint offset = bitfieldExtract(data, 0, 20);
+	uint count = bitfieldExtract(data, 20, 8);
+    uint cascade = bitfieldExtract(data, 28, 4);
+    return LightTile(offset, offset + count, cascade);
 }
 
 uniform int pk_LightCount;

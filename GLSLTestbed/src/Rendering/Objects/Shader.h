@@ -28,6 +28,9 @@ namespace PK::Rendering::Objects
 		public:
 			void Reset();
 			void SetKeywords(const uint32_t* hashIds, size_t count);
+			void ListVariants();
+			inline bool SupportsKeyword(const uint32_t hashId) const { return keywords.count(hashId) > 0; }
+			bool SupportsKeywords(const uint32_t* hashIds, const uint32_t count) const;
 			uint32_t GetActiveIndex() const;
 	
 			uint32_t variantcount = 0;
@@ -55,16 +58,17 @@ namespace PK::Rendering::Objects
 			~Shader();
 			inline const FixedStateAttributes& GetFixedStateAttributes() const { return m_stateAttributes; }
 			inline const ShaderInstancingInfo& GetInstancingInfo() const { return m_instancingInfo; }
-			inline const uint32_t GetRenderQueueIndex() const { return m_renderQueueIndex; }
+			inline bool SupportsKeyword(const uint32_t hashId) const { return m_variantMap.SupportsKeyword(hashId); }
+			inline bool SupportsKeywords(const uint32_t* hashIds, const uint32_t count) const { return m_variantMap.SupportsKeywords(hashIds, count); }
 			const Ref<ShaderVariant>& GetActiveVariant();
 	
 			inline void SetPropertyBlock(const ShaderPropertyBlock& propertyBlock) { m_variants.at(m_activeIndex)->SetPropertyBlock(propertyBlock); }
 			void ResetKeywords();
 			void SetKeywords(const std::vector<uint32_t>& keywords);
 			void ListProperties();
+			void ListVariants();
 	
 		private:
-			uint32_t m_renderQueueIndex = 0;
 			uint32_t m_activeIndex = 0;
 			std::vector<Ref<ShaderVariant>> m_variants;
 			ShaderVariantMap m_variantMap = ShaderVariantMap();

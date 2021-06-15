@@ -12,11 +12,11 @@ namespace PK::Rendering::PostProcessing
         uint2 readwrite;
     };
 
-    FilterAO::FilterAO(AssetDatabase* assetDatabase, const ApplicationConfig& config) : FilterBase(assetDatabase->Find<Shader>("SH_VS_FilterAO"))
+    FilterAO::FilterAO(AssetDatabase* assetDatabase, const ApplicationConfig* config) : FilterBase(assetDatabase->Find<Shader>("SH_VS_FilterAO"))
     {
-        m_radius = config.AmbientOcclusionRadius;
-        m_intensity = config.AmbientOcclusionIntensity;
-        m_downsample = config.AmbientOcclusionDownsample;
+        m_radius = config->AmbientOcclusionRadius;
+        m_intensity = config->AmbientOcclusionIntensity;
+        m_downsample = config->AmbientOcclusionDownsample;
         m_passKeywords[0] = StringHashID::StringToID("AO_PASS0");
         m_passKeywords[1] = StringHashID::StringToID("AO_PASS1");
         m_passBuffer = CreateRef<ComputeBuffer>(BufferLayout({ {CG_TYPE::HANDLE, "SOURCE"}, { CG_TYPE::FLOAT2, "OFFSET" }, { CG_TYPE::UINT2, "READWRITE" } }), 3, true, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
@@ -29,14 +29,14 @@ namespace PK::Rendering::PostProcessing
         descriptor.wrapmodex = GL_CLAMP_TO_EDGE;
         descriptor.wrapmodey = GL_CLAMP_TO_EDGE;
         descriptor.wrapmodez = GL_CLAMP_TO_EDGE;
-        descriptor.resolution.x = config.InitialWidth / divisor;
-        descriptor.resolution.y = config.InitialHeight / divisor;
+        descriptor.resolution.x = config->InitialWidth / divisor;
+        descriptor.resolution.y = config->InitialHeight / divisor;
         descriptor.resolution.z = 0;
         m_renderTargets[0] = CreateRef<RenderTexture>(descriptor);
 
         descriptor.dimension = GL_TEXTURE_2D_ARRAY;
-        descriptor.resolution.x = config.InitialWidth;
-        descriptor.resolution.y = config.InitialHeight;
+        descriptor.resolution.x = config->InitialWidth;
+        descriptor.resolution.y = config->InitialHeight;
         descriptor.resolution.z = 2;
         m_renderTargets[1] = CreateRef<RenderTexture>(descriptor);
 

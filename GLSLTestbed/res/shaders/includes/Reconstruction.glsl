@@ -30,4 +30,15 @@ float3 SampleWorldSpaceNormal(float2 uv)
     return mul(float3x3(pk_MATRIX_I_V), SampleViewSpaceNormal(uv));
 }
 
+float3 SampleViewPosition(float2 uv)
+{
+    float depth = SampleLinearDepth(uv);
+    return ClipToViewPos(uv, depth);
+}
+
+float3 SampleWorldPosition(float2 uv)
+{
+    return mul(pk_MATRIX_I_V, float4(SampleViewPosition(uv), 1.0f)).xyz;
+}
+
 #endif

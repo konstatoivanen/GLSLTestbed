@@ -34,6 +34,9 @@ namespace PK::Core
     namespace AssetImporters
     {
         template<typename T>
+        bool IsValidExtension(const std::filesystem::path& extension);
+
+        template<typename T>
         void Import(const std::string& filepath, Ref<T>& asset);
     };
     
@@ -121,7 +124,7 @@ namespace PK::Core
             }
     
             template<typename T>
-            T* Find(const char* name)
+            T* Find(const char* name) const
             {
                 static_assert(std::is_base_of<Asset, T>::value, "Template argument type does not derive from Asset!");
 
@@ -144,6 +147,31 @@ namespace PK::Core
     
                 PK_CORE_ERROR("Could not find asset with name %s", name);
             }
+
+            template<typename T>
+            T* TryFind(const char* name) const
+            {
+                static_assert(std::is_base_of<Asset, T>::value, "Template argument type does not derive from Asset!");
+
+                auto type = std::type_index(typeid(T));
+
+                if (m_assets.count(type) > 0)
+                {
+                    auto& collection = m_assets.at(type);
+
+                    for (auto& i : collection)
+                    {
+                        auto filename = Utilities::String::ReadFileName(StringHashID::IDToString(i.first));
+
+                        if (filename.find(name) != std::string::npos)
+                        {
+                            return std::static_pointer_cast<T>(i.second).get();
+                        }
+                    }
+                }
+
+                return nullptr;
+            }
             
             template<typename T>
             T* Load(const std::string& filepath) { return Load<T>(filepath, StringHashID::StringToID(filepath)); }
@@ -165,7 +193,7 @@ namespace PK::Core
             }
     
             template<typename T>
-            void LoadDirectory(const std::string& directory, std::initializer_list<const char*> extensions)
+            void LoadDirectory(const std::string& directory)
             {
                 static_assert(std::is_base_of<Asset, T>::value, "Template argument type does not derive from Asset!");
 
@@ -178,26 +206,15 @@ namespace PK::Core
                 {
                     auto& path = entry.path();
     
-                    if (!path.has_extension())
+                    if (path.has_extension() && AssetImporters::IsValidExtension<T>(path.extension()))
                     {
-                        continue;
-                    }
-    
-                    auto pathExtension = path.extension();
-    
-                    for (auto extension : extensions)
-                    {
-                        if (pathExtension.compare(extension) == 0)
-                        {
-                            Load<T>(entry.path().string());
-                            break;
-                        }
+                        Load<T>(entry.path().string());
                     }
                 }
             }
     
             template<typename T>
-            void ReloadDirectory(const std::string& directory, std::initializer_list<const char*> extensions)
+            void ReloadDirectory(const std::string& directory)
             {
                 static_assert(std::is_base_of<Asset, T>::value, "Template argument type does not derive from Asset!");
 
@@ -210,26 +227,15 @@ namespace PK::Core
                 {
                     auto& path = entry.path();
     
-                    if (!path.has_extension())
+                    if (path.has_extension() && AssetImporters::IsValidExtension<T>(path.extension()))
                     {
-                        continue;
-                    }
-    
-                    auto pathExtension = path.extension();
-    
-                    for (auto extension : extensions)
-                    {
-                        if (pathExtension.compare(extension) == 0)
-                        {
-                            Reload<T>(entry.path().string());
-                            break;
-                        }
+                        Reload<T>(entry.path().string());
                     }
                 }
             }
     
             template<typename T>
-            void UnloadDirectory(const std::string& directory, std::initializer_list<const char*> extensions)
+            void UnloadDirectory(const std::string& directory)
             {
                 static_assert(std::is_base_of<Asset, T>::value, "Template argument type does not derive from Asset!");
 
@@ -242,20 +248,9 @@ namespace PK::Core
                 {
                     auto& path = entry.path();
     
-                    if (!path.has_extension())
+                    if (path.has_extension() && AssetImporters::IsValidExtension<T>(path.extension()))
                     {
-                        continue;
-                    }
-    
-                    auto pathExtension = path.extension();
-    
-                    for (auto extension : extensions)
-                    {
-                        if (pathExtension.compare(extension) == 0)
-                        {
-                            Unload<T>(entry.path().string());
-                            break;
-                        }
+                        Unload<T>(entry.path().string());
                     }
                 }
             }
@@ -284,6 +279,35 @@ namespace PK::Core
     
             inline void Unload() { m_assets.clear();  };
     
+            template<typename T>
+            void ListAssetsOfType()
+            {
+                static_assert(std::is_base_of<Asset, T>::value, "Template argument type does not derive from Asset!");
+
+                auto type = std::type_index(typeid(T));
+                auto& collection = m_assets[type];
+
+                PK_CORE_LOG_HEADER("Listing loaded assets of type: %s", type.name());
+
+                for (auto& kv : collection)
+                {
+                    PK_CORE_LOG(StringHashID::IDToString(kv.first).c_str());
+                }
+            }
+
+            void ListAssets()
+            {
+                for (auto& typecollection : m_assets)
+                {
+                    PK_CORE_LOG_HEADER("Listing loaded assets of type: %s", typecollection.first.name());
+
+                    for (auto& kv : typecollection.second)
+                    {
+                        PK_CORE_LOG(StringHashID::IDToString(kv.first).c_str());
+                    }
+                }
+            }
+
         private:
             std::unordered_map<std::type_index, std::unordered_map<AssetID, Ref<Asset>>> m_assets;
     };

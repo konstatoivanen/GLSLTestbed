@@ -44,6 +44,7 @@ namespace PK::Rendering::Objects
             inline uint GetHeight() const { return m_descriptor.resolution.y; }
             inline uint GetDepth() const { return m_descriptor.resolution.z; }
             inline uint GetSize() const { return m_descriptor.resolution.x * m_descriptor.resolution.y * m_descriptor.resolution.z * GetTexelSize(m_descriptor.colorFormat); }
+            inline uint GetMipCount() const { return m_descriptor.miplevels; }
             inline uint8_t GetChannelCount() const { return GetChannelCount(m_channels); }
             inline GLenum GetDimension() const { return m_descriptor.dimension; }
 

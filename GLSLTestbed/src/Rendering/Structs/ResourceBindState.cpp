@@ -59,9 +59,12 @@ namespace PK::Rendering::Structs
 
         if (count == 1)
         {
-            if (bindings[0] != imageBindings->graphicsId)
+            // @TODO Could result in some collisions but whatever
+            auto hash = Functions::ByteArrayHash(imageBindings, sizeof(ImageBindDescriptor));
+
+            if (bindings[0] != hash)
             {
-                bindings[0] = imageBindings->graphicsId;
+                bindings[0] = hash;
                 glBindImageTexture(location, imageBindings->graphicsId, imageBindings->level, imageBindings->layered, imageBindings->layer, imageBindings->access, imageBindings->format);
             }
 
@@ -70,19 +73,24 @@ namespace PK::Rendering::Structs
 
         for (ushort i = 0; i < count; ++i)
         {
-            if (bindings[i] == imageBindings[i].graphicsId)
+            // @TODO Could result in some collisions but whatever
+            auto hash = Functions::ByteArrayHash(imageBindings + i, sizeof(ImageBindDescriptor));
+
+            if (bindings[i] == hash)
             {
                 continue;
             }
 
             auto ids = PK_STACK_ALLOC(GraphicsID, count);
+            auto hashes = PK_STACK_ALLOC(uint, count);
 
             for (auto j = 0; j < count; ++j)
             {
                 ids[j] = imageBindings[j].graphicsId;
+                hashes[j] = Functions::ByteArrayHash(imageBindings + j, sizeof(ImageBindDescriptor));
             }
 
-            memcpy(bindings, ids, sizeof(GraphicsID) * count);
+            memcpy(bindings, hashes, sizeof(uint) * count);
             glBindImageTextures(location, count, ids);
             break;
         }

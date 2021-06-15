@@ -2,13 +2,14 @@
 #extension GL_ARB_bindless_texture : require
 
 #Blend Off
-#ZTest Equal
-#ZWrite Off
+#ZTest LEqual
+#ZWrite On
 #Cull Back
 
 #multi_compile _ PK_NORMALMAPS
 #multi_compile _ PK_HEIGHTMAPS
 #multi_compile _ PK_ENABLE_INSTANCING
+#multi_compile _ PK_META_DEPTH_NORMALS
 
 #include includes/Lighting.glsl
 #include includes/Reconstruction.glsl
@@ -114,5 +115,10 @@ void main()
     surf.roughness = textureval.SRC_ROUGHNESS * PK_ACCESS_INSTANCED_PROP(_Roughness);
     surf.occlusion = lerp(1.0f, textureval.SRC_OCCLUSION, PK_ACCESS_INSTANCED_PROP(_Occlusion)) * SampleScreenSpaceOcclusion();
 
-    SV_Target0 = PhysicallyBasedShading(surf, viewdir, worldpos);
+    // @TODO refactor this to be more generic :/
+    #if defined (PK_META_DEPTH_NORMALS)
+        SV_Target0 = float4(WorldToViewDir(surf.normal), 0.0f);
+    #else 
+        SV_Target0 = PhysicallyBasedShading(surf, viewdir, worldpos);
+    #endif
 };
