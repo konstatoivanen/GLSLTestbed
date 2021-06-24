@@ -64,7 +64,7 @@ void main()
 		float3 clippos = WorldToClipSpace(gs_POSITION[i]);
 		uint2 swizzle = axis_swizzles[viewport];
 		gl_Position = float4(clippos[swizzle.x], clippos[swizzle.y], 0, 1);
-		gl_ViewportIndex = 0;
+		gl_ViewportIndex = viewport + 1;
 		EmitVertex();
 	}
 	EndPrimitive();

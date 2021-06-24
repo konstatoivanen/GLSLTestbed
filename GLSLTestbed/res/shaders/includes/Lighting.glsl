@@ -37,11 +37,7 @@ uint GetShadowCascadeIndexFragment()
     #endif
 }
 
-float3 SampleEnv(float2 uv, float roughness)
-{
-    float4 env = tex2DLod(pk_SceneOEM_HDR, uv, roughness * 4);
-    return HDRDecode(env) * pk_SceneOEM_Exposure;
-}
+float3 SampleEnv(float2 uv, float roughness) { return HDRDecode(tex2DLod(pk_SceneOEM_HDR, uv, roughness * 4)) * pk_SceneOEM_Exposure; }
 
 float SampleScreenSpaceOcclusion(float2 uv) { return tex2D(pk_ScreenOcclusion, uv).r; }
 
@@ -177,9 +173,7 @@ LightTile GetLightTile(int3 coord)
 LightTile GetLightTile() 
 { 
     #if defined(SHADER_STAGE_FRAGMENT)
-        float lineardepth = LinearizeDepth(gl_FragCoord.z);
-        int3 coord = GetTileIndexUV(gl_FragCoord.xy * pk_ScreenParams.zw, lineardepth);
-        return GetLightTile(coord); 
+        return GetLightTile(GetTileIndexUV(gl_FragCoord.xy * pk_ScreenParams.zw, LinearizeDepth(gl_FragCoord.z))); 
     #else
         return LightTile(0,0,0);
     #endif

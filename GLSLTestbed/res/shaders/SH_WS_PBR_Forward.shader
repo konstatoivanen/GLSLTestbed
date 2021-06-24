@@ -59,11 +59,7 @@ void main()
     PK_SETUP_INSTANCE_ID();
 
     #if defined(PK_NORMALMAPS) || defined(PK_HEIGHTMAPS)
-        float3 T = normalize(in_TANGENT.xyz);
-        float3 B = normalize(in_TANGENT.w * cross(in_NORMAL.xyz, in_TANGENT.xyz));
-        float3 N = normalize(in_NORMAL.xyz);
-        float3x3 TBN = float3x3(T, B, N);
-        TBN = mul(float3x3(pk_MATRIX_M), TBN);
+        float3x3 TBN = ComposeMikkTangentSpaceMatrix(in_NORMAL, in_TANGENT);
 
         #if defined(PK_NORMALMAPS)
             varyings.vs_TSROTATION = TBN;

@@ -84,9 +84,9 @@ namespace PK::Rendering::PostProcessing
         float4 viewports[4] = 
         { 
             {0, 0, m_screenSpaceGI->GetWidth(), m_screenSpaceGI->GetHeight() },
-            {0, 0, m_voxelsDiffuse->GetWidth(), m_screenSpaceGI->GetHeight() },
-            {0, 0, m_screenSpaceGI->GetHeight(), m_screenSpaceGI->GetDepth() },
-            {0, 0, m_screenSpaceGI->GetWidth(), m_screenSpaceGI->GetDepth() },
+            {0, 0, m_voxelsDiffuse->GetWidth(),  m_voxelsDiffuse->GetHeight() },
+            {0, 0, m_voxelsDiffuse->GetHeight(), m_voxelsDiffuse->GetDepth() },
+            {0, 0, m_voxelsDiffuse->GetWidth(),  m_voxelsDiffuse->GetDepth() },
         };
 
         GraphicsAPI::SetViewPorts(0, viewports, 4);
