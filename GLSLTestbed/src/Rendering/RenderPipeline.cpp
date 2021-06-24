@@ -78,9 +78,9 @@ namespace PK::Rendering
 	
 		m_HDRRenderTarget = CreateRef<RenderTexture>(renderTargetDescriptor);
 
-		renderTargetDescriptor.colorFormats = { GL_RGB16F };
+		renderTargetDescriptor.colorFormats = { GL_RGBA16F };
 
-		m_PreZRenderTarget = CreateRef<RenderTexture>(renderTargetDescriptor);
+		m_GeometryBufferTarget = CreateRef<RenderTexture>(renderTargetDescriptor);
 	
 		m_constantsPerFrame = CreateRef<ConstantBuffer>(BufferLayout(
 		{
@@ -102,11 +102,12 @@ namespace PK::Rendering
 			{CG_TYPE::HANDLE, "pk_SceneOEM_HDR"},
 			{CG_TYPE::HANDLE, "pk_ScreenNormals"},
 			{CG_TYPE::HANDLE, "pk_ScreenDepth"},
-			{CG_TYPE::HANDLE, "pk_ShadowmapAtlas"},
+			{CG_TYPE::HANDLE, "pk_ScreenGI_Diffuse"},
+			{CG_TYPE::HANDLE, "pk_ScreenGI_Specular"},
 			{CG_TYPE::HANDLE, "pk_ScreenOcclusion"},
+			{CG_TYPE::HANDLE, "pk_ShadowmapAtlas"},
 			{CG_TYPE::HANDLE, "pk_LightCookies"},
 			{CG_TYPE::HANDLE, "pk_Bluenoise256"},
-			{CG_TYPE::HANDLE, "pk_ScreenSpaceGI"},
 			{CG_TYPE::FLOAT, "pk_SceneOEM_Exposure"},
 		}));
 
@@ -115,8 +116,8 @@ namespace PK::Rendering
 
 		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_Bluenoise256, bluenoiseTex->GetBindlessHandleResident());
 		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_LightCookies, cookies->GetBindlessHandleResident());
-		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenDepth, m_PreZRenderTarget->GetDepthBuffer()->GetBindlessHandleResident());
-		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenNormals, m_PreZRenderTarget->GetColorBuffer(0)->GetBindlessHandleResident());
+		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenDepth, m_GeometryBufferTarget->GetDepthBuffer()->GetBindlessHandleResident());
+		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenNormals, m_GeometryBufferTarget->GetColorBuffer(0)->GetBindlessHandleResident());
 		m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ShadowmapAtlas, m_lightsManager.GetShadowmapAtlas()->GetColorBuffer(0)->GetBindlessHandleResident());
 	}
 	
@@ -158,16 +159,16 @@ namespace PK::Rendering
 
 		m_HDRRenderTarget->ValidateResolution(uint3(resolution, 0));
 
-		if (m_PreZRenderTarget->ValidateResolution(uint3(resolution, 0)))
+		if (m_GeometryBufferTarget->ValidateResolution(uint3(resolution, 0)))
 		{
-			m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenDepth, m_PreZRenderTarget->GetDepthBuffer()->GetBindlessHandleResident());
-			m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenNormals, m_PreZRenderTarget->GetColorBuffer(0)->GetBindlessHandleResident());
+			m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenDepth, m_GeometryBufferTarget->GetDepthBuffer()->GetBindlessHandleResident());
+			m_constantsPerFrame->SetResourceHandle(HashCache::Get()->pk_ScreenNormals, m_GeometryBufferTarget->GetColorBuffer(0)->GetBindlessHandleResident());
 		}
 
 		auto cascadeZSplits = m_lightsManager.GetCascadeZSplits(projParams.x, projParams.y);
 		m_constantsPerFrame->SetFloat4(HashCache::Get()->pk_ShadowCascadeZSplits, reinterpret_cast<float4*>(cascadeZSplits.planes));
 
-		m_filterAO.OnPreRender(m_PreZRenderTarget.get());
+		m_filterAO.OnPreRender(m_GeometryBufferTarget.get());
 		m_filterBloom.OnPreRender(m_HDRRenderTarget.get());
 		m_filterDof.OnPreRender(m_HDRRenderTarget.get());
 		m_filterSceneGi.OnPreRender(m_HDRRenderTarget.get());
@@ -198,20 +199,29 @@ namespace PK::Rendering
 	
 	void RenderPipeline::OnRender()
 	{
-		GraphicsAPI::SetRenderTarget(m_PreZRenderTarget.get());
+		GraphicsAPI::SetRenderTarget(m_GeometryBufferTarget.get());
 		GraphicsAPI::Clear(CG_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		Batching::DrawBatchesPredicated(&m_dynamicBatches, StringHashID::StringToID("PK_META_DEPTH_NORMALS"), m_depthNormalsShader);
-		
-		m_lightsManager.UpdateLightTiles(m_PreZRenderTarget->GetResolution2D());
+		FixedStateAttributes depthNormalsAttributes;
+		depthNormalsAttributes.BlendEnabled = false;
+		depthNormalsAttributes.ColorMask = 255;
+		depthNormalsAttributes.CullEnabled = true;
+		depthNormalsAttributes.CullMode = GL_BACK;
+		depthNormalsAttributes.ZTest = GL_LEQUAL;
+		depthNormalsAttributes.ZTestEnabled = true;
+		depthNormalsAttributes.ZWriteEnabled = true;
 
-		m_filterAO.Execute(m_PreZRenderTarget.get(), nullptr);
+		Batching::DrawBatchesPredicated(&m_dynamicBatches, StringHashID::StringToID("PK_META_DEPTH_NORMALS"), m_depthNormalsShader, depthNormalsAttributes);
+		
+		m_lightsManager.UpdateLightTiles(m_GeometryBufferTarget->GetResolution2D());
+
+		m_filterAO.Execute(m_GeometryBufferTarget.get(), nullptr);
 		m_filterSceneGi.Execute(nullptr, nullptr);
 
 		GraphicsAPI::SetRenderTarget(m_HDRRenderTarget.get());
 		GraphicsAPI::Clear(CG_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT);
 
-		GraphicsAPI::CopyRenderTexture(m_PreZRenderTarget.get(), m_HDRRenderTarget.get(), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		GraphicsAPI::CopyRenderTexture(m_GeometryBufferTarget.get(), m_HDRRenderTarget.get(), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
 		GraphicsAPI::Blit(m_OEMBackgroundShader);
 

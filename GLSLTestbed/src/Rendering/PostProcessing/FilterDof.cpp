@@ -68,11 +68,9 @@ namespace PK::Rendering::PostProcessing
     {
         GraphicsAPI::DispatchCompute(m_shaderAutoFocus, { 1,1,1 }, m_properties);
         m_properties.SetKeywords({ m_passKeywords[0] });
-        GraphicsAPI::Blit(source->GetColorBuffer(0), m_renderTarget.get(), m_shader, m_properties);
-        glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
+        GraphicsAPI::Blit(source->GetColorBuffer(0), m_renderTarget.get(), m_shader, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT);
         m_properties.SetKeywords({ m_passKeywords[1] });
-        GraphicsAPI::Blit(m_renderTarget->GetColorBuffer(0), m_renderTarget.get(), m_shader, m_properties);
-        glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
+        GraphicsAPI::Blit(m_renderTarget->GetColorBuffer(0), m_renderTarget.get(), m_shader, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT);
         GraphicsAPI::Blit(m_renderTarget->GetColorBuffer(0), destination, m_shaderComposite, m_properties);
     }
 }

@@ -10,6 +10,30 @@ namespace PK::Rendering::Objects
     {
     }
     
+    GLuint64 Texture::GetBindlessHandleResident() const
+    {
+        auto handle = glGetTextureHandleARB(m_graphicsId);
+
+        if (!glIsTextureHandleResidentARB(handle))
+        {
+            glMakeTextureHandleResidentARB(handle);
+        }
+
+        return handle;
+    }
+
+    GLuint64 Texture::GetImageHandleResident(GLenum format, GLenum access, int level, int layer, bool layered) const
+    {
+        auto handle = glGetImageHandleARB(m_graphicsId, level, layered, layer, format);
+
+        if (!glIsImageHandleResidentARB(handle))
+        {
+            glMakeImageHandleResidentARB(handle, access);
+        }
+
+        return handle;
+    }
+
     void Texture::Clear(uint level, const void* clearValue) const
     {
         glClearTexImage(m_graphicsId, level, m_channels, GetFormatDataType(m_descriptor.colorFormat), clearValue);
@@ -31,6 +55,12 @@ namespace PK::Rendering::Objects
         m_descriptor.filtermag = mag;
         glTextureParameteri(m_graphicsId, GL_TEXTURE_MIN_FILTER, min);
         glTextureParameteri(m_graphicsId, GL_TEXTURE_MAG_FILTER, mag);
+    }
+
+    void Texture::SetBorderColor(const color& color)
+    {
+        m_descriptor.bordercolor = color;
+        glTexParameterfv(m_graphicsId, GL_TEXTURE_BORDER_COLOR, glm::value_ptr(color));
     }
     
     void Texture::SetDescriptor(const TextureDescriptor& descriptor)
@@ -74,6 +104,7 @@ namespace PK::Rendering::Objects
         glTextureParameteri(graphicsId, GL_TEXTURE_WRAP_S, descriptor.wrapmodex);
         glTextureParameteri(graphicsId, GL_TEXTURE_WRAP_T, descriptor.wrapmodey);
         glTextureParameteri(graphicsId, GL_TEXTURE_WRAP_R, descriptor.wrapmodez);
+        glTextureParameterfv(graphicsId, GL_TEXTURE_BORDER_COLOR, glm::value_ptr(descriptor.bordercolor));
     }
     
     GLenum Texture::GetFormatChannels(GLenum format)

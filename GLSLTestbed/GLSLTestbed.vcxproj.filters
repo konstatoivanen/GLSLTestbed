@@ -1176,6 +1176,9 @@
     <ClInclude Include="src\ECS\Contextual\Engines\CommandEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Rendering\Structs\DrawCallDescriptor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\glfw3.lib" />

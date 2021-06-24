@@ -17,6 +17,7 @@ namespace PK::Rendering::Objects
         GLenum wrapmodez = GL_REPEAT;
         GLenum filtermag = GL_LINEAR;
         GLenum filtermin = GL_LINEAR;
+        color bordercolor = CG_COLOR_CLEAR;
         uint miplevels = 0;
         uint msaaSamples = 0;
     };
@@ -49,39 +50,21 @@ namespace PK::Rendering::Objects
             inline GLenum GetDimension() const { return m_descriptor.dimension; }
 
             inline GLuint64 GetBindlessHandle() const { return glGetTextureHandleARB(m_graphicsId); }
-            GLuint64 GetBindlessHandleResident() const 
-            { 
-                auto handle = glGetTextureHandleARB(m_graphicsId);
-
-                if (!glIsTextureHandleResidentARB(handle))
-                {
-                    glMakeTextureHandleResidentARB(handle);
-                }
-                return handle; 
-            }
+            GLuint64 GetBindlessHandleResident() const;
             inline void MakeHandleResident() const { glMakeTextureHandleResidentARB(glGetTextureHandleARB(m_graphicsId)); }
             inline void MakeHandleNonResident() const { glMakeTextureHandleNonResidentARB(glGetTextureHandleARB(m_graphicsId)); }
 
             inline ImageBindDescriptor GetImageBindDescriptor(GLenum access, int level, int layer, bool layered) const { return { m_graphicsId, m_descriptor.colorFormat, access, level, layer, layered }; }
             inline GLuint64 GetImageHandle(GLenum format, int level, int layer, bool layered) const { return glGetImageHandleARB(m_graphicsId, level, layered, layer, format); }
-            GLuint64 GetImageHandleResident(GLenum format, GLenum access, int level, int layer, bool layered) const 
-            { 
-                auto handle = glGetImageHandleARB(m_graphicsId, level, layered, layer, format);
-
-                if (!glIsImageHandleResidentARB(handle))
-                {
-                    glMakeImageHandleResidentARB(handle, access);
-                }
-
-                return handle;
-            }
+            GLuint64 GetImageHandleResident(GLenum format, GLenum access, int level, int layer, bool layered) const;
             inline void MakeImageHandleResident(GLenum format, GLenum access, int level, int layer, bool layered) const { glMakeImageHandleResidentARB(glGetImageHandleARB(m_graphicsId, level, layered, layer, format), access); }
             inline void MakeImageHandleNonResident(GLenum format, int level, int layer, bool layered) const { glMakeImageHandleNonResidentARB(glGetImageHandleARB(m_graphicsId, level, layered, layer, format)); }
 
             void Clear(uint level, const void* clearValue) const;
             void SetWrapMode(GLenum x, GLenum y, GLenum z);
             void SetFilterMode(GLenum min, GLenum mag);
-    
+            void SetBorderColor(const color& color);
+
         protected:
             void SetDescriptor(const TextureDescriptor& descriptor);
     

@@ -57,10 +57,13 @@ float SampleScreenSpaceOcclusion()
 void SampleScreenSpaceGI(inout PKIndirect indirect)
 {
     #if defined(SHADER_STAGE_FRAGMENT)
-        float4 value = tex2D(pk_ScreenSpaceGI,  gl_FragCoord.xy * pk_ScreenParams.zw);
-        indirect.diffuse *= value.a;
-        indirect.specular *= value.a;
-        indirect.diffuse += value.rgb;
+        float2 screenuv = gl_FragCoord.xy * pk_ScreenParams.zw;
+
+        float4 diffuse = tex2D(pk_ScreenGI_Diffuse, screenuv);
+        float4 specular = tex2D(pk_ScreenGI_Specular, screenuv);
+
+        indirect.diffuse = indirect.diffuse * diffuse.a + diffuse.rgb;
+        indirect.specular = indirect.specular * specular.a + specular.rgb;
     #endif
 }
 
@@ -182,47 +185,55 @@ LightTile GetLightTile()
     #endif
 }
 
-
-float4 PhysicallyBasedShading(SurfaceData surf, float3 viewdir, float3 worldpos)
+float4 FragmentPhysicallyBasedShading(SurfaceData surf, float3 viewdir, float3 worldpos)
 {
-    surf.normal = normalize(surf.normal);
-    surf.roughness = max(surf.roughness, 0.002);
-
-    //Temp
-    surf.albedo = 1.0f.xxx;
-
-    // Fix edge artifacts for when normals are pointing away from camera.
-    half shiftAmount = dot(surf.normal, viewdir);
-    surf.normal = shiftAmount < 0.0f ? surf.normal + viewdir * (-shiftAmount + 1e-5f) : surf.normal;
-
-    float3 specColor = lerp(pk_DielectricSpecular.rgb, surf.albedo, surf.metallic);
-    float reflectivity = pk_DielectricSpecular.r + surf.metallic * pk_DielectricSpecular.a;
-    surf.albedo *= 1.0f - reflectivity;
-
-    #if defined(PK_TRANSPARENT_PBR)
-        surf.albedo *= alpha;
-        surf.alpha = reflectivity + surf.alpha * (1.0f - reflectivity);
-    #endif
-
-    INIT_BRDF_CACHE(surf.albedo, specColor, surf.normal, viewdir, reflectivity, surf.roughness);
+    #if defined(SHADER_STAGE_FRAGMENT)
+            // @TODO refactor this to be more generic :/
+        #if defined(PK_META_DEPTH_NORMALS)
+            return float4(WorldToViewDir(surf.normal), surf.roughness);
+        #else
+            surf.normal = normalize(surf.normal);
+            surf.roughness = max(surf.roughness, 0.002);
     
-    PKIndirect indirect;
-    indirect.diffuse = SampleEnv(OctaUV(surf.normal), 1.0f);
-    indirect.specular = SampleEnv(OctaUV(reflect(-viewdir, surf.normal)), surf.roughness);
-
-    SampleScreenSpaceGI(indirect);
-
-    float3 color = BRDF_PBS_DEFAULT_INDIRECT(indirect);
-
-    color *= surf.occlusion;
-
-    LightTile tile = GetLightTile();
-
-    for (uint i = tile.start; i < tile.end; ++i)
-    {
-        PKLight light = GetSurfaceLight(i, worldpos, tile.cascade);
-        color += BRDF_PBS_DEFAULT_DIRECT(light);
-    }
-
-    return float4(color, surf.alpha);
+            //Temp
+            surf.albedo = 1.0f.xxx;
+    
+            // Fix edge artifacts for when normals are pointing away from camera.
+            half shiftAmount = dot(surf.normal, viewdir);
+            surf.normal = shiftAmount < 0.0f ? surf.normal + viewdir * (-shiftAmount + 1e-5f) : surf.normal;
+    
+            float3 specColor = lerp(pk_DielectricSpecular.rgb, surf.albedo, surf.metallic);
+            float reflectivity = pk_DielectricSpecular.r + surf.metallic * pk_DielectricSpecular.a;
+            surf.albedo *= 1.0f - reflectivity;
+    
+            #if defined(PK_TRANSPARENT_PBR)
+                surf.albedo *= alpha;
+                surf.alpha = reflectivity + surf.alpha * (1.0f - reflectivity);
+            #endif
+    
+            INIT_BRDF_CACHE(surf.albedo, specColor, surf.normal, viewdir, reflectivity, surf.roughness);
+            
+            PKIndirect indirect;
+            indirect.diffuse = SampleEnv(OctaUV(surf.normal), 1.0f);
+            indirect.specular = SampleEnv(OctaUV(reflect(-viewdir, surf.normal)), surf.roughness);
+    
+            SampleScreenSpaceGI(indirect);
+    
+            float3 color = BRDF_PBS_DEFAULT_INDIRECT(indirect);
+    
+            color *= surf.occlusion;
+    
+            LightTile tile = GetLightTile();
+    
+            for (uint i = tile.start; i < tile.end; ++i)
+            {
+                PKLight light = GetSurfaceLight(i, worldpos, tile.cascade);
+                color += BRDF_PBS_DEFAULT_DIRECT(light);
+            }
+    
+            return float4(color, surf.alpha);
+        #endif
+    #else
+        return 0.0.xxxx;
+    #endif
 }

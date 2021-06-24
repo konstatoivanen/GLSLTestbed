@@ -2,8 +2,8 @@
 #extension GL_ARB_bindless_texture : require
 
 #Blend Off
-#ZTest LEqual
-#ZWrite On
+#ZTest Equal
+#ZWrite Off
 #Cull Back
 
 #multi_compile _ PK_NORMALMAPS
@@ -85,7 +85,6 @@ in FragmentVaryings varyings;
 PK_VARYING_INSTANCE_ID
 
 layout(location = 0) out float4 SV_Target0;
-
 void main()
 {
     PK_SETUP_INSTANCE_ID();
@@ -115,10 +114,5 @@ void main()
     surf.roughness = textureval.SRC_ROUGHNESS * PK_ACCESS_INSTANCED_PROP(_Roughness);
     surf.occlusion = lerp(1.0f, textureval.SRC_OCCLUSION, PK_ACCESS_INSTANCED_PROP(_Occlusion)) * SampleScreenSpaceOcclusion();
 
-    // @TODO refactor this to be more generic :/
-    #if defined (PK_META_DEPTH_NORMALS)
-        SV_Target0 = float4(WorldToViewDir(surf.normal), 0.0f);
-    #else 
-        SV_Target0 = PhysicallyBasedShading(surf, viewdir, worldpos);
-    #endif
+    SV_Target0 = FragmentPhysicallyBasedShading(surf, viewdir, worldpos);
 };

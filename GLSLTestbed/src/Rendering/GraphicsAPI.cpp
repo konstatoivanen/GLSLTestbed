@@ -70,7 +70,7 @@ namespace PK::Rendering::GraphicsAPI
 			DELTA_CHECK_SET(current.CullMode, attributes.CullMode, glCullFace(attributes.CullMode))
 		}
 	}
-
+	
 
 	void GraphicsAPI::Initialize()
 	{
@@ -291,6 +291,7 @@ namespace PK::Rendering::GraphicsAPI
 			{
 				SetViewPort(0, 0, renderTexture->GetWidth(), renderTexture->GetHeight());
 			}
+
 			return;
 		}
 	
@@ -332,7 +333,7 @@ namespace PK::Rendering::GraphicsAPI
 		glNamedFramebufferTexture(renderTarget, attachment, renderBuffer->GetGraphicsID(), 0);
 	}
 	
-	void GraphicsAPI::SetPass(Shader* shader, uint32_t pass)
+	void GraphicsAPI::SetPass(Shader* shader, const FixedStateAttributes& attributes, uint32_t pass)
 	{
 		auto* context = GetCurrentContext();
 
@@ -347,7 +348,7 @@ namespace PK::Rendering::GraphicsAPI
 
 			context->ActiveShader = variant;
 			glUseProgram(variant->GetGraphicsID());
-			SetFixedStateAttributes(shader->GetFixedStateAttributes());
+			SetFixedStateAttributes(attributes);
 			return;
 		}
 
@@ -365,101 +366,15 @@ namespace PK::Rendering::GraphicsAPI
 	void GraphicsAPI::BindImages(ushort location, const ImageBindDescriptor* imageBindings, ushort count) { RESOURCE_BINDINGS.BindImages(location, imageBindings, count); }
 
 	void GraphicsAPI::BindBuffers(CG_TYPE type, ushort location, const GraphicsID* graphicsIds, ushort count) { RESOURCE_BINDINGS.BindBuffers(type, location, graphicsIds, count); }
-	
-	
-	void GraphicsAPI::Blit(Shader* shader) { DrawMesh(BLIT_QUAD, 0, shader); }
-	
-	void GraphicsAPI::Blit(Shader* shader, const ShaderPropertyBlock& propertyBlock) { DrawMesh(BLIT_QUAD, 0, shader, propertyBlock); }
-	
-	void GraphicsAPI::Blit(const RenderTexture* destination, Shader* shader)
-	{
-		SetRenderTarget(destination);
-		Blit(shader);
+
+	void GraphicsAPI::SetMemoryBarrier(GLenum barrierFlags) 
+	{ 
+		if (barrierFlags != 0)
+		{
+			glMemoryBarrier(barrierFlags); 
+		}
 	}
 	
-	void GraphicsAPI::Blit(const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock)
-	{
-		SetRenderTarget(destination);
-		Blit(shader, propertyBlock);
-	}
-	
-	void GraphicsAPI::Blit(const Texture* source, const RenderTexture* destination)
-	{
-		SetGlobalTexture(HashCache::Get()->_MainTex, source->GetGraphicsID());
-		Blit(destination, BLIT_SHADER);
-	}
-	
-	void GraphicsAPI::Blit(const Texture* source, const RenderTexture* destination, Shader* shader)
-	{
-		SetGlobalTexture(HashCache::Get()->_MainTex, source->GetGraphicsID());
-		Blit(destination, shader);
-	}
-	
-	void GraphicsAPI::Blit(const Texture* source, const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock)
-	{
-		SetGlobalTexture(HashCache::Get()->_MainTex, source->GetGraphicsID());
-		Blit(destination, shader, propertyBlock);
-	}
-	
-
-	void GraphicsAPI::Blit(const Material* material) { DrawMesh(BLIT_QUAD, 0, material); }
-
-	void GraphicsAPI::Blit(const Material* material, const ShaderPropertyBlock& propertyBlock) { DrawMesh(BLIT_QUAD, 0, material, propertyBlock); }
-
-	void GraphicsAPI::Blit(const RenderTexture* destination, const Material* material)
-	{
-		SetRenderTarget(destination);
-		Blit(material);
-	}
-
-	void GraphicsAPI::Blit(const RenderTexture* destination, const Material* material, const ShaderPropertyBlock& propertyBlock)
-	{
-		SetRenderTarget(destination);
-		Blit(material, propertyBlock);
-	}
-
-	void GraphicsAPI::Blit(const Texture* source, const RenderTexture* destination, const Material* material)
-	{
-		SetGlobalTexture(HashCache::Get()->_MainTex, source->GetGraphicsID());
-		Blit(destination, material);
-	}
-
-	void GraphicsAPI::Blit(const Texture* source, const RenderTexture* destination, const Material* material, const ShaderPropertyBlock& propertyBlock)
-	{
-		SetGlobalTexture(HashCache::Get()->_MainTex, source->GetGraphicsID());
-		Blit(destination, material, propertyBlock);
-	}
-
-
-	void GraphicsAPI::BlitInstanced(uint offset, uint count, Shader* shader) { DrawMeshInstanced(BLIT_QUAD, 0, offset, count, shader); }
-
-	void GraphicsAPI::BlitInstanced(uint offset, uint count, Shader* shader, const ShaderPropertyBlock& propertyBlock) { DrawMeshInstanced(BLIT_QUAD, 0, offset, count, shader, propertyBlock); }
-
-	void GraphicsAPI::BlitInstanced(uint offset, uint count, const RenderTexture* destination, Shader* shader)
-	{
-		SetRenderTarget(destination);
-		BlitInstanced(offset, count, shader);
-	}
-
-	void GraphicsAPI::BlitInstanced(uint offset, uint count, const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock)
-	{
-		SetRenderTarget(destination);
-		BlitInstanced(offset, count, shader, propertyBlock);
-	}
-
-	void GraphicsAPI::BlitInstanced(uint offset, uint count, const Texture* source, const RenderTexture* destination, Shader* shader)
-	{
-		SetGlobalTexture(HashCache::Get()->_MainTex, source->GetGraphicsID());
-		BlitInstanced(offset, count, destination, shader);
-	}
-
-	void GraphicsAPI::BlitInstanced(uint offset, uint count, const Texture* source, const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock)
-	{
-		SetGlobalTexture(HashCache::Get()->_MainTex, source->GetGraphicsID());
-		BlitInstanced(offset, count, destination, shader, propertyBlock);
-	}
-
-
 	void GraphicsAPI::CopyRenderTexture(const RenderTexture* source, const RenderTexture* destination, GLbitfield mask, GLenum filter)
 	{
 		uint2 destresolution = uint2(0,0);
@@ -478,249 +393,737 @@ namespace PK::Rendering::GraphicsAPI
 		glBlitNamedFramebuffer(source->GetGraphicsID(), destid, 0, 0, source->GetWidth(), source->GetHeight(), 0, 0, destresolution.x, destresolution.y, mask, filter);
 	}
 
+	void GraphicsAPI::ExecuteDrawCall(const DrawCallDescriptor& descriptor)
+	{
+		if (descriptor.source != nullptr)
+		{
+			SetGlobalTexture(HashCache::Get()->_MainTex, descriptor.source->GetGraphicsID());
+		}
+
+		if (descriptor.matrix != nullptr)
+		{
+			if (descriptor.invMatrix != nullptr)
+			{
+				SetModelMatrix(*descriptor.matrix, *descriptor.invMatrix);
+			}
+			else
+			{
+				SetModelMatrix(*descriptor.matrix);
+			}
+		}
+
+		if (descriptor.shader != nullptr)
+		{
+			descriptor.shader->ResetKeywords();
+
+			if (descriptor.propertyBlock0 != nullptr)
+			{
+				descriptor.shader->SetKeywords(descriptor.propertyBlock0->GetKeywords());
+			}
+
+			descriptor.shader->SetKeywords(GLOBAL_KEYWORDS);
+
+			if (descriptor.propertyBlock1 != nullptr)
+			{
+				descriptor.shader->SetKeywords(descriptor.propertyBlock1->GetKeywords());
+			}
+
+			if (descriptor.attributes != nullptr)
+			{
+				SetPass(descriptor.shader, *descriptor.attributes);
+			}
+			else
+			{
+				SetPass(descriptor.shader, descriptor.shader->GetFixedStateAttributes());
+			}
+
+			if (descriptor.propertyBlock0 != nullptr)
+			{
+				descriptor.shader->SetPropertyBlock(*descriptor.propertyBlock0);
+			}
+
+			descriptor.shader->SetPropertyBlock(GLOBAL_PROPERTIES);
+
+			if (descriptor.propertyBlock1 != nullptr)
+			{
+				descriptor.shader->SetPropertyBlock(*descriptor.propertyBlock1);
+			}
+		}
+
+		if (descriptor.destination != nullptr)
+		{
+			SetRenderTarget(descriptor.destination);
+		}
+
+		if (descriptor.mesh != nullptr)
+		{
+			RESOURCE_BINDINGS.BindMesh(descriptor.mesh->GetGraphicsID());
+		}
+
+		if (descriptor.argumentsBufferId != 0)
+		{
+			glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, descriptor.argumentsBufferId);
+		}
+
+		switch (descriptor.command)
+		{
+			case DrawCommand::Mesh:
+			{
+				auto indexRange = descriptor.mesh->GetSubmeshIndexRange(descriptor.submesh);
+				glDrawElements(GL_TRIANGLES, indexRange.count, GL_UNSIGNED_INT, (GLvoid*)(size_t)(indexRange.offset * sizeof(GLuint)));
+				break;
+			}
+			case DrawCommand::MeshInstanced:
+			{
+				auto indexRange = descriptor.mesh->GetSubmeshIndexRange(descriptor.submesh);
+				glDrawElementsInstancedBaseInstance(GL_TRIANGLES, indexRange.count, GL_UNSIGNED_INT, (GLvoid*)(size_t)(indexRange.offset * sizeof(GLuint)), (GLsizei)descriptor.count, (GLuint)descriptor.offset);
+				break;
+			}
+			case DrawCommand::Procedural:
+			{
+				glDrawArrays(descriptor.topology, (GLint)descriptor.offset, (GLsizei)descriptor.count);
+				break;
+			}
+			case DrawCommand::Compute:
+			{
+				glDispatchCompute(descriptor.threadGroupSize.x, descriptor.threadGroupSize.y, descriptor.threadGroupSize.z);
+				break;
+			}
+			case DrawCommand::ComputeIndirect:
+			{
+				glDispatchComputeIndirect(descriptor.offset);
+				break;
+			}
+		}
+
+		SetMemoryBarrier(descriptor.memoryBarrierFlags);
+	}
+	
+
+	void GraphicsAPI::Blit(Shader* shader)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::Blit(Shader* shader, const ShaderPropertyBlock& propertyBlock)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::Blit(const Texture* source, const RenderTexture* destination)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = BLIT_SHADER;
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.source = source;
+		descriptor.destination = destination;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::Blit(const RenderTexture* destination, Shader* shader)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.destination = destination;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void Blit(const RenderTexture* destination, Shader* shader, GLenum barrierFlags)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.destination = destination;
+		descriptor.memoryBarrierFlags = barrierFlags;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::Blit(const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.destination = destination;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void Blit(const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.destination = destination;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.memoryBarrierFlags = barrierFlags;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::Blit(const Texture* source, const RenderTexture* destination, Shader* shader)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.source = source;
+		descriptor.destination = destination;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::Blit(const Texture* source, const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.source = source;
+		descriptor.destination = destination;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void Blit(const Texture* source, const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.source = source;
+		descriptor.destination = destination;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.memoryBarrierFlags = barrierFlags;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::Blit(const Material* material)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.propertyBlock0 = material;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::Blit(const Material* material, const ShaderPropertyBlock& propertyBlock)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.propertyBlock0 = material;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::Blit(const RenderTexture* destination, const Material* material)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.destination = destination;
+		descriptor.propertyBlock0 = material;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
+	}
+	
+	void GraphicsAPI::Blit(const RenderTexture* destination, const Material* material, const ShaderPropertyBlock& propertyBlock)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.destination = destination;
+		descriptor.propertyBlock0 = material;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::Blit(const Texture* source, const RenderTexture* destination, const Material* material)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.source = source;
+		descriptor.destination = destination;
+		descriptor.propertyBlock0 = material;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::Blit(const Texture* source, const RenderTexture* destination, const Material* material, const ShaderPropertyBlock& propertyBlock)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.source = source;
+		descriptor.destination = destination;
+		descriptor.propertyBlock0 = material;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::BlitInstanced(uint offset, uint count, Shader* shader)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.command = DrawCommand::MeshInstanced;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::BlitInstanced(uint offset, uint count, Shader* shader, const ShaderPropertyBlock& propertyBlock)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.command = DrawCommand::MeshInstanced;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void BlitInstanced(uint offset, uint count, Shader* shader, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.memoryBarrierFlags = barrierFlags;
+		descriptor.command = DrawCommand::MeshInstanced;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::BlitInstanced(uint offset, uint count, const RenderTexture* destination, Shader* shader)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.destination = destination;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.command = DrawCommand::MeshInstanced;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::BlitInstanced(uint offset, uint count, const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.destination = destination;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.command = DrawCommand::MeshInstanced;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void BlitInstanced(uint offset, uint count, const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.destination = destination;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.memoryBarrierFlags = barrierFlags;
+		descriptor.command = DrawCommand::MeshInstanced;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::BlitInstanced(uint offset, uint count, const Texture* source, const RenderTexture* destination, Shader* shader)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.source = source;
+		descriptor.destination = destination;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.command = DrawCommand::MeshInstanced;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::BlitInstanced(uint offset, uint count, const Texture* source, const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = BLIT_QUAD;
+		descriptor.source = source;
+		descriptor.destination = destination;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.command = DrawCommand::MeshInstanced;
+		ExecuteDrawCall(descriptor);
+	}
 
 	void GraphicsAPI::DrawMesh(const Mesh* mesh, int submesh)
 	{
-		RESOURCE_BINDINGS.BindMesh(mesh->GetGraphicsID());
-		auto indexRange = mesh->GetSubmeshIndexRange(submesh);
-		glDrawElements(GL_TRIANGLES, indexRange.count, GL_UNSIGNED_INT, (GLvoid*)(size_t)(indexRange.offset * sizeof(GLuint)));
+		DrawCallDescriptor descriptor;
+		descriptor.mesh = mesh;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
 	}
-	
+
 	void GraphicsAPI::DrawMesh(const Mesh* mesh, int submesh, Shader* shader)
 	{
-		shader->ResetKeywords();
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		SetPass(shader);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		DrawMesh(mesh, submesh);
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = mesh;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
 	}
-	
+
 	void GraphicsAPI::DrawMesh(const Mesh* mesh, int submesh, Shader* shader, const float4x4& matrix)
 	{
-		shader->ResetKeywords();
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		SetPass(shader);
-		SetModelMatrix(matrix);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		DrawMesh(mesh, submesh);
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = mesh;
+		descriptor.matrix = &matrix;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
 	}
 
 	void GraphicsAPI::DrawMesh(const Mesh* mesh, int submesh, Shader* shader, const float4x4& matrix, const float4x4& invMatrix)
 	{
-		shader->ResetKeywords();
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		SetPass(shader);
-		SetModelMatrix(matrix, invMatrix);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		DrawMesh(mesh, submesh);
-	}
-	
-	void GraphicsAPI::DrawMesh(const Mesh* mesh, int submesh, Shader* shader, const ShaderPropertyBlock& propertyBlock)
-	{
-		shader->ResetKeywords();
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		shader->SetKeywords(propertyBlock.GetKeywords());
-		SetPass(shader);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		shader->SetPropertyBlock(propertyBlock);
-		DrawMesh(mesh, submesh);
-	}
-	
-	void GraphicsAPI::DrawMesh(const Mesh* mesh, int submesh, Shader* shader, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock)
-	{
-		shader->ResetKeywords();
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		shader->SetKeywords(propertyBlock.GetKeywords());
-		SetPass(shader);
-		SetModelMatrix(matrix);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		shader->SetPropertyBlock(propertyBlock);
-		DrawMesh(mesh, submesh);
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = mesh;
+		descriptor.matrix = &matrix;
+		descriptor.invMatrix = &invMatrix;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
 	}
 
+	void GraphicsAPI::DrawMesh(const Mesh* mesh, int submesh, Shader* shader, const ShaderPropertyBlock& propertyBlock)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = mesh;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::DrawMesh(const Mesh* mesh, int submesh, Shader* shader, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = mesh;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.matrix = &matrix;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
+	}
 
 	void GraphicsAPI::DrawMesh(const Mesh* mesh, int submesh, const Material* material)
 	{
-		auto shader = material->GetShader();
-		shader->ResetKeywords();
-		shader->SetKeywords(material->GetKeywords());
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		SetPass(shader);
-		shader->SetPropertyBlock(*material);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		DrawMesh(mesh, submesh);
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.mesh = mesh;
+		descriptor.propertyBlock0 = material;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
 	}
 
 	void GraphicsAPI::DrawMesh(const Mesh* mesh, int submesh, const Material* material, const float4x4& matrix)
 	{
-		auto shader = material->GetShader();
-		shader->ResetKeywords();
-		shader->SetKeywords(material->GetKeywords());
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		SetPass(shader);
-		SetModelMatrix(matrix);
-		shader->SetPropertyBlock(*material);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		DrawMesh(mesh, submesh);
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.mesh = mesh;
+		descriptor.propertyBlock0 = material;
+		descriptor.matrix = &matrix;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
 	}
 
 	void GraphicsAPI::DrawMesh(const Mesh* mesh, int submesh, const Material* material, const float4x4& matrix, const float4x4& invMatrix)
 	{
-		auto shader = material->GetShader();
-		shader->ResetKeywords();
-		shader->SetKeywords(material->GetKeywords());
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		SetPass(shader);
-		SetModelMatrix(matrix, invMatrix);
-		shader->SetPropertyBlock(*material);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		DrawMesh(mesh, submesh);
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.mesh = mesh;
+		descriptor.propertyBlock0 = material;
+		descriptor.matrix = &matrix;
+		descriptor.invMatrix = &invMatrix;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
 	}
 
 	void GraphicsAPI::DrawMesh(const Mesh* mesh, int submesh, const Material* material, const ShaderPropertyBlock& propertyBlock)
 	{
-		auto shader = material->GetShader();
-		shader->ResetKeywords();
-		shader->SetKeywords(material->GetKeywords());
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		shader->SetKeywords(propertyBlock.GetKeywords());
-		SetPass(shader);
-		shader->SetPropertyBlock(*material);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		shader->SetPropertyBlock(propertyBlock);
-		DrawMesh(mesh, submesh);
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.mesh = mesh;
+		descriptor.propertyBlock0 = material;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
 	}
 
 	void GraphicsAPI::DrawMesh(const Mesh* mesh, int submesh, const Material* material, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock)
 	{
-		auto shader = material->GetShader();
-		shader->ResetKeywords();
-		shader->SetKeywords(material->GetKeywords());
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		shader->SetKeywords(propertyBlock.GetKeywords());
-		SetPass(shader);
-		SetModelMatrix(matrix);
-		shader->SetPropertyBlock(*material);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		shader->SetPropertyBlock(propertyBlock);
-		DrawMesh(mesh, submesh);
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.mesh = mesh;
+		descriptor.propertyBlock0 = material;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.matrix = &matrix;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::Mesh;
+		ExecuteDrawCall(descriptor);
 	}
 
-
-    void GraphicsAPI::DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count)
-    {
-		RESOURCE_BINDINGS.BindMesh(mesh->GetGraphicsID());
-		auto indexRange = mesh->GetSubmeshIndexRange(submesh);
-		glDrawElementsInstancedBaseInstance(GL_TRIANGLES, indexRange.count, GL_UNSIGNED_INT, (GLvoid*)(size_t)(indexRange.offset * sizeof(GLuint)), count, offset);
-    }
+	void GraphicsAPI::DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.mesh = mesh;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::MeshInstanced;
+		ExecuteDrawCall(descriptor);
+	}
 
 	void GraphicsAPI::DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, Shader* shader)
 	{
-		shader->ResetKeywords();
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		SetPass(shader);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		DrawMeshInstanced(mesh, submesh, offset, count);
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = mesh;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::MeshInstanced;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, Shader* shader, const FixedStateAttributes& attributes)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = mesh;
+		descriptor.attributes = &attributes;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::MeshInstanced;
+		ExecuteDrawCall(descriptor);
 	}
 
 	void GraphicsAPI::DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, Shader* shader, const ShaderPropertyBlock& propertyBlock)
 	{
-		shader->ResetKeywords();
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		shader->SetKeywords(propertyBlock.GetKeywords());
-		SetPass(shader);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		shader->SetPropertyBlock(propertyBlock);
-		DrawMeshInstanced(mesh, submesh, offset, count);
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = mesh;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::MeshInstanced;
+		ExecuteDrawCall(descriptor);
 	}
 
 	void GraphicsAPI::DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, const Material* material)
 	{
-		auto shader = material->GetShader();
-		shader->ResetKeywords();
-		shader->SetKeywords(material->GetKeywords());
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		SetPass(shader);
-		shader->SetPropertyBlock(*material);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		DrawMeshInstanced(mesh, submesh, offset, count);
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.mesh = mesh;
+		descriptor.propertyBlock0 = material;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::MeshInstanced;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, const Material* material, const FixedStateAttributes& attributes)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.mesh = mesh;
+		descriptor.propertyBlock0 = material;
+		descriptor.attributes = &attributes;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::MeshInstanced;
+		ExecuteDrawCall(descriptor);
 	}
 
 	void GraphicsAPI::DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, const Material* material, const ShaderPropertyBlock& propertyBlock)
 	{
-		auto shader = material->GetShader();
-		shader->ResetKeywords();
-		shader->SetKeywords(material->GetKeywords());
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		shader->SetKeywords(propertyBlock.GetKeywords());
-		SetPass(shader);
-		shader->SetPropertyBlock(*material);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		shader->SetPropertyBlock(propertyBlock);
-		DrawMeshInstanced(mesh, submesh, offset, count);
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.mesh = mesh;
+		descriptor.propertyBlock0 = material;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::MeshInstanced;
+		ExecuteDrawCall(descriptor);
 	}
-
 
 	void GraphicsAPI::DrawProcedural(Shader* shader, GLenum topology, size_t offset, size_t count)
 	{
-		shader->ResetKeywords();
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		SetPass(shader);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		glDrawArrays(topology, (GLint)offset, (GLsizei)count);
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.topology = topology;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.command = DrawCommand::Procedural;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::DrawProcedural(Shader* shader, GLenum topology, size_t offset, size_t count, const ShaderPropertyBlock& propertyBlock)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.topology = topology;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.command = DrawCommand::Procedural;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::DrawProcedural(const Material* material, GLenum topology, size_t offset, size_t count, const ShaderPropertyBlock& propertyBlock)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.propertyBlock0 = material;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.topology = topology;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.command = DrawCommand::Procedural;
+		ExecuteDrawCall(descriptor);
 	}
 
 	void GraphicsAPI::DispatchCompute(Shader* shader, uint3 threadGroupSize, GLenum barrierFlags)
 	{
-		shader->ResetKeywords();
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		SetPass(shader);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-
-		glDispatchCompute(threadGroupSize.x, threadGroupSize.y, threadGroupSize.z);
-		glMemoryBarrier(barrierFlags);
-	}
-
-	void GraphicsAPI::DispatchCompute(const Material* material, uint3 threadGroupSize, GLenum barrierFlags)
-	{
-		auto shader = material->GetShader();
-		shader->ResetKeywords();
-		shader->SetKeywords(material->GetKeywords());
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		SetPass(shader);
-		shader->SetPropertyBlock(*material);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-
-		glDispatchCompute(threadGroupSize.x, threadGroupSize.y, threadGroupSize.z);
-		glMemoryBarrier(barrierFlags);
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.threadGroupSize = threadGroupSize;
+		descriptor.memoryBarrierFlags = barrierFlags;
+		descriptor.command = DrawCommand::Compute;
+		ExecuteDrawCall(descriptor);
 	}
 
 	void GraphicsAPI::DispatchCompute(Shader* shader, uint3 threadGroupSize, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags)
 	{
-		shader->ResetKeywords();
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		shader->SetKeywords(propertyBlock.GetKeywords());
-		SetPass(shader);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		shader->SetPropertyBlock(propertyBlock);
-
-		glDispatchCompute(threadGroupSize.x, threadGroupSize.y, threadGroupSize.z);
-		glMemoryBarrier(barrierFlags);
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.threadGroupSize = threadGroupSize;
+		descriptor.memoryBarrierFlags = barrierFlags;
+		descriptor.command = DrawCommand::Compute;
+		ExecuteDrawCall(descriptor);
 	}
 
-    void GraphicsAPI::DispatchComputeIndirect(Shader* shader, const GraphicsID& argumentsBuffer, uint offset, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags)
-    {
-		shader->ResetKeywords();
-		shader->SetKeywords(GLOBAL_KEYWORDS);
-		shader->SetKeywords(propertyBlock.GetKeywords());
-		SetPass(shader);
-		shader->SetPropertyBlock(GLOBAL_PROPERTIES);
-		shader->SetPropertyBlock(propertyBlock);
+	void GraphicsAPI::DispatchCompute(const Material* material, uint3 threadGroupSize, GLenum barrierFlags)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.propertyBlock0 = material;
+		descriptor.threadGroupSize = threadGroupSize;
+		descriptor.memoryBarrierFlags = barrierFlags;
+		descriptor.command = DrawCommand::Compute;
+		ExecuteDrawCall(descriptor);
+	}
 
-		glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, argumentsBuffer);
-		glDispatchComputeIndirect(offset);
-		glMemoryBarrier(barrierFlags);
-    }
+	void GraphicsAPI::DispatchCompute(const Material* material, uint3 threadGroupSize, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.propertyBlock0 = material;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.threadGroupSize = threadGroupSize;
+		descriptor.memoryBarrierFlags = barrierFlags;
+		descriptor.command = DrawCommand::Compute;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::DispatchComputeIndirect(Shader* shader, const GraphicsID& argumentsBuffer, uint offset, GLenum barrierFlags)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.offset = offset;
+		descriptor.argumentsBufferId = argumentsBuffer;
+		descriptor.memoryBarrierFlags = barrierFlags;
+		descriptor.command = DrawCommand::Compute;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::DispatchComputeIndirect(Shader* shader, const GraphicsID& argumentsBuffer, uint offset, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.offset = offset;
+		descriptor.argumentsBufferId = argumentsBuffer;
+		descriptor.memoryBarrierFlags = barrierFlags;
+		descriptor.command = DrawCommand::Compute;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::DispatchComputeIndirect(const Material* material, const GraphicsID& argumentsBuffer, uint offset, GLenum barrierFlags)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.propertyBlock0 = material;
+		descriptor.offset = offset;
+		descriptor.argumentsBufferId = argumentsBuffer;
+		descriptor.memoryBarrierFlags = barrierFlags;
+		descriptor.command = DrawCommand::ComputeIndirect;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void GraphicsAPI::DispatchComputeIndirect(const Material* material, const GraphicsID& argumentsBuffer, uint offset, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.propertyBlock0 = material;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.offset = offset;
+		descriptor.argumentsBufferId = argumentsBuffer;
+		descriptor.memoryBarrierFlags = barrierFlags;
+		descriptor.command = DrawCommand::ComputeIndirect;
+		ExecuteDrawCall(descriptor);
+	}
 
 	#undef CURRENT_WINDOW 
 	#undef CURRENT_ATTRIBUTES 

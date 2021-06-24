@@ -258,9 +258,8 @@ namespace PK::Rendering
 
 				m_properties.SetKeywords({ StringHashID::StringToID("SHADOW_BLUR_PASS0") });
 				GraphicsAPI::SetRenderTarget(m_shadowmapData.ShadowmapAtlas.get(), false);
-				GraphicsAPI::BlitInstanced(atlasIndex + ShadowmapData::BatchSize, tileCount, typedata.ShaderBlur, m_properties);
+				GraphicsAPI::BlitInstanced(atlasIndex + ShadowmapData::BatchSize, tileCount, typedata.ShaderBlur, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT);
 
-				glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 				m_properties.SetKeywords({ StringHashID::StringToID("SHADOW_BLUR_PASS1") });
 				GraphicsAPI::BlitInstanced(atlasIndex, tileCount, typedata.ShaderBlur, m_properties);
 			}

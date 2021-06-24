@@ -517,6 +517,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="src\Rendering\PostProcessing\FilterVolumetricFog.h" />
     <ClInclude Include="src\Rendering\RenderPipeline.h" />
     <ClInclude Include="src\Rendering\Structs\BufferLayout.h" />
+    <ClInclude Include="src\Rendering\Structs\DrawCallDescriptor.h" />
     <ClInclude Include="src\Rendering\Structs\FixedStateAttributes.h" />
     <ClInclude Include="src\Rendering\Structs\PropertyBlock.h" />
     <ClInclude Include="src\Core\AssetDataBase.h" />

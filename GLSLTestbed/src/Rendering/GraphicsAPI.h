@@ -5,6 +5,7 @@
 #include "Rendering/Objects/Material.h"
 #include "Rendering/Objects/RenderTexture.h"
 #include "Rendering/Structs/GraphicsContext.h"
+#include "Rendering/Structs/DrawCallDescriptor.h"
 #include <GLFW/glfw3.h>
 
 namespace PK::Rendering::GraphicsAPI
@@ -85,22 +86,28 @@ namespace PK::Rendering::GraphicsAPI
 	void SetRenderTarget(const RenderTexture* renderTexture, bool updateViewport = true);
 	void SetRenderTarget(const RenderTexture* renderTexture, const uint firstViewport, const float4* viewports, const uint viewportCount);
 	void SetRenderBuffer(const GraphicsID renderTarget, const RenderBuffer* renderBuffer, GLenum attachment);
-	void SetPass(Shader* shader, uint32_t pass = 0);
+	void SetPass(Shader* shader, const FixedStateAttributes& attributes, uint32_t pass = 0);
 	void SetVertexBuffer(const VertexBuffer* buffer);
 	void SetIndexBuffer(const IndexBuffer* buffer);
 
 	void BindTextures(ushort location, const GraphicsID* graphicsIds, ushort count);
 	void BindImages(ushort location, const ImageBindDescriptor* imageBindigns, ushort count);
 	void BindBuffers(CG_TYPE type, ushort location, const GraphicsID* graphicsIds, ushort count);
+	void SetMemoryBarrier(GLenum barrierFlags);
+	void CopyRenderTexture(const RenderTexture* source, const RenderTexture* destination, GLbitfield mask, GLenum filter);
+	
+	void ExecuteDrawCall(const DrawCallDescriptor& descriptor);
 
 	void Blit(Shader* shader);
 	void Blit(Shader* shader, const ShaderPropertyBlock& propertyBlock);
-	void Blit(const RenderTexture* destination, Shader* shader);
-	void Blit(const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock);
 	void Blit(const Texture* source, const RenderTexture* destination);
+	void Blit(const RenderTexture* destination, Shader* shader);
+	void Blit(const RenderTexture* destination, Shader* shader, GLenum barrierFlags);
+	void Blit(const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock);
+	void Blit(const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags);
 	void Blit(const Texture* source, const RenderTexture* destination, Shader* shader);
 	void Blit(const Texture* source, const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock);
-
+	void Blit(const Texture* source, const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags);
 	void Blit(const Material* material);
 	void Blit(const Material* material, const ShaderPropertyBlock& propertyBlock);
 	void Blit(const RenderTexture* destination, const Material* material);
@@ -110,20 +117,19 @@ namespace PK::Rendering::GraphicsAPI
 
 	void BlitInstanced(uint offset, uint count, Shader* shader);
 	void BlitInstanced(uint offset, uint count, Shader* shader, const ShaderPropertyBlock& propertyBlock);
+	void BlitInstanced(uint offset, uint count, Shader* shader, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags);
 	void BlitInstanced(uint offset, uint count, const RenderTexture* destination, Shader* shader);
 	void BlitInstanced(uint offset, uint count, const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock);
+	void BlitInstanced(uint offset, uint count, const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags);
 	void BlitInstanced(uint offset, uint count, const Texture* source, const RenderTexture* destination, Shader* shader);
 	void BlitInstanced(uint offset, uint count, const Texture* source, const RenderTexture* destination, Shader* shader, const ShaderPropertyBlock& propertyBlock);
 	
-	void CopyRenderTexture(const RenderTexture* source, const RenderTexture* destination, GLbitfield mask, GLenum filter);
-
 	void DrawMesh(const Mesh* mesh, int submesh);
 	void DrawMesh(const Mesh* mesh, int submesh, Shader* shader);
 	void DrawMesh(const Mesh* mesh, int submesh, Shader* shader, const float4x4& matrix);
 	void DrawMesh(const Mesh* mesh, int submesh, Shader* shader, const float4x4& matrix, const float4x4& invMatrix);
 	void DrawMesh(const Mesh* mesh, int submesh, Shader* shader, const ShaderPropertyBlock& propertyBlock);
 	void DrawMesh(const Mesh* mesh, int submesh, Shader* shader, const float4x4& matrix, const ShaderPropertyBlock& propertyBlock);
-
 	void DrawMesh(const Mesh* mesh, int submesh, const Material* material);
 	void DrawMesh(const Mesh* mesh, int submesh, const Material* material, const float4x4& matrix);
 	void DrawMesh(const Mesh* mesh, int submesh, const Material* material, const float4x4& matrix, const float4x4& invMatrix);
@@ -132,17 +138,23 @@ namespace PK::Rendering::GraphicsAPI
 
 	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count);
 	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, Shader* shader);
+	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, Shader* shader, const FixedStateAttributes& attributes);
 	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, Shader* shader, const ShaderPropertyBlock& propertyBlock);
 	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, const Material* material);
+	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, const Material* material, const FixedStateAttributes& attributes);
 	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, const Material* material, const ShaderPropertyBlock& propertyBlock);
 
 	void DrawProcedural(Shader* shader, GLenum topology, size_t offset, size_t count);
+	void DrawProcedural(Shader* shader, GLenum topology, size_t offset, size_t count, const ShaderPropertyBlock& propertyBlock);
+	void DrawProcedural(const Material* material, GLenum topology, size_t offset, size_t count, const ShaderPropertyBlock& propertyBlock);
 
 	void DispatchCompute(Shader* shader, uint3 threadGroupSize, GLenum barrierFlags = GL_SHADER_STORAGE_BARRIER_BIT);
-	void DispatchCompute(const Material* material, uint3 threadGroupSize, GLenum barrierFlags = GL_SHADER_STORAGE_BARRIER_BIT);
 	void DispatchCompute(Shader* shader, uint3 threadGroupSize, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags = GL_SHADER_STORAGE_BARRIER_BIT);
+	void DispatchCompute(const Material* material, uint3 threadGroupSize, GLenum barrierFlags = GL_SHADER_STORAGE_BARRIER_BIT);
+	void DispatchCompute(const Material* material, uint3 threadGroupSize, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags = GL_SHADER_STORAGE_BARRIER_BIT);
 
 	void DispatchComputeIndirect(Shader* shader, const GraphicsID& argumentsBuffer, uint offset, GLenum barrierFlags = GL_SHADER_STORAGE_BARRIER_BIT);
-	void DispatchComputeIndirect(const Material* material, const GraphicsID& argumentsBuffer, uint offset, GLenum barrierFlags = GL_SHADER_STORAGE_BARRIER_BIT);
 	void DispatchComputeIndirect(Shader* shader, const GraphicsID& argumentsBuffer, uint offset, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags = GL_SHADER_STORAGE_BARRIER_BIT);
+	void DispatchComputeIndirect(const Material* material, const GraphicsID& argumentsBuffer, uint offset, GLenum barrierFlags = GL_SHADER_STORAGE_BARRIER_BIT);
+	void DispatchComputeIndirect(const Material* material, const GraphicsID& argumentsBuffer, uint offset, const ShaderPropertyBlock& propertyBlock, GLenum barrierFlags = GL_SHADER_STORAGE_BARRIER_BIT);
 }

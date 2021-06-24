@@ -185,8 +185,7 @@ namespace PK::Rendering::PostProcessing
     {
         m_properties.SetComputeBuffer(HashCache::Get()->_BloomPassParams, m_passBuffer->GetGraphicsID());
 
-        GraphicsAPI::Blit(m_filmGrainTexture.get(), m_computeFilmgrain);
-        glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
+        GraphicsAPI::Blit(m_filmGrainTexture.get(), m_computeFilmgrain, GL_TEXTURE_FETCH_BARRIER_BIT);
 
         float4 viewports[7] =
         {
@@ -205,17 +204,12 @@ namespace PK::Rendering::PostProcessing
         {
             GraphicsAPI::SetRenderTarget(m_renderTargets[i].get(), false);
             m_properties.SetKeywords({ m_passKeywords[1] });                            // downsample
-            GraphicsAPI::BlitInstanced(i * 5 + 0, 1, m_shader, m_properties);
-            glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
+            GraphicsAPI::BlitInstanced(i * 5 + 0, 1, m_shader, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT);
             m_properties.SetKeywords({ m_passKeywords[2] });
-            GraphicsAPI::BlitInstanced(i * 5 + 1, 1, m_shader, m_properties);             // vertical blur
-            glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
-            GraphicsAPI::BlitInstanced(i * 5 + 2, 1, m_shader, m_properties);             // horizontal blur
-            glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
-            GraphicsAPI::BlitInstanced(i * 5 + 3, 1, m_shader, m_properties);             // vertical blur
-            glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
-            GraphicsAPI::BlitInstanced(i * 5 + 4, 1, m_shader, m_properties);            // horizontal blur
-            glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
+            GraphicsAPI::BlitInstanced(i * 5 + 1, 1, m_shader, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT); // vertical blur
+            GraphicsAPI::BlitInstanced(i * 5 + 2, 1, m_shader, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT); // horizontal blur
+            GraphicsAPI::BlitInstanced(i * 5 + 3, 1, m_shader, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT); // vertical blur
+            GraphicsAPI::BlitInstanced(i * 5 + 4, 1, m_shader, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT); // horizontal blur
         }
 
         uint3 histogramGroupCount =

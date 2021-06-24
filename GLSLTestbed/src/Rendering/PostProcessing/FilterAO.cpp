@@ -73,13 +73,9 @@ namespace PK::Rendering::PostProcessing
         m_properties.SetComputeBuffer(HashCache::Get()->_AOPassParams, m_passBuffer->GetGraphicsID());
 
         m_properties.SetKeywords({ m_passKeywords[0] });
-        GraphicsAPI::Blit(m_renderTargets[0].get(), m_shader, m_properties);
-        glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
-    
+        GraphicsAPI::Blit(m_renderTargets[0].get(), m_shader, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT);
         m_properties.SetKeywords({ m_passKeywords[1] });
-        GraphicsAPI::BlitInstanced(1, 1, m_renderTargets[1].get(), m_shader, m_properties);
-        glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
-        GraphicsAPI::BlitInstanced(2, 1, m_renderTargets[1].get(), m_shader, m_properties);
-        glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
+        GraphicsAPI::BlitInstanced(1, 1, m_renderTargets[1].get(), m_shader, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT);
+        GraphicsAPI::BlitInstanced(2, 1, m_renderTargets[1].get(), m_shader, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT);
     }
 }

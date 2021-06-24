@@ -44,7 +44,7 @@ namespace PK::Rendering
             PostProcessing::FilterDof m_filterDof;
             PostProcessing::FilterSceneGI m_filterSceneGi;
     
-            Utilities::Ref<RenderTexture> m_PreZRenderTarget;
+            Utilities::Ref<RenderTexture> m_GeometryBufferTarget;
             Utilities::Ref<RenderTexture> m_HDRRenderTarget;
             Utilities::Ref<ConstantBuffer> m_constantsPerFrame;
             Shader* m_depthNormalsShader;

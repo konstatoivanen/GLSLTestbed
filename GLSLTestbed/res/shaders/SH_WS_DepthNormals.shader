@@ -25,10 +25,10 @@ void main()
 
 in float3 vs_NORMAL;
 
-layout(location = 0) out float3 SV_Target0;
+layout(location = 0) out float4 SV_Target0;
 
 void main()
 {
     //@TODO Profile properly. Testing if using pre-normalized viewspace normals gives a significant performance benefit over unpacking per sample.
-    SV_Target0 = normalize(vs_NORMAL);
+    SV_Target0 = float4(normalize(vs_NORMAL), 1.0f);
 };

@@ -15,9 +15,9 @@
 #define PK_INV_FOUR_PI   0.07957747155f
 #define PK_HALF_PI       1.57079632679f
 #define PK_INV_HALF_PI   0.636619772367f
-#define PK_TWO_SQRT2 2.828427
-#define PK_SQRT2 1.414213
-#define PK_INV_SQRT2 0.707106
+#define PK_TWO_SQRT2     2.828427
+#define PK_SQRT2         1.414213
+#define PK_INV_SQRT2     0.707106
 
 #define pk_Grey float4(0.214041144, 0.214041144, 0.214041144, 0.5)
 // standard dielectric reflectivity coef at incident angle (= 4%)
@@ -65,16 +65,17 @@ PK_DECLARE_CBUFFER(pk_PerFrameConstants)
     highp sampler2D pk_ScreenNormals;
     // Scene depth
     highp sampler2D pk_ScreenDepth;
-    // Scene shadowmap atlas
-    highp sampler2DArray pk_ShadowmapArray;
+    // GI pass screen space output.
+	highp sampler2D pk_ScreenGI_Diffuse;
+	highp sampler2D pk_ScreenGI_Specular;
     // Scene ambient occlusion
     sampler2D pk_ScreenOcclusion;
+    // Scene shadowmap atlas
+    highp sampler2DArray pk_ShadowmapArray;
     // Array of light cookies
     sampler2DArray pk_LightCookies;
     // Global blue noise texture
     sampler2D pk_Bluenoise256;
-    // GI pass screen space output.
-	sampler2D pk_ScreenSpaceGI;
 
     // Scene reflections exposure
     float pk_SceneOEM_Exposure;

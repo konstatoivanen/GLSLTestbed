@@ -464,7 +464,7 @@ namespace PK::Rendering::Batching
         GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, false);
     }
 
-    void DrawBatchesPredicated(DynamicBatchCollection* collection, const uint32_t keyword, Shader* fallbackShader)
+    void DrawBatchesPredicated(DynamicBatchCollection* collection, const uint32_t keyword, Shader* fallbackShader, const FixedStateAttributes& attributes)
     {
         if (collection->TotalDrawCallCount < 1)
         {
@@ -494,13 +494,13 @@ namespace PK::Rendering::Batching
 
                 if (!firstMaterial->material->SupportsKeyword(keyword))
                 {
-                    GraphicsAPI::DrawMeshInstanced(meshBatch.mesh, -1, shaderBatch->instancingOffset, (uint)shaderBatch->drawCallCount, fallbackShader);
+                    GraphicsAPI::DrawMeshInstanced(meshBatch.mesh, -1, shaderBatch->instancingOffset, (uint)shaderBatch->drawCallCount, fallbackShader, attributes);
                 }
 
                 if (instancedData != nullptr)
                 {
                     GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancedProperties, instancedData->GetGraphicsID());
-                    GraphicsAPI::DrawMeshInstanced(meshBatch.mesh, shaderBatch->submesh, shaderBatch->instancingOffset, (uint)shaderBatch->drawCallCount, firstMaterial->material);
+                    GraphicsAPI::DrawMeshInstanced(meshBatch.mesh, shaderBatch->submesh, shaderBatch->instancingOffset, (uint)shaderBatch->drawCallCount, firstMaterial->material, attributes);
                 }
                 else
                 {
@@ -509,7 +509,7 @@ namespace PK::Rendering::Batching
                     for (uint j = 0; j < shaderBatch->materialBatchCount; ++j)
                     {
                         auto* materialBatch = &collection->MaterialBatches.at(materialBatchIndices[j]);
-                        GraphicsAPI::DrawMeshInstanced(meshBatch.mesh, shaderBatch->submesh, materialBatch->instancingOffset, (uint)materialBatch->drawCallCount, materialBatch->material);
+                        GraphicsAPI::DrawMeshInstanced(meshBatch.mesh, shaderBatch->submesh, materialBatch->instancingOffset, (uint)materialBatch->drawCallCount, materialBatch->material, attributes);
                     }
                 }
             }

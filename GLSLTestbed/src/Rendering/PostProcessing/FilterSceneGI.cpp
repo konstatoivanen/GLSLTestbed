@@ -20,17 +20,18 @@ namespace PK::Rendering::PostProcessing
         volumeDescriptor.miplevels = Functions::GetMaxMipLevel(resolution);
         volumeDescriptor.filtermag = GL_LINEAR;
         volumeDescriptor.filtermin = GL_LINEAR_MIPMAP_LINEAR;
-        volumeDescriptor.wrapmodex = GL_CLAMP_TO_EDGE;
-        volumeDescriptor.wrapmodey = GL_CLAMP_TO_EDGE;
-        volumeDescriptor.wrapmodez = GL_CLAMP_TO_EDGE;
+        volumeDescriptor.wrapmodex = GL_CLAMP_TO_BORDER;
+        volumeDescriptor.wrapmodey = GL_CLAMP_TO_BORDER;
+        volumeDescriptor.wrapmodez = GL_CLAMP_TO_BORDER;
         volumeDescriptor.resolution = resolution;
         volumeDescriptor.miplevels = glm::min(6u, Functions::GetMaxMipLevel(resolution));
+        volumeDescriptor.bordercolor = CG_COLOR_CLEAR;
         m_voxelsDiffuse = CreateRef<RenderBuffer>(volumeDescriptor);
 
         auto descriptor = RenderTextureDescriptor();
         descriptor.dimension = GL_TEXTURE_2D;
         descriptor.resolution = uint3(2, 2, 0);
-        descriptor.colorFormats = { GL_RGBA16F };
+        descriptor.colorFormats = { GL_RGBA16F, GL_RGBA16F };
         descriptor.depthFormat = GL_NONE;
         descriptor.filtermag = GL_LINEAR;
         descriptor.filtermin = GL_LINEAR;
@@ -73,9 +74,9 @@ namespace PK::Rendering::PostProcessing
 
         if (m_screenSpaceGI->ValidateResolution(res))
         {
-            GraphicsAPI::SetGlobalResourceHandle(StringHashID::StringToID("pk_ScreenSpaceGI"), m_screenSpaceGI->GetColorBuffer(0)->GetBindlessHandleResident());
+            GraphicsAPI::SetGlobalResourceHandle(StringHashID::StringToID("pk_ScreenGI_Diffuse"), m_screenSpaceGI->GetColorBuffer(0)->GetBindlessHandleResident());
+            GraphicsAPI::SetGlobalResourceHandle(StringHashID::StringToID("pk_ScreenGI_Specular"), m_screenSpaceGI->GetColorBuffer(1)->GetBindlessHandleResident());
         }
-
     }
 
     void FilterSceneGI::Execute(const RenderTexture* source, const RenderTexture* destination)

@@ -12,7 +12,7 @@ shared float4 sharedValues[KERNEL_SIZE];
 layout(local_size_x = 2, local_size_y = 2, local_size_z = 2) in;
 void main()
 {
-    sharedValues[gl_LocalInvocationIndex] = texelFetch(pk_MipSource, int3(gl_GlobalInvocationID), pk_SampleLevel) / KERNEL_SIZE;
+    sharedValues[gl_LocalInvocationIndex] = texelFetch(pk_MipSource, int3(gl_GlobalInvocationID), pk_SampleLevel);
 
     barrier();
 
@@ -27,6 +27,8 @@ void main()
     {
         value += sharedValues[i];
     }
+
+    value /= KERNEL_SIZE;
 
     imageStore(pk_MipTarget, int3(gl_WorkGroupID), value);
 }
