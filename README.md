@@ -5,10 +5,12 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 ![Preview](T_Preview_02.jpg?raw=true "Fog & Shadows Preview")
 ![Preview](T_Preview_03.jpg?raw=true "Cascaded Shadow Maps")
 ![Preview](T_Preview_04.jpg?raw=true "Fog Ambient Anistropy Preview")
+![Preview](T_Preview_05.jpg?raw=true "GI Preview")
 
 ## Implemented Features
 - Clustered forward rendering.
 - Volumetric fog & lighting.
+- Realtime global illumination (Voxel cone tracing).
 - Variance shadow mapping.
 - Light cookies.
 - Point, spot & directional lights.

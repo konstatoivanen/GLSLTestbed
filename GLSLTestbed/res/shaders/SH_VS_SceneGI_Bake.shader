@@ -25,7 +25,7 @@ void main()
 {
 	float3 worldposition = SampleWorldPosition(vs_TEXCOORD0);
 
-	if (Greater(abs(WorldToClipSpace(worldposition)), 1.0f.xxx))
+	if (Greater(abs(WorldToVoxelClipSpace(worldposition)), 1.0f.xxx))
 	{
 		SV_Target0 = float4(0.0f.xxx, 1.0f);
 		SV_Target1 = float4(0.0f.xxx, 1.0f);

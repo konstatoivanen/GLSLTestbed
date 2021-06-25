@@ -22,7 +22,7 @@ void main()
 {
 	gs_POSITION = ObjectToWorldPos(in_POSITION0);
 	gs_NORMAL = ObjectToWorldNormal(in_NORMAL);
-	gl_Position = float4(0, 0, 0, 1);
+	gl_Position = WorldToClipPos(gs_POSITION);
 }
 
 #pragma PROGRAM_GEOMETRY
@@ -61,7 +61,7 @@ void main()
 	{
 		vs_WOLRDPOSITION = gs_POSITION[i];
 		vs_NORMAL = gs_NORMAL[i];
-		float3 clippos = WorldToClipSpace(gs_POSITION[i]);
+		float3 clippos = WorldToVoxelClipSpace(gs_POSITION[i]);
 		uint2 swizzle = axis_swizzles[viewport];
 		gl_Position = float4(clippos[swizzle.x], clippos[swizzle.y], 0, 1);
 		gl_ViewportIndex = viewport + 1;
@@ -76,7 +76,9 @@ in float3 vs_NORMAL;
 
 void main() 
 {
-	if (Greater(abs(WorldToClipSpace(vs_WOLRDPOSITION)), 1.0f.xxx))
+	float4 cpos = WorldToClipPos(vs_WOLRDPOSITION);
+
+	if (Greater(abs(WorldToVoxelClipSpace(vs_WOLRDPOSITION)), 1.0f.xxx) || cpos.z < 0.0f)
 	{
 		return;
 	}
