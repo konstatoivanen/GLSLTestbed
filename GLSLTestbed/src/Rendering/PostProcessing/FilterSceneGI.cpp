@@ -100,7 +100,7 @@ namespace PK::Rendering::PostProcessing
             m_properties.SetInt(StringHashID::StringToID("pk_SampleLevel"), i - 1);
             m_properties.SetTexture(StringHashID::StringToID("pk_MipSource"), m_voxelsDiffuse->GetGraphicsID());
             m_properties.SetImage(StringHashID::StringToID("pk_MipTarget"), m_voxelsDiffuse->GetImageBindDescriptor(GL_WRITE_ONLY, i, 0, true));
-            GraphicsAPI::DispatchCompute(m_computeMipmap, { resolution.x >> i, resolution.y >> i, resolution.z >> i }, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+            GraphicsAPI::DispatchCompute(m_computeMipmap, { (resolution.x >> i) / 4u, (resolution.y >> i) / 4u, (resolution.z >> i) / 4u }, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
         }
 
         GraphicsAPI::Blit(m_shader, m_properties);
