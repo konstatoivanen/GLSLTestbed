@@ -67,7 +67,7 @@ namespace PK::Rendering::PostProcessing
         GraphicsAPI::SetGlobalResourceHandle(HashCache::Get()->pk_ScreenOcclusion, m_renderTargets[1]->GetColorBuffer(0)->GetBindlessHandleResident());
     }
 
-    void FilterAO::Execute(const RenderTexture* source, const RenderTexture* destination)
+    void FilterAO::Execute()
     {
         m_properties.SetFloat3(HashCache::Get()->_AOParams, { m_intensity, m_radius, m_downsample ? 0.5f : 1.0f });
         m_properties.SetComputeBuffer(HashCache::Get()->_AOPassParams, m_passBuffer->GetGraphicsID());

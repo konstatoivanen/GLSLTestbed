@@ -67,10 +67,6 @@ namespace PK::Rendering::PostProcessing
         m_properties.SetComputeBuffer(HashCache::Get()->pk_VolumeMaxDepths, m_depthTiles->GetGraphicsID());
     }
     
-    void FilterVolumetricFog::OnPreRender(const RenderTexture* source)
-    {
-    }
-    
     void FilterVolumetricFog::Execute(const RenderTexture* source, const RenderTexture* destination)
     {
         auto depthCountX = (uint)std::ceilf(source->GetWidth() / 32.0f);

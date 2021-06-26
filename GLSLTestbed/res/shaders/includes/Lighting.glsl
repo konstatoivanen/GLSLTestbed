@@ -225,6 +225,8 @@ float4 FragmentPhysicallyBasedShading(SurfaceData surf, float3 viewdir, float3 w
                 color += BRDF_PBS_DEFAULT_DIRECT(light);
             }
     
+            color.rgb += surf.emission;
+
             return float4(color, surf.alpha);
         #endif
     #else

@@ -486,10 +486,6 @@ namespace PK::Math
 		return level;
 	}
 
-	uint Functions::GetMaxMipLevel(uint2 resolution) { return GetMaxMipLevel(glm::min(resolution.x, resolution.y)); }
-
-	uint Functions::GetMaxMipLevel(uint3 resolution) { return GetMaxMipLevel(glm::min(glm::min(resolution.x, resolution.y), resolution.z)); }
-
 	uint Functions::ByteArrayHash(const void* data, size_t count)
 	{
 		const char* bytes = reinterpret_cast<const char*>(data);

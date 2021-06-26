@@ -13,8 +13,8 @@ namespace PK::Rendering::PostProcessing
     {
         public:
             FilterBloom(AssetDatabase* assetDatabase, const ApplicationConfig* config);
-            void OnPreRender(const RenderTexture* source) final;
-            void Execute(const RenderTexture* source, const RenderTexture* destination) final;
+            void OnPreRender(const RenderTexture* source);
+            void Execute(const RenderTexture* source, const RenderTexture* destination);
     
         private:
             Shader* m_computeHistogram = nullptr;

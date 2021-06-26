@@ -12,8 +12,8 @@ namespace PK::Rendering::PostProcessing
     {
         public:
             FilterBase(Shader* shader) { m_shader = shader; }
-            virtual void OnPreRender(const RenderTexture* source) = 0;
-            virtual void Execute(const RenderTexture* source, const RenderTexture* destination) = 0;
+            //virtual void OnPreRender(const RenderTexture* source) = 0;
+            //virtual void Execute(const RenderTexture* source, const RenderTexture* destination) = 0;
         protected: 
             Structs::ShaderPropertyBlock m_properties;
             Shader* m_shader = nullptr;

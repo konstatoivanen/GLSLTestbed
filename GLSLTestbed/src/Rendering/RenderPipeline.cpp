@@ -215,8 +215,8 @@ namespace PK::Rendering
 		
 		m_lightsManager.UpdateLightTiles(m_GeometryBufferTarget->GetResolution2D());
 
-		m_filterAO.Execute(m_GeometryBufferTarget.get(), nullptr);
-		m_filterSceneGi.Execute(nullptr, nullptr);
+		m_filterAO.Execute();
+		m_filterSceneGi.Execute(&m_dynamicBatches);
 
 		GraphicsAPI::SetRenderTarget(m_HDRRenderTarget.get());
 		GraphicsAPI::Clear(CG_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT);

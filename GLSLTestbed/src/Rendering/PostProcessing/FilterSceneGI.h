@@ -17,14 +17,13 @@ namespace PK::Rendering::PostProcessing
     {
         public: 
             FilterSceneGI(AssetDatabase* assetDatabase, ECS::EntityDatabase* entityDb, const ApplicationConfig* config);
-            void OnPreRender(const RenderTexture* source) final;
-            void Execute(const RenderTexture* source, const RenderTexture* destination) final;
+            void OnPreRender(const RenderTexture* source);
+            void Execute(Batching::DynamicBatchCollection* visibleBatches);
         private:
             ECS::EntityDatabase* m_entityDb;
             Shader* m_shaderVoxelize;
             Shader* m_computeMipmap;
             Ref<RenderBuffer> m_voxelsDiffuse;
             Ref<RenderTexture> m_screenSpaceGI;
-            Batching::MeshBatchCollection m_batches;
     };
 }

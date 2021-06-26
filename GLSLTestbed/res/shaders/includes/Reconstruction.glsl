@@ -15,7 +15,6 @@ float3 SampleNormal(in sampler2D map, in float3x3 rotation, in float2 uv, float 
     return lerp(rotation[2], mul(rotation, unpackedNormal), amount);
 }
 
-
 float2 ParallaxOffset(float height, float heightAmount, float3 viewdir)
 {
     return (height * heightAmount - heightAmount / 2.0f) * (viewdir.xy / (viewdir.z + 0.42f));

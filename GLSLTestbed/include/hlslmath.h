@@ -234,9 +234,12 @@ namespace PK::Math
         inline float3 RandomRangeFloat3(const float3& min, const float3& max) { return float3(RandomRangeFloat(min.x, max.x), RandomRangeFloat(min.y, max.y), RandomRangeFloat(min.z, max.z)); }
         inline float3 RandomEuler() { return float3(RandomRangeFloat(-360.0f, 360.0f), RandomRangeFloat(-360.0f, 360.0f), RandomRangeFloat(-360.0f, 360.0f)); }
         size_t GetNextExponentialSize(size_t start, size_t min);
+        inline uint GetMaxMipLevelPow2(uint resolution) { return glm::log2(resolution); }
+        inline uint GetMaxMipLevelPow2(uint2 resolution) { return glm::log2(glm::compMin(resolution)); }
+        inline uint GetMaxMipLevelPow2(uint3 resolution) { return glm::log2(glm::compMin(resolution)); }
         uint GetMaxMipLevel(uint resolution);
-        uint GetMaxMipLevel(uint2 resolution);
-        uint GetMaxMipLevel(uint3 resolution);
+        inline uint GetMaxMipLevel(uint2 resolution) { return GetMaxMipLevel(glm::compMin(resolution)); }
+        inline uint GetMaxMipLevel(uint3 resolution) { return GetMaxMipLevel(glm::compMin(resolution)); }
         uint ByteArrayHash(const void* data, size_t count);
         
         // Color grading math

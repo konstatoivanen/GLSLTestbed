@@ -77,8 +77,9 @@ in float3 vs_NORMAL;
 void main() 
 {
 	float4 cpos = WorldToClipPos(vs_WOLRDPOSITION);
+	cpos.xy /= cpos.w;
 
-	if (Greater(abs(WorldToVoxelClipSpace(vs_WOLRDPOSITION)), 1.0f.xxx) || cpos.z < 0.0f)
+	if (Greater(abs(WorldToVoxelClipSpace(vs_WOLRDPOSITION)), 1.0f.xxx) || Greater(abs(cpos.xy), 1.0f.xx) || cpos.z < 0.0f)
 	{
 		return;
 	}
