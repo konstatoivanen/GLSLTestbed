@@ -495,6 +495,7 @@ namespace PK::Rendering::Batching
                 if (!firstMaterial->material->SupportsKeyword(keyword))
                 {
                     GraphicsAPI::DrawMeshInstanced(meshBatch.mesh, -1, shaderBatch->instancingOffset, (uint)shaderBatch->drawCallCount, fallbackShader, attributes);
+                    continue;
                 }
 
                 if (instancedData != nullptr)
@@ -510,6 +511,62 @@ namespace PK::Rendering::Batching
                     {
                         auto* materialBatch = &collection->MaterialBatches.at(materialBatchIndices[j]);
                         GraphicsAPI::DrawMeshInstanced(meshBatch.mesh, shaderBatch->submesh, materialBatch->instancingOffset, (uint)materialBatch->drawCallCount, materialBatch->material, attributes);
+                    }
+                }
+            }
+        }
+
+        GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, false);
+        GraphicsAPI::SetGlobalKeyword(keyword, false);
+    }
+
+    void DrawBatchesPredicated(DynamicBatchCollection* collection, const uint32_t keyword, Shader* fallbackShader, const ShaderPropertyBlock& propertyBlock, const FixedStateAttributes& attributes)
+    {
+        if (collection->TotalDrawCallCount < 1)
+        {
+            return;
+        }
+
+        auto hashes = HashCache::Get();
+        GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingMatrices, collection->MatrixBuffer->GetGraphicsID());
+        GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancingPropertyIndices, collection->PropertyIndices->GetGraphicsID());
+        GraphicsAPI::SetGlobalKeyword(hashes->PK_ENABLE_INSTANCING, true);
+        GraphicsAPI::SetGlobalKeyword(keyword, true);
+
+        for (auto& meshBatch : collection->MeshBatches)
+        {
+            if (meshBatch.drawCallCount < 1)
+            {
+                continue;
+            }
+
+            auto shaderBatches = meshBatch.shaderBatches.data();
+
+            for (uint i = 0; i < meshBatch.shaderBatchCount; ++i)
+            {
+                auto* shaderBatch = &collection->ShaderBatches.at(shaderBatches[i]);
+                auto  instancedData = shaderBatch->instancedData.get();
+                auto* firstMaterial = &collection->MaterialBatches.at(shaderBatch->materialBatches.at(0));
+
+                if (!firstMaterial->material->SupportsKeyword(keyword))
+                {
+                    GraphicsAPI::DrawMeshInstanced(meshBatch.mesh, -1, shaderBatch->instancingOffset, (uint)shaderBatch->drawCallCount, fallbackShader, propertyBlock, attributes);
+                    continue;
+                }
+
+                if (instancedData != nullptr)
+                {
+                    GraphicsAPI::SetGlobalComputeBuffer(hashes->pk_InstancedProperties, instancedData->GetGraphicsID());
+                    GraphicsAPI::DrawMeshInstanced(meshBatch.mesh, shaderBatch->submesh, shaderBatch->instancingOffset, (uint)shaderBatch->drawCallCount, firstMaterial->material, propertyBlock, attributes);
+                }
+                else
+                {
+                    auto materialBatchIndices = shaderBatch->materialBatches.data();
+
+                    for (uint j = 0; j < shaderBatch->materialBatchCount; ++j)
+                    {
+                        auto* materialBatch = &collection->MaterialBatches.at(materialBatchIndices[j]);
+                        GraphicsAPI::DrawMeshInstanced(meshBatch.mesh, shaderBatch->submesh, materialBatch->instancingOffset, (uint)materialBatch->drawCallCount, materialBatch->material, propertyBlock, attributes);
                     }
                 }
             }

@@ -1683,6 +1683,7 @@
     <None Include="res\shaders\SH_VS_SceneGI_Bake.shader" />
     <None Include="res\shaders\includes\SceneGIShared.glsl" />
     <None Include="res\shaders\CS_SceneGIMipmap.shader" />
+    <None Include="res\shaders\includes\SurfaceShading.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">

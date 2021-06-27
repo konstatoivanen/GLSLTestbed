@@ -62,17 +62,34 @@ namespace PK::Rendering::PostProcessing
 
     void FilterSceneGI::Execute(Batching::DynamicBatchCollection* visibleBatches)
     {
-        float4 viewports[4] = 
+        uint4 viewports[3] = 
         { 
-            {0, 0, m_screenSpaceGI->GetWidth(), m_screenSpaceGI->GetHeight() },
-            {0, 0, m_voxelsDiffuse->GetWidth(),  m_voxelsDiffuse->GetHeight() },
-            {0, 0, m_voxelsDiffuse->GetHeight(), m_voxelsDiffuse->GetDepth() },
-            {0, 0, m_voxelsDiffuse->GetWidth(),  m_voxelsDiffuse->GetDepth() },
+            {0u, 0u, m_voxelsDiffuse->GetWidth(),  m_voxelsDiffuse->GetHeight() },
+            {0u, 0u, m_voxelsDiffuse->GetHeight(), m_voxelsDiffuse->GetDepth() },
+            {0u, 0u, m_voxelsDiffuse->GetWidth(),  m_voxelsDiffuse->GetDepth() },
         };
 
-        GraphicsAPI::SetViewPorts(0, viewports, 4);
-        GraphicsAPI::SetRenderTarget(m_screenSpaceGI.get(), false);
-        Batching::DrawBatches(visibleBatches, m_shaderVoxelize, m_properties);
+        uint3 swizzles[3] =
+        {
+             { 0u, 1u, 2u }, 
+             { 1u, 2u, 0u },
+             { 0u, 2u, 1u }
+        };
+
+        FixedStateAttributes voxelizeAttributes;
+        voxelizeAttributes.BlendEnabled = false;
+        voxelizeAttributes.ColorMask = 0;
+        voxelizeAttributes.CullEnabled = false;
+        voxelizeAttributes.CullMode = GL_BACK;
+        voxelizeAttributes.ZTest = GL_LEQUAL;
+        voxelizeAttributes.ZTestEnabled = false;
+        voxelizeAttributes.ZWriteEnabled = false;
+
+        m_rasterAxis = (m_rasterAxis + 1) % 3;
+
+        GraphicsAPI::SetViewPort(viewports[m_rasterAxis].x, viewports[m_rasterAxis].y, viewports[m_rasterAxis].z, viewports[m_rasterAxis].w);
+        GraphicsAPI::SetGlobalUInt3(StringHashID::StringToID("pk_GIVoxelAxisSwizzle"), swizzles[m_rasterAxis]);
+        Batching::DrawBatchesPredicated(visibleBatches, StringHashID::StringToID("PK_META_GI_VOXELIZE"), m_shaderVoxelize, m_properties, voxelizeAttributes);
 
         auto resolution = m_voxelsDiffuse->GetResolution3D();
 
@@ -84,6 +101,7 @@ namespace PK::Rendering::PostProcessing
             GraphicsAPI::DispatchCompute(m_computeMipmap, { (resolution.x >> i) / 4u, (resolution.y >> i) / 4u, (resolution.z >> i) / 4u }, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
         }
 
+        GraphicsAPI::SetRenderTarget(m_screenSpaceGI.get());
         GraphicsAPI::Blit(m_shader, m_properties);
     }
 }

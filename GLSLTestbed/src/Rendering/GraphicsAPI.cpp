@@ -956,6 +956,20 @@ namespace PK::Rendering::GraphicsAPI
 		ExecuteDrawCall(descriptor);
 	}
 
+	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, Shader* shader, const ShaderPropertyBlock& propertyBlock, const FixedStateAttributes& attributes)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = shader;
+		descriptor.mesh = mesh;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.attributes = &attributes;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::MeshInstanced;
+		ExecuteDrawCall(descriptor);
+	}
+
 	void GraphicsAPI::DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, const Material* material)
 	{
 		DrawCallDescriptor descriptor;
@@ -990,6 +1004,21 @@ namespace PK::Rendering::GraphicsAPI
 		descriptor.mesh = mesh;
 		descriptor.propertyBlock0 = material;
 		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.offset = offset;
+		descriptor.count = count;
+		descriptor.submesh = submesh;
+		descriptor.command = DrawCommand::MeshInstanced;
+		ExecuteDrawCall(descriptor);
+	}
+
+	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, const Material* material, const ShaderPropertyBlock& propertyBlock, const FixedStateAttributes& attributes)
+	{
+		DrawCallDescriptor descriptor;
+		descriptor.shader = material->GetShader();
+		descriptor.mesh = mesh;
+		descriptor.propertyBlock0 = material;
+		descriptor.propertyBlock1 = &propertyBlock;
+		descriptor.attributes = &attributes;
 		descriptor.offset = offset;
 		descriptor.count = count;
 		descriptor.submesh = submesh;

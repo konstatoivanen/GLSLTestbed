@@ -9,10 +9,14 @@
 #multi_compile _ PK_NORMALMAPS
 #multi_compile _ PK_HEIGHTMAPS
 #multi_compile _ PK_ENABLE_INSTANCING
-#multi_compile _ PK_META_DEPTH_NORMALS
+#multi_compile _ PK_META_DEPTH_NORMALS PK_META_GI_VOXELIZE
 
-#include includes/Lighting.glsl
-#include includes/Reconstruction.glsl
+#if defined(PK_META_GI_VOXELIZE)
+    #undef PK_NORMALMAPS
+    #undef PK_HEIGHTMAPS
+#endif
+
+#include includes/SurfaceShading.glsl
 
 struct FragmentVaryings
 {
@@ -54,7 +58,12 @@ void main()
 {
     varyings.vs_WORLDPOSITION = ObjectToWorldPos(in_POSITION0.xyz);
     varyings.vs_TEXCOORD0 = in_TEXCOORD0;
-    gl_Position = WorldToClipPos(varyings.vs_WORLDPOSITION);
+
+    #if defined(PK_META_GI_VOXELIZE)
+        gl_Position = WorldToVoxelNDCSpace(varyings.vs_WORLDPOSITION);
+    #else 
+        gl_Position = WorldToClipPos(varyings.vs_WORLDPOSITION);
+    #endif
 
     PK_SETUP_INSTANCE_ID();
 
@@ -80,7 +89,10 @@ void main()
 in FragmentVaryings varyings;
 PK_VARYING_INSTANCE_ID
 
+#if !defined(PK_META_GI_VOXELIZE)
 layout(location = 0) out float4 SV_Target0;
+#endif
+
 void main()
 {
     PK_SETUP_INSTANCE_ID();
@@ -88,6 +100,17 @@ void main()
     float3 worldpos = varyings.vs_WORLDPOSITION;
     float3 viewdir = normalize(pk_WorldSpaceCameraPos.xyz - worldpos);
     float2 uv = varyings.vs_TEXCOORD0;
+
+    #if defined(PK_META_GI_VOXELIZE)
+        float3 clipuvw;
+        
+        if (!TryGetWorldToClipUVW(worldpos, clipuvw))
+        {
+            return;
+        }
+    #else
+        float3 clipuvw = GetFragmentClipUVW();
+    #endif
 
     #if defined(PK_HEIGHTMAPS)
         float heightval = tex2D(PK_ACCESS_INSTANCED_PROP(_HeightMap), uv).x;
@@ -108,7 +131,16 @@ void main()
     float3 textureval = tex2D(PK_ACCESS_INSTANCED_PROP(_PBSTexture), uv).xyz;
     surf.metallic = textureval.SRC_METALLIC * PK_ACCESS_INSTANCED_PROP(_Metallic);
     surf.roughness = textureval.SRC_ROUGHNESS * PK_ACCESS_INSTANCED_PROP(_Roughness);
-    surf.occlusion = lerp(1.0f, textureval.SRC_OCCLUSION, PK_ACCESS_INSTANCED_PROP(_Occlusion)) * SampleScreenSpaceOcclusion();
 
-    SV_Target0 = FragmentPhysicallyBasedShading(surf, viewdir, worldpos);
+    #if !defined(PK_META_GI_VOXELIZE)
+        surf.occlusion = lerp(1.0f, textureval.SRC_OCCLUSION, PK_ACCESS_INSTANCED_PROP(_Occlusion)) * SampleScreenSpaceOcclusion(clipuvw.xy);
+    #endif
+
+    float4 color = FragmentPhysicallyBasedShading(surf, viewdir, worldpos, clipuvw);
+
+    #if defined(PK_META_GI_VOXELIZE)
+        StoreSceneGI(worldpos, color);
+    #else
+        SV_Target0 = color;
+    #endif
 };

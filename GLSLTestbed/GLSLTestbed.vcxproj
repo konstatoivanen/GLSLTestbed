@@ -730,6 +730,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\includes\Reconstruction.glsl" />
     <None Include="res\shaders\includes\SceneGIShared.glsl" />
     <None Include="res\shaders\includes\Shadowmapping.glsl" />
+    <None Include="res\shaders\includes\SurfaceShading.glsl" />
     <None Include="res\shaders\includes\Tonemapping.glsl" />
     <None Include="res\shaders\includes\VolumeFogShared.glsl" />
     <None Include="res\shaders\SH_VS_ClusterDebug.shader" />

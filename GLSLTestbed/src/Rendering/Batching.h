@@ -109,6 +109,7 @@ namespace PK::Rendering::Batching
     void DrawBatches(DynamicBatchCollection* collection, Shader* overrideShader);
 
     void DrawBatchesPredicated(DynamicBatchCollection* collection, const uint32_t keyword, Shader* fallbackShader, const FixedStateAttributes& attributes);
+    void DrawBatchesPredicated(DynamicBatchCollection* collection, const uint32_t keyword, Shader* fallbackShader, const ShaderPropertyBlock& propertyBlock, const FixedStateAttributes& attributes);
     
     void DrawBatches(MeshBatchCollection* collection, const Material* overrideMaterial);
     void DrawBatches(MeshBatchCollection* collection, Shader* overrideShader, const ShaderPropertyBlock& propertyBlock);

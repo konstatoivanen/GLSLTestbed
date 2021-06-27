@@ -184,4 +184,14 @@ float3x3 ComposeMikkTangentSpaceMatrix(float3 normal, float4 tangent)
     return mul(float3x3(pk_MATRIX_M), float3x3(T, B, N));
 }
 
+bool TryGetWorldToClipUVW(float3 worldpos, inout float3 uvw)
+{
+    float4 clippos = WorldToClipPos(worldpos);
+    uvw = clippos.xyz / clippos.w;
+    uvw.xy = uvw.xy * 0.5f + 0.5f;
+    uvw.z = uvw.z * 0.5f + 0.5f;
+
+    return clippos.z > 0.0f && all(lessThan(abs(clippos.xy / clippos.w), 1.0f.xx));
+}
+
 #endif

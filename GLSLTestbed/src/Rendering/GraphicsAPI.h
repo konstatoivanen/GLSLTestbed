@@ -140,9 +140,11 @@ namespace PK::Rendering::GraphicsAPI
 	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, Shader* shader);
 	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, Shader* shader, const FixedStateAttributes& attributes);
 	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, Shader* shader, const ShaderPropertyBlock& propertyBlock);
+	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, Shader* shader, const ShaderPropertyBlock& propertyBlock, const FixedStateAttributes& attributes);
 	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, const Material* material);
 	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, const Material* material, const FixedStateAttributes& attributes);
 	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, const Material* material, const ShaderPropertyBlock& propertyBlock);
+	void DrawMeshInstanced(const Mesh* mesh, int submesh, uint offset, uint count, const Material* material, const ShaderPropertyBlock& propertyBlock, const FixedStateAttributes& attributes);
 
 	void DrawProcedural(Shader* shader, GLenum topology, size_t offset, size_t count);
 	void DrawProcedural(Shader* shader, GLenum topology, size_t offset, size_t count, const ShaderPropertyBlock& propertyBlock);

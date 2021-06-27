@@ -5,18 +5,18 @@
 #include LightingBRDF.glsl
 #include Encoding.glsl
 
-#define SRC_METALLIC x
-#define SRC_OCCLUSION y
-#define SRC_ROUGHNESS z
 #define SHADOW_USE_LBR 
 #define SHADOW_LBR 0.2f
 #define SHADOWMAP_CASCADES 4
+
+//----------MATH UTILITIES----------//
 
 #if defined(SHADOW_USE_LBR)
     float LBR(float shadow) { return smoothstep(SHADOW_LBR, 1.0f, shadow);}
 #else
     #define LBR(shadow) (shadow)
 #endif
+
 
 // Source: https://de45xmedrsdbp.cloudfront.net/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
 float GetAttenuation(float ldist, float lradius) { return pow2(saturate(1.0f - pow4(ldist/lradius))) / (pow2(ldist) + 1.0f); }
@@ -28,47 +28,18 @@ float GetLightAnisotropy(float3 viewdir, float3 posToLight, float anistropy)
 	return (1.0 - gsq) * inversesqrt(max(0, pow3(denom)));
 }
 
-uint GetShadowCascadeIndexFragment()
-{
-    #if defined(SHADER_STAGE_FRAGMENT)
-        return GetShadowCascadeIndex(LinearizeDepth(gl_FragCoord.z));
-    #else
-        return 0u;
-    #endif
-}
 
+//----------INDIRECT SAMPLERS----------//
 float3 SampleEnv(float2 uv, float roughness) { return HDRDecode(tex2DLod(pk_SceneOEM_HDR, uv, roughness * 4)) * pk_SceneOEM_Exposure; }
 
 float SampleScreenSpaceOcclusion(float2 uv) { return tex2D(pk_ScreenOcclusion, uv).r; }
 
-float SampleScreenSpaceOcclusion()
+void SampleScreenSpaceGI(inout PKIndirect indirect, float2 uv)
 {
-    #if defined(SHADER_STAGE_FRAGMENT)
-        return SampleScreenSpaceOcclusion(gl_FragCoord.xy * pk_ScreenParams.zw);
-    #else
-        return 1.0f;
-    #endif
-}
-
-void SampleScreenSpaceGI(inout PKIndirect indirect)
-{
-    #if defined(SHADER_STAGE_FRAGMENT)
-        float2 screenuv = gl_FragCoord.xy * pk_ScreenParams.zw;
-
-        float4 diffuse = tex2D(pk_ScreenGI_Diffuse, screenuv);
-        float4 specular = tex2D(pk_ScreenGI_Specular, screenuv);
-
-        indirect.diffuse = indirect.diffuse * diffuse.a + diffuse.rgb;
-        indirect.specular = indirect.specular * specular.a + specular.rgb;
-    #endif
-}
-
-
-float4 GetLightProjectionUVW(in float3 worldpos, uint projectionIndex)
-{
-    float4 coord = mul(PK_BUFFER_DATA(pk_LightMatrices, projectionIndex), float4(worldpos, 1.0f));
-    coord.xy = (coord.xy * 0.5f + coord.ww * 0.5f) / coord.w;
-    return coord;
+    float4 diffuse = tex2D(pk_ScreenGI_Diffuse, uv);
+    float4 specular = tex2D(pk_ScreenGI_Specular, uv);
+    indirect.diffuse = indirect.diffuse * diffuse.a + diffuse.rgb;
+    indirect.specular = indirect.specular * specular.a + specular.rgb;
 }
 
 float SampleLightShadowmap(uint shadowmapIndex, float2 uv, float lightDistance)
@@ -79,6 +50,15 @@ float SampleLightShadowmap(uint shadowmapIndex, float2 uv, float lightDistance)
     return difference > 0.01f ? LBR(variance / (variance + difference * difference)) : 1.0f;
 }
 
+float4 GetLightProjectionUVW(in float3 worldpos, uint projectionIndex)
+{
+    float4 coord = mul(PK_BUFFER_DATA(pk_LightMatrices, projectionIndex), float4(worldpos, 1.0f));
+    coord.xy = (coord.xy * 0.5f + coord.ww * 0.5f) / coord.w;
+    return coord;
+}
+
+
+//----------LIGHT INDEXING----------//
 void GetLight(uint index, in float3 worldpos, uint cascade, out float3 color, out float3 posToLight, out float attenuation)
 {
     PKRawLight light = PK_BUFFER_DATA(pk_Lights, index);
@@ -137,6 +117,7 @@ void GetLight(uint index, in float3 worldpos, uint cascade, out float3 color, ou
     }
 }
 
+
 PKLight GetSurfaceLightDirect(uint index, in float3 worldpos, uint cascade)
 {
     float3 posToLight, color;
@@ -170,66 +151,4 @@ LightTile GetLightTile(int3 coord)
     #endif
 }
 
-LightTile GetLightTile() 
-{ 
-    #if defined(SHADER_STAGE_FRAGMENT)
-        return GetLightTile(GetTileIndexUV(gl_FragCoord.xy * pk_ScreenParams.zw, LinearizeDepth(gl_FragCoord.z))); 
-    #else
-        return LightTile(0,0,0);
-    #endif
-}
-
-float4 FragmentPhysicallyBasedShading(SurfaceData surf, float3 viewdir, float3 worldpos)
-{
-    #if defined(SHADER_STAGE_FRAGMENT)
-            // @TODO refactor this to be more generic :/
-        #if defined(PK_META_DEPTH_NORMALS)
-            return float4(WorldToViewDir(surf.normal), surf.roughness);
-        #else
-            surf.normal = normalize(surf.normal);
-            surf.roughness = max(surf.roughness, 0.002);
-    
-            //Temp
-            surf.albedo = 1.0f.xxx;
-    
-            // Fix edge artifacts for when normals are pointing away from camera.
-            half shiftAmount = dot(surf.normal, viewdir);
-            surf.normal = shiftAmount < 0.0f ? surf.normal + viewdir * (-shiftAmount + 1e-5f) : surf.normal;
-    
-            float3 specColor = lerp(pk_DielectricSpecular.rgb, surf.albedo, surf.metallic);
-            float reflectivity = pk_DielectricSpecular.r + surf.metallic * pk_DielectricSpecular.a;
-            surf.albedo *= 1.0f - reflectivity;
-    
-            #if defined(PK_TRANSPARENT_PBR)
-                surf.albedo *= alpha;
-                surf.alpha = reflectivity + surf.alpha * (1.0f - reflectivity);
-            #endif
-    
-            INIT_BRDF_CACHE(surf.albedo, specColor, surf.normal, viewdir, reflectivity, surf.roughness);
-            
-            PKIndirect indirect;
-            indirect.diffuse = SampleEnv(OctaUV(surf.normal), 1.0f);
-            indirect.specular = SampleEnv(OctaUV(reflect(-viewdir, surf.normal)), surf.roughness);
-    
-            SampleScreenSpaceGI(indirect);
-    
-            float3 color = BRDF_PBS_DEFAULT_INDIRECT(indirect);
-    
-            color *= surf.occlusion;
-    
-            LightTile tile = GetLightTile();
-    
-            for (uint i = tile.start; i < tile.end; ++i)
-            {
-                PKLight light = GetSurfaceLight(i, worldpos, tile.cascade);
-                color += BRDF_PBS_DEFAULT_DIRECT(light);
-            }
-    
-            color.rgb += surf.emission;
-
-            return float4(color, surf.alpha);
-        #endif
-    #else
-        return 0.0.xxxx;
-    #endif
-}
+LightTile GetLightTile(float3 clipuvw) { return GetLightTile(GetTileIndexUV(clipuvw.xy, LinearizeDepth(clipuvw.z))); }

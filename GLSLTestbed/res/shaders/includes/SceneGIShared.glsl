@@ -1,13 +1,13 @@
 #pragma once
 #include HLSLSupport.glsl
 
-#define MAX_MIP_LEVEL 5.4f
 #define VOXEL_SIZE pk_SceneGI_ST.w
 #define PK_GI_ANGLE 5.08320368996f
 
-layout(rgba16) uniform writeonly image3D pk_SceneGI_VolumeWrite;
+layout(rgba16) uniform image3D pk_SceneGI_VolumeWrite;
 uniform sampler3D pk_SceneGI_VolumeRead;
 uniform float4 pk_SceneGI_ST;
+uniform uint3 pk_GIVoxelAxisSwizzle;
 
 int3 WorldToVoxelSpace(float3 worldposition) { return int3((worldposition - pk_SceneGI_ST.xyz) / pk_SceneGI_ST.www); }
 
@@ -15,14 +15,30 @@ float3 WorldToSampleSpace(float3 worldposition) { return ((worldposition - pk_Sc
 
 float3 WorldToVoxelClipSpace(float3 worldposition) { return WorldToSampleSpace(worldposition) * 2.0f - 1.0f; }
 
+float4 WorldToVoxelNDCSpace(float3 worldposition) 
+{ 
+	float3 clippos = WorldToVoxelClipSpace(worldposition);
+	return float4(clippos[pk_GIVoxelAxisSwizzle.x], clippos[pk_GIVoxelAxisSwizzle.y], clippos[pk_GIVoxelAxisSwizzle.z] * 0.5f + 0.5f, 1);
+}
+
 float4 SampleSceneGI(float3 worldposition, float level)
 {
-    float4 value = tex2DLod(pk_SceneGI_VolumeRead, WorldToSampleSpace(worldposition), min(MAX_MIP_LEVEL, level));
+    float4 value = tex2DLod(pk_SceneGI_VolumeRead, WorldToSampleSpace(worldposition), level);
     value.rgb *= 128.0f;
     return value;
 }
 
-void StoreSceneGI(float3 worldposition, float3 color) { imageStore(pk_SceneGI_VolumeWrite, WorldToVoxelSpace(worldposition), float4(color / 128.0f, 1.0f)); }
+void StoreSceneGI(float3 worldposition, float4 color) 
+{ 
+	int3 coord = WorldToVoxelSpace(worldposition);
+
+	float4 value0 = imageLoad(pk_SceneGI_VolumeWrite, coord);
+	float4 value1 = float4(color.rgb / 128.0f, color.a);
+
+	value1.rgb = lerp(value0.rgb, value1.rgb, 1.0f - 0.9f * value0.a);
+
+	imageStore(pk_SceneGI_VolumeWrite, coord, value1); 
+}
 
 float3 GetSampleDirectionSE(float3 worldNormal, uint index, const float sampleCount, float dither)
 {
