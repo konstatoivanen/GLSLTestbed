@@ -29,7 +29,6 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 - Instanced dynamic batching.
 
 ## Planned Features
-- A global illumination solution.
 - Rectangular area light support.
 - Exponential variance shadow maps.
 - Motion vectors.
