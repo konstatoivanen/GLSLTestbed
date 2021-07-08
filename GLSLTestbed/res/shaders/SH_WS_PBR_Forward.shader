@@ -8,6 +8,7 @@
 
 #multi_compile _ PK_NORMALMAPS
 #multi_compile _ PK_HEIGHTMAPS
+#multi_compile _ PK_EMISSION
 #multi_compile _ PK_ENABLE_INSTANCING
 #multi_compile _ PK_META_DEPTH_NORMALS PK_META_GI_VOXELIZE
 
@@ -33,11 +34,13 @@ struct FragmentVaryings
 };
 
 PK_BEGIN_INSTANCED_PROPERTIES
+    PK_INSTANCED_PROPERTY float4 _Color;
+    PK_INSTANCED_PROPERTY float4 _EmissionColor;
     PK_INSTANCED_PROPERTY sampler2D _AlbedoTexture;
     PK_INSTANCED_PROPERTY sampler2D _PBSTexture;
     PK_INSTANCED_PROPERTY sampler2D _NormalMap;
     PK_INSTANCED_PROPERTY sampler2D _HeightMap;
-    PK_INSTANCED_PROPERTY float4 _Color;
+    PK_INSTANCED_PROPERTY sampler2D _EmissionTexture;
     PK_INSTANCED_PROPERTY float _Metallic;
     PK_INSTANCED_PROPERTY float _Roughness;
     PK_INSTANCED_PROPERTY float _Occlusion;
@@ -86,11 +89,18 @@ void main()
 
 #pragma PROGRAM_FRAGMENT
 
+float3 hsv2rgb(float3 c)
+{
+    float4 K = float4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    float3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
 in FragmentVaryings varyings;
 PK_VARYING_INSTANCE_ID
 
 #if !defined(PK_META_GI_VOXELIZE)
-layout(location = 0) out float4 SV_Target0;
+    layout(location = 0) out float4 SV_Target0;
 #endif
 
 void main()
@@ -101,16 +111,7 @@ void main()
     float3 viewdir = normalize(pk_WorldSpaceCameraPos.xyz - worldpos);
     float2 uv = varyings.vs_TEXCOORD0;
 
-    #if defined(PK_META_GI_VOXELIZE)
-        float3 clipuvw;
-        
-        if (!TryGetWorldToClipUVW(worldpos, clipuvw))
-        {
-            return;
-        }
-    #else
-        float3 clipuvw = GetFragmentClipUVW();
-    #endif
+    PK_INIT_CLIP_UV(worldpos, clipuvw)
 
     #if defined(PK_HEIGHTMAPS)
         float heightval = tex2D(PK_ACCESS_INSTANCED_PROP(_HeightMap), uv).x;
@@ -120,7 +121,18 @@ void main()
     SurfaceData surf; 
     surf.albedo = tex2D(PK_ACCESS_INSTANCED_PROP(_AlbedoTexture), uv).xyz * PK_ACCESS_INSTANCED_PROP(_Color).xyz;
     surf.alpha = PK_ACCESS_INSTANCED_PROP(_Color).a;
-    surf.emission = float3(0,0,0);
+
+    #if defined(PK_EMISSION)
+       // GI color test code
+       // float lval = worldpos.z * 0.025f + pk_Time.w * 0.25f;
+       // lval -= floor(lval);
+       // lval *= pow4(lval);
+       // float3 ecolor = hsv2rgb(float3(worldpos.z * 0.025f + pk_Time.y, 1.0f, lval * 20.0f));
+
+        surf.emission = tex2D(PK_ACCESS_INSTANCED_PROP(_EmissionTexture), uv).rgb * PK_ACCESS_INSTANCED_PROP(_EmissionColor).rgb;
+    #else
+        surf.emission = float3(0,0,0);
+    #endif
 
     #if defined(PK_NORMALMAPS)
         surf.normal = SampleNormal(PK_ACCESS_INSTANCED_PROP(_NormalMap), varyings.vs_TSROTATION, uv, PK_ACCESS_INSTANCED_PROP(_NormalAmount));

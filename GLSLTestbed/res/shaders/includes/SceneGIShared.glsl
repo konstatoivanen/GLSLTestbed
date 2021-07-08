@@ -3,6 +3,8 @@
 
 #define VOXEL_SIZE pk_SceneGI_ST.w
 #define PK_GI_ANGLE 5.08320368996f
+#define PK_GI_DIFFUSE_GAIN 2.0f.xxx
+#define PK_GI_SPECULAR_GAIN 1.0f.xxx
 
 layout(rgba16) uniform image3D pk_SceneGI_VolumeWrite;
 uniform sampler3D pk_SceneGI_VolumeRead;
@@ -62,10 +64,10 @@ float4 ConeTraceDiffuse(float3 origin, const float3 normal, const float dither)
 
 	origin += normal * (1.0 + PK_INV_SQRT2) * VOXEL_SIZE;
 
-	#pragma unroll 8
-	for (uint i = 0u; i < 8u; ++i)
+	#pragma unroll 16
+	for (uint i = 0u; i < 16u; ++i)
 	{
-		const float3 direction = GetSampleDirectionSE(normal, i, 8u, dither);
+		const float3 direction = GetSampleDirectionSE(normal, i, 16u, dither);
 
 		float4 color = float4(0.0.xxx, 1.0);
 
@@ -87,7 +89,9 @@ float4 ConeTraceDiffuse(float3 origin, const float3 normal, const float dither)
 	}
 
 	A.a *= max(0.0, dot(normal, float3(0.0,1.0,0.0)) * 0.5 + 0.5);
-	A /= 8.0;
+	A.rgb *= PK_GI_DIFFUSE_GAIN;
+
+	A /= 16.0;
 
 	return A;
 }
@@ -108,11 +112,13 @@ float4 ConeTraceSpecular(float3 origin, const float3 normal, const float3 direct
 
 		float4 voxel = SampleSceneGI(origin + dist * direction, level);
 
-		color.rgb += voxel.rgb * voxel.a * color.a;
+		color.rgb += voxel.rgb * voxel.a * color.a * (1 + level);
 		color.a *= 1.0f - voxel.a;
 
 		dist += VOXEL_SIZE * (1.0f + 0.125f * level);
 	}
+
+	color.rgb *= PK_GI_SPECULAR_GAIN;
 
 	return color;
 }

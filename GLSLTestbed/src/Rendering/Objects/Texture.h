@@ -20,6 +20,7 @@ namespace PK::Rendering::Objects
         color bordercolor = CG_COLOR_CLEAR;
         uint miplevels = 0;
         uint msaaSamples = 0;
+        bool isVirtual = false;
     };
     
     struct ImageBindDescriptor
@@ -49,6 +50,8 @@ namespace PK::Rendering::Objects
             inline uint8_t GetChannelCount() const { return GetChannelCount(m_channels); }
             inline GLenum GetDimension() const { return m_descriptor.dimension; }
 
+            int3 GetVirtualPageSize() const;
+            void SetVirtualPageResident(const uint3& pageSize, uint3 pageIndex, uint level, bool resident) const;
             inline GLuint64 GetBindlessHandle() const { return glGetTextureHandleARB(m_graphicsId); }
             GLuint64 GetBindlessHandleResident() const;
             inline void MakeHandleResident() const { glMakeTextureHandleResidentARB(glGetTextureHandleARB(m_graphicsId)); }
@@ -59,6 +62,7 @@ namespace PK::Rendering::Objects
             GLuint64 GetImageHandleResident(GLenum format, GLenum access, int level, int layer, bool layered) const;
             inline void MakeImageHandleResident(GLenum format, GLenum access, int level, int layer, bool layered) const { glMakeImageHandleResidentARB(glGetImageHandleARB(m_graphicsId, level, layered, layer, format), access); }
             inline void MakeImageHandleNonResident(GLenum format, int level, int layer, bool layered) const { glMakeImageHandleNonResidentARB(glGetImageHandleARB(m_graphicsId, level, layered, layer, format)); }
+
 
             void Clear(uint level, const void* clearValue) const;
             void SetWrapMode(GLenum x, GLenum y, GLenum z);

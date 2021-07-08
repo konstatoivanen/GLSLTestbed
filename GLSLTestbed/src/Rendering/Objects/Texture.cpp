@@ -10,6 +10,31 @@ namespace PK::Rendering::Objects
     {
     }
     
+    int3 Texture::GetVirtualPageSize() const
+    {
+        int3 pageSize;
+        glGetInternalformativ(m_descriptor.dimension, m_descriptor.colorFormat, GL_VIRTUAL_PAGE_SIZE_X_ARB, 1, &pageSize.x);
+        glGetInternalformativ(m_descriptor.dimension, m_descriptor.colorFormat, GL_VIRTUAL_PAGE_SIZE_Y_ARB, 1, &pageSize.y);
+        glGetInternalformativ(m_descriptor.dimension, m_descriptor.colorFormat, GL_VIRTUAL_PAGE_SIZE_Z_ARB, 1, &pageSize.z);
+        return pageSize;
+    }
+
+    void Texture::SetVirtualPageResident(const uint3& pageSize, uint3 pageIndex, uint level, bool resident) const
+    {
+        glBindTexture(m_descriptor.dimension, m_graphicsId);
+
+        glTexPageCommitmentARB(m_descriptor.dimension, level,
+            static_cast<GLsizei>(pageSize.x) * pageIndex.x, 
+            static_cast<GLsizei>(pageSize.y) * pageIndex.y,
+            static_cast<GLsizei>(pageSize.z) * pageIndex.z,
+            static_cast<GLsizei>(pageSize.x),
+            static_cast<GLsizei>(pageSize.y), 
+            static_cast<GLsizei>(pageSize.z), 
+            resident);
+
+        glBindTexture(m_descriptor.dimension, 0);
+    }
+
     GLuint64 Texture::GetBindlessHandleResident() const
     {
         auto handle = glGetTextureHandleARB(m_graphicsId);
@@ -105,6 +130,11 @@ namespace PK::Rendering::Objects
         glTextureParameteri(graphicsId, GL_TEXTURE_WRAP_T, descriptor.wrapmodey);
         glTextureParameteri(graphicsId, GL_TEXTURE_WRAP_R, descriptor.wrapmodez);
         glTextureParameterfv(graphicsId, GL_TEXTURE_BORDER_COLOR, glm::value_ptr(descriptor.bordercolor));
+
+        if (descriptor.isVirtual)
+        {
+            glTextureParameteri(graphicsId, GL_TEXTURE_SPARSE_ARB, GL_TRUE);
+        }
     }
     
     GLenum Texture::GetFormatChannels(GLenum format)

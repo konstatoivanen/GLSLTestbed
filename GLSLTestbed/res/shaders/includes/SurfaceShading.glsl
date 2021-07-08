@@ -9,6 +9,19 @@
 #define SRC_OCCLUSION y
 #define SRC_ROUGHNESS z
 
+#if defined(PK_META_GI_VOXELIZE)
+    #define PK_INIT_CLIP_UV(w, c)           \
+        float3 c;                           \
+        if (!TryGetWorldToClipUVW(w, c))    \
+        {                                   \
+            return;                         \
+        }                                   \
+
+#else
+    #define PK_INIT_CLIP_UV(w, c) float3 c = GetFragmentClipUVW(); 
+
+#endif
+
 float3 GetSurfaceSpecularColor(float3 albedo, float metallic) { return lerp(pk_DielectricSpecular.rgb, albedo, metallic); }
 
 float GetSurfaceAlphaReflectivity(inout SurfaceData surf)

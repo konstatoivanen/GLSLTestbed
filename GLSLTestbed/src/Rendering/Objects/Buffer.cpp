@@ -8,6 +8,8 @@ namespace PK::Rendering::Structs
 		auto maxSize = 0;
 		m_stride = 0;
 	
+		// @TODO For std140/430 padding is calculated for variables in a way that their offset is a multiple of their size.
+		// For example if 16b variable is preceeded by an 8b variable there will be 8b of padding between them. Fix this padding calculation to reflect that.
 		for (auto& element : m_elements)
 		{
 			element.Offset = m_stride;

@@ -50,8 +50,8 @@ namespace PK::Rendering::PostProcessing
     void FilterSceneGI::OnPreRender(const RenderTexture* source)
     {
         auto res = source->GetResolution3D();
-        res.x /= 2;
-        res.y /= 2;
+        //res.x /= 2;
+        //res.y /= 2;
 
         if (m_screenSpaceGI->ValidateResolution(res))
         {

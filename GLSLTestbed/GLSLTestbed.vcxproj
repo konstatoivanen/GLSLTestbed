@@ -699,6 +699,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="include\glm\gtx\wrap.inl" />
     <None Include="libs\ktx.dll" />
     <None Include="libs\ktx_read.dll" />
+    <None Include="res\materials\M_Asphalt.material" />
     <None Include="res\materials\M_Gravel.material" />
     <None Include="res\materials\M_Ground.material" />
     <None Include="res\materials\M_Metal_Panel.material" />
@@ -755,8 +756,13 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\SH_WS_DepthNormals.shader" />
     <None Include="res\shaders\SH_WS_ShadowmapOrtho.shader" />
     <None Include="res\shaders\SH_WS_ShadowmapPersp.shader" />
+    <None Include="res\textures\T_Asphalt_repeat_D.ktx" />
+    <None Include="res\textures\T_Asphalt_repeat_H.ktx" />
+    <None Include="res\textures\T_Asphalt_repeat_MAOR.ktx" />
+    <None Include="res\textures\T_Asphalt_repeat_N.ktx" />
     <None Include="res\textures\T_Bloom_LensDirt.ktx" />
     <None Include="res\textures\T_Bluenoise256_repeat.ktx" />
+    <None Include="res\textures\T_EmissiveTest_repeat_E.ktx" />
     <None Include="res\textures\T_Gravel_repeat_D.ktx" />
     <None Include="res\textures\T_Gravel_repeat_H.ktx" />
     <None Include="res\textures\T_Gravel_repeat_MAOR.ktx" />

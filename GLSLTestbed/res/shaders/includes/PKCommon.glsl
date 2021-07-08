@@ -22,7 +22,7 @@
 #define pk_Grey float4(0.214041144, 0.214041144, 0.214041144, 0.5)
 // standard dielectric reflectivity coef at incident angle (= 4%)
 #define pk_DielectricSpecular float4(0.04, 0.04, 0.04, 1.0 - 0.04) 
-#define pk_Luminance float4(0.2125, 0.7154, 0.0721, 1.0f) //float4(0.0396819152, 0.458021790, 0.00609653955, 1.0) //
+#define pk_Luminance float4(0.2125, 0.7154, 0.0721, 1.0f) //float4(0.0396819152, 0.458021790, 0.00609653955, 1.0)
 
 PK_DECLARE_CBUFFER(pk_PerFrameConstants)
 {

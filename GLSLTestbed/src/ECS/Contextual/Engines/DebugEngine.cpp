@@ -115,16 +115,18 @@ namespace PK::ECS::Engines
 		auto materialMetal = assetDatabase->Load<Material>("res/materials/M_Metal_Panel.material");
 		auto materialGravel = assetDatabase->Load<Material>("res/materials/M_Gravel.material");
 		auto materialGround = assetDatabase->Load<Material>("res/materials/M_Ground.material");
-		auto materialSand = assetDatabase->Load<Material>("res/materials/M_Wood_Floor.material");
+		auto materialSand = assetDatabase->Load<Material>("res/materials/M_Sand.material");
+		auto materialWood = assetDatabase->Load<Material>("res/materials/M_Wood_Floor.material");
+		auto materialAsphalt = assetDatabase->Load<Material>("res/materials/M_Asphalt.material");
 	
 		auto minpos = float3(-40, -5, -40);
 		auto maxpos = float3(40, 0, 40);
 
 		srand(config->RandomSeed);
 
-		CreateMeshRenderable(entityDb, float3(0,-5,0), { 90, 0, 0 }, 80.0f, planeMesh, materialGround);
+		CreateMeshRenderable(entityDb, float3(0,-5,0), { 90, 0, 0 }, 80.0f, planeMesh, materialSand);
 
-		CreateMeshRenderable(entityDb, float3(70, -5, -40), { 0, 0, 0 }, 1.0f, libraryMesh, materialSand);
+		CreateMeshRenderable(entityDb, float3(70, -5, -40), { 0, 0, 0 }, 1.0f, libraryMesh, materialAsphalt);
 		
 		for (auto i = 0; i < 256; ++i)
 		{

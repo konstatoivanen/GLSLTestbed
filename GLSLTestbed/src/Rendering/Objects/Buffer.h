@@ -76,8 +76,10 @@ namespace PK::Rendering::Objects
 			Core::BufferView<T> BeginMapBufferRange(size_t offset, size_t count)
 			{
 				auto tsize = sizeof(T);
-				auto tcount = (uint)(m_count / (tsize / (float)GetStride()));
-				PK_CORE_ASSERT(count <= tcount, "Map buffer range exceeds buffer bounds");
+				auto mapSize = tsize * count + tsize * offset;
+				auto bufSize = GetSize();
+
+				PK_CORE_ASSERT(mapSize <= bufSize, "Map buffer range exceeds buffer bounds, map size: %i, buffer size: %i", mapSize, bufSize);
 
 				return { reinterpret_cast<T*>(BeginMapBufferRange(offset * tsize, count * tsize)), count };
 			}
