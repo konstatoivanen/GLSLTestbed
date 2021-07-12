@@ -131,9 +131,13 @@ const int2 sample_offsets_v1[4] = { int2( 0,-3), int2(0, 0), int2(0,3), int2(0,0
 #endif
 
 #if defined(SHADER_STAGE_FRAGMENT) && defined(DRAW_SHADOW_MAP_FRAGMENT)
-in noperspective float vs_DEPTH;
+in float4 vs_DEPTH;
 layout(early_fragment_tests) in;
 layout(location = 0) out float2 SV_Target0;
 
-void main() { SV_Target0 = float2(vs_DEPTH, vs_DEPTH * vs_DEPTH); };
+void main() 
+{
+    float d = length(vs_DEPTH.xyz) + vs_DEPTH.w;
+    SV_Target0 = float2(d, d * d); 
+};
 #endif

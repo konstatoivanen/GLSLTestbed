@@ -2,7 +2,6 @@
 #include PKCommon.glsl
 #include ClusterIndexing.glsl
 #include LightingCommon.glsl
-#include LightingBRDF.glsl
 #include Encoding.glsl
 
 #define SHADOW_USE_LBR 
@@ -30,7 +29,7 @@ float GetLightAnisotropy(float3 viewdir, float3 posToLight, float anistropy)
 
 
 //----------INDIRECT SAMPLERS----------//
-float3 SampleEnv(float2 uv, float roughness) { return HDRDecode(tex2DLod(pk_SceneOEM_HDR, uv, roughness * 4)) * pk_SceneOEM_Exposure; }
+float3 SampleEnvironment(float2 uv, float roughness) { return HDRDecode(tex2DLod(pk_SceneOEM_HDR, uv, roughness * 4)) * pk_SceneOEM_Exposure; }
 
 float SampleScreenSpaceOcclusion(float2 uv) { return tex2D(pk_ScreenOcclusion, uv).r; }
 

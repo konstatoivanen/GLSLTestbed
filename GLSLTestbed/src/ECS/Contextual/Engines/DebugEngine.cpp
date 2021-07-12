@@ -107,7 +107,7 @@ namespace PK::ECS::Engines
 		m_time = time;
 	
 		//meshCube = MeshUtilities::GetBox(CG_FLOAT3_ZERO, { 10.0f, 0.5f, 10.0f });
-		auto libraryMesh = assetDatabase->Load<Mesh>("res/models/Library.mdl");
+		auto libraryMesh = assetDatabase->Load<Mesh>("res/models/Buildings.mdl");
 
 		auto sphereMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Sphere", Rendering::MeshUtility::GetSphere(CG_FLOAT3_ZERO, 1.0f));
 		auto planeMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Plane16x16", Rendering::MeshUtility::GetPlane(CG_FLOAT2_ZERO, CG_FLOAT2_ONE, { 16, 16 }));
@@ -118,6 +118,7 @@ namespace PK::ECS::Engines
 		auto materialSand = assetDatabase->Load<Material>("res/materials/M_Sand.material");
 		auto materialWood = assetDatabase->Load<Material>("res/materials/M_Wood_Floor.material");
 		auto materialAsphalt = assetDatabase->Load<Material>("res/materials/M_Asphalt.material");
+
 	
 		auto minpos = float3(-40, -5, -40);
 		auto maxpos = float3(40, 0, 40);
@@ -126,7 +127,7 @@ namespace PK::ECS::Engines
 
 		CreateMeshRenderable(entityDb, float3(0,-5,0), { 90, 0, 0 }, 80.0f, planeMesh, materialSand);
 
-		CreateMeshRenderable(entityDb, float3(70, -5, -40), { 0, 0, 0 }, 1.0f, libraryMesh, materialAsphalt);
+		CreateMeshRenderable(entityDb, float3(5, -5, -5), { 0, 0, 0 }, 1.0f, libraryMesh, materialAsphalt);
 		
 		for (auto i = 0; i < 256; ++i)
 		{

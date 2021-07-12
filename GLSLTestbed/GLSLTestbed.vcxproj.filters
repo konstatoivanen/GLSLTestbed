@@ -1690,6 +1690,8 @@
     <None Include="res\textures\T_Asphalt_repeat_N.ktx" />
     <None Include="res\materials\M_Asphalt.material" />
     <None Include="res\textures\T_EmissiveTest_repeat_E.ktx" />
+    <None Include="res\models\Buildings.mdl" />
+    <None Include="res\shaders\SH_WS_PBR_Forward_Glitter.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">

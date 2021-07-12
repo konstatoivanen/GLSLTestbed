@@ -1,5 +1,5 @@
 Material:
-    Shader: res/shaders/SH_WS_PBR_Forward.shader
+    Shader: res/shaders/SH_WS_PBR_Forward_Glitter.shader
     Keywords:
         - PK_NORMALMAPS
         - PK_HEIGHTMAPS
@@ -30,7 +30,7 @@ Material:
             Value: 0.5
         _HeightAmount:
             Type: FLOAT
-            Value: 0.05
+            Value: 0.04
         _NormalAmount:
             Type: FLOAT
             Value: 0.5

@@ -23,6 +23,6 @@ layout(location = 0) out float4 SV_Target0;
 void main()
 {
 	float2 reflUV = OctaUV(normalize(vs_TEXCOORD0));
-	float3 color = SampleEnv(reflUV, 0.0f);
+	float3 color = SampleEnvironment(reflUV, 0.0f);
 	SV_Target0 = float4(color, 1.0f);
 };

@@ -35,17 +35,6 @@ struct PKIndirect
     float3 specular;
 };
 
-struct SurfaceData
-{
-    float3 albedo;      
-    float3 normal;      
-    float3 emission;
-    float metallic;     
-    float roughness;
-    float occlusion;
-    float alpha;
-};
-
 LightTile CreateLightTile(uint data)
 {
 	uint offset = bitfieldExtract(data, 0, 20);

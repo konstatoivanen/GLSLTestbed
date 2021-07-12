@@ -21,7 +21,7 @@ float Density(float3 pos)
 float3 GetAmbientColor(float3 direction, float3 viewdir)
 {
 	float anistropy = GetLightAnisotropy(viewdir, direction, pk_Volume_Anisotropy);
-	return SampleEnv(OctaUV(direction), 1.0f) * anistropy;
+	return SampleEnvironment(OctaUV(direction), 1.0f) * anistropy;
 }
 
 layout(local_size_x = 16, local_size_y = 2, local_size_z = 16) in;
@@ -31,15 +31,16 @@ void main()
 	float2 uv = (VOLUME_SIZE_ST.zz + id.xy) * VOLUME_SIZE_ST.xy;
 
 	float zmax = VOLUME_LOAD_MAX_DEPTH(GetVolumeDepthTileIndex(uv));
+
 	// Triangle dither range is -1.5 - 1.5 and due to trilinear interpolation we also need to have 2 texels worth of coverage.
-	//float zmin = GetVolumeCellDepth(id.z - 3.0f);
+	float zmin = GetVolumeCellDepth(id.z - 3.0f);
 
 	float3 bluenoise = GetVolumeCellNoise(id);
 
 	float depth = GetVolumeCellDepth(id.z + NoiseUniformToTriangle(bluenoise.x));
 
 	// Texel is inside dither & trilinear interpolation range. Let's clamp it so that we can avoid light leaking through thin surfaces.
-	//if (zmin < zmax)
+	if (zmin < zmax)
 	{
 		depth = min(zmax, depth);
 	}

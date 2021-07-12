@@ -32,7 +32,6 @@ void main()
 		return;
 	}
 
-	
 	// Find a base for the side cones with the normal as one of its base vectors.
 	const float3 N = SampleWorldSpaceNormal(vs_TEXCOORD0);
 	const float3 O = worldposition;
@@ -40,7 +39,6 @@ void main()
 	const float3 R = reflect(V, N);
 	const float3 D = GlobalNoiseBlueUV(vs_TEXCOORD0 * (pk_ScreenParams.xy / 256.0f) + pk_Time.xy).xyz;
 
-	//SV_Target0 = SampleSceneGI(O, 0.0f);
 	SV_Target0 = ConeTraceDiffuse(O, N, D.x);
 	SV_Target1 = ConeTraceSpecular(O, N, R, D.y, SampleRoughness(vs_TEXCOORD0));
 }

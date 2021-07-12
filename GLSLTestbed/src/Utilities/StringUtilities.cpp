@@ -100,9 +100,11 @@ namespace PK::Utilities::String
 				continue;
 			}
 
-			if (lineBuffer.find(includeToken) != lineBuffer.npos)
+			auto includepos = lineBuffer.find(includeToken);
+
+			if (includepos != lineBuffer.npos)
 			{
-				lineBuffer.erase(0, includeTokenLength);
+				lineBuffer.erase(0, includepos + includeTokenLength);
 				lineBuffer.insert(0, filepath.substr(0, filepath.find_last_of("/\\") + 1));
 				result += ReadFileRecursiveInclude(lineBuffer, includes, true);
 				continue;
