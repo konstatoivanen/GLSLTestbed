@@ -4,6 +4,7 @@
 #pragma PROGRAM_COMPUTE
 #include includes/Lighting.glsl
 #include includes/VolumeFogShared.glsl
+#include includes/SceneGIShared.glsl
 
 float Density(float3 pos)
 {
@@ -18,10 +19,13 @@ float Density(float3 pos)
 	return max(fog * pk_Volume_Density, 0.0f);
 }
 
-float3 GetAmbientColor(float3 direction, float3 viewdir)
+float3 GetAmbientColor(float3 position, float3 direction, float3 viewdir)
 {
 	float anistropy = GetLightAnisotropy(viewdir, direction, pk_Volume_Anisotropy);
-	return SampleEnvironment(OctaUV(direction), 1.0f) * anistropy;
+
+	float4 scenegi = SampleGIVoumetric(position);
+	float3 staticgi = SampleEnvironment(OctaUV(direction), 1.0f) * anistropy;
+	return lerp(staticgi, scenegi.rgb, scenegi.a);
 }
 
 layout(local_size_x = 16, local_size_y = 2, local_size_z = 16) in;
@@ -51,7 +55,7 @@ void main()
 
 	float3 viewdir = normalize(worldpos - pk_WorldSpaceCameraPos.xyz);
 
-	float3 color = GetAmbientColor(normalize(bluenoise - 0.5f + float3(0, 1, 0)), viewdir);
+	float3 color = GetAmbientColor(worldpos, normalize(bluenoise - 0.5f + float3(0, 1, 0)), viewdir);
 
 	LightTile tile = GetLightTile(GetTileIndexUV(uv, depth));
 

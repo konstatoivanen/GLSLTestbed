@@ -74,7 +74,6 @@ struct SurfaceData
     float alpha;
 };
 
-
 float3 GetSurfaceSpecularColor(float3 albedo, float metallic) { return lerp(pk_DielectricSpecular.rgb, albedo, metallic); }
 
 float GetSurfaceAlphaReflectivity(inout SurfaceData surf)
@@ -139,6 +138,20 @@ float GetSurfaceAlphaReflectivity(inout SurfaceData surf)
     PK_VARYING_INSTANCE_ID
     PK_META_DECLARE_SURFACE_OUTPUT
     
+    #if defined(PK_HEIGHTMAPS)
+        #define PK_SURF_SAMPLE_PARALLAX_OFFSET(heightmap, amount) ParallaxOffset(tex2D(PK_ACCESS_INSTANCED_PROP(heightmap), uv).x, PK_ACCESS_INSTANCED_PROP(amount), normalize(baseVaryings.vs_TSVIEWDIRECTION));
+
+    #else
+        #define PK_SURF_SAMPLE_PARALLAX_OFFSET(heightmap, amount) 0.0f.xx 
+    
+    #endif
+
+    #if defined(PK_NORMALMAPS)
+         #define PK_SURF_SAMPLE_NORMAL(normalmap, amount, uv) SampleNormal(PK_ACCESS_INSTANCED_PROP(normalmap), baseVaryings.vs_TSROTATION, uv, PK_ACCESS_INSTANCED_PROP(amount))
+    #else
+         #define PK_SURF_SAMPLE_NORMAL(normalmap, amount, uv) varyings.vs_NORMAL
+    #endif
+
     void main()
     {
         PK_SETUP_INSTANCE_ID();

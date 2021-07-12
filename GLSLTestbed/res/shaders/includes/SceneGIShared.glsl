@@ -58,6 +58,13 @@ float3 GetSampleDirectionSE(float3 worldNormal, uint index, const float sampleCo
 	return normalize(kernel);
 }
 
+float4 SampleGIVoumetric(float3 position)
+{
+	float4 value = SampleSceneGI(position, 3.75f);
+	value.rgb *= pow3(1.0f + 3.75f);
+	return value;
+}
+
 float4 ConeTraceDiffuse(float3 origin, const float3 normal, const float dither) 
 {
 	float4 A = 0.0.xxxx;

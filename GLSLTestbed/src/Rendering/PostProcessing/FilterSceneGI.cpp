@@ -40,6 +40,7 @@ namespace PK::Rendering::PostProcessing
         descriptor.miplevels = 0;
         m_screenSpaceGI = CreateRef<RenderTexture>(descriptor);
 
+        m_downscale = config->DownscaleGI;
         m_entityDb = entityDb;
 
         m_properties.SetFloat4(StringHashID::StringToID("pk_SceneGI_ST"), scaleTransform);
@@ -50,14 +51,21 @@ namespace PK::Rendering::PostProcessing
     void FilterSceneGI::OnPreRender(const RenderTexture* source)
     {
         auto res = source->GetResolution3D();
-        res.x /= 2;
-        res.y /= 2;
+
+        if (m_downscale)
+        {
+            res.x /= 2;
+            res.y /= 2;
+        }
 
         if (m_screenSpaceGI->ValidateResolution(res))
         {
             GraphicsAPI::SetGlobalResourceHandle(StringHashID::StringToID("pk_ScreenGI_Diffuse"), m_screenSpaceGI->GetColorBuffer(0)->GetBindlessHandleResident());
             GraphicsAPI::SetGlobalResourceHandle(StringHashID::StringToID("pk_ScreenGI_Specular"), m_screenSpaceGI->GetColorBuffer(1)->GetBindlessHandleResident());
         }
+
+        GraphicsAPI::SetGlobalFloat4(StringHashID::StringToID("pk_SceneGI_ST"), float4(-40.0f, -6.0f, -55.0f, 0.6f));
+        GraphicsAPI::SetGlobalTexture(StringHashID::StringToID("pk_SceneGI_VolumeRead"), m_voxelsDiffuse->GetGraphicsID());
     }
 
     void FilterSceneGI::Execute(Batching::DynamicBatchCollection* visibleBatches)

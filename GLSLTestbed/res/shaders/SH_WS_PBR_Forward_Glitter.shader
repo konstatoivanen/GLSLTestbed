@@ -34,19 +34,12 @@ void PK_SURFACE_FUNC_FRAG(in SurfaceFragmentVaryings varyings, inout SurfaceData
 {
     float2 uv = varyings.vs_TEXCOORD0;
 
-    #if defined(PK_HEIGHTMAPS)
-        float heightval = tex2D(PK_ACCESS_INSTANCED_PROP(_HeightMap), uv).x;
-        uv.xy += ParallaxOffset(heightval, PK_ACCESS_INSTANCED_PROP(_HeightAmount), normalize(varyings.vs_TSVIEWDIRECTION));
-    #endif
+    uv.xy += PK_SURF_SAMPLE_PARALLAX_OFFSET(_HeightMap, _HeightAmount);
 
     surf.albedo = tex2D(PK_ACCESS_INSTANCED_PROP(_AlbedoTexture), uv).xyz * PK_ACCESS_INSTANCED_PROP(_Color).xyz;
     surf.alpha = 1.0f;
 
-    #if defined(PK_NORMALMAPS)
-        surf.normal = SampleNormal(PK_ACCESS_INSTANCED_PROP(_NormalMap), varyings.vs_TSROTATION, uv, PK_ACCESS_INSTANCED_PROP(_NormalAmount));
-    #else
-        surf.normal = varyings.vs_NORMAL;
-    #endif
+    surf.normal = PK_SURF_SAMPLE_NORMAL(_NormalMap, _NormalAmount, uv);
 
     float3 textureval = tex2D(PK_ACCESS_INSTANCED_PROP(_PBSTexture), uv).xyz;
     surf.metallic = textureval.SRC_METALLIC * PK_ACCESS_INSTANCED_PROP(_Metallic);
