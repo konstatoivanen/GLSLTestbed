@@ -2,6 +2,7 @@
 #include Lighting.glsl
 #include LightingBRDF.glsl
 #include Reconstruction.glsl
+#include SceneGIShared.glsl
 
 // Meta pass specific parameters (gi voxelization requires some changes from reqular view projection).
 #multi_compile _ PK_META_DEPTH_NORMALS PK_META_GI_VOXELIZE
@@ -186,6 +187,9 @@ float GetSurfaceAlphaReflectivity(inout SurfaceData surf)
             }
     
             color.rgb += surf.emission;
+
+            // Multi bounce gi. Causes some very lingering light artifacts & bleeding. @TODO Consider adding a setting for this.
+            color.rgb += surf.albedo * ConeTraceDiffuse(surf.worldpos, surf.normal, 0.0f).rgb * 0.95f;
 
             outvalue = float4(color, surf.alpha); 
         #else
