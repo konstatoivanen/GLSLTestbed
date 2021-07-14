@@ -65,7 +65,6 @@ namespace PK::Core
 			&AmbientOcclusionIntensity,
 			&AmbientOcclusionRadius,
 			&AmbientOcclusionDownsample,
-			&DownscaleGI,
 			&VolumeConstantFog,
 			&VolumeHeightFogExponent,
 			&VolumeHeightFogOffset,

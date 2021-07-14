@@ -5,7 +5,7 @@
 
 namespace PK::Rendering::PostProcessing
 {
-    FilterSceneGI::FilterSceneGI(AssetDatabase* assetDatabase, ECS::EntityDatabase* entityDb, const ApplicationConfig* config) : FilterBase(assetDatabase->Find<Shader>("SH_VS_SceneGI_Bake"))
+    FilterSceneGI::FilterSceneGI(AssetDatabase* assetDatabase, ECS::EntityDatabase* entityDb, const ApplicationConfig* config) : FilterBase(assetDatabase->Find<Shader>("CS_SceneGI_Bake_Checkerboard"))
     {
         m_shaderVoxelize = assetDatabase->Find<Shader>("SH_WS_SceneGI_Meta_White");
         m_computeMipmap = assetDatabase->Find<Shader>("CS_SceneGIMipmap");
@@ -40,7 +40,6 @@ namespace PK::Rendering::PostProcessing
         descriptor.miplevels = 0;
         m_screenSpaceGI = CreateRef<RenderTexture>(descriptor);
 
-        m_downscale = config->DownscaleGI;
         m_entityDb = entityDb;
 
         m_properties.SetFloat4(StringHashID::StringToID("pk_SceneGI_ST"), scaleTransform);
@@ -52,16 +51,13 @@ namespace PK::Rendering::PostProcessing
     {
         auto res = source->GetResolution3D();
 
-        if (m_downscale)
-        {
-            res.x /= 2;
-            res.y /= 2;
-        }
-
         if (m_screenSpaceGI->ValidateResolution(res))
         {
             GraphicsAPI::SetGlobalResourceHandle(StringHashID::StringToID("pk_ScreenGI_Diffuse"), m_screenSpaceGI->GetColorBuffer(0)->GetBindlessHandleResident());
             GraphicsAPI::SetGlobalResourceHandle(StringHashID::StringToID("pk_ScreenGI_Specular"), m_screenSpaceGI->GetColorBuffer(1)->GetBindlessHandleResident());
+
+            m_properties.SetImage(StringHashID::StringToID("pk_SceneGI_DiffuseWrite"), m_screenSpaceGI->GetColorBuffer(0)->GetImageBindDescriptor(GL_WRITE_ONLY, 0, 0, false));
+            m_properties.SetImage(StringHashID::StringToID("pk_SceneGI_SpecularWrite"), m_screenSpaceGI->GetColorBuffer(1)->GetImageBindDescriptor(GL_WRITE_ONLY, 0, 0, false));
         }
 
         GraphicsAPI::SetGlobalFloat4(StringHashID::StringToID("pk_SceneGI_ST"), float4(-40.0f, -6.0f, -55.0f, 0.6f));
@@ -94,9 +90,11 @@ namespace PK::Rendering::PostProcessing
         voxelizeAttributes.ZWriteEnabled = false;
 
         m_rasterAxis = (m_rasterAxis + 1) % 3;
+        m_checkerboardIndex = (m_checkerboardIndex + 1) % 4;
 
         GraphicsAPI::SetViewPort(viewports[m_rasterAxis].x, viewports[m_rasterAxis].y, viewports[m_rasterAxis].z, viewports[m_rasterAxis].w);
         GraphicsAPI::SetGlobalUInt3(StringHashID::StringToID("pk_GIVoxelAxisSwizzle"), swizzles[m_rasterAxis]);
+        GraphicsAPI::SetGlobalUInt(StringHashID::StringToID("pk_SceneGI_Checkerboard_Flip"), m_checkerboardIndex);
         Batching::DrawBatchesPredicated(visibleBatches, StringHashID::StringToID("PK_META_GI_VOXELIZE"), m_shaderVoxelize, m_properties, voxelizeAttributes);
 
         auto resolution = m_voxelsDiffuse->GetResolution3D();
@@ -109,7 +107,9 @@ namespace PK::Rendering::PostProcessing
             GraphicsAPI::DispatchCompute(m_computeMipmap, { (resolution.x >> i) / 4u, (resolution.y >> i) / 4u, (resolution.z >> i) / 4u }, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
         }
 
-        GraphicsAPI::SetRenderTarget(m_screenSpaceGI.get());
-        GraphicsAPI::Blit(m_shader, m_properties);
+        auto res = m_screenSpaceGI->GetResolution3D();
+        uint3 groupCount = { (uint)ceil((res.x / 4.0f) / 16.0f), (uint)ceil(res.y / 16.0f), 1u };
+
+        GraphicsAPI::DispatchCompute(m_shader, groupCount, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 }

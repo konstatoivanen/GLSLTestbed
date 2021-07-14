@@ -715,6 +715,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\CS_ClusteredLightAssignment.shader" />
     <None Include="res\shaders\CS_LuminanceHistogram.shader" />
     <None Include="res\shaders\CS_SceneGIMipmap.shader" />
+    <None Include="res\shaders\CS_SceneGI_Bake_Checkerboard.shader" />
     <None Include="res\shaders\CS_VolumeFogDepthMax.shader" />
     <None Include="res\shaders\includes\BlitCommon.glsl">
       <DeploymentContent>true</DeploymentContent>

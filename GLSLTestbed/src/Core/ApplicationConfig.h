@@ -70,8 +70,6 @@ namespace PK::Core
 		BoxedValue<float> AmbientOcclusionRadius = BoxedValue<float>("AmbientOcclusionRadius", 1.0f);
 		BoxedValue<bool> AmbientOcclusionDownsample = BoxedValue<bool>("AmbientOcclusionDownsample", true);
 
-		BoxedValue<bool> DownscaleGI = BoxedValue<bool>("DownscaleGI", false);
-
 		BoxedValue<float> VolumeConstantFog	= BoxedValue<float>("VolumeConstantFog", 0.0f);
 		BoxedValue<float> VolumeHeightFogExponent = BoxedValue<float>("VolumeHeightFogExponent", 0.0f);
 		BoxedValue<float> VolumeHeightFogOffset	= BoxedValue<float>("VolumeHeightFogOffset", 0.0f);

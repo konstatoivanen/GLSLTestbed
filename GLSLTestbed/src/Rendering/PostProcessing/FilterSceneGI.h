@@ -23,7 +23,7 @@ namespace PK::Rendering::PostProcessing
             ECS::EntityDatabase* m_entityDb;
             Shader* m_shaderVoxelize;
             Shader* m_computeMipmap;
-            bool m_downscale;
+            uint m_checkerboardIndex;
             int m_rasterAxis;
             Ref<RenderBuffer> m_voxelsDiffuse;
             Ref<RenderTexture> m_screenSpaceGI;
