@@ -750,7 +750,6 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\includes\Test.glsl">
       <DeploymentContent>true</DeploymentContent>
     </None>
-    <None Include="res\shaders\SH_VS_SceneGI_Bake.shader" />
     <None Include="res\shaders\SH_VS_ShadowmapBlurCube.shader" />
     <None Include="res\shaders\SH_VS_ShadowmapBlurProj.shader" />
     <None Include="res\shaders\SH_WS_PBR_Forward_Glitter.shader" />

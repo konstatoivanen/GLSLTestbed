@@ -10,7 +10,7 @@ namespace PK::Rendering::PostProcessing
         m_shaderVoxelize = assetDatabase->Find<Shader>("SH_WS_SceneGI_Meta_White");
         m_computeMipmap = assetDatabase->Find<Shader>("CS_SceneGIMipmap");
 
-        auto scaleTransform = float4(-40.0f, -6.0f, -55.0f, 0.6f);
+        //auto scaleTransform = float4(-76.8f, -6.0f, -76.8f, 0.6f);
 
         uint3 resolution = { 256u, 128u, 256u };
 
@@ -42,9 +42,9 @@ namespace PK::Rendering::PostProcessing
 
         m_entityDb = entityDb;
 
-        m_properties.SetFloat4(StringHashID::StringToID("pk_SceneGI_ST"), scaleTransform);
+       // m_properties.SetFloat4(StringHashID::StringToID("pk_SceneGI_ST"), scaleTransform);
         m_properties.SetImage(StringHashID::StringToID("pk_SceneGI_VolumeWrite"), m_voxelsDiffuse->GetImageBindDescriptor(GL_WRITE_ONLY, 0, 0, true));
-        m_properties.SetTexture(StringHashID::StringToID("pk_SceneGI_VolumeRead"), m_voxelsDiffuse->GetGraphicsID());
+       // m_properties.SetTexture(StringHashID::StringToID("pk_SceneGI_VolumeRead"), m_voxelsDiffuse->GetGraphicsID());
     }
 
     void FilterSceneGI::OnPreRender(const RenderTexture* source)
@@ -60,7 +60,7 @@ namespace PK::Rendering::PostProcessing
             m_properties.SetImage(StringHashID::StringToID("pk_SceneGI_SpecularWrite"), m_screenSpaceGI->GetColorBuffer(1)->GetImageBindDescriptor(GL_WRITE_ONLY, 0, 0, false));
         }
 
-        GraphicsAPI::SetGlobalFloat4(StringHashID::StringToID("pk_SceneGI_ST"), float4(-40.0f, -6.0f, -55.0f, 0.6f));
+        GraphicsAPI::SetGlobalFloat4(StringHashID::StringToID("pk_SceneGI_ST"), float4(-76.8f, -6.0f, -76.8f, 0.6f));
         GraphicsAPI::SetGlobalTexture(StringHashID::StringToID("pk_SceneGI_VolumeRead"), m_voxelsDiffuse->GetGraphicsID());
     }
 

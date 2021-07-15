@@ -83,7 +83,7 @@ namespace PK::Rendering
 		Batching::QueueDraw(&ctx->data->Batches, renderable->mesh->sharedMesh, { &renderable->transform->localToWorld, depth, index });
 	}
 
-	LightsManager::LightsManager(AssetDatabase* assetDatabase, const ApplicationConfig* config) : m_cascadeLinearity(config->CascadeLinearity)
+	LightsManager::LightsManager(AssetDatabase* assetDatabase, const ApplicationConfig* config) : m_cascadeLinearity(config->CascadeLinearity), m_zcullLights(config->ZCullLights)
 	{
 		m_computeLightAssignment = assetDatabase->Find<Shader>("CS_ClusteredLightAssignment");
 		m_computeDepthTiles = assetDatabase->Find<Shader>("CS_ClusteredDepthMax");
@@ -404,7 +404,7 @@ namespace PK::Rendering
 
 		auto hashCache = HashCache::Get();
 		m_globalLightIndex->Clear();
-		m_depthTiles->Clear();
+		m_depthTiles->Clear(m_zcullLights ? 0u : glm::floatBitsToUint(zFar + 1.0f));
 		GraphicsAPI::SetGlobalInt(hashCache->pk_LightCount, m_visibleLightCount);
 		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_Lights, m_lightsBuffer->GetGraphicsID());
 		GraphicsAPI::SetGlobalComputeBuffer(hashCache->pk_LightMatrices, m_lightMatricesBuffer->GetGraphicsID());
@@ -415,9 +415,13 @@ namespace PK::Rendering
 	
 	void LightsManager::UpdateLightTiles(const uint2& resolution)
 	{	
-		auto depthCountX = (uint)std::ceilf(resolution.x / DepthGroupSize);
-		auto depthCountY = (uint)std::ceilf(resolution.y / DepthGroupSize);
-		GraphicsAPI::DispatchCompute(m_computeDepthTiles, { depthCountX, depthCountY, 1 }, m_properties, GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
+		if (m_zcullLights)
+		{
+			auto depthCountX = (uint)std::ceilf(resolution.x / DepthGroupSize);
+			auto depthCountY = (uint)std::ceilf(resolution.y / DepthGroupSize);
+			GraphicsAPI::DispatchCompute(m_computeDepthTiles, { depthCountX, depthCountY, 1 }, m_properties, GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
+		}
+
 		GraphicsAPI::DispatchCompute(m_computeLightAssignment, { 1,1, GridSizeZ / 4 }, m_properties, GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 	}
 }

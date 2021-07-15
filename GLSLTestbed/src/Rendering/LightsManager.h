@@ -64,6 +64,7 @@ namespace PK::Rendering
             const uint ClusterCount = GridSizeX * GridSizeY * GridSizeZ;
             const float DepthGroupSize = 32.0f;
 
+            const bool m_zcullLights;
             const float m_cascadeLinearity;
             std::vector<PK::ECS::EntityViews::LightRenderable*> m_visibleLights;
             uint m_visibleLightCount;

@@ -23,7 +23,7 @@ float3 GetAmbientColor(float3 position, float3 direction, float3 viewdir)
 {
 	float anistropy = GetLightAnisotropy(viewdir, direction, pk_Volume_Anisotropy);
 
-	float4 scenegi = SampleGIVoumetric(position);
+	float4 scenegi = SampleGIVolumetric(position);
 	float3 staticgi = SampleEnvironment(OctaUV(direction), 1.0f) * anistropy;
 	return lerp(staticgi, scenegi.rgb, scenegi.a);
 }

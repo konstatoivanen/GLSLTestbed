@@ -28,6 +28,7 @@ namespace PK::Core
 			&CascadeLinearity,
 			&TimeScale,
 			&RandomSeed,
+			&ZCullLights,
 			&LightCount,
 			&ShadowmapTileSize,
 			&ShadowmapTileCount,

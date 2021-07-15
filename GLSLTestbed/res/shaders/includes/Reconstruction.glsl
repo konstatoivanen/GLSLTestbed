@@ -17,9 +17,15 @@ float2 ParallaxOffset(float height, float heightAmount, float3 viewdir) { return
 
 float SampleRoughness(float2 uv) { return tex2D(pk_ScreenNormals, uv).w; }
 
+float SampleRoughness(int2 coord) { return texelFetch(pk_ScreenNormals, coord, 0).w; }
+
 float3 SampleViewSpaceNormal(float2 uv) { return tex2D(pk_ScreenNormals, uv).xyz; }
 
+float3 SampleViewSpaceNormal(int2 coord) { return texelFetch(pk_ScreenNormals, coord, 0).xyz; }
+
 float3 SampleWorldSpaceNormal(float2 uv) { return mul(float3x3(pk_MATRIX_I_V), SampleViewSpaceNormal(uv)); }
+
+float3 SampleWorldSpaceNormal(int2 coord) { return mul(float3x3(pk_MATRIX_I_V), SampleViewSpaceNormal(coord)); }
 
 float3 SampleViewPosition(float2 uv)
 {
@@ -27,7 +33,15 @@ float3 SampleViewPosition(float2 uv)
     return ClipToViewPos(uv, depth);
 }
 
+float3 SampleViewPosition(int2 coord, int2 size)
+{
+    float depth = SampleLinearDepth(coord);
+    return ClipToViewPos(coord / float2(size), depth);
+}
+
 float3 SampleWorldPosition(float2 uv) { return mul(pk_MATRIX_I_V, float4(SampleViewPosition(uv), 1.0f)).xyz; }
+
+float3 SampleWorldPosition(int2 coord, int2 size) { return mul(pk_MATRIX_I_V, float4(SampleViewPosition(coord, size), 1.0f)).xyz; }
 
 float3 GetFragmentClipUVW()
 {

@@ -120,21 +120,21 @@ namespace PK::ECS::Engines
 		auto materialAsphalt = assetDatabase->Load<Material>("res/materials/M_Asphalt.material");
 
 	
-		auto minpos = float3(-40, -5, -40);
-		auto maxpos = float3(40, 0, 40);
+		auto minpos = float3(-70, -5, -70);
+		auto maxpos = float3(70, 0, 70);
 
 		srand(config->RandomSeed);
 
 		CreateMeshRenderable(entityDb, float3(0,-5,0), { 90, 0, 0 }, 80.0f, planeMesh, materialSand);
 
-		CreateMeshRenderable(entityDb, float3(5, -5, -5), { 0, 0, 0 }, 1.0f, libraryMesh, materialAsphalt);
+		CreateMeshRenderable(entityDb, float3(0, -5, 0), { 0, 0, 0 }, 1.0f, libraryMesh, materialAsphalt);
 		
-		for (auto i = 0; i < 256; ++i)
+		for (auto i = 0; i < 320; ++i)
 		{
 			CreateMeshRenderable(entityDb, Functions::RandomRangeFloat3(minpos, maxpos), Functions::RandomEuler(), 1.0f, sphereMesh, materialMetal);
 		}
 	
-		for (auto i = 0; i < 256; ++i)
+		for (auto i = 0; i < 320; ++i)
 		{
 			CreateMeshRenderable(entityDb, Functions::RandomRangeFloat3(minpos, maxpos), Functions::RandomEuler(), 1.0f, sphereMesh, materialGravel);
 		}
@@ -177,7 +177,6 @@ namespace PK::ECS::Engines
 	
 	void DebugEngine::Step(int condition)
 	{
-		return;
 		auto lights = m_entityDb->Query<EntityViews::LightSphere>((int)ENTITY_GROUPS::ACTIVE);
 		auto time = Application::GetService<Time>()->GetTime();
 	
@@ -188,6 +187,7 @@ namespace PK::ECS::Engines
 			lights[i].transformLight->rotation = rotation;
 			lights[i].transformMesh->rotation = rotation;
 		}
+		return;
 
 	
 		auto meshes = m_entityDb->Query<EntityViews::MeshRenderable>((int)ENTITY_GROUPS::ACTIVE);

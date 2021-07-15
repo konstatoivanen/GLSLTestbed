@@ -58,7 +58,7 @@ float3 GetSampleDirectionSE(float3 worldNormal, uint index, const float sampleCo
 	return normalize(kernel);
 }
 
-float4 SampleGIVoumetric(float3 position)
+float4 SampleGIVolumetric(float3 position)
 {
 	float4 value = SampleSceneGI(position, 3.75f);
 	value.rgb *= pow3(1.0f + 3.75f);

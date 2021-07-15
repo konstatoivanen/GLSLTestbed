@@ -179,10 +179,9 @@ namespace PK::Rendering::Objects
 		glNamedBufferSubData(m_graphicsId, offset, size, data);
 	}
 
-	void ComputeBuffer::Clear() const 
+	void ComputeBuffer::Clear(uint32_t clearValue) const
 	{
-		GLuint zero = 0u;
-		glClearNamedBufferData(m_graphicsId, GL_R32UI, GL_RED, GL_UNSIGNED_INT, &zero);
+		glClearNamedBufferData(m_graphicsId, GL_R32UI, GL_RED, GL_UNSIGNED_INT, &clearValue);
 	}
 
     void* ComputeBuffer::BeginMapBufferRange(size_t offset, size_t size)
