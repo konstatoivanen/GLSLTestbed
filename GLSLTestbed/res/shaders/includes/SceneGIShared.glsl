@@ -37,7 +37,14 @@ void StoreSceneGI(float3 worldposition, float4 color)
 	float4 value0 = imageLoad(pk_SceneGI_VolumeWrite, coord);
 	float4 value1 = float4(color.rgb / 128.0f, color.a);
 
-	value1.rgb = lerp(value0.rgb, value1.rgb, 1.0f - 0.9f * value0.a);
+	value0.rgb *= value0.a * 0.9f;
+	value1.rgb *= 1.0f - value0.a * 0.9f;
+
+	// Quantize colors down so that we don't get any lingering artifacts from dim light sources.
+	value0.rgb = floor(value0.rgb * 0xFFFF.xxx) / 0xFFFF.xxx;
+	value1.rgb = floor(value1.rgb * 0xFFFF.xxx) / 0xFFFF.xxx;
+
+	value1.rgb += value0.rgb;
 
 	imageStore(pk_SceneGI_VolumeWrite, coord, value1); 
 }

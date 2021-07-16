@@ -107,7 +107,8 @@ namespace PK::ECS::Engines
 		m_time = time;
 	
 		//meshCube = MeshUtilities::GetBox(CG_FLOAT3_ZERO, { 10.0f, 0.5f, 10.0f });
-		auto libraryMesh = assetDatabase->Load<Mesh>("res/models/Buildings.mdl");
+		auto buildingsMesh = assetDatabase->Load<Mesh>("res/models/Buildings.mdl");
+		auto spiralMesh = assetDatabase->Load<Mesh>("res/models/Spiral.mdl");
 
 		auto sphereMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Sphere", Rendering::MeshUtility::GetSphere(CG_FLOAT3_ZERO, 1.0f));
 		auto planeMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Plane16x16", Rendering::MeshUtility::GetPlane(CG_FLOAT2_ZERO, CG_FLOAT2_ONE, { 16, 16 }));
@@ -127,7 +128,9 @@ namespace PK::ECS::Engines
 
 		CreateMeshRenderable(entityDb, float3(0,-5,0), { 90, 0, 0 }, 80.0f, planeMesh, materialSand);
 
-		CreateMeshRenderable(entityDb, float3(0, -5, 0), { 0, 0, 0 }, 1.0f, libraryMesh, materialAsphalt);
+		CreateMeshRenderable(entityDb, float3(0, -5, 0), { 0, 0, 0 }, 1.0f, buildingsMesh, materialAsphalt);
+
+		CreateMeshRenderable(entityDb, float3(-25, -7.5f, 0), { 0, 90, 0 }, 1.0f, spiralMesh, materialAsphalt);
 		
 		for (auto i = 0; i < 320; ++i)
 		{
@@ -187,6 +190,7 @@ namespace PK::ECS::Engines
 			lights[i].transformLight->rotation = rotation;
 			lights[i].transformMesh->rotation = rotation;
 		}
+
 		return;
 
 	
@@ -203,10 +207,9 @@ namespace PK::ECS::Engines
 		auto time = Application::GetService<Time>()->GetTime();
 		auto aspect = Application::GetWindow().GetAspect();
 		auto proj = Functions::GetPerspective(50.0f, aspect, 0.2f, 100.0f);
-		auto view = Functions::GetMatrixInvTRS(CG_FLOAT3_ZERO, { 0, 0, 0 }, CG_FLOAT3_ONE);
+		auto view = Functions::GetMatrixInvTRS(CG_FLOAT3_ZERO, { 0, time, 0 }, CG_FLOAT3_ONE);
 		auto vp = proj * view;
 	
-
 		float4x4 localToWorld = Functions::GetMatrixTRS(CG_FLOAT3_ZERO, float3(35, -35, 0) * CG_FLOAT_DEG2RAD, CG_FLOAT3_ONE);
 		float4x4 worldToLocal = glm::inverse(localToWorld);
 		float4x4 invvp = glm::inverse(vp);

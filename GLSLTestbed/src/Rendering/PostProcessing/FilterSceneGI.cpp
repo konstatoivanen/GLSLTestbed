@@ -23,7 +23,7 @@ namespace PK::Rendering::PostProcessing
         volumeDescriptor.wrapmodey = GL_CLAMP_TO_BORDER;
         volumeDescriptor.wrapmodez = GL_CLAMP_TO_BORDER;
         volumeDescriptor.resolution = resolution;
-        volumeDescriptor.miplevels = glm::min(6u, Functions::GetMaxMipLevelPow2(resolution));
+        volumeDescriptor.miplevels = glm::min(7u, Functions::GetMaxMipLevelPow2(resolution));
         volumeDescriptor.bordercolor = CG_COLOR_CLEAR;
         m_voxelsDiffuse = CreateRef<RenderBuffer>(volumeDescriptor);
 
@@ -92,9 +92,11 @@ namespace PK::Rendering::PostProcessing
         m_rasterAxis = (m_rasterAxis + 1) % 3;
         m_checkerboardIndex = (m_checkerboardIndex + 1) % 4;
 
+        int2 offset = { m_checkerboardIndex / 2, m_checkerboardIndex % 2 };
+
         GraphicsAPI::SetViewPort(viewports[m_rasterAxis].x, viewports[m_rasterAxis].y, viewports[m_rasterAxis].z, viewports[m_rasterAxis].w);
         GraphicsAPI::SetGlobalUInt3(StringHashID::StringToID("pk_GIVoxelAxisSwizzle"), swizzles[m_rasterAxis]);
-        GraphicsAPI::SetGlobalUInt(StringHashID::StringToID("pk_SceneGI_Checkerboard_Flip"), m_checkerboardIndex);
+        GraphicsAPI::SetGlobalInt2(StringHashID::StringToID("pk_SceneGI_Checkerboard_Offset"), offset);
         Batching::DrawBatchesPredicated(visibleBatches, StringHashID::StringToID("PK_META_GI_VOXELIZE"), m_shaderVoxelize, m_properties, voxelizeAttributes);
 
         auto resolution = m_voxelsDiffuse->GetResolution3D();
@@ -108,7 +110,7 @@ namespace PK::Rendering::PostProcessing
         }
 
         auto res = m_screenSpaceGI->GetResolution3D();
-        uint3 groupCount = { (uint)ceil((res.x / 4.0f) / 16.0f), (uint)ceil(res.y / 16.0f), 1u };
+        uint3 groupCount = { (uint)ceil(res.x / 32.0f), (uint)ceil(res.y / 32.0f), 1u };
 
         GraphicsAPI::DispatchCompute(m_shader, groupCount, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }

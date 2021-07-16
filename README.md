@@ -6,6 +6,7 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 ![Preview](T_Preview_03.jpg?raw=true "Cascaded Shadow Maps")
 ![Preview](T_Preview_04.jpg?raw=true "Fog Ambient Anistropy Preview")
 ![Preview](T_Preview_05.jpg?raw=true "GI Preview")
+![Preview](T_Preview_06.gif?raw=true "GI Preview 2")
 
 ## Implemented Features
 - Clustered forward rendering.

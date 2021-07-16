@@ -710,6 +710,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\models\cornell_box.mdl" />
     <None Include="res\models\cornell_box.mtl" />
     <None Include="res\models\Library.mdl" />
+    <None Include="res\models\Spiral.mdl" />
     <None Include="res\shaders\CS_AutoFocus.shader" />
     <None Include="res\shaders\CS_ClusteredDepthMax.shader" />
     <None Include="res\shaders\CS_ClusteredLightAssignment.shader" />
