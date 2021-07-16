@@ -57,7 +57,7 @@ void PK_SURFACE_FUNC_FRAG(in SurfaceFragmentVaryings varyings, inout SurfaceData
         float3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
         float3 ecolor = c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
          
-        surf.emission =ecolor;//PK_ACCESS_INSTANCED_PROP(_EmissionColor).rgb;
+        surf.emission = tex2D(PK_ACCESS_INSTANCED_PROP(_EmissionTexture), uv * 8.0f).rgb * ecolor;//PK_ACCESS_INSTANCED_PROP(_EmissionColor).rgb;
     #endif
 
     surf.normal = PK_SURF_SAMPLE_NORMAL(_NormalMap, _NormalAmount, uv);
