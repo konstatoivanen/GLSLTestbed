@@ -19,6 +19,7 @@ namespace PK::Rendering::PostProcessing
             FilterSceneGI(AssetDatabase* assetDatabase, ECS::EntityDatabase* entityDb, const ApplicationConfig* config);
             void OnPreRender(const RenderTexture* source);
             void Execute(Batching::DynamicBatchCollection* visibleBatches);
+
         private:
             ECS::EntityDatabase* m_entityDb;
             Shader* m_shaderVoxelize;

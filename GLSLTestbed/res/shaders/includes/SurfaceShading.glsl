@@ -68,11 +68,15 @@ struct SurfaceData
     float3 albedo;      
     float3 normal;      
     float3 emission;
+    float3 sheen;
+
+    float alpha;
     float metallic;     
     float roughness;
     float occlusion;
-    float thickness;
-    float alpha;
+    float subsurface_distortion;
+    float subsurface_power;
+    float subsurface_thickness;
 };
 
 float3 GetSurfaceSpecularColor(float3 albedo, float metallic) { return lerp(pk_DielectricSpecular.rgb, albedo, metallic); }
@@ -88,6 +92,21 @@ float GetSurfaceAlphaReflectivity(inout SurfaceData surf)
     #endif
 
     return reflectivity;
+}
+
+// Fix edge artifacts for when normals are pointing away from camera.
+float3 GetViewShiftedNormal(float3 normal, float3 viewdir)
+{
+    half shiftAmount = dot(normal, viewdir);
+    return shiftAmount < 0.0f ? normal + viewdir * (-shiftAmount + 1e-5f) : normal;
+}
+
+PKIndirect GetStaticSceneIndirect(float3 normal, float3 viewdir, float roughness)
+{
+    PKIndirect indirect;
+    indirect.diffuse = SampleEnvironment(OctaUV(normal), 1.0f);
+    indirect.specular = SampleEnvironment(OctaUV(reflect(-viewdir, normal)), roughness);
+    return indirect;
 }
 
 #if defined(SHADER_STAGE_VERTEX)
@@ -107,7 +126,6 @@ float GetSurfaceAlphaReflectivity(inout SurfaceData surf)
     {
         baseVaryings.vs_WORLDPOSITION = ObjectToWorldPos(in_POSITION0.xyz);
         baseVaryings.vs_TEXCOORD0 = in_TEXCOORD0;
-        gl_Position = PK_META_WORLD_TO_CLIPSPACE(baseVaryings.vs_WORLDPOSITION);
     
         PK_SETUP_INSTANCE_ID();
     
@@ -128,6 +146,8 @@ float GetSurfaceAlphaReflectivity(inout SurfaceData surf)
         #endif
 
         PK_SURFACE_FUNC_VERT(baseVaryings);
+
+        gl_Position = PK_META_WORLD_TO_CLIPSPACE(baseVaryings.vs_WORLDPOSITION);
     };
 
 #elif defined(SHADER_STAGE_FRAGMENT)
@@ -141,94 +161,93 @@ float GetSurfaceAlphaReflectivity(inout SurfaceData surf)
     
     #if defined(PK_HEIGHTMAPS)
         #define PK_SURF_SAMPLE_PARALLAX_OFFSET(heightmap, amount) ParallaxOffset(tex2D(PK_ACCESS_INSTANCED_PROP(heightmap), uv).x, PK_ACCESS_INSTANCED_PROP(amount), normalize(baseVaryings.vs_TSVIEWDIRECTION));
-
     #else
         #define PK_SURF_SAMPLE_PARALLAX_OFFSET(heightmap, amount) 0.0f.xx 
-    
     #endif
 
     #if defined(PK_NORMALMAPS)
          #define PK_SURF_SAMPLE_NORMAL(normalmap, amount, uv) SampleNormal(PK_ACCESS_INSTANCED_PROP(normalmap), baseVaryings.vs_TSROTATION, uv, PK_ACCESS_INSTANCED_PROP(amount))
+         #define PK_SURF_MESH_NORMAL normalize(baseVaryings.vs_TSROTATION[2])
     #else
          #define PK_SURF_SAMPLE_NORMAL(normalmap, amount, uv) varyings.vs_NORMAL
+         #define PK_SURF_MESH_NORMAL varyings.vs_NORMAL
     #endif
 
     void main()
     {
         PK_SETUP_INSTANCE_ID();
     
+        float4 value = 0.0f.xxxx;
         SurfaceData surf; 
         surf.worldpos = baseVaryings.vs_WORLDPOSITION;
         surf.viewdir = normalize(pk_WorldSpaceCameraPos.xyz - surf.worldpos);
-    
+        
         PK_META_EARLY_CLIP_UVW(surf.worldpos, surf.clipuvw)
-    
+        
         PK_SURFACE_FUNC_FRAG(baseVaryings, surf);
-
-        float4 outvalue;
 
         // @TODO refactor this to be more generic
         #if defined(PK_META_DEPTH_NORMALS)
 
-            outvalue = float4(WorldToViewDir(surf.normal), surf.roughness);
+            value = float4(WorldToViewDir(surf.normal), surf.roughness);
+
         #elif defined(PK_META_GI_VOXELIZE)
 
-            float3 specColor = GetSurfaceSpecularColor(surf.albedo, surf.metallic);
-            float reflectivity = GetSurfaceAlphaReflectivity(surf);
-    
-            float3 color = 0.0f.xxx;
+            GetSurfaceAlphaReflectivity(surf);
     
             LightTile tile = GetLightTile(surf.clipuvw);
     
             for (uint i = tile.start; i < tile.end; ++i)
             {
                 PKLight light = GetSurfaceLight(i, surf.worldpos, tile.cascade);
-                color += surf.albedo * light.color * max(0.0f, dot(light.direction, surf.normal));
+                value.rgb += PK_ACTIVE_VXGI_BRDF(surf.albedo, surf.normal, light);
             }
     
-            color.rgb += surf.emission;
-
             // Multi bounce gi. Causes some very lingering light artifacts & bleeding. @TODO Consider adding a setting for this.
-            color.rgb += surf.albedo * ConeTraceDiffuse(surf.worldpos, surf.normal, 0.0f).rgb;
+            value.rgb += surf.albedo * ConeTraceDiffuse(surf.worldpos, surf.normal, 0.0f).rgb;
+            value.rgb += surf.emission;
+            value.a = surf.alpha; 
 
-            outvalue = float4(color, surf.alpha); 
         #else
 
             surf.roughness = max(surf.roughness, 0.002);
-    
-            // Fix edge artifacts for when normals are pointing away from camera.
-            half shiftAmount = dot(surf.normal, surf.viewdir);
-            surf.normal = shiftAmount < 0.0f ? surf.normal + surf.viewdir * (-shiftAmount + 1e-5f) : surf.normal;
-    
+            surf.normal = GetViewShiftedNormal(surf.normal, surf.viewdir);
             float3 specColor = GetSurfaceSpecularColor(surf.albedo, surf.metallic);
             float reflectivity = GetSurfaceAlphaReflectivity(surf);
-    
-            INIT_BRDF_CACHE(surf.albedo, specColor, surf.normal, surf.viewdir, reflectivity, surf.roughness, surf.thickness);
-            
-            PKIndirect indirect;
-            indirect.diffuse = SampleEnvironment(OctaUV(surf.normal), 1.0f);
-            indirect.specular = SampleEnvironment(OctaUV(reflect(-surf.viewdir, surf.normal)), surf.roughness);
+            PKIndirect indirect = GetStaticSceneIndirect(surf.normal, surf.viewdir, surf.roughness);
+            LightTile tile = GetLightTile(surf.clipuvw);
     
             SampleScreenSpaceGI(indirect, surf.clipuvw.xy);
     
-            float3 color = BRDF_PBS_DEFAULT_INDIRECT(indirect);
+            INIT_BRDF_CACHE
+            (
+                surf.albedo, 
+                specColor, 
+                surf.sheen, 
+                surf.normal, 
+                surf.viewdir, 
+                reflectivity, 
+                surf.roughness, 
+                surf.subsurface_distortion, 
+                surf.subsurface_power, 
+                surf.subsurface_thickness
+            );
     
-            color *= surf.occlusion;
-    
-            LightTile tile = GetLightTile(surf.clipuvw);
+            value.rgb = BRDF_PBS_DEFAULT_INDIRECT(indirect);
+            value.rgb *= surf.occlusion;
     
             for (uint i = tile.start; i < tile.end; ++i)
             {
                 PKLight light = GetSurfaceLight(i, surf.worldpos, tile.cascade);
-                color += BRDF_PBS_DEFAULT_DIRECT(light);
+                value.rgb += PK_ACTIVE_BRDF(light);
             }
     
-            color.rgb += surf.emission;
+            value.rgb += surf.emission;
+            value.a = surf.alpha;
 
-            outvalue = float4(color, surf.alpha);
         #endif
 
-        PK_META_STORE_SURFACE_OUTPUT(outvalue, surf.worldpos);
+        PK_META_STORE_SURFACE_OUTPUT(value, surf.worldpos);
     };
 
 #endif

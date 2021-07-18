@@ -46,7 +46,7 @@ float SampleLightShadowmap(uint shadowmapIndex, float2 uv, float lightDistance)
     float2 moments = tex2D(pk_ShadowmapArray, float3(uv, shadowmapIndex)).xy;
     float variance = moments.y - moments.x * moments.x;
     float difference = lightDistance - moments.x;
-    return difference > 0.01f ? LBR(variance / (variance + difference * difference)) : 1.0f;
+    return difference > 0.1f ? LBR(variance / (variance + difference * difference)) : 1.0f;
 }
 
 float4 GetLightProjectionUVW(in float3 worldpos, uint projectionIndex)
@@ -58,10 +58,11 @@ float4 GetLightProjectionUVW(in float3 worldpos, uint projectionIndex)
 
 
 //----------LIGHT INDEXING----------//
-void GetLight(uint index, in float3 worldpos, uint cascade, out float3 color, out float3 posToLight, out float attenuation)
+void GetLight(uint index, in float3 worldpos, uint cascade, out float3 color, out float3 posToLight, out float shadow)
 {
     PKRawLight light = PK_BUFFER_DATA(pk_Lights, index);
     color = light.color.rgb;
+    shadow = 1.0f;
 
     float2 lightuv;
     float linearDistance;
@@ -73,7 +74,7 @@ void GetLight(uint index, in float3 worldpos, uint cascade, out float3 color, ou
         {
             posToLight = light.position.xyz - worldpos;
             linearDistance = length(posToLight);
-            attenuation = GetAttenuation(linearDistance, light.position.w);
+            color *= GetAttenuation(linearDistance, light.position.w);
             posToLight /= linearDistance;
             lightuv = OctaEncode(-posToLight);
         }
@@ -82,13 +83,13 @@ void GetLight(uint index, in float3 worldpos, uint cascade, out float3 color, ou
         {
             posToLight = light.position.xyz - worldpos;
             linearDistance = length(posToLight);
-            attenuation = GetAttenuation(linearDistance, light.position.w);
+            color *= GetAttenuation(linearDistance, light.position.w);
             posToLight /= linearDistance;
 
             float3 coord = GetLightProjectionUVW(worldpos, light.projection_index).xyz;
             lightuv = coord.xy;
-            attenuation *= step(0.0f, coord.z);
-            attenuation *= tex2D(pk_LightCookies, float3(lightuv, light.cookie_index)).r;
+            color *= step(0.0f, coord.z);
+            color *= tex2D(pk_LightCookies, float3(lightuv, light.cookie_index)).r;
         }
         break;
         case LIGHT_TYPE_DIRECTIONAL:
@@ -96,7 +97,6 @@ void GetLight(uint index, in float3 worldpos, uint cascade, out float3 color, ou
             light.projection_index += cascade;
             light.shadowmap_index += cascade;
             posToLight = -light.position.xyz;
-            attenuation = 1.0f;
 
             float4 coord = GetLightProjectionUVW(worldpos, light.projection_index);
             linearDistance = ((coord.z / coord.w) + 1.0f) * light.position.w * 0.5f;
@@ -112,7 +112,7 @@ void GetLight(uint index, in float3 worldpos, uint cascade, out float3 color, ou
 
     if (light.shadowmap_index != LIGHT_PARAM_INVALID)
     {
-        attenuation *= SampleLightShadowmap(light.shadowmap_index, lightuv, linearDistance);
+        shadow *= SampleLightShadowmap(light.shadowmap_index, lightuv, linearDistance);
     }
 }
 
@@ -120,25 +120,25 @@ void GetLight(uint index, in float3 worldpos, uint cascade, out float3 color, ou
 PKLight GetSurfaceLightDirect(uint index, in float3 worldpos, uint cascade)
 {
     float3 posToLight, color;
-    float attenuation;
-    GetLight(index, worldpos, cascade, color, posToLight, attenuation);
-    return PKLight(color * attenuation, posToLight);
+    float shadow;
+    GetLight(index, worldpos, cascade, color, posToLight, shadow);
+    return PKLight(color, posToLight, shadow);
 }
 
 PKLight GetSurfaceLight(uint index, in float3 worldpos, uint cascade)
 {
     float3 posToLight, color;
-    float attenuation;
-    GetLight(PK_BUFFER_DATA(pk_GlobalLightsList, index), worldpos, cascade, color, posToLight, attenuation);
-    return PKLight(color * attenuation, posToLight);
+    float shadow;
+    GetLight(PK_BUFFER_DATA(pk_GlobalLightsList, index), worldpos, cascade, color, posToLight, shadow);
+    return PKLight(color, posToLight, shadow);
 }
 
 float3 GetVolumeLightColor(uint index, in float3 worldpos, float3 viewdir, uint cascade, float anisotropy)
 {
     float3 posToLight, color;
-    float attenuation;
-    GetLight(PK_BUFFER_DATA(pk_GlobalLightsList, index), worldpos, cascade, color, posToLight, attenuation);
-    return color * attenuation * GetLightAnisotropy(viewdir, posToLight, anisotropy);
+    float shadow;
+    GetLight(PK_BUFFER_DATA(pk_GlobalLightsList, index), worldpos, cascade, color, posToLight, shadow);
+    return color * shadow * GetLightAnisotropy(viewdir, posToLight, anisotropy);
 }
 
 LightTile GetLightTile(int3 coord)

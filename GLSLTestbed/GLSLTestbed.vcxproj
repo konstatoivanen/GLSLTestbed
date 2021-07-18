@@ -700,6 +700,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="libs\ktx.dll" />
     <None Include="libs\ktx_read.dll" />
     <None Include="res\materials\M_Asphalt.material" />
+    <None Include="res\materials\M_Cloth.material" />
     <None Include="res\materials\M_Gravel.material" />
     <None Include="res\materials\M_Ground.material" />
     <None Include="res\materials\M_Metal_Panel.material" />
@@ -707,8 +708,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\materials\M_Sand.material" />
     <None Include="res\materials\M_Wood_Floor.material" />
     <None Include="res\models\Buildings.mdl" />
-    <None Include="res\models\cornell_box.mdl" />
-    <None Include="res\models\cornell_box.mtl" />
+    <None Include="res\models\Cloth.mdl" />
     <None Include="res\models\Library.mdl" />
     <None Include="res\models\Spiral.mdl" />
     <None Include="res\shaders\CS_AutoFocus.shader" />
@@ -754,6 +754,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\SH_VS_ShadowmapBlurCube.shader" />
     <None Include="res\shaders\SH_VS_ShadowmapBlurProj.shader" />
     <None Include="res\shaders\SH_WS_PBR_Forward_Glitter.shader" />
+    <None Include="res\shaders\SH_WS_PBR_Forward_Cloth.shader" />
     <None Include="res\shaders\SH_WS_SceneGI_Meta_White.shader" />
     <None Include="res\shaders\SH_WS_ShadowmapCube.shader" />
     <None Include="res\shaders\SH_WS_DepthNormals.shader" />
@@ -765,6 +766,9 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\textures\T_Asphalt_repeat_N.ktx" />
     <None Include="res\textures\T_Bloom_LensDirt.ktx" />
     <None Include="res\textures\T_Bluenoise256_repeat.ktx" />
+    <None Include="res\textures\T_Cloth_repeat_D.ktx" />
+    <None Include="res\textures\T_Cloth_repeat_H.ktx" />
+    <None Include="res\textures\T_Cloth_repeat_MAOR.ktx" />
     <None Include="res\textures\T_EmissiveTest_repeat_E.ktx" />
     <None Include="res\textures\T_Gravel_repeat_D.ktx" />
     <None Include="res\textures\T_Gravel_repeat_H.ktx" />

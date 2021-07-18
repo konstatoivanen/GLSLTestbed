@@ -14,7 +14,7 @@ namespace PK::ECS::Engines
 	using namespace PK::Rendering::Structs;
 	using namespace PK::Math;
 
-	static EGID CreateMeshRenderable(EntityDatabase* entityDb, const float3& position, const float3& rotation, float size, Mesh* mesh, Material* material)
+	static EGID CreateMeshRenderable(EntityDatabase* entityDb, const float3& position, const float3& rotation, float size, Mesh* mesh, Material* material, bool castShadows = true)
 	{
 		auto egid = EGID(entityDb->ReserveEntityId(), (uint)ENTITY_GROUPS::ACTIVE);
 		auto implementer = entityDb->ResereveImplementer<Implementers::MeshRenderableImplementer>();
@@ -38,7 +38,16 @@ namespace PK::ECS::Engines
 		implementer->scale = CG_FLOAT3_ONE * size;
 		implementer->sharedMaterials.push_back(material);
 		implementer->sharedMesh = mesh;
-		implementer->flags = Components::RenderHandleFlags::Renderer | Components::RenderHandleFlags::ShadowCaster;
+
+		if (castShadows)
+		{
+			implementer->flags = Components::RenderHandleFlags::Renderer | Components::RenderHandleFlags::ShadowCaster;
+		}
+		else
+		{
+			implementer->flags = Components::RenderHandleFlags::Renderer;
+		}
+
 		return egid;
 	}
 	
@@ -109,11 +118,13 @@ namespace PK::ECS::Engines
 		//meshCube = MeshUtilities::GetBox(CG_FLOAT3_ZERO, { 10.0f, 0.5f, 10.0f });
 		auto buildingsMesh = assetDatabase->Load<Mesh>("res/models/Buildings.mdl");
 		auto spiralMesh = assetDatabase->Load<Mesh>("res/models/Spiral.mdl");
+		auto clothMesh = assetDatabase->Load<Mesh>("res/models/Cloth.mdl");
 
 		auto sphereMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Sphere", Rendering::MeshUtility::GetSphere(CG_FLOAT3_ZERO, 1.0f));
 		auto planeMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Plane16x16", Rendering::MeshUtility::GetPlane(CG_FLOAT2_ZERO, CG_FLOAT2_ONE, { 16, 16 }));
 	
 		auto materialMetal = assetDatabase->Load<Material>("res/materials/M_Metal_Panel.material");
+		auto materialCloth = assetDatabase->Load<Material>("res/materials/M_Cloth.material");
 		auto materialGravel = assetDatabase->Load<Material>("res/materials/M_Gravel.material");
 		auto materialGround = assetDatabase->Load<Material>("res/materials/M_Ground.material");
 		auto materialSand = assetDatabase->Load<Material>("res/materials/M_Sand.material");
@@ -131,6 +142,8 @@ namespace PK::ECS::Engines
 		CreateMeshRenderable(entityDb, float3(0, -5, 0), { 0, 0, 0 }, 1.0f, buildingsMesh, materialAsphalt);
 
 		CreateMeshRenderable(entityDb, float3(-25, -7.5f, 0), { 0, 90, 0 }, 1.0f, spiralMesh, materialAsphalt);
+
+		CreateMeshRenderable(entityDb, float3( 30, 0, 24), { 0, 90, 0 }, 2.0f, clothMesh, materialCloth);
 		
 		for (auto i = 0; i < 320; ++i)
 		{
@@ -152,8 +165,8 @@ namespace PK::ECS::Engines
 			flipperinotyperino ^= true;
 		}
 
-		auto color = Functions::HexToRGB(0xBFF7FFFF) * 1.0f; // 0x6D563DFF //0x66D1FFFF //0xF78B3DFF
-		CreateDirectionalLight(entityDb, assetDatabase, { 35, -35, 0 }, color, true);
+		auto color = Functions::HexToRGB(0xBFF7FFFF) * 2.0f; // 0x6D563DFF //0x66D1FFFF //0xF78B3DFF
+		CreateDirectionalLight(entityDb, assetDatabase, { 25, -35, 0 }, color, true);
 	}
 	
 	void DebugEngine::Step(Input* input)
@@ -185,14 +198,15 @@ namespace PK::ECS::Engines
 	
 		for (auto i = 0; i < lights.count; ++i)
 		{
-			// auto ypos = sin(time + ((float)i * 4 / lights.count)) * 4;
+			// auto ypos = sin(time * 2 + ((float)i * 4 / lights.count));
 			auto rotation = glm::quat(float3(0, time + float(i), 0));
 			lights[i].transformLight->rotation = rotation;
 			lights[i].transformMesh->rotation = rotation;
+			//lights[i].transformLight->position.y = ypos;
+			//lights[i].transformMesh->position.y = ypos;
 		}
 
 		return;
-
 	
 		auto meshes = m_entityDb->Query<EntityViews::MeshRenderable>((int)ENTITY_GROUPS::ACTIVE);
 	

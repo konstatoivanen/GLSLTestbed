@@ -1,0 +1,35 @@
+Material:
+    Shader: res/shaders/SH_WS_PBR_Forward_Cloth.shader
+    Keywords:
+        - PK_HEIGHTMAPS
+    Properties:
+        _AlbedoTexture:
+            Type: TEXTURE
+            Value: res/textures/T_Cloth_repeat_D.ktx
+        _PBSTexture:
+            Type: TEXTURE
+            Value: res/textures/T_Cloth_repeat_MAOR.ktx
+        _HeightMap:
+            Type: TEXTURE
+            Value: res/textures/T_Cloth_repeat_H.ktx
+        _Color:
+            Type: FLOAT4
+            Value: [0,0.5,0.5,1]
+        _SheenColor:
+            Type: FLOAT4
+            Value: [0.6, 0.7, 0.5, 1]
+        _Metallic:
+            Type: FLOAT
+            Value: 0.0
+        _Roughness:
+            Type: FLOAT
+            Value: 0.75
+        _Occlusion:
+            Type: FLOAT
+            Value: 1
+        _HeightAmount:
+            Type: FLOAT
+            Value: 0.05
+        _NormalAmount:
+            Type: FLOAT
+            Value: 1.0

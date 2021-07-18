@@ -5,8 +5,8 @@ layout(binding = 0) uniform highp samplerCubeArray _ShadowmapBatchCube;
 layout(binding = 1) uniform highp sampler2DArray _ShadowmapBatch0;
 layout(binding = 2) uniform highp sampler2DArray _ShadowmapBatch1;
 
-#define SAMPLE_COUNT 4u
-#define SAMPLE_COUNT_INV 0.25f
+#define SAMPLE_COUNT 5u
+#define SAMPLE_COUNT_INV 0.2f
 #define SHADOW_NEAR_BIAS 0.1f
 #define SHADOW_MAP_BATCH_SIZE 4
 // @TODO Parameterize these later
@@ -40,10 +40,11 @@ const uint3 swizzles[6] =
 
 const float3 SAMPLES_HAMMERSLEY_3D[SAMPLE_COUNT] =
 {
-    float3(1.0f,            0.0f,           0.0f),
-    float3(-4.371139e-08f,  1.0f,           0.5f),
-    float3(-1.0f,          -8.742278e-08f,  0.25f),
-    float3(1.192488e-08f,  -1.0f,           0.75f),
+    float3( 1.0f,       0.0f,       0.0f),
+    float3( 0.309017f,  0.9510565f, 0.5f),
+    float3(-0.8090171f, 0.5877852f, 0.25f),
+    float3(-0.8090169f,-0.5877854f, 0.75f),
+    float3( 0.3090171f,-0.9510565f, 0.125f),
 };
 
 struct DrawIndices

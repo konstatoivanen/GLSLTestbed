@@ -27,6 +27,7 @@ struct PKLight
 {
     float3 color;
     float3 direction;
+    float shadow;
 };
 
 struct PKIndirect

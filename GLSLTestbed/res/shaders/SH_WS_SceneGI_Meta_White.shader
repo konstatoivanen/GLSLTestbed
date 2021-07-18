@@ -45,7 +45,7 @@ void main()
 	for (uint i = tile.start; i < tile.end; ++i)
 	{
 		PKLight light = GetSurfaceLight(i, vs_WOLRDPOSITION, tile.cascade);
-		color += light.color * max(0.0f, dot(light.direction, vs_NORMAL));
+		color += light.color * light.shadow * max(0.0f, dot(light.direction, vs_NORMAL));
 	}
 	
 	StoreSceneGI(vs_WOLRDPOSITION, float4(color, 1.0f));
