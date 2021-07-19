@@ -1,0 +1,10 @@
+Material:
+    Shader: res/shaders/SH_WS_PBR_Forward_Water.shader
+    Keywords:
+    Properties:
+        _Color:
+            Type: FLOAT4
+            Value: [1,1,1,1]
+        _EmissionColor:
+            Type: FLOAT4
+            Value: [25,1,1,1]

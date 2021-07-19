@@ -122,6 +122,7 @@ namespace PK::ECS::Engines
 
 		auto sphereMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Sphere", Rendering::MeshUtility::GetSphere(CG_FLOAT3_ZERO, 1.0f));
 		auto planeMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Plane16x16", Rendering::MeshUtility::GetPlane(CG_FLOAT2_ZERO, CG_FLOAT2_ONE, { 16, 16 }));
+		auto oceanMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Plane128x128", Rendering::MeshUtility::GetPlane(CG_FLOAT2_ZERO, CG_FLOAT2_ONE * 5.0f, { 128, 128 }));
 	
 		auto materialMetal = assetDatabase->Load<Material>("res/materials/M_Metal_Panel.material");
 		auto materialCloth = assetDatabase->Load<Material>("res/materials/M_Cloth.material");
@@ -130,6 +131,7 @@ namespace PK::ECS::Engines
 		auto materialSand = assetDatabase->Load<Material>("res/materials/M_Sand.material");
 		auto materialWood = assetDatabase->Load<Material>("res/materials/M_Wood_Floor.material");
 		auto materialAsphalt = assetDatabase->Load<Material>("res/materials/M_Asphalt.material");
+		auto materialWater = assetDatabase->Load<Material>("res/materials/M_Water.material");
 
 	
 		auto minpos = float3(-70, -5, -70);
@@ -144,15 +146,17 @@ namespace PK::ECS::Engines
 		CreateMeshRenderable(entityDb, float3(-25, -7.5f, 0), { 0, 90, 0 }, 1.0f, spiralMesh, materialAsphalt);
 
 		CreateMeshRenderable(entityDb, float3( 30, 0, 24), { 0, 90, 0 }, 2.0f, clothMesh, materialCloth);
+
+		CreateMeshRenderable(entityDb, float3( 55, -2, -5), { 90, 0, 0 }, 5.0f, oceanMesh, materialWater, false);
 		
 		for (auto i = 0; i < 320; ++i)
 		{
-			CreateMeshRenderable(entityDb, Functions::RandomRangeFloat3(minpos, maxpos), Functions::RandomEuler(), 1.0f, sphereMesh, materialMetal);
+			//CreateMeshRenderable(entityDb, Functions::RandomRangeFloat3(minpos, maxpos), Functions::RandomEuler(), 1.0f, sphereMesh, materialMetal);
 		}
 	
 		for (auto i = 0; i < 320; ++i)
 		{
-			CreateMeshRenderable(entityDb, Functions::RandomRangeFloat3(minpos, maxpos), Functions::RandomEuler(), 1.0f, sphereMesh, materialGravel);
+			//CreateMeshRenderable(entityDb, Functions::RandomRangeFloat3(minpos, maxpos), Functions::RandomEuler(), 1.0f, sphereMesh, materialGravel);
 		}
 	
 		bool flipperinotyperino = false;
@@ -165,8 +169,8 @@ namespace PK::ECS::Engines
 			flipperinotyperino ^= true;
 		}
 
-		auto color = Functions::HexToRGB(0xBFF7FFFF) * 2.0f; // 0x6D563DFF //0x66D1FFFF //0xF78B3DFF
-		CreateDirectionalLight(entityDb, assetDatabase, { 25, -35, 0 }, color, true);
+		auto color = Functions::HexToRGB(0x1E87FFFF) * 0.05f; // 0x6D563DFF //0x66D1FFFF //0xF78B3DFF
+		CreateDirectionalLight(entityDb, assetDatabase, { 15, 100, 0 }, color, true);
 	}
 	
 	void DebugEngine::Step(Input* input)

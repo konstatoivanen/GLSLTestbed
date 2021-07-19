@@ -129,6 +129,30 @@ float3 BRDF_PBS_DEFAULT_DIRECT(const PKLight light)
     return brdf_cache.diffuse * color * diffuseTerm + specularTerm * color * FresnelTerm(brdf_cache.specular, ldots.z);
 }
 
+float3 BRDF_PBS_DEFAULT_SS(const PKLight light)
+{
+    float3 color = light.color * light.shadow;
+    
+    float3 halfDir = normalize(light.direction.xyz + brdf_cache.viewdir);
+    float3 ldots;
+    ldots.x = dot(brdf_cache.normal, light.direction.xyz); // NL
+    ldots.y = dot(brdf_cache.normal, halfDir); // NH
+    ldots.z = dot(light.direction.xyz, halfDir); // LH
+    ldots = max(0.0f.xxx, ldots);
+
+    
+    float S = TDF_Dice(brdf_cache.viewdir, light.direction.xyz, brdf_cache.normal, brdf_cache.subsurface);
+    float G = GSF_SmithGGX(ldots.x, brdf_cache.nv, brdf_cache.roughness);
+    float D = NDF_GGX(ldots.y, brdf_cache.roughness);
+    
+    float diffuseTerm = DisneyDiffuse(brdf_cache.nv, ldots.x, ldots.z, brdf_cache.perceptualRoughness) * ldots.x * PK_INV_PI;
+    float specularTerm = max(0.0f, G * D * ldots.x);
+    
+    return brdf_cache.diffuse * color * diffuseTerm + 
+           brdf_cache.diffuse * light.color.rgb * S +
+           specularTerm * color * FresnelTerm(brdf_cache.specular, ldots.z);
+}
+
 float3 BRDF_PBS_CLOTH_DIRECT(const PKLight light)
 {
     float3 color = light.color * light.shadow;

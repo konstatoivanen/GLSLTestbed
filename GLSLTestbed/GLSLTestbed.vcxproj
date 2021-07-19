@@ -706,6 +706,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\materials\M_Metal_Panel.material" />
     <None Include="res\materials\M_Metal_Rust.material" />
     <None Include="res\materials\M_Sand.material" />
+    <None Include="res\materials\M_Water.material" />
     <None Include="res\materials\M_Wood_Floor.material" />
     <None Include="res\models\Buildings.mdl" />
     <None Include="res\models\Cloth.mdl" />
@@ -755,6 +756,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\SH_VS_ShadowmapBlurProj.shader" />
     <None Include="res\shaders\SH_WS_PBR_Forward_Glitter.shader" />
     <None Include="res\shaders\SH_WS_PBR_Forward_Cloth.shader" />
+    <None Include="res\shaders\SH_WS_PBR_Forward_Water.shader" />
     <None Include="res\shaders\SH_WS_SceneGI_Meta_White.shader" />
     <None Include="res\shaders\SH_WS_ShadowmapCube.shader" />
     <None Include="res\shaders\SH_WS_DepthNormals.shader" />

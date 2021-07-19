@@ -170,7 +170,7 @@ PKIndirect GetStaticSceneIndirect(float3 normal, float3 viewdir, float roughness
          #define PK_SURF_MESH_NORMAL normalize(baseVaryings.vs_TSROTATION[2])
     #else
          #define PK_SURF_SAMPLE_NORMAL(normalmap, amount, uv) varyings.vs_NORMAL
-         #define PK_SURF_MESH_NORMAL varyings.vs_NORMAL
+         #define PK_SURF_MESH_NORMAL normalize(varyings.vs_NORMAL)
     #endif
 
     void main()
