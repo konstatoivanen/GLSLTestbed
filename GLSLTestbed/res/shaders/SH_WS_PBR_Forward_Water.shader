@@ -49,9 +49,9 @@ float3 GerstnerWave(float4 wave, float3 p, inout float3 tangent, inout float3 bi
 
 void PK_SURFACE_FUNC_VERT(inout SurfaceFragmentVaryings surf) 
 {
-	float4 wavea = float4(1, 0, 0.2f, 10);
-	float4 waveb = float4(1, 1, 0.05f, 3);
-	float4 wavec = float4(-1, 1, 0.1f, 5);
+	float4 wavea = float4(1, 0, 0.4f, 10);
+	float4 waveb = float4(1, 1, 0.1f, 3);
+	float4 wavec = float4(-1, 1, 0.2f, 5);
 
 	float3 gridPoint = surf.vs_WORLDPOSITION.xyz;
 	float3 tangent = float3(1, 0, 0);
@@ -83,7 +83,7 @@ void PK_SURFACE_FUNC_FRAG(in SurfaceFragmentVaryings varyings, inout SurfaceData
 	float yorigin = pk_MATRIX_M[3].y;
 
 	float3 noise;
-	noise.xy = NoiseCell(int2(surf.worldpos.xz * 8.0f + surf.worldpos.yy * 30.0f));// + NoiseCell(int2(surf.worldpos.yy * 48.0f));
+	noise.xy = NoiseCell(int2(surf.worldpos.xz * 8.0f + surf.worldpos.yy * 30.0f));
 	noise.y = 1.0f;
 
     surf.normal = normalize(PK_SURF_MESH_NORMAL + noise * 0.15f);
@@ -105,5 +105,4 @@ void PK_SURFACE_FUNC_FRAG(in SurfaceFragmentVaryings varyings, inout SurfaceData
     surf.metallic = max(0.0f, noise.y * 0.5f);
     surf.roughness = max(0.0f, noise.x * 0.1f);
     surf.occlusion = 1.0f;
-  //  surf.occlusion = SampleScreenSpaceOcclusion(surf.occlusion, surf.clipuvw.xy);
 }

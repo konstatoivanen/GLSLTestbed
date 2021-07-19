@@ -147,16 +147,16 @@ namespace PK::ECS::Engines
 
 		CreateMeshRenderable(entityDb, float3( 30, 0, 24), { 0, 90, 0 }, 2.0f, clothMesh, materialCloth);
 
-		CreateMeshRenderable(entityDb, float3( 55, -2, -5), { 90, 0, 0 }, 5.0f, oceanMesh, materialWater, false);
+		CreateMeshRenderable(entityDb, float3( 55, 7, -15), { 90, 0, 0 }, 3.0f, oceanMesh, materialWater, false);
 		
 		for (auto i = 0; i < 320; ++i)
 		{
-			//CreateMeshRenderable(entityDb, Functions::RandomRangeFloat3(minpos, maxpos), Functions::RandomEuler(), 1.0f, sphereMesh, materialMetal);
+			CreateMeshRenderable(entityDb, Functions::RandomRangeFloat3(minpos, maxpos), Functions::RandomEuler(), 1.0f, sphereMesh, materialMetal);
 		}
 	
 		for (auto i = 0; i < 320; ++i)
 		{
-			//CreateMeshRenderable(entityDb, Functions::RandomRangeFloat3(minpos, maxpos), Functions::RandomEuler(), 1.0f, sphereMesh, materialGravel);
+			CreateMeshRenderable(entityDb, Functions::RandomRangeFloat3(minpos, maxpos), Functions::RandomEuler(), 1.0f, sphereMesh, materialGravel);
 		}
 	
 		bool flipperinotyperino = false;
@@ -169,8 +169,8 @@ namespace PK::ECS::Engines
 			flipperinotyperino ^= true;
 		}
 
-		auto color = Functions::HexToRGB(0x1E87FFFF) * 0.05f; // 0x6D563DFF //0x66D1FFFF //0xF78B3DFF
-		CreateDirectionalLight(entityDb, assetDatabase, { 15, 100, 0 }, color, true);
+		auto color = Functions::HexToRGB(0xBFF7FFFF) * 2.0f; // 0x6D563DFF //0x66D1FFFF //0xF78B3DFF
+		CreateDirectionalLight(entityDb, assetDatabase, { 25, -35, 0 }, color, true);
 	}
 	
 	void DebugEngine::Step(Input* input)
