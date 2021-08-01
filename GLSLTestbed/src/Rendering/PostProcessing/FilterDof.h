@@ -17,7 +17,8 @@ namespace PK::Rendering::PostProcessing
             void Execute(const RenderTexture* source, const RenderTexture* destination);
 
         private:
-            Ref<RenderTexture> m_renderTarget;
+            Ref<RenderTexture> m_renderTarget0;
+            Ref<RenderTexture> m_renderTarget1;
             Ref<ConstantBuffer> m_paramsBuffer;
             Ref<ComputeBuffer> m_autoFocusBuffer;
             Shader* m_shaderComposite;

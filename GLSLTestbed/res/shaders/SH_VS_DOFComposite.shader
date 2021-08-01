@@ -15,45 +15,23 @@ void main()
 
 #pragma PROGRAM_FRAGMENT
 
-#define EPSILON 0.0001f
-
-uniform sampler2DArray _MainTex;
+#define _Source_TexelSize (1.0f / textureSize(_Foreground, 0).xy)
 
 in float2 vs_TEXCOORD0;
 layout(location = 0) out float4 SV_Target0;
 
 void main()
 {
-    float depth01 = tex2D(pk_ScreenDepth, vs_TEXCOORD0).r;
-    float linearDepth = LinearizeDepth(depth01);
+    float linearDepth = LinearizeDepth(tex2D(pk_ScreenDepth, vs_TEXCOORD0).r);
+    float coc = GetCircleOfConfusion(linearDepth);
 
-    const int2 OFFS0[4] = { int2(-1, 0), int2( 1,0), int2(0,1), int2(0,-1) };
-    const int2 OFFS1[4] = { int2(-1,-1), int2(-1,1), int2(1,1), int2(1,-1) };
-
-    // @TODO Could maybe reduce some of the artifacts by having a half res depth texture instead...?
-    float4 Z0 = textureGatherOffsets(pk_ScreenDepth, vs_TEXCOORD0, OFFS0);
-    float4 Z1 = textureGatherOffsets(pk_ScreenDepth, vs_TEXCOORD0, OFFS1);
-
-    float4 depths = LinearizeDepth(float4(max(max(max(depth01, Z0.x), Z0.w), Z1.x),
-                                          max(max(max(depth01, Z0.x), Z0.z), Z1.y),
-                                          max(max(max(depth01, Z0.y), Z0.z), Z1.z),
-                                          max(max(max(depth01, Z0.y), Z0.w), Z1.w)));
-
-    // Reduce foreground - background blur artifacts by using 0-1 circle of confusion values for weights instead.
-    float4 cocs = GetCirclesOfConfusion01(depths);
-    float coc = GetCircleOfConfusion01(linearDepth);
+    float4 foreground = tex2D(pk_Foreground, vs_TEXCOORD0);
+    float4 background = tex2D(pk_Background, vs_TEXCOORD0);
     
-    float4 weights = float4(1.0f / (EPSILON + abs(coc.xxxx - cocs)));
-    float weight = dot(weights, float4(1.0f));
+    float texely = 1.0f / textureSize(pk_Foreground, 0).y;
+    background.a = smoothstep(texely, texely * 2.0f, coc);
 
-    float3 uvw = float3(vs_TEXCOORD0, 1);
-    
-    float4 color  = textureOffset(_MainTex, uvw, int2(-1, -1)) * weights.x;
-           color += textureOffset(_MainTex, uvw, int2(-1,  1)) * weights.y;
-           color += textureOffset(_MainTex, uvw, int2( 1,  1)) * weights.z;
-           color += textureOffset(_MainTex, uvw, int2( 1, -1)) * weights.w;
-           color /= weight;
+    float3 color = lerp(background.rgb * background.a, foreground.rgb, foreground.a);
 
-
-    SV_Target0 = lerp(color, tex2D(_MainTex, uvw), coc);
+    SV_Target0 = float4(color, (1.0f - foreground.a) * (1.0f - background.a));
 };

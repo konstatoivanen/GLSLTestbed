@@ -3,6 +3,9 @@
 
 PK_DECLARE_CBUFFER(pk_DofParams)
 {
+    sampler2D pk_Foreground;
+    sampler2D pk_Background;
+
     float pk_FocalLength;
     float pk_FNumber;
     float pk_FilmHeight;
@@ -70,6 +73,12 @@ float4 GetCirclesOfConfusion01(float4 linearDepths)
 {
     AutoFocusData data = PK_ATOMIC_DATA(pk_AutoFocusParams);
     return min(float4(1.0f), abs(linearDepths - data.Distance) * data.LensCoefficient / linearDepths / pk_MaximumCoC);
+}
+
+float GetCircleOfConfusion(float linearDepth)
+{
+    AutoFocusData data = PK_ATOMIC_DATA(pk_AutoFocusParams);
+    return clamp((linearDepth - data.Distance) * data.LensCoefficient / linearDepth, -pk_MaximumCoC, pk_MaximumCoC);
 }
 
 float4 GetCirclesOfConfusion(float4 linearDepths)
