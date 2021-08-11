@@ -1030,6 +1030,7 @@ namespace PK::Rendering::GraphicsAPI
 	{
 		DrawCallDescriptor descriptor;
 		descriptor.shader = shader;
+		descriptor.mesh = BLIT_QUAD;
 		descriptor.topology = topology;
 		descriptor.offset = offset;
 		descriptor.count = count;
@@ -1041,6 +1042,7 @@ namespace PK::Rendering::GraphicsAPI
 	{
 		DrawCallDescriptor descriptor;
 		descriptor.shader = shader;
+		descriptor.mesh = BLIT_QUAD;
 		descriptor.propertyBlock1 = &propertyBlock;
 		descriptor.topology = topology;
 		descriptor.offset = offset;
@@ -1053,6 +1055,7 @@ namespace PK::Rendering::GraphicsAPI
 	{
 		DrawCallDescriptor descriptor;
 		descriptor.shader = material->GetShader();
+		descriptor.mesh = BLIT_QUAD;
 		descriptor.propertyBlock0 = material;
 		descriptor.propertyBlock1 = &propertyBlock;
 		descriptor.topology = topology;

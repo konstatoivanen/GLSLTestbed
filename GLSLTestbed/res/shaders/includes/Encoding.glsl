@@ -37,6 +37,13 @@ float2 OctaUV(float3 offset, float3 direction) { return offset.xy + OctaEncode(d
 
 float2 OctaUV(float3 direction) { return OctaEncode(direction); }
 
+float2 CylinderUV(float3 direction)
+{
+    float angleh = (atan(direction.x, direction.z) + 3.14159265359f) * 0.15915494309f;
+	float anglev = acos(dot(direction, float3(0, 1, 0))) * 0.31830988618f;
+	return float2(angleh, anglev);
+}
+
 float3 RGBToHSV(float3 c)
 {
 	float4 k = float4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);

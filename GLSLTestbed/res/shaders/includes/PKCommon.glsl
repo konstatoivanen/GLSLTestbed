@@ -35,6 +35,8 @@ PK_DECLARE_CBUFFER(pk_PerFrameConstants)
     // Delta time: (dt, 1/dt, smoothDt, 1/smoothDt).
     float4 pk_DeltaTime;
     
+    // x = cursor position x, y = cursor position y, z = cursor delta x, w = cursor delta y
+    float4 pk_CursorParams;
     // World space position of the camera.
     float4 pk_WorldSpaceCameraPos;
     // x = n, y = f, z = f - n, w = 1.0f / f.

@@ -88,6 +88,7 @@ namespace PK::Rendering
 			{CG_TYPE::FLOAT4, "pk_SinTime"},
 			{CG_TYPE::FLOAT4, "pk_CosTime"},
 			{CG_TYPE::FLOAT4, "pk_DeltaTime"},
+			{CG_TYPE::FLOAT4, "pk_CursorParams"},
 			{CG_TYPE::FLOAT4, "pk_WorldSpaceCameraPos"},
 			{CG_TYPE::FLOAT4, "pk_ProjectionParams"},
 			{CG_TYPE::FLOAT4, "pk_ExpProjectionParams"},
@@ -131,6 +132,11 @@ namespace PK::Rendering
 		m_constantsPerFrame->SetFloat4(hashCache->pk_SinTime, { sinf(time / 8), sinf(time / 4), sinf(time / 2), sinf(time) });
 		m_constantsPerFrame->SetFloat4(hashCache->pk_CosTime, { cosf(time / 8), cosf(time / 4), cosf(time / 2), cosf(time) });
 		m_constantsPerFrame->SetFloat4(hashCache->pk_DeltaTime, { deltatime, 1.0f / deltatime, smoothdeltatime, 1.0f / smoothdeltatime });
+	}
+
+	void RenderPipeline::Step(Input* inputRef)
+	{
+		m_constantsPerFrame->SetFloat4(HashCache::Get()->pk_CursorParams, { inputRef->GetMouseX(), inputRef->GetMouseY(), inputRef->GetMouseDeltaX(), inputRef->GetMouseDeltaY() });
 	}
 	
 	void RenderPipeline::Step(int condition)

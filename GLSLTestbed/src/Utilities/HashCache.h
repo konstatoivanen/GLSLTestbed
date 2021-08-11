@@ -14,6 +14,7 @@ namespace PK::Utilities
         DEFINE_HASH_CACHE(pk_SinTime)
         DEFINE_HASH_CACHE(pk_CosTime)
         DEFINE_HASH_CACHE(pk_DeltaTime)
+        DEFINE_HASH_CACHE(pk_CursorParams)
         DEFINE_HASH_CACHE(pk_WorldSpaceCameraPos)
         DEFINE_HASH_CACHE(pk_ProjectionParams)
         DEFINE_HASH_CACHE(pk_ExpProjectionParams)

@@ -79,7 +79,8 @@ namespace PK::Core
 				{ 
 					PK_STEP_T(engineDebug, Input), 
 					PK_STEP_T(engineCommands, Input), 
-					PK_STEP_T(engineEditorCamera, Input) 
+					PK_STEP_T(engineEditorCamera, Input),
+					PK_STEP_T(renderPipeline, Input) 
 				} 
 			},
 			{ time, { PK_STEP_T(renderPipeline, Time) } },

@@ -70,29 +70,6 @@ namespace PK::Core
 		};
 	}
 	
-	float2 Input::GetMouseDelta() { return m_mouseDelta; }
-	
-	float2 Input::GetMousePosition()
-	{
-		double xpos, ypos;
-		glfwGetCursorPos(glfwGetCurrentContext(), &xpos, &ypos);
-		return { (float)xpos, (float)ypos };
-	}
-	
-	float2 Input::GetMouseScroll() { return m_mouseScroll; }
-	
-	float Input::GetMouseDeltaX() { return GetMouseDelta().x; }
-	
-	float Input::GetMouseDeltaY() { return GetMouseDelta().y; }
-	
-	float Input::GetMouseX() { return GetMousePosition().x; }
-	
-	float Input::GetMouseY() { return GetMousePosition().y; }
-	
-	float Input::GetMouseScrollX() { return GetMouseScroll().x; }
-	
-	float Input::GetMouseScrollY() { return GetMouseScroll().y; }
-	
 	void Input::Step(int condition)
 	{
 		auto step = (PK::Core::UpdateStep)condition;
@@ -113,10 +90,13 @@ namespace PK::Core
 
 			case PK::Core::UpdateStep::UpdateInput:
 			{
-				auto mousecur = GetMousePosition();
-				m_mouseDelta = mousecur - m_mousePrev;
-				m_mousePrev = mousecur;
+				double xpos, ypos;
+				glfwGetCursorPos(glfwGetCurrentContext(), &xpos, &ypos);
 
+				m_mousePosition.x = (float)xpos;
+				m_mousePosition.y = (float)ypos;
+				m_mouseDelta = m_mousePosition - m_mousePrev;
+				m_mousePrev = m_mousePosition;
 				m_mouseScroll = m_mouseScrollRaw;
 				m_mouseScrollRaw = { 0, 0 };
 

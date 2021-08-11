@@ -158,15 +158,15 @@ namespace PK::Core
     
     		float2 GetAxis2D(KeyCode front, KeyCode back, KeyCode right, KeyCode left);
     		float3 GetAxis3D(KeyCode up, KeyCode down, KeyCode front, KeyCode back, KeyCode right, KeyCode left);
-    		float2 GetMouseDelta();
-    		float2 GetMousePosition();
-    		float2 GetMouseScroll();
-    		float GetMouseDeltaX();
-    		float GetMouseDeltaY();
-    		float GetMouseX();
-    		float GetMouseY();
-    		float GetMouseScrollX();
-    		float GetMouseScrollY();
+            inline float2 GetMouseDelta() const { return m_mouseDelta; }
+            inline float2 GetMousePosition() const { return m_mousePosition; }
+            inline float2 GetMouseScroll() const { return m_mouseScroll; }
+            inline float GetMouseDeltaX() const { return m_mouseDelta.x; }
+            inline float GetMouseDeltaY() const { return m_mouseDelta.y; }
+            inline float GetMouseX() const { return m_mousePosition.x; }
+            inline float GetMouseY() const { return m_mousePosition.y; }
+            inline float GetMouseScrollX() const { return m_mouseScroll.x; }
+            inline float GetMouseScrollY() const { return m_mouseScroll.y; }
     
     		void Step(int condition) override;
     
@@ -182,6 +182,7 @@ namespace PK::Core
             
     		std::unordered_map<KeyCode, InputState> m_inputStateCurrent;
     		std::unordered_map<KeyCode, InputState> m_inputStatePrevious;
+    		float2 m_mousePosition = CG_FLOAT2_ZERO;
     		float2 m_mousePrev = CG_FLOAT2_ZERO;
     		float2 m_mouseDelta = CG_FLOAT2_ZERO;
     		float2 m_mouseScrollRaw = CG_FLOAT2_ZERO;

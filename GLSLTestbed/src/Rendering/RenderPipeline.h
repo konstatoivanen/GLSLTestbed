@@ -3,6 +3,7 @@
 #include "ECS/Sequencer.h"
 #include "Core/IService.h"
 #include "Core/Time.h"
+#include "Core/Input.h"
 #include "ECS/EntityDatabase.h"
 #include "Core/ApplicationConfig.h"
 #include "Rendering/Objects/TextureXD.h"
@@ -19,12 +20,13 @@
 
 namespace PK::Rendering
 {
-    class RenderPipeline : public IService, public PK::ECS::ISimpleStep, public PK::ECS::IStep<Time>
+    class RenderPipeline : public IService, public PK::ECS::ISimpleStep, public PK::ECS::IStep<Time>, public PK::ECS::IStep<Input>
     {
         public:
             RenderPipeline(AssetDatabase* assetDatabase, PK::ECS::EntityDatabase* entityDb, const ApplicationConfig* config);
     
             void Step(Time* token) override;
+            void Step(Input* token) override;
             void Step(int condition) override;
     
         private:
