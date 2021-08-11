@@ -1179,6 +1179,9 @@
     <ClInclude Include="src\Rendering\Structs\DrawCallDescriptor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Rendering\PostProcessing\FilterFlowGraph.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\glfw3.lib" />
@@ -1699,6 +1702,13 @@
     <None Include="res\models\Cloth.mdl" />
     <None Include="res\shaders\SH_WS_PBR_Forward_Water.shader" />
     <None Include="res\materials\M_Water.material" />
+    <None Include="res\models\Tree.mdl" />
+    <None Include="res\shaders\CS_OemCompute.shader" />
+    <None Include="res\shaders\CS_FlowPaint.shader" />
+    <None Include="res\shaders\SH_VS_FlowRender.shader" />
+    <None Include="res\shaders\CS_FlowIterate.shader" />
+    <None Include="res\shaders\CS_FlowBoidUpdate.shader" />
+    <None Include="res\shaders\SH_VS_FlowBoids.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">
@@ -1828,6 +1838,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ECS\Contextual\Engines\CommandEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rendering\PostProcessing\FilterFlowGraph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

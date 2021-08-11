@@ -175,6 +175,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="src\ECS\EntityDatabase.h" />
     <ClInclude Include="src\Rendering\Batching.h" />
     <ClInclude Include="src\Rendering\Culling.h" />
+    <ClInclude Include="src\Rendering\PostProcessing\FilterFlowGraph.h" />
     <ClInclude Include="src\Rendering\PostProcessing\FilterSceneGI.h" />
     <ClInclude Include="src\Rendering\GizmoRenderer.h" />
     <ClInclude Include="include\GLAD\glad.h" />
@@ -708,6 +709,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\materials\M_Sand.material" />
     <None Include="res\materials\M_Water.material" />
     <None Include="res\materials\M_Wood_Floor.material" />
+    <None Include="res\models\Tree.mdl" />
     <None Include="res\models\Buildings.mdl" />
     <None Include="res\models\Cloth.mdl" />
     <None Include="res\models\Library.mdl" />
@@ -715,7 +717,11 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\CS_AutoFocus.shader" />
     <None Include="res\shaders\CS_ClusteredDepthMax.shader" />
     <None Include="res\shaders\CS_ClusteredLightAssignment.shader" />
+    <None Include="res\shaders\CS_FlowBoidUpdate.shader" />
+    <None Include="res\shaders\CS_FlowIterate.shader" />
+    <None Include="res\shaders\CS_FlowPaint.shader" />
     <None Include="res\shaders\CS_LuminanceHistogram.shader" />
+    <None Include="res\shaders\CS_OemCompute.shader" />
     <None Include="res\shaders\CS_SceneGIMipmap.shader" />
     <None Include="res\shaders\CS_SceneGI_Bake_Checkerboard.shader" />
     <None Include="res\shaders\CS_VolumeFogDepthMax.shader" />
@@ -743,6 +749,8 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\SH_VS_DOFComposite.shader" />
     <None Include="res\shaders\SH_VS_FilmGrain.shader" />
     <None Include="res\shaders\SH_VS_FilterAO.shader" />
+    <None Include="res\shaders\SH_VS_FlowBoids.shader" />
+    <None Include="res\shaders\SH_VS_FlowRender.shader" />
     <None Include="res\shaders\SH_VS_IBLBackground.shader">
       <DeploymentContent>true</DeploymentContent>
     </None>
@@ -815,6 +823,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClCompile Include="src\ECS\Contextual\Engines\EngineUpdateTransforms.cpp" />
     <ClCompile Include="src\Rendering\Batching.cpp" />
     <ClCompile Include="src\Rendering\Culling.cpp" />
+    <ClCompile Include="src\Rendering\PostProcessing\FilterFlowGraph.cpp" />
     <ClCompile Include="src\Rendering\PostProcessing\FilterSceneGI.cpp" />
     <ClCompile Include="src\Rendering\GizmoRenderer.cpp" />
     <ClCompile Include="include\GLAD\glad.c">
