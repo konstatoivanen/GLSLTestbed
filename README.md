@@ -2,6 +2,7 @@
 A Windows only OpenGL 4.6 renderer for testing different rendering techniques & solutions.
 
 ![Preview](T_Preview_06.gif?raw=true "GI Preview")
+![Preview](T_Preview_03.jpg?raw=true "Composition Preview")
 ![Preview](T_Preview_01.jpg?raw=true "HDRI Preview")
 ![Preview](T_Preview_02.jpg?raw=true "Fog & Shadows Preview")
 
