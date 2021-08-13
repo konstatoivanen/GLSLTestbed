@@ -82,6 +82,7 @@ float4 FragmentComposite(float2 uv, sampler2DArray source)
 	float3 b4 = tex2D(PK_BUFFER_DATA(_BloomPassParams, 21).source, uvw).rgb;
 	float3 b5 = tex2D(PK_BUFFER_DATA(_BloomPassParams, 26).source, uvw).rgb;
 
+	// Optional curves. Removing weights from these will provide smoother transitions between bloom layers.
 	float3 bloom = b0 * 0.5f + b1 * 0.6f + b2 * 0.6f + b3 * 0.45f + b4 * 0.35f + b5 * 0.23f;
 	float3 bloomLens = b0 * 1.0f + b1 * 0.8f + b2 * 0.6f + b3 * 0.45f + b4 * 0.35f + b5 * 0.23f;
 

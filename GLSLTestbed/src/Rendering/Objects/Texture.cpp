@@ -59,6 +59,36 @@ namespace PK::Rendering::Objects
         return handle;
     }
 
+    void Texture::SetData(void* data, uint32_t size, uint32_t miplevel) const
+    {
+        auto localSize = GetSize();
+        PK_CORE_ASSERT(size == localSize, "Texture data size miss match, %i != %i", size, localSize);
+		auto dataType = Texture::GetFormatDataType(m_descriptor.colorFormat);
+		auto resolution = m_descriptor.resolution >> miplevel;
+		
+		switch (m_descriptor.dimension)
+		{
+			case GL_TEXTURE_1D:
+				glTextureSubImage1D(m_graphicsId, miplevel, 0, resolution.x, m_channels, dataType, data);
+				break;
+			case GL_TEXTURE_1D_ARRAY:
+			case GL_TEXTURE_RECTANGLE:
+			case GL_TEXTURE_CUBE_MAP:
+			case GL_TEXTURE_2D:
+				glTextureSubImage2D(m_graphicsId, miplevel, 0, 0, resolution.x, resolution.y, m_channels, dataType, data);
+				break;
+			case GL_TEXTURE_CUBE_MAP_ARRAY:
+			case GL_TEXTURE_2D_ARRAY:
+			case GL_TEXTURE_3D:
+				glTextureSubImage3D(m_graphicsId, miplevel, 0, 0, 0, resolution.x, resolution.y, resolution.z, m_channels, dataType, data);
+				break;
+			case GL_TEXTURE_2D_MULTISAMPLE:
+			case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
+				PK_CORE_ERROR("Accessing multisample storage is not allowed!");
+				return;
+		}
+    }
+
     void Texture::Clear(uint level, const void* clearValue) const
     {
         glClearTexImage(m_graphicsId, level, m_channels, GetFormatDataType(m_descriptor.colorFormat), clearValue);
@@ -280,7 +310,7 @@ namespace PK::Rendering::Objects
         return GL_CLAMP_TO_EDGE;
     }
     
-    uint8_t Texture::GetTexelSize(GLenum format)
+    uint8_t Texture::GetTexelSizeBits(GLenum format)
     {
         switch (format)
         {

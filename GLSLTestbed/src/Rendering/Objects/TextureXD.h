@@ -15,7 +15,6 @@ namespace PK::Rendering::Objects
 			TextureXD(const TextureDescriptor& descriptor);
 			~TextureXD();
 		
-			void SetData(void* data, uint32_t size, uint32_t miplevel);
 			void SetMipLevel(const Ref<TextureXD>& texture, uint32_t mipLevel);
 	};
 }

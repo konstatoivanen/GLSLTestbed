@@ -119,6 +119,7 @@ namespace PK::ECS::Engines
 		auto buildingsMesh = assetDatabase->Load<Mesh>("res/models/Buildings.mdl");
 		auto spiralMesh = assetDatabase->Load<Mesh>("res/models/Spiral.mdl");
 		auto clothMesh = assetDatabase->Load<Mesh>("res/models/Cloth.mdl");
+		auto treeMesh = assetDatabase->Load<Mesh>("res/models/Tree.mdl");
 
 		auto sphereMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Sphere", Rendering::MeshUtility::GetSphere(CG_FLOAT3_ZERO, 1.0f));
 		auto planeMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Plane16x16", Rendering::MeshUtility::GetPlane(CG_FLOAT2_ZERO, CG_FLOAT2_ONE, { 16, 16 }));
@@ -148,6 +149,8 @@ namespace PK::ECS::Engines
 		CreateMeshRenderable(entityDb, float3( 30, 0, 24), { 0, 90, 0 }, 2.0f, clothMesh, materialCloth);
 
 		CreateMeshRenderable(entityDb, float3( 55, 7, -15), { 90, 0, 0 }, 3.0f, oceanMesh, materialWater, false);
+
+		CreateMeshRenderable(entityDb, float3( -35, -5, -30), { 0, 0, 0 }, 2.0f, treeMesh, materialAsphalt, true);
 		
 		for (auto i = 0; i < 320; ++i)
 		{
@@ -169,7 +172,7 @@ namespace PK::ECS::Engines
 			flipperinotyperino ^= true;
 		}
 
-		auto color = Functions::HexToRGB(0xBFF7FFFF) * 2.0f; // 0x6D563DFF //0x66D1FFFF //0xF78B3DFF
+		auto color = Functions::HexToRGB(0xFFA575FF) * 2.0f; // 0x6D563DFF //0x66D1FFFF //0xF78B3DFF
 		CreateDirectionalLight(entityDb, assetDatabase, { 25, -35, 0 }, color, true);
 	}
 	

@@ -91,10 +91,15 @@ namespace PK::Core
 			case PK::Core::UpdateStep::UpdateInput:
 			{
 				double xpos, ypos;
-				glfwGetCursorPos(glfwGetCurrentContext(), &xpos, &ypos);
+				int w, h;
+				auto window = glfwGetCurrentContext();
+				glfwGetCursorPos(window, &xpos, &ypos);
+				glfwGetWindowSize(window, &w, &h);
 
 				m_mousePosition.x = (float)xpos;
 				m_mousePosition.y = (float)ypos;
+				m_mousePositionNormalized.x = m_mousePosition.x / w;
+				m_mousePositionNormalized.y = m_mousePosition.y / h;
 				m_mouseDelta = m_mousePosition - m_mousePrev;
 				m_mousePrev = m_mousePosition;
 				m_mouseScroll = m_mouseScrollRaw;

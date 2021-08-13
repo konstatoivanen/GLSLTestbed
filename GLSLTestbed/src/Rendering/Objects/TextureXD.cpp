@@ -22,35 +22,6 @@ namespace PK::Rendering::Objects
 		glDeleteTextures(1, &m_graphicsId);
 	}
 	
-	void TextureXD::SetData(void* data, uint32_t size, uint32_t miplevel)
-	{
-		PK_CORE_ASSERT(size == GetSize(), "Texture data size miss match");
-		auto dataType = Texture::GetFormatDataType(m_descriptor.colorFormat);
-		auto resolution = m_descriptor.resolution >> miplevel;
-		
-		switch (m_descriptor.dimension)
-		{
-			case GL_TEXTURE_1D:
-				glTextureSubImage1D(m_graphicsId, miplevel, 0, resolution.x, m_channels, dataType, data);
-				break;
-			case GL_TEXTURE_1D_ARRAY:
-			case GL_TEXTURE_RECTANGLE:
-			case GL_TEXTURE_CUBE_MAP:
-			case GL_TEXTURE_2D:
-				glTextureSubImage2D(m_graphicsId, miplevel, 0, 0, resolution.x, resolution.y, m_channels, dataType, data);
-				break;
-			case GL_TEXTURE_CUBE_MAP_ARRAY:
-			case GL_TEXTURE_2D_ARRAY:
-			case GL_TEXTURE_3D:
-				glTextureSubImage3D(m_graphicsId, miplevel, 0, 0, 0, resolution.x, resolution.y, resolution.z, m_channels, dataType, data);
-				break;
-			case GL_TEXTURE_2D_MULTISAMPLE:
-			case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
-				PK_CORE_ERROR("Accessing multisample storage is not allowed!");
-				return;
-		}
-	}
-	
 	void TextureXD::SetMipLevel(const Ref<TextureXD>& texture, uint32_t miplevel)
 	{
 		auto srcDescriptor = texture->GetDescriptor();

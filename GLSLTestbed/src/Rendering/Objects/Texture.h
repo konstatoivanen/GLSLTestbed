@@ -45,7 +45,7 @@ namespace PK::Rendering::Objects
             inline uint GetWidth() const { return m_descriptor.resolution.x; }
             inline uint GetHeight() const { return m_descriptor.resolution.y; }
             inline uint GetDepth() const { return m_descriptor.resolution.z; }
-            inline uint GetSize() const { return m_descriptor.resolution.x * m_descriptor.resolution.y * m_descriptor.resolution.z * GetTexelSize(m_descriptor.colorFormat); }
+            inline uint GetSize() const { return m_descriptor.resolution.x * m_descriptor.resolution.y * m_descriptor.resolution.z * (GetTexelSizeBits(m_descriptor.colorFormat) / 8u); }
             inline uint GetMipCount() const { return m_descriptor.miplevels; }
             inline uint8_t GetChannelCount() const { return GetChannelCount(m_channels); }
             inline GLenum GetDimension() const { return m_descriptor.dimension; }
@@ -63,7 +63,7 @@ namespace PK::Rendering::Objects
             inline void MakeImageHandleResident(GLenum format, GLenum access, int level, int layer, bool layered) const { glMakeImageHandleResidentARB(glGetImageHandleARB(m_graphicsId, level, layered, layer, format), access); }
             inline void MakeImageHandleNonResident(GLenum format, int level, int layer, bool layered) const { glMakeImageHandleNonResidentARB(glGetImageHandleARB(m_graphicsId, level, layered, layer, format)); }
 
-
+            void SetData(void* data, uint32_t size, uint32_t miplevel) const;
             void Clear(uint level, const void* clearValue) const;
             void SetWrapMode(GLenum x, GLenum y, GLenum z);
             void SetFilterMode(GLenum min, GLenum mag);
@@ -76,7 +76,7 @@ namespace PK::Rendering::Objects
             static GLenum GetFormatChannels(GLenum format);
             static GLenum GetFormatDataType(GLenum format);
             static GLenum GetWrapmodeFromString(const char* string);
-            static uint8_t GetTexelSize(GLenum format);
+            static uint8_t GetTexelSizeBits(GLenum format);
             static uint8_t GetChannelCount(GLenum channels);
             static void GetDescirptorFromKTX(ktxTexture* tex, TextureDescriptor* desc, GLenum* channels);
     
