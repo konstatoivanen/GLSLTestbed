@@ -47,11 +47,13 @@ A rough overview of the steps taken to render a frame. (Some steps are omitted t
 		- Render intermediate shadow map.
 		- Perform blur.
 		- Blit into shadow map atlas.
-- Render scene depth & normals.
+- Render scene depth, normals & roughness.
 - Compute light clusters.
 	- compute max depth per 2d tile.
 	- assign lights to clusters & cull clusters outside of max depth range.
 - Render screen space ambient occlusion from scene depth & normals.
+- Render visible geometry into gi volume.
+- Render screen space gi.
 - Forward render opaque objects.
 	- Update instancing buffers.
 		- Gather material properties to per shader property buffers.
@@ -63,9 +65,16 @@ A rough overview of the steps taken to render a frame. (Some steps are omitted t
 		- Process each light in the list through the material's BRDF.
 - Render Volumetrics.
 	- Compute Lighting & density per volume cell.
+		- Process visible lights
+		- Inject light from gi volume. 
 	- Compute integrated scattering per volume cell.
 	- Composite with forward output.
 - (TODO) Render transparent objects.
+- Render depth of field
+	- Compute auto focus distance.
+	- Downsample forward output.
+	- Render blurred foreground & background into two layers.
+	- Upsample & composite layers with high res forward output. 
 - Bloom & Tonemapping
 	- Compute luminance histogram from forward output.
 	- Compute & interpolate auto exposure from luminance histogram.
@@ -75,7 +84,7 @@ A rough overview of the steps taken to render a frame. (Some steps are omitted t
 	- Apply gamma correction.
 
 ## Performance Metrics
-- Average frame timings profiled on a NVIDIA RTX 2080 TI at 1080p resolution.
+- Average frame timings profiled on a NVIDIA RTX 2080 TI at 1080p resolution (These were recorded before global illumination was implemented).
 - The test scene has only 512 objects with 3 different materials & 2 different meshes.
 - Light types are distributed so that there exists one directional light & an equal amount point & spot lights.
 - Light radii are set at 40m to achieve good saturation in light clusters.
