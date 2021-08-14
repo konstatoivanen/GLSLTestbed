@@ -26,7 +26,7 @@ namespace PK::ECS::Engines
 	
 		if (input->GetKey(KeyCode::MOUSE1))
 		{
-			m_eulerAngles.x -= input->GetMouseDeltaY() * m_sensitivity;
+			m_eulerAngles.x += input->GetMouseDeltaY() * m_sensitivity;
 			m_eulerAngles.y -= input->GetMouseDeltaX() * m_sensitivity;
 		}
 	
