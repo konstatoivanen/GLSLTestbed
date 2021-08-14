@@ -31,6 +31,8 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 - Rectangular area light support.
 - Exponential variance shadow maps.
 - Motion vectors.
+- Render queues (currently only supports opaque renderers).
+	- Transparent queue with back to front sorting. 
 - Temporal reprojection for blending inter frame results of different effects.
 - Documentation.
 
