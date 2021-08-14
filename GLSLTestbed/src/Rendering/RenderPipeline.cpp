@@ -53,7 +53,8 @@ namespace PK::Rendering
 		m_filterAO(assetDatabase, config),
 		m_filterFog(assetDatabase, config),
 		m_filterSceneGi(assetDatabase, entityDb, config),
-		m_lightsManager(assetDatabase, config)
+		m_lightsManager(assetDatabase, config),
+		m_filterFlowGraph(assetDatabase, config)
 	{
 		m_entityDb = entityDb;
 		m_context.BlitQuad = MeshUtility::GetQuad2D({ -1.0f,-1.0f }, { 1.0f, 1.0f });
@@ -241,6 +242,8 @@ namespace PK::Rendering
 		// Required for gizmos depth testing
 		GraphicsAPI::CopyRenderTexture(m_HDRRenderTarget.get(), nullptr, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 		GraphicsAPI::ResetViewPort();
+
+		m_filterFlowGraph.Execute(nullptr);
 
 		if (m_enableLightingDebug)
 		{

@@ -8,9 +8,13 @@ PK_DECLARE_BUFFER(float4, pk_Boids);
 
 layout(location = 0) in float4 in_POSITION0;
 
+out float2 vs_TEXCOORD0;
+
 void main()
 {
 	float4 position = in_POSITION0;
+
+	vs_TEXCOORD0 = in_POSITION0.xy * 0.5f;
 
 	position.xy += 1.0f;
 	position.xy *= 0.5f;
@@ -31,9 +35,16 @@ void main()
 
 #pragma PROGRAM_FRAGMENT
 
+in float2 vs_TEXCOORD0;
+
 layout(location = 0) out float4 SV_Target0;
 
 void main()
 {
+	if (length(vs_TEXCOORD0) > 0.5f)
+	{
+		discard;
+	}
+
 	SV_Target0 = float4(1.0f, 0.0f, 0.0f, 1.0f);
 };

@@ -1704,7 +1704,6 @@
     <None Include="res\materials\M_Water.material" />
     <None Include="res\models\Tree.mdl" />
     <None Include="res\shaders\CS_OemCompute.shader" />
-    <None Include="res\shaders\CS_FlowPaint.shader" />
     <None Include="res\shaders\SH_VS_FlowRender.shader" />
     <None Include="res\shaders\CS_FlowIterate.shader" />
     <None Include="res\shaders\CS_FlowBoidUpdate.shader" />

@@ -98,6 +98,7 @@ namespace PK::Core
 
 				m_mousePosition.x = (float)xpos;
 				m_mousePosition.y = (float)ypos;
+				m_mousePosition.y = h - ypos;
 				m_mousePositionNormalized.x = m_mousePosition.x / w;
 				m_mousePositionNormalized.y = m_mousePosition.y / h;
 				m_mouseDelta = m_mousePosition - m_mousePrev;

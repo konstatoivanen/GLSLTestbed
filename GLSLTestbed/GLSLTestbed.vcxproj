@@ -719,7 +719,6 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\shaders\CS_ClusteredLightAssignment.shader" />
     <None Include="res\shaders\CS_FlowBoidUpdate.shader" />
     <None Include="res\shaders\CS_FlowIterate.shader" />
-    <None Include="res\shaders\CS_FlowPaint.shader" />
     <None Include="res\shaders\CS_LuminanceHistogram.shader" />
     <None Include="res\shaders\CS_OemCompute.shader" />
     <None Include="res\shaders\CS_SceneGIMipmap.shader" />

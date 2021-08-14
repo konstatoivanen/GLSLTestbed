@@ -16,6 +16,7 @@
 #include "Rendering/PostProcessing/FilterVolumetricFog.h"
 #include "Rendering/PostProcessing/FilterDof.h"
 #include "Rendering/PostProcessing/FilterSceneGI.h"
+#include "Rendering/PostProcessing/FilterFlowGraph.h"
 #include "Rendering/LightsManager.h"
 
 namespace PK::Rendering
@@ -45,6 +46,8 @@ namespace PK::Rendering
             PostProcessing::FilterVolumetricFog m_filterFog;
             PostProcessing::FilterDof m_filterDof;
             PostProcessing::FilterSceneGI m_filterSceneGi;
+
+            PostProcessing::FilterFlowGraph m_filterFlowGraph;
     
             Utilities::Ref<RenderTexture> m_GeometryBufferTarget;
             Utilities::Ref<RenderTexture> m_HDRRenderTarget;

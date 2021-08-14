@@ -21,10 +21,8 @@ namespace PK::Rendering::PostProcessing
             Ref<RenderTexture> m_renderTarget;
             Ref<ComputeBuffer> m_boidsBuffer;
 
-            Shader* m_shaderPaint;
             Shader* m_shaderFlowIterate;
             Shader* m_shaderBoidUpdate;
             Shader* m_shaderDrawBoids;
-            uint m_command;
     };
 }

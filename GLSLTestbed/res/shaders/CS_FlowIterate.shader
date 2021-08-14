@@ -2,23 +2,22 @@
 #pragma PROGRAM_COMPUTE
 #include includes/PKCommon.glsl
 
-layout(rg32ui) uniform uimage2D pk_FlowTexture;
+layout(r32ui) uniform uimage2D pk_FlowTexture;
+uniform sampler2D pk_Maze;
 
 layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 void main()
 {
     int2 coord = int2(gl_GlobalInvocationID.xy);
 
-    if (coord.x == 0)
+    if (coord.x + coord.y == 0)
     {
-        imageStore(pk_FlowTexture, coord, uint4(0xFFFF, 0, 0, 0));
-        return;
+        imageStore(pk_FlowTexture, int2((pk_CursorParams.xy / pk_ScreenParams.xy) * imageSize(pk_FlowTexture).xy), uint4(0xFFFFFF, 0, 0, 0));
     }
 
-    uint value = imageLoad(pk_FlowTexture, coord).y;
-
-    if (value > 0)
+    if (texelFetch(pk_Maze, coord, 0).r > 0)
     {
+        imageStore(pk_FlowTexture, coord, 0u.xxxx);
         return;
     }
 
@@ -34,5 +33,5 @@ void main()
         return;
     }
 
-    imageStore(pk_FlowTexture, coord, uint4(maxvalue - 1, 0, 0, 0));
+    imageStore(pk_FlowTexture, coord, uint4(max(maxvalue - 1, 0), 0, 0, 0));
 }
