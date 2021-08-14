@@ -62,3 +62,8 @@ float3 HSVToRGB(float3 c)
 	float3 p = abs(fract(c.xxx + k.xyz) * 6.0 - k.www);
 	return c.zzz * lerp(k.xxx, saturate(p - k.xxx), c.y);
 }
+
+float3 HSVToRGB(float hue, float saturation, float value)
+{
+    return HSVToRGB(float3(hue, saturation, value));
+}
