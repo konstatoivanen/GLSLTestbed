@@ -47,19 +47,7 @@ namespace PK::Rendering::PostProcessing
             {CG_TYPE::HANDLE, "pk_Volume_ScatterRead"},
         }));
 
-        m_volumeResources->SetFloat4(HashCache::Get()->pk_Volume_WindDir, float4(1.0f, 0.0f, 0.0f, 0.0f));
-        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_ConstantFog, config->VolumeConstantFog);
-        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_HeightFogExponent, config->VolumeHeightFogExponent);
-        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_HeightFogOffset, config->VolumeHeightFogOffset);
-        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_HeightFogAmount, config->VolumeHeightFogAmount);
-        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_Density, config->VolumeDensity);
-        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_Intensity, config->VolumeIntensity);
-        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_Anisotropy, config->VolumeAnisotropy);
-        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_NoiseFogAmount, config->VolumeNoiseFogAmount);
-        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_NoiseFogScale, config->VolumeNoiseFogScale);
-        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_WindSpeed, config->VolumeWindSpeed);
-        m_volumeResources->SetResourceHandle(HashCache::Get()->pk_Volume_ScatterRead, m_volumeScatter->GetBindlessHandleResident());
-        m_volumeResources->FlushBuffer();
+        OnUpdateParameters(config);
 
         m_properties.SetImage(HashCache::Get()->pk_Volume_Inject, m_volumeLightDensity->GetImageBindDescriptor(GL_READ_WRITE, 0, 0, true));
         m_properties.SetImage(HashCache::Get()->pk_Volume_Scatter, m_volumeScatter->GetImageBindDescriptor(GL_READ_WRITE, 0, 0, true));
@@ -79,5 +67,22 @@ namespace PK::Rendering::PostProcessing
         GraphicsAPI::DispatchCompute(m_computeInject, groupsInject, m_properties, GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);
         GraphicsAPI::DispatchCompute(m_computeScatter, groupsScatter, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT);
         GraphicsAPI::Blit(destination, m_shader, m_properties);
+    }
+
+    void FilterVolumetricFog::OnUpdateParameters(const ApplicationConfig* config)
+    {
+        m_volumeResources->SetFloat4(HashCache::Get()->pk_Volume_WindDir, float4(config->VolumeWindDirection.value, 0.0f));
+        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_ConstantFog, config->VolumeConstantFog);
+        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_HeightFogExponent, config->VolumeHeightFogExponent);
+        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_HeightFogOffset, config->VolumeHeightFogOffset);
+        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_HeightFogAmount, config->VolumeHeightFogAmount);
+        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_Density, config->VolumeDensity);
+        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_Intensity, config->VolumeIntensity);
+        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_Anisotropy, config->VolumeAnisotropy);
+        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_NoiseFogAmount, config->VolumeNoiseFogAmount);
+        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_NoiseFogScale, config->VolumeNoiseFogScale);
+        m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_WindSpeed, config->VolumeWindSpeed);
+        m_volumeResources->SetResourceHandle(HashCache::Get()->pk_Volume_ScatterRead, m_volumeScatter->GetBindlessHandleResident());
+        m_volumeResources->FlushBuffer();
     }
 }

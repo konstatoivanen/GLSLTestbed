@@ -1,0 +1,7 @@
+Commands:
+    - ["ESCAPE", "application exit"]
+    - ["R", "reload shader res/shaders/"]
+    - ["C", "reload time"]
+    - ["V", "application contextual log_camera_transform"]
+    - ["G", "application contextual toggle_gizmos"]
+    - ["B", "reload appconfig res/configs/"]

@@ -1128,7 +1128,7 @@
     <ClInclude Include="src\ECS\EntityDatabase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ECS\Contextual\Engines\DebugEngine.h">
+    <ClInclude Include="src\ECS\Contextual\Engines\EngineDebug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ECS\Contextual\Engines\EngineEditorCamera.h">
@@ -1173,10 +1173,16 @@
     <ClInclude Include="src\Rendering\PostProcessing\FilterSceneGI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ECS\Contextual\Engines\CommandEngine.h">
+    <ClInclude Include="src\ECS\Contextual\Engines\EngineCommandInput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Rendering\Structs\DrawCallDescriptor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\CommandConfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\ConsoleCommandBinding.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1699,6 +1705,9 @@
     <None Include="res\models\Cloth.mdl" />
     <None Include="res\shaders\SH_WS_PBR_Forward_Water.shader" />
     <None Include="res\materials\M_Water.material" />
+    <None Include="res\models\Columns.mdl" />
+    <None Include="res\models\Tree.mdl" />
+    <None Include="res\configs\CommandConfig-Active.keycfg" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">
@@ -1794,7 +1803,7 @@
     <ClCompile Include="src\ECS\Sequencer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ECS\Contextual\Engines\DebugEngine.cpp">
+    <ClCompile Include="src\ECS\Contextual\Engines\EngineDebug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ECS\Contextual\Engines\EngineEditorCamera.cpp">
@@ -1827,7 +1836,10 @@
     <ClCompile Include="src\Utilities\Log.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ECS\Contextual\Engines\CommandEngine.cpp">
+    <ClCompile Include="src\ECS\Contextual\Engines\EngineCommandInput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\CommandConfig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

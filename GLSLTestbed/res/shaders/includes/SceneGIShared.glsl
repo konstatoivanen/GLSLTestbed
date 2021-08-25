@@ -67,9 +67,19 @@ float3 GetSampleDirectionSE(float3 worldNormal, uint index, const float sampleCo
 
 float4 SampleGIVolumetric(float3 position)
 {
-	float4 value = SampleSceneGI(position, 3.75f);
-	value.rgb *= pow3(1.0f + 3.75f);
-	return value;
+	float4 color = float4(0.0.xxx, 1.0);
+
+	for (uint i = 0; i < 4; ++i)
+	{
+		float level = i * 1.25f;
+
+		float4 voxel = SampleSceneGI(position, level);
+
+		color.rgb += voxel.rgb * (1.0 + level) * pow2(color.a) * i;
+		color.a *= saturate(1.0 - voxel.a * (1.0 + pow3(level) * 0.075));
+	}
+
+	return color;
 }
 
 float4 ConeTraceDiffuse(float3 origin, const float3 normal, const float dither) 
@@ -126,8 +136,9 @@ float4 ConeTraceSpecular(float3 origin, const float3 normal, const float3 direct
 
 		float4 voxel = SampleSceneGI(origin + dist * direction, level);
 
-		color.rgb += voxel.rgb * voxel.a * color.a * (1 + level);
-		color.a *= 1.0f - voxel.a;
+		color.rgb += voxel.rgb * voxel.a * color.a * (1.0 + level);
+		color.a *= saturate(1.0 - voxel.a * (1.0 + pow3(level) * conesize * 0.02)); 
+		// simpler version: color.a *= 1.0f - voxel.a;
 
 		dist += VOXEL_SIZE * (1.0f + 0.125f * level);
 	}

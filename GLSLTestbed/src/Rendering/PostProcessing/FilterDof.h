@@ -15,6 +15,7 @@ namespace PK::Rendering::PostProcessing
             FilterDof(AssetDatabase* assetDatabase, const ApplicationConfig* config);
             void OnPreRender(const RenderTexture* source);
             void Execute(const RenderTexture* source, const RenderTexture* destination);
+            void OnUpdateParameters(const ApplicationConfig* config);
 
         private:
             Ref<RenderTexture> m_renderTarget0;

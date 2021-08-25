@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/IService.h"
+#include "Core/ConsoleCommandBinding.h"
 #include "ECS/Sequencer.h"
 #include "Rendering/Objects/Buffer.h"
 #include "Rendering/Objects/Shader.h"
@@ -10,7 +11,7 @@ namespace PK::Rendering
     using namespace Utilities;
     using namespace Objects;
 
-    class GizmoRenderer : public IService, public ECS::ISimpleStep
+    class GizmoRenderer : public IService, public ECS::ISimpleStep, public ECS::IStep<ConsoleCommandToken>
     {
         struct GizmoVertex
         {
@@ -23,6 +24,7 @@ namespace PK::Rendering
             GizmoRenderer(ECS::Sequencer* sequencer, AssetDatabase* assetDatabase, bool enabled);
     
             void Step(int condition) override;
+            void Step(ConsoleCommandToken* token) override;
     
             void DrawWireBounds(const BoundingBox& aabb);
             void DrawWireBox(const float3& origin, const float3& size);

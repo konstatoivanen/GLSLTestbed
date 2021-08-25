@@ -65,6 +65,7 @@ namespace PK::Rendering
 		m_OEMExposure = config->BackgroundExposure;
 
 		m_enableLightingDebug = config->EnableLightingDebug;
+		m_logframerate = config->EnableFrameRateLog;
 	
 		auto renderTargetDescriptor = RenderTextureDescriptor();
 		renderTargetDescriptor.colorFormats = { GL_RGBA16F };
@@ -132,6 +133,11 @@ namespace PK::Rendering
 		m_constantsPerFrame->SetFloat4(hashCache->pk_SinTime, { sinf(time / 8), sinf(time / 4), sinf(time / 2), sinf(time) });
 		m_constantsPerFrame->SetFloat4(hashCache->pk_CosTime, { cosf(time / 8), cosf(time / 4), cosf(time / 2), cosf(time) });
 		m_constantsPerFrame->SetFloat4(hashCache->pk_DeltaTime, { deltatime, 1.0f / deltatime, smoothdeltatime, 1.0f / smoothdeltatime });
+
+		if (m_logframerate)
+		{
+			timeRef->LogFrameRate();
+		}
 	}
 
 	void RenderPipeline::Step(Input* inputRef)
@@ -151,6 +157,15 @@ namespace PK::Rendering
 			case UpdateStep::PostRender: GraphicsAPI::EndWindow(); break;
 			case UpdateStep::CloseFrame: GraphicsAPI::CloseContext(); break;
 		}
+	}
+
+	void RenderPipeline::Step(AssetImportToken<ApplicationConfig>* token)
+	{
+		m_OEMTexture = token->assetDatabase->Load<TextureXD>(token->asset->FileBackgroundTexture.value.c_str());
+		m_OEMExposure = token->asset->BackgroundExposure.value;
+		m_filterFog.OnUpdateParameters(token->asset);
+		m_filterBloom.OnUpdateParameters(token->asset);
+		m_filterDof.OnUpdateParameters(token->asset);
 	}
 	
 	void RenderPipeline::OnPreRender()

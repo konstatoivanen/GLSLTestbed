@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Application.h"
+#include "Core/ConsoleCommandBinding.h"
 #include "Rendering/Objects/TextureXD.h"
 #include <hlslmath.h>
 #include <yaml-cpp/yaml.h>
@@ -106,6 +107,58 @@ namespace YAML
 		{
 			auto path = node.as<std::string>();
 			rhs = Application::GetService<AssetDatabase>()->Load<TextureXD>(path);
+			return true;
+		}
+	};
+
+	template<>
+	struct convert<ConsoleCommandBinding>
+	{
+		static Node encode(const ConsoleCommandBinding& rhs)
+		{
+			Node node;
+
+			node.push_back(Input::KeyToString(rhs.keycode));
+			node.push_back(rhs.command);
+			node.SetStyle(EmitterStyle::Flow);
+			return node;
+		}
+
+		static bool decode(const Node& node, ConsoleCommandBinding& rhs)
+		{
+			if (!node.IsSequence() || node.size() != 2)
+			{
+				return false;
+			}
+
+			rhs.keycode = Input::StringToKey(node[0].as<std::string>());
+			rhs.command = node[1].as<std::string>();
+			return true;
+		}
+	};
+
+	template<>
+	struct convert<ConsoleCommandBindList>
+	{
+		static Node encode(const ConsoleCommandBindList& rhs)
+		{
+			Node node;
+			for (auto& arg : rhs)
+			{
+				node.push_back(arg);
+			}
+
+			node.SetStyle(EmitterStyle::Default);
+			return node;
+		}
+
+		static bool decode(const Node& node, ConsoleCommandBindList& rhs)
+		{
+			for (auto i = 0; i < node.size(); ++i)
+			{
+				rhs.push_back(node[i].as<ConsoleCommandBinding>());
+			}
+
 			return true;
 		}
 	};

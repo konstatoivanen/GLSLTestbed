@@ -6,6 +6,7 @@
 #include "Utilities/Log.h"
 #include "Core/ServiceRegister.h"
 #include "Core/NoCopy.h"
+#include "ECS/Sequencer.h"
 #include <filesystem>
 
 namespace PK::Core
@@ -29,6 +30,19 @@ namespace PK::Core
     
         private:
             AssetID m_assetId = 0;
+    };
+
+    enum class AssetImportType
+    {
+        IMPORT,
+        RELOAD
+    };
+
+    template<typename T>
+    struct AssetImportToken
+    {
+        AssetDatabase* assetDatabase;
+        T* asset;
     };
     
     namespace AssetImporters
@@ -62,6 +76,9 @@ namespace PK::Core
     
                 AssetImporters::Import<T>(filepath, asset);
     
+                AssetImportToken<T> importToken = { this, asset.get() };
+                m_sequencer->Next(this, &importToken, (int)AssetImportType::IMPORT);
+
                 return asset.get();
             }
     
@@ -87,10 +104,15 @@ namespace PK::Core
     
                 AssetImporters::Import<T>(filepath, asset);
     
+                AssetImportToken<T> importToken = { this, asset.get() };
+                m_sequencer->Next(this, &importToken, (int)AssetImportType::RELOAD);
+
                 return asset.get();
             }
     
         public:
+            AssetDatabase(ECS::Sequencer* sequencer) : m_sequencer(sequencer) {}
+
             template<typename T, typename ... Args>
             T* CreateProcedural(std::string name, Args&& ... args)
             {
@@ -310,5 +332,6 @@ namespace PK::Core
 
         private:
             std::unordered_map<std::type_index, std::unordered_map<AssetID, Ref<Asset>>> m_assets;
+            ECS::Sequencer* m_sequencer;
     };
 }

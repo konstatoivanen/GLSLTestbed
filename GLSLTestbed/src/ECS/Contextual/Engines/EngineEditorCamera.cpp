@@ -17,6 +17,10 @@ namespace PK::ECS::Engines
 		m_moveSmoothing = glm::clamp(config->CameraMoveSmoothing.value, 0.0f, 1.0f);
 		m_rotationSmoothing = glm::clamp(config->CameraLookSmoothing.value, 0.0f, 1.0f);
 		m_sensitivity = config->CameraLookSensitivity / 1000.0f;
+	
+		m_eulerAngles = config->CameraStartRotation.value;
+		m_position = m_smoothPosition = config->CameraStartPosition.value;
+		m_rotation = m_smoothRotation = glm::quat(m_eulerAngles);
 	}
 	
 	void EngineEditorCamera::Step(Input* input)
@@ -31,8 +35,18 @@ namespace PK::ECS::Engines
 		}
 	
 		auto speed = input->GetKey(KeyCode::LEFT_CONTROL) ? (m_moveSpeed * 0.25f) : input->GetKey(KeyCode::LEFT_SHIFT) ? (m_moveSpeed * 5) : m_moveSpeed;
-		auto offset = input->GetAxis3D(KeyCode::Q, KeyCode::E, KeyCode::W, KeyCode::S, KeyCode::D, KeyCode::A) * deltaTime * speed;
-	
+		auto offset = input->GetAxis3D(KeyCode::Q, KeyCode::E, KeyCode::W, KeyCode::S, KeyCode::D, KeyCode::A);
+		auto length = glm::length(offset);
+
+		if (length > 0)
+		{
+			offset /= length;
+			offset *= deltaTime * speed;
+		}
+
+		m_rotation = glm::quat(m_eulerAngles);
+		m_position += m_rotation * offset;
+
 		auto fdelta = input->GetMouseScrollY() * deltaTime * 1000.0f;
 	
 		if (input->GetKey(KeyCode::LEFT_SHIFT))
@@ -41,11 +55,11 @@ namespace PK::ECS::Engines
 			auto fov1 = m_fieldOfView - fdelta;
 			auto fd0 = Functions::Cot(fov0 * CG_FLOAT_DEG2RAD * 0.5f);
 			auto fd1 = Functions::Cot(fov1 * CG_FLOAT_DEG2RAD * 0.5f);
-			offset.z += (fd0 - fd1);
+			auto zoomOffset = m_rotation * float3(0, 0, fd0 - fd1);
+
+			m_position += zoomOffset;
+			m_smoothPosition += zoomOffset;
 		}
-	
-		m_rotation = glm::quat(m_eulerAngles);
-		m_position += m_rotation * offset;
 	
 		m_fieldOfView -= fdelta;
 	
@@ -55,5 +69,14 @@ namespace PK::ECS::Engines
 		auto proj = Functions::GetPerspective(m_fieldOfView, Application::GetWindow().GetAspect(), m_zNear, m_zFar);
 		auto view = Functions::GetMatrixInvTRS(m_smoothPosition, m_smoothRotation, CG_FLOAT3_ONE);
 		Rendering::GraphicsAPI::SetViewProjectionMatrices(view, proj);
+	}
+
+	void EngineEditorCamera::Step(ConsoleCommandToken* token)
+	{
+		if (!token->isConsumed && token->argument == "log_camera_transform")
+		{
+			token->isConsumed = true;
+			PK_CORE_LOG("Camera Pos: [%f, %f, %f], Rot: [%f,%f,%f]", m_position.x, m_position.y, m_position.z, m_eulerAngles.x, m_eulerAngles.y, m_eulerAngles.z);
+		}
 	}
 }

@@ -18,5 +18,6 @@ namespace PK::Rendering::PostProcessing
             Structs::ShaderPropertyBlock m_properties;
             Shader* m_shader = nullptr;
             virtual ~FilterBase() = default;
+
     };
 }

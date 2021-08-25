@@ -15,6 +15,7 @@ namespace PK::Rendering::PostProcessing
             FilterAO(AssetDatabase* assetDatabase, const ApplicationConfig* config);
             void OnPreRender(const RenderTexture* source);
             void Execute();
+            void OnUpdateParameters(const ApplicationConfig* config);
 
         private:
             float m_intensity = 0.0f;

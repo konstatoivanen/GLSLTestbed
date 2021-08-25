@@ -20,7 +20,11 @@
 
 namespace PK::Rendering
 {
-    class RenderPipeline : public IService, public PK::ECS::ISimpleStep, public PK::ECS::IStep<Time>, public PK::ECS::IStep<Input>
+    class RenderPipeline : public IService, 
+                           public PK::ECS::ISimpleStep, 
+                           public PK::ECS::IStep<Time>, 
+                           public PK::ECS::IStep<Input>, 
+                           public PK::ECS::IStep<AssetImportToken<ApplicationConfig>>
     {
         public:
             RenderPipeline(AssetDatabase* assetDatabase, PK::ECS::EntityDatabase* entityDb, const ApplicationConfig* config);
@@ -28,12 +32,14 @@ namespace PK::Rendering
             void Step(Time* token) override;
             void Step(Input* token) override;
             void Step(int condition) override;
+            void Step(AssetImportToken<ApplicationConfig>* token) override;
     
         private:
             void OnPreRender();
             void OnRender();
     
             bool m_enableLightingDebug;
+            bool m_logframerate;
 
             GraphicsContext m_context;  
             PK::ECS::EntityDatabase* m_entityDb;

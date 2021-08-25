@@ -156,4 +156,14 @@ namespace PK::Rendering
         GraphicsAPI::SetGlobalComputeBuffer(HashCache::Get()->pk_GizmoVertices, m_vertexBuffer->GetGraphicsID());
         GraphicsAPI::DrawProcedural(m_gizmoShader, GL_LINES, 0, m_vertexCount);
     }
+
+    void GizmoRenderer::Step(ConsoleCommandToken* token)
+    {
+        if (!token->isConsumed && token->argument == "toggle_gizmos")
+        {
+            m_enabled ^= true;
+            token->isConsumed = true;
+            PK_CORE_LOG("Gizmos %s", (m_enabled ? "Enabled" : "Disabled"));
+        }
+    }
 }

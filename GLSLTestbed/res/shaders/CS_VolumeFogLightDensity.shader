@@ -25,7 +25,7 @@ float3 GetAmbientColor(float3 position, float3 direction, float3 viewdir)
 
 	float4 scenegi = SampleGIVolumetric(position);
 	float3 staticgi = SampleEnvironment(OctaUV(direction), 1.0f) * anistropy;
-	return lerp(staticgi, scenegi.rgb, scenegi.a);
+	return staticgi * scenegi.a + scenegi.rgb;
 }
 
 layout(local_size_x = 16, local_size_y = 2, local_size_z = 16) in;

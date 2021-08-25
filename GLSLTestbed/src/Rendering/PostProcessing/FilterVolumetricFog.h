@@ -14,6 +14,7 @@ namespace PK::Rendering::PostProcessing
         public:
             FilterVolumetricFog(AssetDatabase* assetDatabase, const ApplicationConfig* config);
             void Execute(const RenderTexture* source, const RenderTexture* destination);
+            void OnUpdateParameters(const ApplicationConfig* config);
 
         private:
             Utilities::Ref<ConstantBuffer> m_volumeResources;

@@ -49,12 +49,8 @@ namespace PK::Rendering::PostProcessing
 
         m_paramsBuffer->SetResourceHandle(StringHashID::StringToID("pk_Foreground"), m_renderTarget1->GetColorBuffer(0)->GetBindlessHandleResident());
         m_paramsBuffer->SetResourceHandle(StringHashID::StringToID("pk_Background"), m_renderTarget1->GetColorBuffer(1)->GetBindlessHandleResident());
-        m_paramsBuffer->SetFloat(HashCache::Get()->pk_FocalLength, config->CameraFocalLength);
-        m_paramsBuffer->SetFloat(HashCache::Get()->pk_FNumber, config->CameraFNumber);
-        m_paramsBuffer->SetFloat(HashCache::Get()->pk_FilmHeight, config->CameraFilmHeight);
-        m_paramsBuffer->SetFloat(HashCache::Get()->pk_FocusSpeed, config->CameraFocusSpeed);
         m_paramsBuffer->SetFloat(HashCache::Get()->pk_MaximumCoC, std::min(0.05f, 10.0f / config->InitialHeight));
-        m_paramsBuffer->FlushBuffer();
+        OnUpdateParameters(config);
         m_properties.SetConstantBuffer(HashCache::Get()->pk_DofParams, m_paramsBuffer->GetGraphicsID());
         m_properties.SetComputeBuffer(HashCache::Get()->pk_AutoFocusParams, m_autoFocusBuffer->GetGraphicsID());
     }
@@ -88,5 +84,14 @@ namespace PK::Rendering::PostProcessing
         m_properties.SetKeywords({ m_passKeywords[1] });
         GraphicsAPI::Blit(m_renderTarget0->GetColorBuffer(0), m_renderTarget1.get(), m_shader, m_properties);
         GraphicsAPI::Blit(destination, m_shaderComposite, m_properties);
+    }
+
+    void FilterDof::OnUpdateParameters(const ApplicationConfig* config)
+    {
+        m_paramsBuffer->SetFloat(HashCache::Get()->pk_FocalLength, config->CameraFocalLength);
+        m_paramsBuffer->SetFloat(HashCache::Get()->pk_FNumber, config->CameraFNumber);
+        m_paramsBuffer->SetFloat(HashCache::Get()->pk_FilmHeight, config->CameraFilmHeight);
+        m_paramsBuffer->SetFloat(HashCache::Get()->pk_FocusSpeed, config->CameraFocusSpeed);
+        m_paramsBuffer->FlushBuffer();
     }
 }

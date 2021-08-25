@@ -14,9 +14,7 @@ namespace PK::Rendering::PostProcessing
 
     FilterAO::FilterAO(AssetDatabase* assetDatabase, const ApplicationConfig* config) : FilterBase(assetDatabase->Find<Shader>("SH_VS_FilterAO"))
     {
-        m_radius = config->AmbientOcclusionRadius;
-        m_intensity = config->AmbientOcclusionIntensity;
-        m_downsample = config->AmbientOcclusionDownsample;
+        OnUpdateParameters(config);
         m_passKeywords[0] = StringHashID::StringToID("AO_PASS0");
         m_passKeywords[1] = StringHashID::StringToID("AO_PASS1");
         m_passBuffer = CreateRef<ComputeBuffer>(BufferLayout({ {CG_TYPE::HANDLE, "SOURCE"}, { CG_TYPE::FLOAT2, "OFFSET" }, { CG_TYPE::UINT2, "READWRITE" } }), 3, true, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
@@ -77,5 +75,12 @@ namespace PK::Rendering::PostProcessing
         m_properties.SetKeywords({ m_passKeywords[1] });
         GraphicsAPI::BlitInstanced(1, 1, m_renderTargets[1].get(), m_shader, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT);
         GraphicsAPI::BlitInstanced(2, 1, m_renderTargets[1].get(), m_shader, m_properties, GL_TEXTURE_FETCH_BARRIER_BIT);
+    }
+
+    void FilterAO::OnUpdateParameters(const ApplicationConfig* config)
+    {
+        m_radius = config->AmbientOcclusionRadius;
+        m_intensity = config->AmbientOcclusionIntensity;
+        m_downsample = config->AmbientOcclusionDownsample;
     }
 }

@@ -7,11 +7,12 @@
 #include "Core/UpdateStep.h"
 #include "Core/Application.h"
 #include "Core/ApplicationConfig.h"
+#include "Core/CommandConfig.h"
 #include "Rendering/RenderPipeline.h"
 #include "Rendering/GizmoRenderer.h"
 #include "ECS/Contextual/Engines/EngineEditorCamera.h"
-#include "ECS/Contextual/Engines/DebugEngine.h"
-#include "ECS/Contextual/Engines/CommandEngine.h"
+#include "ECS/Contextual/Engines/EngineDebug.h"
+#include "ECS/Contextual/Engines/EngineCommandInput.h"
 #include "ECS/Contextual/Engines/EngineUpdateTransforms.h"
 #include "Rendering/GraphicsAPI.h"
 #include <math.h>
@@ -36,10 +37,12 @@ namespace PK::Core
 		m_services->Create<HashCache>();
 		auto entityDb = m_services->Create<PK::ECS::EntityDatabase>();
 		auto sequencer = m_services->Create<PK::ECS::Sequencer>();
-		auto assetDatabase = m_services->Create<AssetDatabase>();
+		auto assetDatabase = m_services->Create<AssetDatabase>(sequencer);
 		
 		assetDatabase->LoadDirectory<ApplicationConfig>("res/configs/");
+		assetDatabase->LoadDirectory<CommandConfig>("res/configs/");
 		auto config = assetDatabase->Find<ApplicationConfig>("Active");
+		auto commandConfig = assetDatabase->Find<CommandConfig>("Active");
 
 		auto time = m_services->Create<Time>(sequencer, config->TimeScale);
 		auto input = m_services->Create<Input>(sequencer);
@@ -56,9 +59,9 @@ namespace PK::Core
 		auto renderPipeline = m_services->Create<RenderPipeline>(assetDatabase, entityDb, config);
 		auto engineEditorCamera = m_services->Create<ECS::Engines::EngineEditorCamera>(time, config);
 		auto engineUpdateTransforms = m_services->Create<ECS::Engines::EngineUpdateTransforms>(entityDb);
-		auto engineDebug = m_services->Create<ECS::Engines::DebugEngine>(assetDatabase, time, entityDb, config);
+		auto engineDebug = m_services->Create<ECS::Engines::EngineDebug>(assetDatabase, entityDb, config);
 		auto gizmoRenderer = m_services->Create<GizmoRenderer>(sequencer, assetDatabase, config->EnableGizmos);
-		auto engineCommands = m_services->Create<ECS::Engines::CommandEngine>(assetDatabase, time, entityDb);
+		auto engineCommands = m_services->Create<ECS::Engines::EngineCommandInput>(assetDatabase, sequencer, time, entityDb, commandConfig);
 
 		sequencer->SetSteps(
 		{
@@ -74,14 +77,26 @@ namespace PK::Core
 					{ (int)UpdateStep::CloseFrame,		{ PK_STEP_S(renderPipeline), input, time }},
 				}
 			},
-			{ 
-				input, 
-				{ 
-					PK_STEP_T(engineDebug, Input), 
-					PK_STEP_T(engineCommands, Input), 
+			{
+				input,
+				{
+					PK_STEP_T(engineCommands, Input),
 					PK_STEP_T(engineEditorCamera, Input),
-					PK_STEP_T(renderPipeline, Input) 
-				} 
+					PK_STEP_T(renderPipeline, Input)
+				}
+			},
+			{
+				engineCommands,
+				{
+					PK_STEP_T(engineEditorCamera, ConsoleCommandToken),
+					PK_STEP_T(gizmoRenderer, ConsoleCommandToken)
+				}
+			},
+			{
+				assetDatabase,
+				{
+					{ (int)AssetImportType::RELOAD, { PK_STEP_T(renderPipeline, AssetImportToken<ApplicationConfig>) } }
+				}
 			},
 			{ time, { PK_STEP_T(renderPipeline, Time) } },
 			{ gizmoRenderer, { PK_STEP_T(engineDebug, GizmoRenderer) }}
