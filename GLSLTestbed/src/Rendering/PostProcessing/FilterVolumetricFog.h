@@ -19,7 +19,7 @@ namespace PK::Rendering::PostProcessing
         private:
             Utilities::Ref<ConstantBuffer> m_volumeResources;
             Utilities::Ref<ComputeBuffer> m_depthTiles;
-            Utilities::Ref<RenderBuffer> m_volumeLightDensity;
+            Utilities::Ref<RenderBuffer> m_volumeInject;
             Utilities::Ref<RenderBuffer> m_volumeScatter;
             Shader* m_computeInject = nullptr;
             Shader* m_computeScatter = nullptr;

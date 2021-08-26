@@ -28,6 +28,7 @@ namespace PK::Utilities
         DEFINE_HASH_CACHE(pk_MATRIX_I_P)
         DEFINE_HASH_CACHE(pk_MATRIX_VP)
         DEFINE_HASH_CACHE(pk_MATRIX_I_VP)
+        DEFINE_HASH_CACHE(pk_MATRIX_L_VP)
         uint32_t pk_SHA[3] = { StringHashID::StringToID("pk_SHAr"), StringHashID::StringToID("pk_SHAg"), StringHashID::StringToID("pk_SHAb") };
         uint32_t pk_SHB[3] = { StringHashID::StringToID("pk_SHBr"), StringHashID::StringToID("pk_SHBg"), StringHashID::StringToID("pk_SHBb") };
         DEFINE_HASH_CACHE(pk_SHC)
@@ -106,6 +107,7 @@ namespace PK::Utilities
         DEFINE_HASH_CACHE(pk_Volume_NoiseFogScale)
         DEFINE_HASH_CACHE(pk_Volume_WindSpeed)
         DEFINE_HASH_CACHE(pk_Volume_ScatterRead)
+        DEFINE_HASH_CACHE(pk_Volume_InjectRead)
         DEFINE_HASH_CACHE(pk_Volume_Inject)
         DEFINE_HASH_CACHE(pk_Volume_Scatter)
         DEFINE_HASH_CACHE(pk_VolumeResources)

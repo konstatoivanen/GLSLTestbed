@@ -9,11 +9,14 @@ void main()
 {
 	float4 accumulation = float4(0, 0, 0, 1);
 	int3 pos = int3(gl_GlobalInvocationID.xy, 0);
+	float3 vpos = ClipToViewPos((VOLUME_SIZE_ST.zz + pos.xy) * VOLUME_SIZE_ST.xy, 1.0f);
 
 	#pragma unroll VOLUME_DEPTH
 	for (;pos.z < VOLUME_DEPTH; ++pos.z)
 	{
-		float slicewidth = GetVolumeSliceWidth(pos.z);
+		float2 depths = GetVolumeCellDepth(float2(pos.z, pos.z + 1.0f));
+		float depth = lerp(depths.x, depths.y, 0.5f);
+		float slicewidth = depths.y - depths.x;
 
 		float4 slice = imageLoad(pk_Volume_Inject, pos);
 
@@ -23,8 +26,8 @@ void main()
 		accumulation.rgb += lightintegral * accumulation.a;
 		accumulation.a *= transmittance;
 
-		float4 preval = imageLoad(pk_Volume_Scatter, pos);
-		float4 outval = lerp(preval, accumulation, VOLUME_ACCUMULATION_SC);
+		float4 preval = tex2D(pk_Volume_ScatterRead, ReprojectViewToCoord(vpos * depth));
+		float4 outval = lerp(preval, accumulation, VOLUME_ACCUMULATION);
 
 		imageStore(pk_Volume_Scatter, pos, outval);
 	}

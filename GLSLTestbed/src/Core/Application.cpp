@@ -13,6 +13,7 @@
 #include "ECS/Contextual/Engines/EngineEditorCamera.h"
 #include "ECS/Contextual/Engines/EngineDebug.h"
 #include "ECS/Contextual/Engines/EngineCommandInput.h"
+#include "ECS/Contextual/Engines/EngineScreenshot.h"
 #include "ECS/Contextual/Engines/EngineUpdateTransforms.h"
 #include "Rendering/GraphicsAPI.h"
 #include <math.h>
@@ -59,6 +60,7 @@ namespace PK::Core
 		auto renderPipeline = m_services->Create<RenderPipeline>(assetDatabase, entityDb, config);
 		auto engineEditorCamera = m_services->Create<ECS::Engines::EngineEditorCamera>(time, config);
 		auto engineUpdateTransforms = m_services->Create<ECS::Engines::EngineUpdateTransforms>(entityDb);
+		auto engineScreenshot = m_services->Create<ECS::Engines::EngineScreenshot>();
 		auto engineDebug = m_services->Create<ECS::Engines::EngineDebug>(assetDatabase, entityDb, config);
 		auto gizmoRenderer = m_services->Create<GizmoRenderer>(sequencer, assetDatabase, config->EnableGizmos);
 		auto engineCommands = m_services->Create<ECS::Engines::EngineCommandInput>(assetDatabase, sequencer, time, entityDb, commandConfig);
@@ -72,7 +74,7 @@ namespace PK::Core
 					{ (int)UpdateStep::UpdateInput,		{ input } },
 					{ (int)UpdateStep::UpdateEngines,	{ PK_STEP_S(engineDebug), PK_STEP_S(engineUpdateTransforms) }},
 					{ (int)UpdateStep::PreRender,		{ PK_STEP_S(renderPipeline) }},
-					{ (int)UpdateStep::Render,			{ PK_STEP_S(renderPipeline), PK_STEP_S(gizmoRenderer) }},
+					{ (int)UpdateStep::Render,			{ PK_STEP_S(renderPipeline), PK_STEP_S(gizmoRenderer), PK_STEP_S(engineScreenshot) }},
 					{ (int)UpdateStep::PostRender,		{ PK_STEP_S(renderPipeline) }},
 					{ (int)UpdateStep::CloseFrame,		{ PK_STEP_S(renderPipeline), input, time }},
 				}
@@ -89,7 +91,8 @@ namespace PK::Core
 				engineCommands,
 				{
 					PK_STEP_T(engineEditorCamera, ConsoleCommandToken),
-					PK_STEP_T(gizmoRenderer, ConsoleCommandToken)
+					PK_STEP_T(gizmoRenderer, ConsoleCommandToken),
+					PK_STEP_T(engineScreenshot, ConsoleCommandToken),
 				}
 			},
 			{

@@ -101,6 +101,7 @@ namespace PK::Rendering
 			{CG_TYPE::FLOAT4X4, "pk_MATRIX_I_P"},
 			{CG_TYPE::FLOAT4X4, "pk_MATRIX_VP"},
 			{CG_TYPE::FLOAT4X4, "pk_MATRIX_I_VP"},
+			{CG_TYPE::FLOAT4X4, "pk_MATRIX_L_VP"},
 			{CG_TYPE::HANDLE, "pk_SceneOEM_HDR"},
 			{CG_TYPE::HANDLE, "pk_ScreenNormals"},
 			{CG_TYPE::HANDLE, "pk_ScreenDepth"},

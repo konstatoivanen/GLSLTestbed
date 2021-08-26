@@ -22,7 +22,7 @@ namespace PK::Rendering::PostProcessing
         descriptor.wrapmodez = GL_CLAMP_TO_EDGE;
         descriptor.resolution = VolumeResolution;
 
-        m_volumeLightDensity = CreateRef<RenderBuffer>(descriptor);
+        m_volumeInject = CreateRef<RenderBuffer>(descriptor);
         m_volumeScatter = CreateRef<RenderBuffer>(descriptor);
 
         m_depthTiles = CreateRef<ComputeBuffer>(BufferLayout({ {CG_TYPE::UINT, "DEPTHMAX"} }), VolumeResolution.x * VolumeResolution.y, true, GL_NONE);
@@ -45,11 +45,12 @@ namespace PK::Rendering::PostProcessing
             {CG_TYPE::FLOAT, "pk_Volume_NoiseFogScale"},
             {CG_TYPE::FLOAT, "pk_Volume_WindSpeed"},
             {CG_TYPE::HANDLE, "pk_Volume_ScatterRead"},
+            {CG_TYPE::HANDLE, "pk_Volume_InjectRead"},
         }));
 
         OnUpdateParameters(config);
 
-        m_properties.SetImage(HashCache::Get()->pk_Volume_Inject, m_volumeLightDensity->GetImageBindDescriptor(GL_READ_WRITE, 0, 0, true));
+        m_properties.SetImage(HashCache::Get()->pk_Volume_Inject, m_volumeInject->GetImageBindDescriptor(GL_READ_WRITE, 0, 0, true));
         m_properties.SetImage(HashCache::Get()->pk_Volume_Scatter, m_volumeScatter->GetImageBindDescriptor(GL_READ_WRITE, 0, 0, true));
         m_properties.SetConstantBuffer(HashCache::Get()->pk_VolumeResources, m_volumeResources->GetGraphicsID());
         m_properties.SetComputeBuffer(HashCache::Get()->pk_VolumeMaxDepths, m_depthTiles->GetGraphicsID());
@@ -83,6 +84,7 @@ namespace PK::Rendering::PostProcessing
         m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_NoiseFogScale, config->VolumeNoiseFogScale);
         m_volumeResources->SetFloat(HashCache::Get()->pk_Volume_WindSpeed, config->VolumeWindSpeed);
         m_volumeResources->SetResourceHandle(HashCache::Get()->pk_Volume_ScatterRead, m_volumeScatter->GetBindlessHandleResident());
+        m_volumeResources->SetResourceHandle(HashCache::Get()->pk_Volume_InjectRead, m_volumeInject->GetBindlessHandleResident());
         m_volumeResources->FlushBuffer();
     }
 }

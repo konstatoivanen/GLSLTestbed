@@ -66,11 +66,11 @@ void main()
 	
 	float density = Density(worldpos);
 
-	float4 preval = imageLoad(pk_Volume_Inject, int3(id));
+	float4 preval = tex2D(pk_Volume_InjectRead, ReprojectWorldToCoord(worldpos));
 	float4 curval = float4(pk_Volume_Intensity * density * color, density);
 
-	curval = lerp(preval, curval, VOLUME_ACCUMULATION_LD);
-	curval.a = max(curval.a, VOLUME_MIN_DENSITY);
+	curval = lerp(preval, curval, VOLUME_ACCUMULATION);
+	curval.a = VOLUME_MIN_DENSITY + curval.a;
 
 	imageStore(pk_Volume_Inject, int3(id), curval);
 }

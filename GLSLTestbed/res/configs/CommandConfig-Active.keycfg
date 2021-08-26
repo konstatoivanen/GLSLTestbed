@@ -4,4 +4,5 @@ Commands:
     - ["C", "reload time"]
     - ["V", "application contextual log_camera_transform"]
     - ["G", "application contextual toggle_gizmos"]
+    - ["N", "application contextual take_screenshot"]
     - ["B", "reload appconfig res/configs/"]

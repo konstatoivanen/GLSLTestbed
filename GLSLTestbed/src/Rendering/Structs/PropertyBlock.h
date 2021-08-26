@@ -79,6 +79,18 @@ namespace PK::Rendering::Structs
 			{
 				return GetElementPtr<T>(m_properties.at(hashId));
 			}
+
+			template<typename T>
+			const bool TryGetPropertyValue(const uint hashId, T& value) const
+			{
+				if (m_properties.count(hashId))
+				{
+					value = *GetElementPtr<T>(m_properties.at(hashId));
+					return true;
+				}
+
+				return false;
+			}
 	
 			std::unordered_map<uint, PropertyInfo>::iterator begin() { return m_properties.begin(); }
 			std::unordered_map<uint, PropertyInfo>::iterator end() { return m_properties.end(); }

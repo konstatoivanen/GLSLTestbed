@@ -60,6 +60,8 @@ PK_DECLARE_CBUFFER(pk_PerFrameConstants)
     float4x4 pk_MATRIX_VP;
     // Current inverse view * projection matrix.
     float4x4 pk_MATRIX_I_VP;
+    // Last view * projection matrix.
+    float4x4 pk_MATRIX_L_VP;
 
     // Scene reflections
     sampler2D pk_SceneOEM_HDR;
@@ -168,6 +170,14 @@ float3 ClipToViewPos(float2 uv, float linearDeth)
     return float3((uv * 2 - 1) * float2(pk_MATRIX_I_P[0][0], pk_MATRIX_I_P[1][1]), 1) * linearDeth;
 }      
 
+float3 ClipToUVW(float4 clippos)
+{
+    float3 uvw = clippos.xyz / clippos.w;
+    uvw.xy = uvw.xy * 0.5f + 0.5f;
+    uvw.z = uvw.z * 0.5f + 0.5f;
+    return uvw;
+}
+
 float3 ScreenToViewPos(float3 screenpos) 
 {
     float2 texCoord = screenpos.xy * pk_ScreenParams.zw;
@@ -191,10 +201,7 @@ float3x3 ComposeMikkTangentSpaceMatrix(float3 normal, float4 tangent)
 bool TryGetWorldToClipUVW(float3 worldpos, inout float3 uvw)
 {
     float4 clippos = WorldToClipPos(worldpos);
-    uvw = clippos.xyz / clippos.w;
-    uvw.xy = uvw.xy * 0.5f + 0.5f;
-    uvw.z = uvw.z * 0.5f + 0.5f;
-
+    uvw = ClipToUVW(clippos);
     return clippos.z > 0.0f && all(lessThan(abs(clippos.xy / clippos.w), 1.0f.xx));
 }
 

@@ -169,6 +169,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClInclude Include="src\Core\NoCopy.h" />
     <ClInclude Include="src\ECS\Contextual\Builders\Builders.h" />
     <ClInclude Include="src\ECS\Contextual\Engines\EngineCommandInput.h" />
+    <ClInclude Include="src\ECS\Contextual\Engines\EngineScreenshot.h" />
     <ClInclude Include="src\ECS\Contextual\Engines\EngineUpdateTransforms.h" />
     <ClInclude Include="src\ECS\Contextual\Components\Components.h" />
     <ClInclude Include="src\ECS\Contextual\EntityViews\EntityViews.h" />
@@ -818,6 +819,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <ClCompile Include="src\Core\CommandConfig.cpp" />
     <ClCompile Include="src\ECS\Contextual\Builders\Builders.cpp" />
     <ClCompile Include="src\ECS\Contextual\Engines\EngineCommandInput.cpp" />
+    <ClCompile Include="src\ECS\Contextual\Engines\EngineScreenshot.cpp" />
     <ClCompile Include="src\ECS\Contextual\Engines\EngineUpdateTransforms.cpp" />
     <ClCompile Include="src\Rendering\Batching.cpp" />
     <ClCompile Include="src\Rendering\Culling.cpp" />

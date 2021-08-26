@@ -10,9 +10,7 @@
 #define VOLUME_COMPOSITE_DITHER_AMOUNT 2.0f * float3(0.00625f, 0.0111111111111111f, 0.0078125f)
 #define VOLUME_DEPTH_BATCH_SIZE_PX 16
 #define VOLUME_MIN_DENSITY 0.000001f
-
-#define VOLUME_ACCUMULATION_LD min(1.0f, 35.0f * max(pk_DeltaTime.x, 0.01f))
-#define VOLUME_ACCUMULATION_SC min(1.0f, 14.0f * max(pk_DeltaTime.x, 0.01f))
+#define VOLUME_ACCUMULATION clamp(20.0f * pk_DeltaTime.x, 0.01f, 1.0f)
 
 PK_DECLARE_CBUFFER(pk_VolumeResources)
 {
@@ -28,10 +26,13 @@ PK_DECLARE_CBUFFER(pk_VolumeResources)
     float pk_Volume_NoiseFogScale;
     float pk_Volume_WindSpeed;
     sampler3D pk_Volume_ScatterRead;
+    sampler3D pk_Volume_InjectRead;
 };
 
 layout(rgba16f) uniform image3D pk_Volume_Inject;
 layout(rgba16f) uniform image3D pk_Volume_Scatter;
+
+const float4x4 pk_MATRIX_LD_VP = mul(pk_MATRIX_L_VP, pk_MATRIX_I_V);
 
 PK_DECLARE_BUFFER(uint, pk_VolumeMaxDepths);
 
@@ -42,20 +43,33 @@ float GetVolumeCellDepth(float index)
     return pk_ProjectionParams.x * pow(pk_ExpProjectionParams.z, index / VOLUME_DEPTH);
 }
 
+float2 GetVolumeCellDepth(float2 index)
+{
+    return pk_ProjectionParams.xx * pow(pk_ExpProjectionParams.zz, index * VOLUME_INV_DEPTH);
+}
+
 float GetVolumeWCoord(float depth)
 {
     return max(log2(depth) * pk_ExpProjectionParams.x + pk_ExpProjectionParams.y, 0.0);
 }
 
-float GetVolumeSliceWidth(int index)
-{
-    float2 nf = pk_ProjectionParams.xx * pow(pk_ExpProjectionParams.zz, float2(index, index + 1) * VOLUME_INV_DEPTH);
-    return nf.y - nf.x;
-}
-
 float3 GetVolumeCellNoise(uint3 id)
 {
     return GlobalNoiseBlue(id.xy + id.z * int2(VOLUME_WIDTH, VOLUME_HEIGHT) + int(pk_Time.w * 1000).xx);
+}
+
+float3 ReprojectWorldToCoord(float3 worldpos)
+{
+    float3 uvw = ClipToUVW(mul(pk_MATRIX_L_VP, float4(worldpos, 1.0f)));
+    uvw.z = GetVolumeWCoord(LinearizeDepth(uvw.z));
+    return uvw;
+}
+
+float3 ReprojectViewToCoord(float3 viewpos)
+{
+	float3 uvw = ClipToUVW(mul(pk_MATRIX_LD_VP, float4(viewpos, 1.0f)));
+    uvw.z = GetVolumeWCoord(LinearizeDepth(uvw.z));
+    return uvw;
 }
 
 uint GetVolumeDepthTileIndex(float2 uv)

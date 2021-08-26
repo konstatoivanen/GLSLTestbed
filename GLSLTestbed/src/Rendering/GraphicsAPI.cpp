@@ -247,6 +247,9 @@ namespace PK::Rendering::GraphicsAPI
 		auto n = Functions::GetZNearFromProj(projection);
 		auto f = Functions::GetZFarFromProj(projection);
 		auto vp = projection * view;
+		auto pvp = vp;
+
+		GLOBAL_PROPERTIES.TryGetPropertyValue(hashCache->pk_MATRIX_VP, pvp);
 
 		SetGlobalFloat4(hashCache->pk_ProjectionParams, { n, f, f - n, 1.0f / f });
 		SetGlobalFloat4(hashCache->pk_ExpProjectionParams, { 1.0f / glm::log2(f/n), -log2(n) / log2(f/n), f/n, 1.0f/n });
@@ -257,6 +260,7 @@ namespace PK::Rendering::GraphicsAPI
 		SetGlobalFloat4x4(hashCache->pk_MATRIX_I_P, glm::inverse(projection));
 		SetGlobalFloat4x4(hashCache->pk_MATRIX_VP, vp);
 		SetGlobalFloat4x4(hashCache->pk_MATRIX_I_VP, glm::inverse(vp));
+		SetGlobalFloat4x4(hashCache->pk_MATRIX_L_VP, pvp);
 	}
 	
 	void GraphicsAPI::SetModelMatrix(const float4x4& matrix)
