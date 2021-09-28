@@ -10,6 +10,7 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 - Clustered forward rendering.
 - Volumetric fog & lighting.
 - Realtime global illumination (Voxel cone tracing).
+- Temporal reprojection for volumetrics & screen space GI.
 - Variance shadow mapping.
 - Light cookies.
 - Point, spot & directional lights.
@@ -33,7 +34,6 @@ A Windows only OpenGL 4.6 renderer for testing different rendering techniques & 
 - Motion vectors.
 - Render queues (currently only supports opaque renderers).
 	- Transparent queue with back to front sorting. 
-- Temporal reprojection for blending inter frame results of different effects.
 - Documentation.
 
 ## Render Pipeline Execution Order
