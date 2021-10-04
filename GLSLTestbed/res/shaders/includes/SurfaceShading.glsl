@@ -87,7 +87,7 @@ float GetSurfaceAlphaReflectivity(inout SurfaceData surf)
     surf.albedo *= 1.0f - reflectivity;
     
     #if defined(PK_TRANSPARENT_PBR)
-        surf.albedo *= alpha;
+        surf.albedo *= surf.alpha;
         surf.alpha = reflectivity + surf.alpha * (1.0f - reflectivity);
     #endif
 

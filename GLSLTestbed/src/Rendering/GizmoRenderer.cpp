@@ -79,7 +79,7 @@ namespace PK::Rendering
     {
         float3 nearCorners[4];
         float3 farCorners[4];
-        FrustrumPlanes frustum;
+        FrustumPlanes frustum;
     
         Functions::ExtractFrustrumPlanes(matrix, &frustum, true);
     

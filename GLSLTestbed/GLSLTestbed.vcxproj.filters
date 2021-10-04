@@ -1711,6 +1711,7 @@
     <None Include="res\models\Columns.mdl" />
     <None Include="res\models\Tree.mdl" />
     <None Include="res\configs\CommandConfig-Active.keycfg" />
+    <None Include="res\textures\T_OEM_Desert.ktx" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\PrecompiledHeader.cpp">

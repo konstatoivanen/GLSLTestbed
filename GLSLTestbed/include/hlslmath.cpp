@@ -612,7 +612,7 @@ namespace PK::Math
 	}
 	
 	// https://www.gamedevs.org/uploads/fast-extraction-viewing-frustum-planes-from-world-view-projection-matrix.pdf
-	void Functions::ExtractFrustrumPlanes(const float4x4 viewprojection, FrustrumPlanes* frustrum, bool normalize)
+	void Functions::ExtractFrustrumPlanes(const float4x4 viewprojection, FrustumPlanes* frustrum, bool normalize)
 	{
 		float4* planes = frustrum->planes;
 		// Left clipping plane

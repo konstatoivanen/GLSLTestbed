@@ -22,7 +22,7 @@ namespace PK::Core
 			template<typename T>
 			inline static T* GetService() { return Get().m_services->Get<T>(); }
 	
-			inline static const Window& GetWindow() { return *(Get().m_window); }
+			inline static Window* GetWindow() { return Get().m_window.get(); }
 	
 		private:
 			void Run();

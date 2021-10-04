@@ -795,6 +795,7 @@ xcopy /y /s "$(ProjectDir)res" "$(TargetDir)res\"</Command>
     <None Include="res\textures\T_Metal_Rust_H.ktx" />
     <None Include="res\textures\T_Metal_Rust_MAOR.ktx" />
     <None Include="res\textures\T_Metal_Rust_N.ktx" />
+    <None Include="res\textures\T_OEM_Desert.ktx" />
     <None Include="res\textures\T_OEM_Mountains.ktx" />
     <None Include="res\textures\T_OEM_Mountains2.ktx" />
     <None Include="res\textures\T_OEM_Night.ktx" />

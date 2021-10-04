@@ -27,6 +27,20 @@ float3 SampleWorldSpaceNormal(float2 uv) { return mul(float3x3(pk_MATRIX_I_V), S
 
 float3 SampleWorldSpaceNormal(int2 coord) { return mul(float3x3(pk_MATRIX_I_V), SampleViewSpaceNormal(coord)); }
 
+float4 SampleWorldSpaceNormalRoughness(float2 uv) 
+{ 
+    float4 value = tex2D(pk_ScreenNormals, uv);
+    value.xyz = mul(float3x3(pk_MATRIX_I_V), value.xyz);
+    return value;
+}
+
+float4 SampleWorldSpaceNormalRoughness(int2 coord) 
+{ 
+    float4 value = texelFetch(pk_ScreenNormals, coord, 0);
+    value.xyz = mul(float3x3(pk_MATRIX_I_V), value.xyz);
+    return value;
+}
+
 float3 SampleViewPosition(float2 uv)
 {
     float depth = SampleLinearDepth(uv);

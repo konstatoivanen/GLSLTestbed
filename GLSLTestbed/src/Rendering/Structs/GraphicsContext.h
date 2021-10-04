@@ -23,5 +23,6 @@ namespace PK::Rendering::Structs
         uint4 ViewPort = CG_UINT4_ZERO;
         color ClearColor = CG_COLOR_CLEAR;
         float ClearDepth = 0.0f;
+        uint DrawIndex = 0;
     };
 }

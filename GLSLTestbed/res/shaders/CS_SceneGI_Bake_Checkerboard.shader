@@ -46,6 +46,7 @@ void main()
 	}
 
 	float3 worldposition = SampleWorldPosition(coord, size);
+	ReprojectNeighbours(basecoord, coord, size);
 
 	if (Greater(abs(WorldToVoxelClipSpace(worldposition)), 1.0f.xxx))
 	{
@@ -55,13 +56,13 @@ void main()
 	}
 
 	// Find a base for the side cones with the normal as one of its base vectors.
-	const float3 N = SampleWorldSpaceNormal(coord);
+	const float4 NR = SampleWorldSpaceNormalRoughness(coord);
+	const float3 N = NR.xyz;
 	const float3 O = worldposition;
 	const float3 V = normalize(worldposition - pk_WorldSpaceCameraPos.xyz);
 	const float3 R = reflect(V, N);
 	const float3 D = GlobalNoiseBlue(uint2(coord + pk_Time.xy * 512)).xyz;
 
 	imageStore(pk_SceneGI_DiffuseWrite, coord, ConeTraceDiffuse(O, N, D.x));
-	imageStore(pk_SceneGI_SpecularWrite, coord, ConeTraceSpecular(O, N, R, D.y, SampleRoughness(coord)));
-	ReprojectNeighbours(basecoord, coord, size);
+	imageStore(pk_SceneGI_SpecularWrite, coord, ConeTraceSpecular(O, N, R, D.y, NR.w));
 }

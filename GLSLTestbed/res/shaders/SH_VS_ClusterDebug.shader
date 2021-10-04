@@ -37,7 +37,7 @@ void main()
 	float maxcount = min(CLUSTER_TILE_MAX_LIGHT_COUNT, pk_LightCount);
 	float tileIntensity = (tile.end - tile.start) / (maxcount * 0.75f);
 
-	float4 color = float4(hsv2rgb(float3(maxfar, 1.0f, 1.0f)), 0.1f);
+	float4 color = float4(hsv2rgb(float3(tileIntensity, 1.0f, 1.0f)), 0.1f);
 
 	float2 border = 4.0f / ceil(pk_ScreenParams.xy / CLUSTER_TILE_COUNT_XY);
 	float2 griduv = vs_TEXCOORD0 * CLUSTER_TILE_COUNT_XY;

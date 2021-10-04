@@ -89,7 +89,11 @@ namespace PK::Rendering::GraphicsAPI
 	}
 	
 
-	void GraphicsAPI::OpenContext(GraphicsContext* context) { m_currentContext = context; }
+	void GraphicsAPI::OpenContext(GraphicsContext* context) 
+	{
+		m_currentContext = context;
+		m_currentContext->DrawIndex = 0u;
+	}
 
 	void GraphicsAPI::CloseContext() { m_currentContext = nullptr; }
 
@@ -399,6 +403,8 @@ namespace PK::Rendering::GraphicsAPI
 
 	void GraphicsAPI::ExecuteDrawCall(const DrawCallDescriptor& descriptor)
 	{
+		SetGlobalUInt(HashCache::Get()->pk_DebugDrawIndex, GetCurrentContext()->DrawIndex++);
+
 		if (descriptor.source != nullptr)
 		{
 			SetGlobalTexture(HashCache::Get()->_MainTex, descriptor.source->GetGraphicsID());

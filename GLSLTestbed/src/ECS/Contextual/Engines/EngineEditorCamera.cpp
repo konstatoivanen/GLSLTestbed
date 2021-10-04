@@ -9,6 +9,7 @@ namespace PK::ECS::Engines
 
 	EngineEditorCamera::EngineEditorCamera(Time* time, const ApplicationConfig* config)
 	{
+		m_config = config;
 		m_time = time;
 		m_moveSpeed = config->CameraSpeed;
 		m_fieldOfView = config->CameraFov;
@@ -66,7 +67,7 @@ namespace PK::ECS::Engines
 		m_smoothPosition = glm::mix(m_position, m_smoothPosition, m_moveSmoothing * (1.0f - deltaTime));
 		m_smoothRotation = glm::slerp(m_rotation, m_smoothRotation, m_rotationSmoothing * (1.0f - deltaTime));
 
-		auto proj = Functions::GetPerspective(m_fieldOfView, Application::GetWindow().GetAspect(), m_zNear, m_zFar);
+		auto proj = Functions::GetPerspective(m_fieldOfView, Application::GetWindow()->GetAspect(), m_zNear, m_zFar);
 		auto view = Functions::GetMatrixInvTRS(m_smoothPosition, m_smoothRotation, CG_FLOAT3_ONE);
 		Rendering::GraphicsAPI::SetViewProjectionMatrices(view, proj);
 	}
@@ -77,6 +78,17 @@ namespace PK::ECS::Engines
 		{
 			token->isConsumed = true;
 			PK_CORE_LOG("Camera Pos: [%f, %f, %f], Rot: [%f,%f,%f]", m_position.x, m_position.y, m_position.z, m_eulerAngles.x, m_eulerAngles.y, m_eulerAngles.z);
+			return;
+		}
+
+		if (!token->isConsumed && token->argument == "reset_camera_transform")
+		{
+			token->isConsumed = true;
+			m_eulerAngles = m_config->CameraStartRotation.value;
+			m_position = m_smoothPosition = m_config->CameraStartPosition.value;
+			m_rotation = m_smoothRotation = glm::quat(m_eulerAngles);
+			PK_CORE_LOG("Camera Transform Reset!");
+			return;
 		}
 	}
 }

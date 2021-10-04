@@ -20,6 +20,7 @@ namespace PK::ECS::Engines
 		Exit,
 		Application,
 		Contextual,
+		VSync,
 		Assets,
 		StringParameter,
 		Variants,
@@ -48,6 +49,7 @@ namespace PK::ECS::Engines
 		private:
 			void ApplicationExit(const ConsoleCommand& arguments);
 			void ApplicationContextual(const ConsoleCommand& arguments);
+			void ApplicationSetVSync(const ConsoleCommand& arguments);
 			void QueryShaderVariants(const ConsoleCommand& arguments);
 			void QueryShaderUniforms(const ConsoleCommand& arguments);
 			void QueryGPUMemory(const ConsoleCommand& arguments);

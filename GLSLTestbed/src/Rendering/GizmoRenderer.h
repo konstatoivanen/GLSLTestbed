@@ -38,7 +38,7 @@ namespace PK::Rendering
             GizmoVertex* ReserveVertices(uint count);
     
             ECS::Sequencer* m_sequencer = nullptr;
-            FrustrumPlanes m_frustrumPlanes;
+            FrustumPlanes m_frustrumPlanes;
             Ref<ComputeBuffer> m_vertexBuffer;
             Shader* m_gizmoShader = nullptr;
             std::vector<GizmoVertex> m_vertices;

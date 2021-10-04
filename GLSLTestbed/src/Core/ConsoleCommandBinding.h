@@ -12,7 +12,7 @@ namespace PK::Core
 
 	struct ConsoleCommandBinding
 	{
-		PK::Core::KeyCode keycode;
+		PK::Core::KeyCode keycode = PK::Core::KeyCode::MOUSE1;
 		std::string command;
 	};
 

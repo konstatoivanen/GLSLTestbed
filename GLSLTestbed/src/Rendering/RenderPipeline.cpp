@@ -63,14 +63,14 @@ namespace PK::Rendering
 		m_OEMBackgroundShader = assetDatabase->Find<Shader>("SH_VS_IBLBackground");
 		m_OEMTexture = assetDatabase->Load<TextureXD>(config->FileBackgroundTexture.value.c_str());
 		m_OEMExposure = config->BackgroundExposure;
-
+	
 		m_enableLightingDebug = config->EnableLightingDebug;
 		m_logframerate = config->EnableFrameRateLog;
-	
+
 		auto renderTargetDescriptor = RenderTextureDescriptor();
 		renderTargetDescriptor.colorFormats = { GL_RGBA16F };
 		renderTargetDescriptor.depthFormat = GL_DEPTH24_STENCIL8;
-		renderTargetDescriptor.resolution = { Application::GetWindow().GetWidth(), Application::GetWindow().GetHeight(), 0 };
+		renderTargetDescriptor.resolution = { Application::GetWindow()->GetWidth(), Application::GetWindow()->GetHeight(), 0 };
 		renderTargetDescriptor.filtermin = GL_NEAREST;
 		renderTargetDescriptor.filtermag = GL_LINEAR;
 		renderTargetDescriptor.wrapmodex = GL_CLAMP_TO_EDGE;
@@ -162,6 +162,9 @@ namespace PK::Rendering
 
 	void RenderPipeline::Step(AssetImportToken<ApplicationConfig>* token)
 	{
+		m_enableLightingDebug = token->asset->EnableLightingDebug;
+		m_logframerate = token->asset->EnableFrameRateLog;
+
 		m_OEMTexture = token->assetDatabase->Load<TextureXD>(token->asset->FileBackgroundTexture.value.c_str());
 		m_OEMExposure = token->asset->BackgroundExposure.value;
 		m_filterFog.OnUpdateParameters(token->asset);
@@ -255,7 +258,7 @@ namespace PK::Rendering
 		m_filterBloom.Execute(m_HDRRenderTarget.get(), GraphicsAPI::GetBackBuffer());
 
 		// Required for gizmos depth testing
-		GraphicsAPI::CopyRenderTexture(m_HDRRenderTarget.get(), nullptr, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		GraphicsAPI::CopyRenderTexture(m_HDRRenderTarget.get(), GraphicsAPI::GetBackBuffer(), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 		GraphicsAPI::ResetViewPort();
 
 		if (m_enableLightingDebug)

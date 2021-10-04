@@ -20,6 +20,7 @@ namespace PK::ECS::Engines
 	
 	    private:
 			Time* m_time = nullptr;
+			const ApplicationConfig* m_config = nullptr;
 			float3 m_position = CG_FLOAT3_ZERO;
 			float3 m_eulerAngles = CG_FLOAT3_ZERO;
 			quaternion m_rotation = CG_QUATERNION_IDENTITY;

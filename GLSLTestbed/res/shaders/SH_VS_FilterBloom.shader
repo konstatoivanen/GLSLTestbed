@@ -85,16 +85,16 @@ float4 FragmentComposite(float2 uv, sampler2DArray source)
 	// Optional curves. Removing weights from these will provide smoother transitions between bloom layers.
 	float3 bloom = b0 * 0.5f + b1 * 0.6f + b2 * 0.6f + b3 * 0.45f + b4 * 0.35f + b5 * 0.23f;
 	float3 bloomLens = b0 * 1.0f + b1 * 0.8f + b2 * 0.6f + b3 * 0.45f + b4 * 0.35f + b5 * 0.23f;
-
+	
 	bloom /= 2.2f;
 	bloomLens /= 3.2f;
-
+	
 	color = lerp(color, bloom, float3(pk_BloomIntensity));
 	color.rgb = lerp(color.rgb, bloomLens.rgb, saturate(lensdirt.rgb * pk_BloomDirtIntensity));
 	
 	float exposure = GetAutoExposure();
 	exposure *= Vignette(uv);
-
+	
 	// Applying a bit of desaturation to reduce high intensity value color blowout
 	// A personal preference really (should probably try to deprecate this).
 	color = Saturation(color, 0.8f);

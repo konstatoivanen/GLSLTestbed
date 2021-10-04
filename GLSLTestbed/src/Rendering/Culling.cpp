@@ -78,7 +78,7 @@ namespace PK::Rendering::Culling
 
 	void Culling::ExecuteOnVisibleItemsFrustum(PK::ECS::EntityDatabase* entityDb, const float4x4& matrix, ushort typeMask, OnVisibleItemMulti onvisible, void* context)
 	{
-		FrustrumPlanes frustum;
+		FrustumPlanes frustum;
 		Functions::ExtractFrustrumPlanes(matrix, &frustum, true);
 
 		auto cullables = entityDb->Query<ECS::EntityViews::BaseRenderable>((int)ECS::ENTITY_GROUPS::ACTIVE);
@@ -104,7 +104,7 @@ namespace PK::Rendering::Culling
 
 	void Culling::ExecuteOnVisibleItemsCascades(PK::ECS::EntityDatabase* entityDb, const float4x4* cascades, uint count, ushort typeMask, OnVisibleItemMulti onvisible, void* context)
 	{
-		FrustrumPlanes* frustums = PK_STACK_ALLOC(FrustrumPlanes, count);
+		FrustumPlanes* frustums = PK_STACK_ALLOC(FrustumPlanes, count);
 
 		for (auto i = 0u; i < count; ++i)
 		{
@@ -183,7 +183,7 @@ namespace PK::Rendering::Culling
 
 	void Culling::BuildVisibilityCacheFrustum(PK::ECS::EntityDatabase* entityDb, VisibilityCache* cache, const float4x4& matrix, CullingGroup group, ushort typeMask)
 	{
-		FrustrumPlanes frustrum;
+		FrustumPlanes frustrum;
 		Functions::ExtractFrustrumPlanes(matrix, &frustrum, true);
 
 		auto cullables = entityDb->Query<ECS::EntityViews::BaseRenderable>((int)ECS::ENTITY_GROUPS::ACTIVE);

@@ -118,7 +118,7 @@ namespace PK::ECS::Engines
 		auto buildingsMesh = assetDatabase->Load<Mesh>("res/models/Buildings.mdl");
 		auto spiralMesh = assetDatabase->Load<Mesh>("res/models/Spiral.mdl");
 		auto clothMesh = assetDatabase->Load<Mesh>("res/models/Cloth.mdl");
-		auto treeMesh = assetDatabase->Load<Mesh>("res/models/Tree.mdl");
+		//auto treeMesh = assetDatabase->Load<Mesh>("res/models/Tree.mdl");
 		auto columnMesh = assetDatabase->Load<Mesh>("res/models/Columns.mdl");
 
 		auto sphereMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Sphere", Rendering::MeshUtility::GetSphere(CG_FLOAT3_ZERO, 1.0f));
@@ -206,8 +206,8 @@ namespace PK::ECS::Engines
 	void EngineDebug::Step(Rendering::GizmoRenderer* gizmos)
 	{
 		auto time = Application::GetService<Time>()->GetTime();
-		auto aspect = Application::GetWindow().GetAspect();
-		auto proj = Functions::GetPerspective(50.0f, aspect, 0.2f, 100.0f);
+		auto aspect = Application::GetWindow()->GetAspect();
+		auto proj = Functions::GetPerspective(50.0f, aspect, 0.2f, 25.0f);
 		auto view = Functions::GetMatrixInvTRS(CG_FLOAT3_ZERO, { 0, time, 0 }, CG_FLOAT3_ONE);
 		auto vp = proj * view;
 	
@@ -217,9 +217,9 @@ namespace PK::ECS::Engines
 		float4x4 cascades[4];
 		float zplanes[5];
 
-		Functions::GetCascadeDepths(0.2f, 100.0f, 0.5f, zplanes, 5);
+		Functions::GetCascadeDepths(0.2f, 25.0f, 0.5f, zplanes, 5);
 		Functions::GetShadowCascadeMatrices(worldToLocal, invvp, zplanes, -15.0f, 4, cascades);
-
+		
 		for (auto i = 0; i < 4; ++i)
 		{
 			gizmos->SetColor(CG_COLOR_GREEN);
@@ -230,7 +230,7 @@ namespace PK::ECS::Engines
 		gizmos->DrawFrustrum(vp);
 
 		auto znear = 0.2f;
-		auto zfar = 100.0f;
+		auto zfar = 25.0f;
 
 		for (int i = 0; i < 4; ++i)
 		{
@@ -241,21 +241,27 @@ namespace PK::ECS::Engines
 			vp = proj * view;
 			gizmos->DrawFrustrum(vp);
 		}
+
 		return;
 
 		auto cullables = m_entityDb->Query<EntityViews::BaseRenderable>((int)ENTITY_GROUPS::ACTIVE);
 	
 		gizmos->SetColor(CG_COLOR_GREEN);
 
+		PK::Math::FrustumPlanes planes;
+		Functions::ExtractFrustrumPlanes(vp, &planes, true);
+
 		for (auto i = 0; i < cullables.count; ++i)
 		{
-			if (cullables[i].handle->flags != Components::RenderHandleFlags::Light)
-			{
-				continue;
-			}
 
-			const auto& bounds = cullables[i].bounds->worldAABB;
-			gizmos->DrawWireBounds(bounds);
+			if ((ushort)cullables[i].handle->flags & (ushort)Components::RenderHandleFlags::Renderer)
+			{
+				const auto& bounds = cullables[i].bounds->worldAABB;
+				if (Functions::IntersectPlanesAABB(planes.planes, 6, bounds))
+				{
+					gizmos->DrawWireBounds(bounds);
+				}
+			}
 		}
 	}
 }

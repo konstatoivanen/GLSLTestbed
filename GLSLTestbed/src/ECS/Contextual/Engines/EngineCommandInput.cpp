@@ -15,6 +15,7 @@ namespace PK::ECS::Engines
         {std::string("exit"),       CommandArgument::Exit},
         {std::string("application"),CommandArgument::Application},
         {std::string("contextual"), CommandArgument::Contextual},
+        {std::string("vsync"),      CommandArgument::VSync},
         {std::string("assets"),     CommandArgument::Assets},
         {std::string("variants"),   CommandArgument::Variants},
         {std::string("uniforms"),   CommandArgument::Uniforms},
@@ -33,6 +34,15 @@ namespace PK::ECS::Engines
     {
         ConsoleCommandToken token = { arguments.at(2), false };
         m_sequencer->Next(this, &token, 0);
+    }
+
+    void EngineCommandInput::ApplicationSetVSync(const ConsoleCommand& arguments)
+    {
+        const auto& str = arguments.at(2);
+        if (str == "true") Application::GetWindow()->SetVSync(true);
+        if (str == "false") Application::GetWindow()->SetVSync(false);
+        if (str == "toggle") Application::GetWindow()->SetVSync(!Application::GetWindow()->IsVSync());
+        PK_CORE_LOG("VSync: %s", (Application::GetWindow()->IsVSync() ? "Enabled" : "Disabled"));
     }
 
     void EngineCommandInput::QueryShaderVariants(const ConsoleCommand& arguments)
@@ -163,6 +173,7 @@ namespace PK::ECS::Engines
 
         m_commands[{CommandArgument::Application, CommandArgument::Exit }] = PK_BIND_FUNCTION(ApplicationExit);
         m_commands[{CommandArgument::Application, CommandArgument::Contextual, CommandArgument::StringParameter }] = PK_BIND_FUNCTION(ApplicationContextual);
+        m_commands[{CommandArgument::Application, CommandArgument::VSync, CommandArgument::StringParameter }] = PK_BIND_FUNCTION(ApplicationSetVSync);
         m_commands[{CommandArgument::Query, CommandArgument::TypeShader, CommandArgument::StringParameter, CommandArgument::Variants}] = PK_BIND_FUNCTION(QueryShaderVariants);
         m_commands[{CommandArgument::Query, CommandArgument::TypeShader, CommandArgument::StringParameter, CommandArgument::Uniforms}] = PK_BIND_FUNCTION(QueryShaderUniforms);
         m_commands[{CommandArgument::Query, CommandArgument::GPUMemory}] = PK_BIND_FUNCTION(QueryGPUMemory);

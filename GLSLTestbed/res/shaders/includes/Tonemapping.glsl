@@ -172,8 +172,8 @@ float3 ApplyColorGrading(float3 color)
     final = mul(LMS_2_LIN_MAT, lms);
 
     // Lift/gamma/gain
-    final = pk_Gain.xyz * (pk_Lift.xyz * (1.0 - final) + pow(final, pk_Gamma.xyz));
     final = max(final, 0.0);
+    final = pk_Gain.xyz * (pk_Lift.xyz * (1.0 - final) + pow(final, pk_Gamma.xyz));
 
     // Hue/saturation/value
     float3 hsv = RgbToHsv(final);

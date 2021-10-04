@@ -45,6 +45,7 @@ namespace PK::Utilities
 
         DEFINE_HASH_CACHE(pk_PerFrameConstants)
         DEFINE_HASH_CACHE(pk_GizmoVertices)
+        DEFINE_HASH_CACHE(pk_DebugDrawIndex)
         
         DEFINE_HASH_CACHE(pk_ScreenDepth)
         DEFINE_HASH_CACHE(pk_ScreenNormals)

@@ -175,7 +175,7 @@ namespace PK::Math
     constexpr float CG_FLOAT_DEG2RAD = 0.0174532924F;
     constexpr float CG_FLOAT_RAD2DEG = 57.29578F;
     
-    struct FrustrumPlanes
+    struct FrustumPlanes
     {
         // left, right, top, bottom, near, far
         float4 planes[6];
@@ -258,7 +258,7 @@ namespace PK::Math
         inline float PerceptualToLinear(float value) { return glm::exp(value); }
 
         void NormalizePlane(float4* plane);
-        void ExtractFrustrumPlanes(const float4x4 viewprojection, FrustrumPlanes* frustrum, bool normalize);
+        void ExtractFrustrumPlanes(const float4x4 viewprojection, FrustumPlanes* frustrum, bool normalize);
     
         float PlaneDistanceToAABB(const float4& plane, const BoundingBox& aabb);
         
