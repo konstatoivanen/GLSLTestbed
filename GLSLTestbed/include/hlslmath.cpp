@@ -3,141 +3,141 @@
 
 namespace PK::Math
 {
-	ushort Convert::Size(CG_TYPE type)
+	ushort Convert::Size(PK_TYPE type)
 	{
 		switch (type)
 		{
-			case CG_TYPE::FLOAT: return CG_TYPE_SIZE_FLOAT;
-			case CG_TYPE::FLOAT2: return CG_TYPE_SIZE_FLOAT2;
-			case CG_TYPE::FLOAT3: return CG_TYPE_SIZE_FLOAT3;
-			case CG_TYPE::FLOAT4: return CG_TYPE_SIZE_FLOAT4;
-			case CG_TYPE::FLOAT2X2: return CG_TYPE_SIZE_FLOAT2X2;
-			case CG_TYPE::FLOAT3X3: return CG_TYPE_SIZE_FLOAT3X3;
-			case CG_TYPE::FLOAT4X4: return CG_TYPE_SIZE_FLOAT4X4;
-			case CG_TYPE::INT: 
-			case CG_TYPE::UINT: return CG_TYPE_SIZE_INT;
-			case CG_TYPE::INT2:
-			case CG_TYPE::UINT2: return CG_TYPE_SIZE_INT2;
-			case CG_TYPE::INT3:
-			case CG_TYPE::UINT3: return CG_TYPE_SIZE_INT3;
-			case CG_TYPE::INT4: 
-			case CG_TYPE::UINT4: return CG_TYPE_SIZE_INT4;
-			case CG_TYPE::HANDLE: return CG_TYPE_SIZE_HANDLE;
-			case CG_TYPE::TEXTURE: return CG_TYPE_SIZE_TEXTURE;
-			case CG_TYPE::IMAGE_PARAMS: return CG_TYPE_SIZE_IMAGEPARAMS;
-			case CG_TYPE::CONSTANT_BUFFER: return CG_TYPE_SIZE_CONSTANT_BUFFER;
-			case CG_TYPE::COMPUTE_BUFFER: return CG_TYPE_SIZE_COMPUTE_BUFFER;
+			case PK_TYPE::FLOAT: return PK_TYPE_SIZE_FLOAT;
+			case PK_TYPE::FLOAT2: return PK_TYPE_SIZE_FLOAT2;
+			case PK_TYPE::FLOAT3: return PK_TYPE_SIZE_FLOAT3;
+			case PK_TYPE::FLOAT4: return PK_TYPE_SIZE_FLOAT4;
+			case PK_TYPE::FLOAT2X2: return PK_TYPE_SIZE_FLOAT2X2;
+			case PK_TYPE::FLOAT3X3: return PK_TYPE_SIZE_FLOAT3X3;
+			case PK_TYPE::FLOAT4X4: return PK_TYPE_SIZE_FLOAT4X4;
+			case PK_TYPE::INT: 
+			case PK_TYPE::UINT: return PK_TYPE_SIZE_INT;
+			case PK_TYPE::INT2:
+			case PK_TYPE::UINT2: return PK_TYPE_SIZE_INT2;
+			case PK_TYPE::INT3:
+			case PK_TYPE::UINT3: return PK_TYPE_SIZE_INT3;
+			case PK_TYPE::INT4: 
+			case PK_TYPE::UINT4: return PK_TYPE_SIZE_INT4;
+			case PK_TYPE::HANDLE: return PK_TYPE_SIZE_HANDLE;
+			case PK_TYPE::TEXTURE: return PK_TYPE_SIZE_TEXTURE;
+			case PK_TYPE::IMAGE_PARAMS: return PK_TYPE_SIZE_IMAGEPARAMS;
+			case PK_TYPE::CONSTANT_BUFFER: return PK_TYPE_SIZE_CONSTANT_BUFFER;
+			case PK_TYPE::COMPUTE_BUFFER: return PK_TYPE_SIZE_COMPUTE_BUFFER;
 		}
 	
-		return (ushort)CG_TYPE::INVALID;
+		return (ushort)PK_TYPE::INVALID;
 	}
 	
-	ushort Convert::Components(CG_TYPE type)
+	ushort Convert::Components(PK_TYPE type)
 	{
 		switch (type)
 		{
-			case CG_TYPE::FLOAT: return CG_TYPE_COMPONENTS_FLOAT;
-			case CG_TYPE::FLOAT2: return CG_TYPE_COMPONENTS_FLOAT2;
-			case CG_TYPE::FLOAT3: return CG_TYPE_COMPONENTS_FLOAT3;
-			case CG_TYPE::FLOAT4: return CG_TYPE_COMPONENTS_FLOAT4;
-			case CG_TYPE::FLOAT2X2: return CG_TYPE_COMPONENTS_FLOAT2X2;
-			case CG_TYPE::FLOAT3X3: return CG_TYPE_COMPONENTS_FLOAT3X3;
-			case CG_TYPE::FLOAT4X4: return CG_TYPE_COMPONENTS_FLOAT4X4;
-			case CG_TYPE::INT: 
-			case CG_TYPE::UINT: return CG_TYPE_COMPONENTS_INT;
-			case CG_TYPE::INT2: 
-			case CG_TYPE::UINT2: return CG_TYPE_COMPONENTS_INT2;
-			case CG_TYPE::INT3: 
-			case CG_TYPE::UINT3: return CG_TYPE_COMPONENTS_INT3;
-			case CG_TYPE::INT4: 
-			case CG_TYPE::UINT4: return CG_TYPE_COMPONENTS_INT4;
-			case CG_TYPE::HANDLE: return CG_TYPE_COMPONENTS_HANDLE;
-			case CG_TYPE::TEXTURE: return CG_TYPE_COMPONENTS_TEXTURE;
-			case CG_TYPE::IMAGE_PARAMS: return CG_TYPE_COMPONENTS_IMAGEPARAMS;
-			case CG_TYPE::CONSTANT_BUFFER: return CG_TYPE_COMPONENTS_CONSTANT_BUFFER;
-			case CG_TYPE::COMPUTE_BUFFER: return CG_TYPE_COMPONENTS_COMPUTE_BUFFER;
+			case PK_TYPE::FLOAT: return PK_TYPE_COMPONENTS_FLOAT;
+			case PK_TYPE::FLOAT2: return PK_TYPE_COMPONENTS_FLOAT2;
+			case PK_TYPE::FLOAT3: return PK_TYPE_COMPONENTS_FLOAT3;
+			case PK_TYPE::FLOAT4: return PK_TYPE_COMPONENTS_FLOAT4;
+			case PK_TYPE::FLOAT2X2: return PK_TYPE_COMPONENTS_FLOAT2X2;
+			case PK_TYPE::FLOAT3X3: return PK_TYPE_COMPONENTS_FLOAT3X3;
+			case PK_TYPE::FLOAT4X4: return PK_TYPE_COMPONENTS_FLOAT4X4;
+			case PK_TYPE::INT: 
+			case PK_TYPE::UINT: return PK_TYPE_COMPONENTS_INT;
+			case PK_TYPE::INT2: 
+			case PK_TYPE::UINT2: return PK_TYPE_COMPONENTS_INT2;
+			case PK_TYPE::INT3: 
+			case PK_TYPE::UINT3: return PK_TYPE_COMPONENTS_INT3;
+			case PK_TYPE::INT4: 
+			case PK_TYPE::UINT4: return PK_TYPE_COMPONENTS_INT4;
+			case PK_TYPE::HANDLE: return PK_TYPE_COMPONENTS_HANDLE;
+			case PK_TYPE::TEXTURE: return PK_TYPE_COMPONENTS_TEXTURE;
+			case PK_TYPE::IMAGE_PARAMS: return PK_TYPE_COMPONENTS_IMAGEPARAMS;
+			case PK_TYPE::CONSTANT_BUFFER: return PK_TYPE_COMPONENTS_CONSTANT_BUFFER;
+			case PK_TYPE::COMPUTE_BUFFER: return PK_TYPE_COMPONENTS_COMPUTE_BUFFER;
 		}
 	
-		return (ushort)CG_TYPE::INVALID;
+		return (ushort)PK_TYPE::INVALID;
 	}
 	
-	ushort Convert::BaseType(CG_TYPE type)
+	ushort Convert::BaseType(PK_TYPE type)
 	{
 		switch (type)
 		{
-			case CG_TYPE::FLOAT: return GL_FLOAT;
-			case CG_TYPE::FLOAT2: return GL_FLOAT;
-			case CG_TYPE::FLOAT3: return GL_FLOAT;
-			case CG_TYPE::FLOAT4: return GL_FLOAT;
-			case CG_TYPE::FLOAT2X2: return GL_FLOAT;
-			case CG_TYPE::FLOAT3X3: return GL_FLOAT;
-			case CG_TYPE::FLOAT4X4: return GL_FLOAT;
-			case CG_TYPE::INT: return GL_INT;
-			case CG_TYPE::INT2: return GL_INT;
-			case CG_TYPE::INT3: return GL_INT;
-			case CG_TYPE::INT4: return GL_INT;
-			case CG_TYPE::UINT: return GL_UNSIGNED_INT;
-			case CG_TYPE::UINT2: return GL_UNSIGNED_INT;
-			case CG_TYPE::UINT3: return GL_UNSIGNED_INT;
-			case CG_TYPE::UINT4: return GL_UNSIGNED_INT;
-			case CG_TYPE::HANDLE: return GL_UNSIGNED_INT64_ARB;
-			case CG_TYPE::TEXTURE: return GL_INT;
-			case CG_TYPE::IMAGE_PARAMS: return GL_INT;
-			case CG_TYPE::CONSTANT_BUFFER: return GL_INT;
-			case CG_TYPE::COMPUTE_BUFFER: return GL_INT;
+			case PK_TYPE::FLOAT: return GL_FLOAT;
+			case PK_TYPE::FLOAT2: return GL_FLOAT;
+			case PK_TYPE::FLOAT3: return GL_FLOAT;
+			case PK_TYPE::FLOAT4: return GL_FLOAT;
+			case PK_TYPE::FLOAT2X2: return GL_FLOAT;
+			case PK_TYPE::FLOAT3X3: return GL_FLOAT;
+			case PK_TYPE::FLOAT4X4: return GL_FLOAT;
+			case PK_TYPE::INT: return GL_INT;
+			case PK_TYPE::INT2: return GL_INT;
+			case PK_TYPE::INT3: return GL_INT;
+			case PK_TYPE::INT4: return GL_INT;
+			case PK_TYPE::UINT: return GL_UNSIGNED_INT;
+			case PK_TYPE::UINT2: return GL_UNSIGNED_INT;
+			case PK_TYPE::UINT3: return GL_UNSIGNED_INT;
+			case PK_TYPE::UINT4: return GL_UNSIGNED_INT;
+			case PK_TYPE::HANDLE: return GL_UNSIGNED_INT64_ARB;
+			case PK_TYPE::TEXTURE: return GL_INT;
+			case PK_TYPE::IMAGE_PARAMS: return GL_INT;
+			case PK_TYPE::CONSTANT_BUFFER: return GL_INT;
+			case PK_TYPE::COMPUTE_BUFFER: return GL_INT;
 		}
 	
-		return (ushort)CG_TYPE::INVALID;
+		return (ushort)PK_TYPE::INVALID;
 	}
 	
-	ushort Convert::ToNativeEnum(CG_TYPE type)
+	ushort Convert::ToNativeEnum(PK_TYPE type)
 	{
 		switch (type)
 		{
-			case CG_TYPE::FLOAT: return GL_FLOAT;
-			case CG_TYPE::FLOAT2: return GL_FLOAT_VEC2;
-			case CG_TYPE::FLOAT3: return GL_FLOAT_VEC3;
-			case CG_TYPE::FLOAT4: return GL_FLOAT_VEC4;
-			case CG_TYPE::FLOAT2X2: return GL_FLOAT_MAT2;
-			case CG_TYPE::FLOAT3X3: return GL_FLOAT_MAT3;
-			case CG_TYPE::FLOAT4X4: return GL_FLOAT_MAT4;
-			case CG_TYPE::INT: return GL_INT;
-			case CG_TYPE::INT2: return GL_INT_VEC2;
-			case CG_TYPE::INT3: return GL_INT_VEC3;
-			case CG_TYPE::INT4: return GL_INT_VEC4;
-			case CG_TYPE::UINT: return GL_UNSIGNED_INT;
-			case CG_TYPE::UINT2: return GL_UNSIGNED_INT_VEC2;
-			case CG_TYPE::UINT3: return GL_UNSIGNED_INT_VEC3;
-			case CG_TYPE::UINT4: return GL_UNSIGNED_INT_VEC4;
-			case CG_TYPE::HANDLE: return GL_UNSIGNED_INT64_ARB;
-			case CG_TYPE::TEXTURE: return GL_TEXTURE;
-			case CG_TYPE::IMAGE_PARAMS: return GL_TEXTURE;
-			case CG_TYPE::CONSTANT_BUFFER: return GL_UNIFORM_BUFFER;
-			case CG_TYPE::COMPUTE_BUFFER: return GL_SHADER_STORAGE_BUFFER;
+			case PK_TYPE::FLOAT: return GL_FLOAT;
+			case PK_TYPE::FLOAT2: return GL_FLOAT_VEC2;
+			case PK_TYPE::FLOAT3: return GL_FLOAT_VEC3;
+			case PK_TYPE::FLOAT4: return GL_FLOAT_VEC4;
+			case PK_TYPE::FLOAT2X2: return GL_FLOAT_MAT2;
+			case PK_TYPE::FLOAT3X3: return GL_FLOAT_MAT3;
+			case PK_TYPE::FLOAT4X4: return GL_FLOAT_MAT4;
+			case PK_TYPE::INT: return GL_INT;
+			case PK_TYPE::INT2: return GL_INT_VEC2;
+			case PK_TYPE::INT3: return GL_INT_VEC3;
+			case PK_TYPE::INT4: return GL_INT_VEC4;
+			case PK_TYPE::UINT: return GL_UNSIGNED_INT;
+			case PK_TYPE::UINT2: return GL_UNSIGNED_INT_VEC2;
+			case PK_TYPE::UINT3: return GL_UNSIGNED_INT_VEC3;
+			case PK_TYPE::UINT4: return GL_UNSIGNED_INT_VEC4;
+			case PK_TYPE::HANDLE: return GL_UNSIGNED_INT64_ARB;
+			case PK_TYPE::TEXTURE: return GL_TEXTURE;
+			case PK_TYPE::IMAGE_PARAMS: return GL_TEXTURE;
+			case PK_TYPE::CONSTANT_BUFFER: return GL_UNIFORM_BUFFER;
+			case PK_TYPE::COMPUTE_BUFFER: return GL_SHADER_STORAGE_BUFFER;
 		}
 	
-		return (ushort)CG_TYPE::INVALID;
+		return (ushort)PK_TYPE::INVALID;
 	}
 
-	CG_TYPE Convert::FromUniformType(ushort type)
+	PK_TYPE Convert::FromUniformType(ushort type)
 	{
 		switch (type)
 		{
-			case GL_FLOAT: return CG_TYPE::FLOAT;
-			case GL_FLOAT_VEC2: return CG_TYPE::FLOAT2;
-			case GL_FLOAT_VEC3: return CG_TYPE::FLOAT3;
-			case GL_FLOAT_VEC4: return CG_TYPE::FLOAT4;
-			case GL_FLOAT_MAT2: return CG_TYPE::FLOAT2X2;
-			case GL_FLOAT_MAT3: return CG_TYPE::FLOAT3X3;
-			case GL_FLOAT_MAT4: return CG_TYPE::FLOAT4X4;
-			case GL_INT: return CG_TYPE::INT;
-			case GL_INT_VEC2: return CG_TYPE::INT2;
-			case GL_INT_VEC3: return CG_TYPE::INT3;
-			case GL_INT_VEC4: return CG_TYPE::INT4;
-			case GL_UNSIGNED_INT: return CG_TYPE::UINT;
-			case GL_UNSIGNED_INT_VEC2: return CG_TYPE::UINT2;
-			case GL_UNSIGNED_INT_VEC3: return CG_TYPE::UINT3;
-			case GL_UNSIGNED_INT_VEC4: return CG_TYPE::UINT4;
+			case GL_FLOAT: return PK_TYPE::FLOAT;
+			case GL_FLOAT_VEC2: return PK_TYPE::FLOAT2;
+			case GL_FLOAT_VEC3: return PK_TYPE::FLOAT3;
+			case GL_FLOAT_VEC4: return PK_TYPE::FLOAT4;
+			case GL_FLOAT_MAT2: return PK_TYPE::FLOAT2X2;
+			case GL_FLOAT_MAT3: return PK_TYPE::FLOAT3X3;
+			case GL_FLOAT_MAT4: return PK_TYPE::FLOAT4X4;
+			case GL_INT: return PK_TYPE::INT;
+			case GL_INT_VEC2: return PK_TYPE::INT2;
+			case GL_INT_VEC3: return PK_TYPE::INT3;
+			case GL_INT_VEC4: return PK_TYPE::INT4;
+			case GL_UNSIGNED_INT: return PK_TYPE::UINT;
+			case GL_UNSIGNED_INT_VEC2: return PK_TYPE::UINT2;
+			case GL_UNSIGNED_INT_VEC3: return PK_TYPE::UINT3;
+			case GL_UNSIGNED_INT_VEC4: return PK_TYPE::UINT4;
 			case GL_SAMPLER:
 			case GL_SAMPLER_1D:
 			case GL_SAMPLER_1D_ARRAY:
@@ -154,111 +154,111 @@ namespace PK::Math
 			case GL_UNSIGNED_INT_IMAGE_2D:
 			case GL_UNSIGNED_INT_IMAGE_1D_ARRAY:
 			case GL_UNSIGNED_INT_IMAGE_2D_ARRAY:
-			case GL_UNSIGNED_INT_IMAGE_3D: return CG_TYPE::HANDLE;
-			case GL_TEXTURE: return CG_TYPE::TEXTURE;
-			case GL_UNIFORM_BUFFER: return CG_TYPE::CONSTANT_BUFFER;
-			case GL_SHADER_STORAGE_BUFFER: return CG_TYPE::COMPUTE_BUFFER;
+			case GL_UNSIGNED_INT_IMAGE_3D: return PK_TYPE::HANDLE;
+			case GL_TEXTURE: return PK_TYPE::TEXTURE;
+			case GL_UNIFORM_BUFFER: return PK_TYPE::CONSTANT_BUFFER;
+			case GL_SHADER_STORAGE_BUFFER: return PK_TYPE::COMPUTE_BUFFER;
 		}
 
-		return CG_TYPE::INVALID;
+		return PK_TYPE::INVALID;
 	}
 
-	CG_TYPE Convert::FromUniformString(const char* string)
+	PK_TYPE Convert::FromUniformString(const char* string)
 	{
-		if (strcmp(string, "float") == 0) return CG_TYPE::FLOAT;
-		if (strcmp(string, "vec2") == 0) return CG_TYPE::FLOAT2;
-		if (strcmp(string, "float2") == 0) return CG_TYPE::FLOAT2;
-		if (strcmp(string, "vec3") == 0) return CG_TYPE::FLOAT3;
-		if (strcmp(string, "float3") == 0) return CG_TYPE::FLOAT3;
-		if (strcmp(string, "vec4") == 0) return CG_TYPE::FLOAT4;
-		if (strcmp(string, "float4") == 0) return CG_TYPE::FLOAT4;
+		if (strcmp(string, "float") == 0) return PK_TYPE::FLOAT;
+		if (strcmp(string, "vec2") == 0) return PK_TYPE::FLOAT2;
+		if (strcmp(string, "float2") == 0) return PK_TYPE::FLOAT2;
+		if (strcmp(string, "vec3") == 0) return PK_TYPE::FLOAT3;
+		if (strcmp(string, "float3") == 0) return PK_TYPE::FLOAT3;
+		if (strcmp(string, "vec4") == 0) return PK_TYPE::FLOAT4;
+		if (strcmp(string, "float4") == 0) return PK_TYPE::FLOAT4;
 
-		if (strcmp(string, "mat2") == 0) return CG_TYPE::FLOAT2X2;
-		if (strcmp(string, "float2x2") == 0) return CG_TYPE::FLOAT2X2;
-		if (strcmp(string, "mat3") == 0) return CG_TYPE::FLOAT3X3;
-		if (strcmp(string, "float3x3") == 0) return CG_TYPE::FLOAT3X3;
-		if (strcmp(string, "mat4") == 0) return CG_TYPE::FLOAT4X4;
-		if (strcmp(string, "float4x4") == 0) return CG_TYPE::FLOAT4X4;
+		if (strcmp(string, "mat2") == 0) return PK_TYPE::FLOAT2X2;
+		if (strcmp(string, "float2x2") == 0) return PK_TYPE::FLOAT2X2;
+		if (strcmp(string, "mat3") == 0) return PK_TYPE::FLOAT3X3;
+		if (strcmp(string, "float3x3") == 0) return PK_TYPE::FLOAT3X3;
+		if (strcmp(string, "mat4") == 0) return PK_TYPE::FLOAT4X4;
+		if (strcmp(string, "float4x4") == 0) return PK_TYPE::FLOAT4X4;
 		
-		if (strcmp(string, "int") == 0) return CG_TYPE::INT;
-		if (strcmp(string, "ivec2") == 0) return CG_TYPE::INT2;
-		if (strcmp(string, "int2") == 0) return CG_TYPE::INT2;
-		if (strcmp(string, "ivec3") == 0) return CG_TYPE::INT3;
-		if (strcmp(string, "int3") == 0) return CG_TYPE::INT3;
-		if (strcmp(string, "ivec4") == 0) return CG_TYPE::INT4;
-		if (strcmp(string, "int4") == 0) return CG_TYPE::INT4;
-		if (strcmp(string, "uint") == 0) return CG_TYPE::UINT;
-		if (strcmp(string, "uvec2") == 0) return CG_TYPE::UINT2;
-		if (strcmp(string, "uint2") == 0) return CG_TYPE::UINT2;
-		if (strcmp(string, "uvec3") == 0) return CG_TYPE::UINT3;
-		if (strcmp(string, "uint3") == 0) return CG_TYPE::UINT3;
-		if (strcmp(string, "uvec4") == 0) return CG_TYPE::UINT4;
-		if (strcmp(string, "uint4") == 0) return CG_TYPE::UINT4;
-		if (strcmp(string, "sampler1D") == 0) return CG_TYPE::HANDLE;
-		if (strcmp(string, "sampler2D") == 0) return CG_TYPE::HANDLE;
-		if (strcmp(string, "sampler2DArray") == 0) return CG_TYPE::HANDLE;
-		if (strcmp(string, "samplerCubeArray") == 0) return CG_TYPE::HANDLE;
-		if (strcmp(string, "sampler3D") == 0) return CG_TYPE::HANDLE;
-		if (strcmp(string, "image1D") == 0) return CG_TYPE::HANDLE;
-		if (strcmp(string, "image2D") == 0) return CG_TYPE::HANDLE;
-		if (strcmp(string, "image2DArray") == 0) return CG_TYPE::HANDLE;
-		if (strcmp(string, "imageCubeArray") == 0) return CG_TYPE::HANDLE;
-		if (strcmp(string, "image3D") == 0) return CG_TYPE::HANDLE;
-		return CG_TYPE::INVALID;
+		if (strcmp(string, "int") == 0) return PK_TYPE::INT;
+		if (strcmp(string, "ivec2") == 0) return PK_TYPE::INT2;
+		if (strcmp(string, "int2") == 0) return PK_TYPE::INT2;
+		if (strcmp(string, "ivec3") == 0) return PK_TYPE::INT3;
+		if (strcmp(string, "int3") == 0) return PK_TYPE::INT3;
+		if (strcmp(string, "ivec4") == 0) return PK_TYPE::INT4;
+		if (strcmp(string, "int4") == 0) return PK_TYPE::INT4;
+		if (strcmp(string, "uint") == 0) return PK_TYPE::UINT;
+		if (strcmp(string, "uvec2") == 0) return PK_TYPE::UINT2;
+		if (strcmp(string, "uint2") == 0) return PK_TYPE::UINT2;
+		if (strcmp(string, "uvec3") == 0) return PK_TYPE::UINT3;
+		if (strcmp(string, "uint3") == 0) return PK_TYPE::UINT3;
+		if (strcmp(string, "uvec4") == 0) return PK_TYPE::UINT4;
+		if (strcmp(string, "uint4") == 0) return PK_TYPE::UINT4;
+		if (strcmp(string, "sampler1D") == 0) return PK_TYPE::HANDLE;
+		if (strcmp(string, "sampler2D") == 0) return PK_TYPE::HANDLE;
+		if (strcmp(string, "sampler2DArray") == 0) return PK_TYPE::HANDLE;
+		if (strcmp(string, "samplerCubeArray") == 0) return PK_TYPE::HANDLE;
+		if (strcmp(string, "sampler3D") == 0) return PK_TYPE::HANDLE;
+		if (strcmp(string, "image1D") == 0) return PK_TYPE::HANDLE;
+		if (strcmp(string, "image2D") == 0) return PK_TYPE::HANDLE;
+		if (strcmp(string, "image2DArray") == 0) return PK_TYPE::HANDLE;
+		if (strcmp(string, "imageCubeArray") == 0) return PK_TYPE::HANDLE;
+		if (strcmp(string, "image3D") == 0) return PK_TYPE::HANDLE;
+		return PK_TYPE::INVALID;
 	}
 	
-	std::string Convert::ToString(CG_TYPE type)
+	std::string Convert::ToString(PK_TYPE type)
 	{
 		switch (type)
 		{
-			case CG_TYPE::FLOAT: return "FLOAT";
-			case CG_TYPE::FLOAT2: return "FLOAT2";
-			case CG_TYPE::FLOAT3: return "FLOAT3";
-			case CG_TYPE::FLOAT4: return "FLOAT4";
-			case CG_TYPE::FLOAT2X2: return "FLOAT2X2";
-			case CG_TYPE::FLOAT3X3: return "FLOAT3X3";
-			case CG_TYPE::FLOAT4X4: return "FLOAT4X4";
-			case CG_TYPE::INT: return "INT";
-			case CG_TYPE::INT2: return "INT2";
-			case CG_TYPE::INT3: return "INT3";
-			case CG_TYPE::INT4: return "INT4";
-			case CG_TYPE::UINT: return "UINT";
-			case CG_TYPE::UINT2: return "UINT2";
-			case CG_TYPE::UINT3: return "UINT3";
-			case CG_TYPE::UINT4: return "UINT4";
-			case CG_TYPE::HANDLE: return "HANDLE";
-			case CG_TYPE::TEXTURE: return "TEXTURE";
-			case CG_TYPE::IMAGE_PARAMS: return "IMAGE";
-			case CG_TYPE::CONSTANT_BUFFER: return "CONSTANT_BUFFER";
-			case CG_TYPE::COMPUTE_BUFFER: return "COMPUTE_BUFFER";
+			case PK_TYPE::FLOAT: return "FLOAT";
+			case PK_TYPE::FLOAT2: return "FLOAT2";
+			case PK_TYPE::FLOAT3: return "FLOAT3";
+			case PK_TYPE::FLOAT4: return "FLOAT4";
+			case PK_TYPE::FLOAT2X2: return "FLOAT2X2";
+			case PK_TYPE::FLOAT3X3: return "FLOAT3X3";
+			case PK_TYPE::FLOAT4X4: return "FLOAT4X4";
+			case PK_TYPE::INT: return "INT";
+			case PK_TYPE::INT2: return "INT2";
+			case PK_TYPE::INT3: return "INT3";
+			case PK_TYPE::INT4: return "INT4";
+			case PK_TYPE::UINT: return "UINT";
+			case PK_TYPE::UINT2: return "UINT2";
+			case PK_TYPE::UINT3: return "UINT3";
+			case PK_TYPE::UINT4: return "UINT4";
+			case PK_TYPE::HANDLE: return "HANDLE";
+			case PK_TYPE::TEXTURE: return "TEXTURE";
+			case PK_TYPE::IMAGE_PARAMS: return "IMAGE";
+			case PK_TYPE::CONSTANT_BUFFER: return "CONSTANT_BUFFER";
+			case PK_TYPE::COMPUTE_BUFFER: return "COMPUTE_BUFFER";
 		}
 	
 		return "INVALID";
 	}
 	
-	CG_TYPE Convert::FromString(const char* string)
+	PK_TYPE Convert::FromString(const char* string)
 	{
-		if (strcmp(string, "FLOAT") == 0) return CG_TYPE::FLOAT;
-		if (strcmp(string, "FLOAT2") == 0) return CG_TYPE::FLOAT2;
-		if (strcmp(string, "FLOAT3") == 0) return CG_TYPE::FLOAT3;
-		if (strcmp(string, "FLOAT4") == 0) return CG_TYPE::FLOAT4;
-		if (strcmp(string, "FLOAT2X2") == 0) return CG_TYPE::FLOAT2X2;
-		if (strcmp(string, "FLOAT3X3") == 0) return CG_TYPE::FLOAT3X3;
-		if (strcmp(string, "FLOAT4X4") == 0) return CG_TYPE::FLOAT4X4;
-		if (strcmp(string, "INT") == 0) return CG_TYPE::INT;
-		if (strcmp(string, "INT2") == 0) return CG_TYPE::INT2;
-		if (strcmp(string, "INT3") == 0) return CG_TYPE::INT3;
-		if (strcmp(string, "INT4") == 0) return CG_TYPE::INT4;
-		if (strcmp(string, "UINT") == 0) return CG_TYPE::UINT;
-		if (strcmp(string, "UINT2") == 0) return CG_TYPE::UINT2;
-		if (strcmp(string, "UINT3") == 0) return CG_TYPE::UINT3;
-		if (strcmp(string, "UINT4") == 0) return CG_TYPE::UINT4;
-		if (strcmp(string, "HANDLE") == 0) return CG_TYPE::HANDLE;
-		if (strcmp(string, "TEXTURE") == 0) return CG_TYPE::TEXTURE;
-		if (strcmp(string, "IMAGE") == 0) return CG_TYPE::IMAGE_PARAMS;
-		if (strcmp(string, "CONSTANT_BUFFER") == 0) return CG_TYPE::CONSTANT_BUFFER;
-		if (strcmp(string, "COMPUTE_BUFFER") == 0) return CG_TYPE::COMPUTE_BUFFER;
-		return CG_TYPE::INVALID;
+		if (strcmp(string, "FLOAT") == 0) return PK_TYPE::FLOAT;
+		if (strcmp(string, "FLOAT2") == 0) return PK_TYPE::FLOAT2;
+		if (strcmp(string, "FLOAT3") == 0) return PK_TYPE::FLOAT3;
+		if (strcmp(string, "FLOAT4") == 0) return PK_TYPE::FLOAT4;
+		if (strcmp(string, "FLOAT2X2") == 0) return PK_TYPE::FLOAT2X2;
+		if (strcmp(string, "FLOAT3X3") == 0) return PK_TYPE::FLOAT3X3;
+		if (strcmp(string, "FLOAT4X4") == 0) return PK_TYPE::FLOAT4X4;
+		if (strcmp(string, "INT") == 0) return PK_TYPE::INT;
+		if (strcmp(string, "INT2") == 0) return PK_TYPE::INT2;
+		if (strcmp(string, "INT3") == 0) return PK_TYPE::INT3;
+		if (strcmp(string, "INT4") == 0) return PK_TYPE::INT4;
+		if (strcmp(string, "UINT") == 0) return PK_TYPE::UINT;
+		if (strcmp(string, "UINT2") == 0) return PK_TYPE::UINT2;
+		if (strcmp(string, "UINT3") == 0) return PK_TYPE::UINT3;
+		if (strcmp(string, "UINT4") == 0) return PK_TYPE::UINT4;
+		if (strcmp(string, "HANDLE") == 0) return PK_TYPE::HANDLE;
+		if (strcmp(string, "TEXTURE") == 0) return PK_TYPE::TEXTURE;
+		if (strcmp(string, "IMAGE") == 0) return PK_TYPE::IMAGE_PARAMS;
+		if (strcmp(string, "CONSTANT_BUFFER") == 0) return PK_TYPE::CONSTANT_BUFFER;
+		if (strcmp(string, "COMPUTE_BUFFER") == 0) return PK_TYPE::COMPUTE_BUFFER;
+		return PK_TYPE::INVALID;
 	}
 	
 	float4x4 Functions::GetMatrixTRS(const float3& position, const quaternion& rotation, const float3& scale)
@@ -336,7 +336,7 @@ namespace PK::Math
 	
 	float4x4 Functions::GetPerspective(float fov, float aspect, float zNear, float zFar)
 	{
-		const float tanHalfFovy = tan(fov * CG_FLOAT_DEG2RAD / 2.0f);
+		const float tanHalfFovy = tan(fov * PK_FLOAT_DEG2RAD / 2.0f);
 		float4x4 proj(0.0f);
 		proj[0][0] = 1.0f / (aspect * tanHalfFovy);
 		proj[1][1] = 1.0f / (tanHalfFovy);
@@ -364,7 +364,7 @@ namespace PK::Math
 	
 	float4x4 Functions::GetOffsetPerspective(float left, float right, float bottom, float top, float fovy, float aspect, float zNear, float zFar)
 	{
-		const float tanHalfFovy = tan((fovy * CG_FLOAT_DEG2RAD) / 2.0f);
+		const float tanHalfFovy = tan((fovy * PK_FLOAT_DEG2RAD) / 2.0f);
 		const float rcpRL = 1.0f / (right - left);
 		const float rcpTB = 1.0f / (top - bottom);
 		const float rcpFN = 1.0f / (zFar - zNear);
@@ -510,7 +510,7 @@ namespace PK::Math
 	color Functions::NormalizeColor(const color& c)
 	{
 		auto sum = (c.r + c.g + c.b) / 3.0f;
-		return sum < std::numeric_limits<float>().epsilon() ? CG_COLOR_WHITE : color(c.r / sum, c.g / sum, c.b / sum, 1.0f);
+		return sum < std::numeric_limits<float>().epsilon() ? PK_COLOR_WHITE : color(c.r / sum, c.g / sum, c.b / sum, 1.0f);
 	}
 
 	float3 Functions::CIExyToLMS(float x, float y)
@@ -584,7 +584,7 @@ namespace PK::Math
 		float R = abs(hue * 6 - 3) - 1;
 		float G = 2 - abs(hue * 6 - 2);
 		float B = 2 - abs(hue * 6 - 4);
-		return float4(glm::clamp(float3(R, G, B), CG_FLOAT3_ZERO, CG_FLOAT3_ONE), 1.0f);
+		return float4(glm::clamp(float3(R, G, B), PK_FLOAT3_ZERO, PK_FLOAT3_ONE), 1.0f);
 	}
 
 	void Functions::GetCascadeDepths(float znear, float zfar, float linearity, float* cascades, uint count)

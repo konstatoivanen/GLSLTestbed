@@ -29,9 +29,9 @@ namespace PK::Rendering::Structs
 	{
 	}
 	
-	void PropertyBlock::SetValue(uint hashid, CG_TYPE type, const void* src, uint count)
+	void PropertyBlock::SetValue(uint hashid, PK_TYPE type, const void* src, uint count)
 	{
-		if (type == CG_TYPE::INVALID || count == 0)
+		if (type == PK_TYPE::INVALID || count == 0)
 		{
 			PK_CORE_ERROR("INVALID DATA TYPE OR COUNT!");
 		}

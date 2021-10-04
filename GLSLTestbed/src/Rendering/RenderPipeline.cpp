@@ -85,33 +85,33 @@ namespace PK::Rendering
 	
 		m_constantsPerFrame = CreateRef<ConstantBuffer>(BufferLayout(
 		{
-			{CG_TYPE::FLOAT4, "pk_Time"},
-			{CG_TYPE::FLOAT4, "pk_SinTime"},
-			{CG_TYPE::FLOAT4, "pk_CosTime"},
-			{CG_TYPE::FLOAT4, "pk_DeltaTime"},
-			{CG_TYPE::FLOAT4, "pk_CursorParams"},
-			{CG_TYPE::FLOAT4, "pk_WorldSpaceCameraPos"},
-			{CG_TYPE::FLOAT4, "pk_ProjectionParams"},
-			{CG_TYPE::FLOAT4, "pk_ExpProjectionParams"},
-			{CG_TYPE::FLOAT4, "pk_ScreenParams"},
-			{CG_TYPE::FLOAT4, "pk_ShadowCascadeZSplits"},
-			{CG_TYPE::FLOAT4X4, "pk_MATRIX_V"},
-			{CG_TYPE::FLOAT4X4, "pk_MATRIX_I_V"},
-			{CG_TYPE::FLOAT4X4, "pk_MATRIX_P"},
-			{CG_TYPE::FLOAT4X4, "pk_MATRIX_I_P"},
-			{CG_TYPE::FLOAT4X4, "pk_MATRIX_VP"},
-			{CG_TYPE::FLOAT4X4, "pk_MATRIX_I_VP"},
-			{CG_TYPE::FLOAT4X4, "pk_MATRIX_L_VP"},
-			{CG_TYPE::HANDLE, "pk_SceneOEM_HDR"},
-			{CG_TYPE::HANDLE, "pk_ScreenNormals"},
-			{CG_TYPE::HANDLE, "pk_ScreenDepth"},
-			{CG_TYPE::HANDLE, "pk_ScreenGI_Diffuse"},
-			{CG_TYPE::HANDLE, "pk_ScreenGI_Specular"},
-			{CG_TYPE::HANDLE, "pk_ScreenOcclusion"},
-			{CG_TYPE::HANDLE, "pk_ShadowmapAtlas"},
-			{CG_TYPE::HANDLE, "pk_LightCookies"},
-			{CG_TYPE::HANDLE, "pk_Bluenoise256"},
-			{CG_TYPE::FLOAT, "pk_SceneOEM_Exposure"},
+			{PK_TYPE::FLOAT4, "pk_Time"},
+			{PK_TYPE::FLOAT4, "pk_SinTime"},
+			{PK_TYPE::FLOAT4, "pk_CosTime"},
+			{PK_TYPE::FLOAT4, "pk_DeltaTime"},
+			{PK_TYPE::FLOAT4, "pk_CursorParams"},
+			{PK_TYPE::FLOAT4, "pk_WorldSpaceCameraPos"},
+			{PK_TYPE::FLOAT4, "pk_ProjectionParams"},
+			{PK_TYPE::FLOAT4, "pk_ExpProjectionParams"},
+			{PK_TYPE::FLOAT4, "pk_ScreenParams"},
+			{PK_TYPE::FLOAT4, "pk_ShadowCascadeZSplits"},
+			{PK_TYPE::FLOAT4X4, "pk_MATRIX_V"},
+			{PK_TYPE::FLOAT4X4, "pk_MATRIX_I_V"},
+			{PK_TYPE::FLOAT4X4, "pk_MATRIX_P"},
+			{PK_TYPE::FLOAT4X4, "pk_MATRIX_I_P"},
+			{PK_TYPE::FLOAT4X4, "pk_MATRIX_VP"},
+			{PK_TYPE::FLOAT4X4, "pk_MATRIX_I_VP"},
+			{PK_TYPE::FLOAT4X4, "pk_MATRIX_L_VP"},
+			{PK_TYPE::HANDLE, "pk_SceneOEM_HDR"},
+			{PK_TYPE::HANDLE, "pk_ScreenNormals"},
+			{PK_TYPE::HANDLE, "pk_ScreenDepth"},
+			{PK_TYPE::HANDLE, "pk_ScreenGI_Diffuse"},
+			{PK_TYPE::HANDLE, "pk_ScreenGI_Specular"},
+			{PK_TYPE::HANDLE, "pk_ScreenOcclusion"},
+			{PK_TYPE::HANDLE, "pk_ShadowmapAtlas"},
+			{PK_TYPE::HANDLE, "pk_LightCookies"},
+			{PK_TYPE::HANDLE, "pk_Bluenoise256"},
+			{PK_TYPE::FLOAT, "pk_SceneOEM_Exposure"},
 		}));
 
 		auto bluenoiseTex = assetDatabase->Load<TextureXD>("res/textures/T_Bluenoise256_repeat.ktx");
@@ -225,7 +225,7 @@ namespace PK::Rendering
 	void RenderPipeline::OnRender()
 	{
 		GraphicsAPI::SetRenderTarget(m_GeometryBufferTarget.get());
-		GraphicsAPI::Clear(CG_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		GraphicsAPI::Clear(PK_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		FixedStateAttributes depthNormalsAttributes;
 		depthNormalsAttributes.BlendEnabled = false;
@@ -244,7 +244,7 @@ namespace PK::Rendering
 		m_filterSceneGi.Execute(&m_dynamicBatches);
 
 		GraphicsAPI::SetRenderTarget(m_HDRRenderTarget.get());
-		GraphicsAPI::Clear(CG_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT);
+		GraphicsAPI::Clear(PK_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT);
 
 		GraphicsAPI::CopyRenderTexture(m_GeometryBufferTarget.get(), m_HDRRenderTarget.get(), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 

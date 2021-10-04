@@ -32,19 +32,19 @@ namespace PK::Rendering::PostProcessing
 
         m_autoFocusBuffer = CreateRef<ComputeBuffer>(BufferLayout(
         {
-            {CG_TYPE::FLOAT2, "PARAMS"}
+            {PK_TYPE::FLOAT2, "PARAMS"}
         }), 1, true, GL_NONE);
 
         m_paramsBuffer = CreateRef<ConstantBuffer>(BufferLayout(
         {
-            {CG_TYPE::HANDLE, "pk_Foreground"},
-            {CG_TYPE::HANDLE, "pk_Background"},
+            {PK_TYPE::HANDLE, "pk_Foreground"},
+            {PK_TYPE::HANDLE, "pk_Background"},
 
-            {CG_TYPE::FLOAT, "pk_FocalLength"},
-            {CG_TYPE::FLOAT, "pk_FNumber"},
-            {CG_TYPE::FLOAT, "pk_FilmHeight"},
-            {CG_TYPE::FLOAT, "pk_FocusSpeed"},
-            {CG_TYPE::FLOAT, "pk_MaximumCoC"},
+            {PK_TYPE::FLOAT, "pk_FocalLength"},
+            {PK_TYPE::FLOAT, "pk_FNumber"},
+            {PK_TYPE::FLOAT, "pk_FilmHeight"},
+            {PK_TYPE::FLOAT, "pk_FocusSpeed"},
+            {PK_TYPE::FLOAT, "pk_MaximumCoC"},
         }));
 
         m_paramsBuffer->SetResourceHandle(StringHashID::StringToID("pk_Foreground"), m_renderTarget1->GetColorBuffer(0)->GetBindlessHandleResident());

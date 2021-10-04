@@ -168,7 +168,7 @@ namespace PK::Rendering::Batching
 
         if (collection->PropertyIndices == nullptr)
         {
-            collection->PropertyIndices = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE::UINT, "Index"} }), (uint)collection->TotalDrawCallCount, false, GL_STREAM_DRAW);
+            collection->PropertyIndices = CreateRef<ComputeBuffer>(BufferLayout({ { PK_TYPE::UINT, "Index"} }), (uint)collection->TotalDrawCallCount, false, GL_STREAM_DRAW);
         }
         else
         {
@@ -177,7 +177,7 @@ namespace PK::Rendering::Batching
 
         if (collection->MatrixBuffer == nullptr)
         {
-            collection->MatrixBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE::FLOAT4X4, "Matrix"} }), (uint)collection->TotalDrawCallCount, false, GL_STREAM_DRAW);
+            collection->MatrixBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { PK_TYPE::FLOAT4X4, "Matrix"} }), (uint)collection->TotalDrawCallCount, false, GL_STREAM_DRAW);
         }
         else
         {
@@ -259,7 +259,7 @@ namespace PK::Rendering::Batching
 
         if (collection->MatrixBuffer == nullptr)
         {
-            collection->MatrixBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE::FLOAT4X4, "Matrix"} }), (uint)collection->TotalDrawCallCount, false, GL_STREAM_DRAW);
+            collection->MatrixBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { PK_TYPE::FLOAT4X4, "Matrix"} }), (uint)collection->TotalDrawCallCount, false, GL_STREAM_DRAW);
         }
         else
         {
@@ -299,7 +299,7 @@ namespace PK::Rendering::Batching
 
         if (collection->MatrixBuffer == nullptr)
         {
-            collection->MatrixBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE::FLOAT4X4, "Matrix"} }), (uint)collection->TotalDrawCallCount, false, GL_STREAM_DRAW);
+            collection->MatrixBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { PK_TYPE::FLOAT4X4, "Matrix"} }), (uint)collection->TotalDrawCallCount, false, GL_STREAM_DRAW);
         }
         else
         {
@@ -308,7 +308,7 @@ namespace PK::Rendering::Batching
 
         if (collection->IndexBuffer == nullptr)
         {
-            collection->IndexBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE::UINT, "Index"} }), (uint)collection->TotalDrawCallCount, false, GL_STREAM_DRAW);
+            collection->IndexBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { PK_TYPE::UINT, "Index"} }), (uint)collection->TotalDrawCallCount, false, GL_STREAM_DRAW);
         }
         else
         {

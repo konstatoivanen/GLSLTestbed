@@ -15,7 +15,7 @@ namespace PK::Rendering
     {
         m_sequencer = sequencer;
         m_gizmoShader = assetDatabase->Find<Shader>("SH_WS_Gizmos");
-        m_vertexBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { CG_TYPE::FLOAT4, "POSITION" }, { CG_TYPE::FLOAT4, "COLOR" } }), 32, false, GL_STREAM_DRAW);
+        m_vertexBuffer = CreateRef<ComputeBuffer>(BufferLayout({ { PK_TYPE::FLOAT4, "POSITION" }, { PK_TYPE::FLOAT4, "COLOR" } }), 32, false, GL_STREAM_DRAW);
         m_enabled = enabled;
     }
     
@@ -136,8 +136,8 @@ namespace PK::Rendering
             return;
         }
     
-        SetColor(CG_COLOR_WHITE);
-        SetMatrix(CG_FLOAT4X4_IDENTITY);
+        SetColor(PK_COLOR_WHITE);
+        SetMatrix(PK_FLOAT4X4_IDENTITY);
         m_vertexCount = 0;
     
         auto matrix = GraphicsAPI::GetActiveViewProjectionMatrix();

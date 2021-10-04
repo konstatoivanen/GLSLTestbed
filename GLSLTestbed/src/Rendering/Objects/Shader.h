@@ -13,7 +13,7 @@ namespace PK::Rendering::Objects
 	struct ShaderPropertyInfo
 	{
 		ushort location = 0xFFFF;
-		CG_TYPE type = CG_TYPE::INVALID;
+		PK_TYPE type = PK_TYPE::INVALID;
 	};
 
 	struct ShaderInstancingInfo

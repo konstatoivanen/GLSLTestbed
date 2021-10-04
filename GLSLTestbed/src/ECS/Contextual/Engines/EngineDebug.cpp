@@ -34,8 +34,8 @@ namespace PK::ECS::Engines
 		implementer->isCullable = true;
 		implementer->isVisible = false;
 		implementer->position = position;
-		implementer->rotation = glm::quat(rotation * CG_FLOAT_DEG2RAD);
-		implementer->scale = CG_FLOAT3_ONE * size;
+		implementer->rotation = glm::quat(rotation * PK_FLOAT_DEG2RAD);
+		implementer->scale = PK_FLOAT3_ONE * size;
 		implementer->sharedMaterials.push_back(material);
 		implementer->sharedMesh = mesh;
 
@@ -81,7 +81,7 @@ namespace PK::ECS::Engines
 		auto material = assetDatabase->RegisterProcedural("M_Point_Light_" + std::to_string(egid.entityID()), CreateRef<Material>(shader));
 		material->SetFloat4(HashCache::Get()->_Color, hdrColor);
 		
-		auto meshEgid = CreateMeshRenderable(entityDb, position, CG_FLOAT3_ZERO, sphereRadius, mesh, material);
+		auto meshEgid = CreateMeshRenderable(entityDb, position, PK_FLOAT3_ZERO, sphereRadius, mesh, material);
 		auto meshTransform = entityDb->Query<EntityViews::TransformView>(meshEgid);
 		entityDb->Query<EntityViews::BaseRenderable>(meshEgid)->handle->flags = Components::RenderHandleFlags::Renderer;
 		lightSphereView->transformMesh = meshTransform->transform;
@@ -101,8 +101,8 @@ namespace PK::ECS::Engines
 		baseView->handle = static_cast<Components::RenderableHandle*>(implementer);
 		lightView->light = static_cast<Components::Light*>(implementer);
 		lightView->transform = static_cast<Components::Transform*>(implementer);
-		implementer->position = CG_FLOAT3_ZERO;
-		implementer->rotation = glm::quat(rotation * CG_FLOAT_DEG2RAD);
+		implementer->position = PK_FLOAT3_ZERO;
+		implementer->rotation = glm::quat(rotation * PK_FLOAT_DEG2RAD);
 		
 		ECS::Builders::InitializeLightValues(implementer, color, LightType::Directional, LightCookie::NoCookie, castShadows, 90.0f, 50.0f);
 
@@ -114,16 +114,16 @@ namespace PK::ECS::Engines
 		m_entityDb = entityDb;
 		m_assetDatabase = assetDatabase;
 	
-		//meshCube = MeshUtilities::GetBox(CG_FLOAT3_ZERO, { 10.0f, 0.5f, 10.0f });
+		//meshCube = MeshUtilities::GetBox(PK_FLOAT3_ZERO, { 10.0f, 0.5f, 10.0f });
 		auto buildingsMesh = assetDatabase->Load<Mesh>("res/models/Buildings.mdl");
 		auto spiralMesh = assetDatabase->Load<Mesh>("res/models/Spiral.mdl");
 		auto clothMesh = assetDatabase->Load<Mesh>("res/models/Cloth.mdl");
 		//auto treeMesh = assetDatabase->Load<Mesh>("res/models/Tree.mdl");
 		auto columnMesh = assetDatabase->Load<Mesh>("res/models/Columns.mdl");
 
-		auto sphereMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Sphere", Rendering::MeshUtility::GetSphere(CG_FLOAT3_ZERO, 1.0f));
-		auto planeMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Plane16x16", Rendering::MeshUtility::GetPlane(CG_FLOAT2_ZERO, CG_FLOAT2_ONE, { 16, 16 }));
-		auto oceanMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Plane128x128", Rendering::MeshUtility::GetPlane(CG_FLOAT2_ZERO, CG_FLOAT2_ONE * 5.0f, { 128, 128 }));
+		auto sphereMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Sphere", Rendering::MeshUtility::GetSphere(PK_FLOAT3_ZERO, 1.0f));
+		auto planeMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Plane16x16", Rendering::MeshUtility::GetPlane(PK_FLOAT2_ZERO, PK_FLOAT2_ONE, { 16, 16 }));
+		auto oceanMesh = assetDatabase->RegisterProcedural<Mesh>("Primitive_Plane128x128", Rendering::MeshUtility::GetPlane(PK_FLOAT2_ZERO, PK_FLOAT2_ONE * 5.0f, { 128, 128 }));
 	
 		auto materialMetal = assetDatabase->Load<Material>("res/materials/M_Metal_Panel.material");
 		auto materialCloth = assetDatabase->Load<Material>("res/materials/M_Cloth.material");
@@ -208,10 +208,10 @@ namespace PK::ECS::Engines
 		auto time = Application::GetService<Time>()->GetTime();
 		auto aspect = Application::GetWindow()->GetAspect();
 		auto proj = Functions::GetPerspective(50.0f, aspect, 0.2f, 25.0f);
-		auto view = Functions::GetMatrixInvTRS(CG_FLOAT3_ZERO, { 0, time, 0 }, CG_FLOAT3_ONE);
+		auto view = Functions::GetMatrixInvTRS(PK_FLOAT3_ZERO, { 0, time, 0 }, PK_FLOAT3_ONE);
 		auto vp = proj * view;
 	
-		float4x4 localToWorld = Functions::GetMatrixTRS(CG_FLOAT3_ZERO, float3(35, -35, 0) * CG_FLOAT_DEG2RAD, CG_FLOAT3_ONE);
+		float4x4 localToWorld = Functions::GetMatrixTRS(PK_FLOAT3_ZERO, float3(35, -35, 0) * PK_FLOAT_DEG2RAD, PK_FLOAT3_ONE);
 		float4x4 worldToLocal = glm::inverse(localToWorld);
 		float4x4 invvp = glm::inverse(vp);
 		float4x4 cascades[4];
@@ -222,11 +222,11 @@ namespace PK::ECS::Engines
 		
 		for (auto i = 0; i < 4; ++i)
 		{
-			gizmos->SetColor(CG_COLOR_GREEN);
+			gizmos->SetColor(PK_COLOR_GREEN);
 			gizmos->DrawFrustrum(cascades[i]);
 		}
 
-		gizmos->SetColor(CG_COLOR_RED);
+		gizmos->SetColor(PK_COLOR_RED);
 		gizmos->DrawFrustrum(vp);
 
 		auto znear = 0.2f;
@@ -246,7 +246,7 @@ namespace PK::ECS::Engines
 
 		auto cullables = m_entityDb->Query<EntityViews::BaseRenderable>((int)ENTITY_GROUPS::ACTIVE);
 	
-		gizmos->SetColor(CG_COLOR_GREEN);
+		gizmos->SetColor(PK_COLOR_GREEN);
 
 		PK::Math::FrustumPlanes planes;
 		Functions::ExtractFrustrumPlanes(vp, &planes, true);

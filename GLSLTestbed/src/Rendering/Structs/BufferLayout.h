@@ -11,14 +11,14 @@ namespace PK::Rendering::Structs
 	struct BufferElement
 	{
 		uint32_t NameHashId = 0;
-		CG_TYPE Type = CG_TYPE::INVALID;
+		PK_TYPE Type = PK_TYPE::INVALID;
 		ushort Size = 0;
 		size_t Offset = 0;
 		bool Normalized = false;
 	
 		BufferElement() = default;
 	
-		BufferElement(CG_TYPE type, const std::string& name, ushort count = 1, bool normalized = false) : NameHashId(StringHashID::StringToID(name)), Type(type), Size(Convert::Size(type)* count), Offset(0), Normalized(normalized)
+		BufferElement(PK_TYPE type, const std::string& name, ushort count = 1, bool normalized = false) : NameHashId(StringHashID::StringToID(name)), Type(type), Size(Convert::Size(type)* count), Offset(0), Normalized(normalized)
 		{
 		}
 	};

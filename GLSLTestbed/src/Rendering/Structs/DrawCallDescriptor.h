@@ -33,7 +33,7 @@ namespace PK::Rendering::Structs
         int submesh = -1;
         size_t offset = 0;
         size_t count = 0;
-        uint3 threadGroupSize = CG_UINT3_ZERO;
+        uint3 threadGroupSize = PK_UINT3_ZERO;
         GLenum topology = GL_TRIANGLES;
         GLenum memoryBarrierFlags = 0;
     };

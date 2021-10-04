@@ -92,7 +92,7 @@ namespace PK::Rendering::GraphicsAPI
 
 	void BindTextures(ushort location, const GraphicsID* graphicsIds, ushort count);
 	void BindImages(ushort location, const ImageBindDescriptor* imageBindigns, ushort count);
-	void BindBuffers(CG_TYPE type, ushort location, const GraphicsID* graphicsIds, ushort count);
+	void BindBuffers(PK_TYPE type, ushort location, const GraphicsID* graphicsIds, ushort count);
 	void SetMemoryBarrier(GLenum barrierFlags);
 	void CopyRenderTexture(const RenderTexture* source, const RenderTexture* destination, GLbitfield mask, GLenum filter);
 	

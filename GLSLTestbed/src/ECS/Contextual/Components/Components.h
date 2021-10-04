@@ -10,11 +10,11 @@ namespace PK::ECS::Components
 
     struct Transform
     {
-        float3 position = CG_FLOAT3_ZERO;
-        quaternion rotation = CG_QUATERNION_IDENTITY;
-        float3 scale = CG_FLOAT3_ONE;
-        float4x4 localToWorld = CG_FLOAT4X4_IDENTITY;
-        float4x4 worldToLocal = CG_FLOAT4X4_IDENTITY;
+        float3 position = PK_FLOAT3_ZERO;
+        quaternion rotation = PK_QUATERNION_IDENTITY;
+        float3 scale = PK_FLOAT3_ONE;
+        float4x4 localToWorld = PK_FLOAT4X4_IDENTITY;
+        float4x4 worldToLocal = PK_FLOAT4X4_IDENTITY;
 
         inline float4x4 GetLocalToWorld() const { return Functions::GetMatrixTRS(position, rotation, scale); }
         inline float4x4 GetWorldToLocal() const { return Functions::GetMatrixInvTRS(position, rotation, scale); }
@@ -64,7 +64,7 @@ namespace PK::ECS::Components
     
     struct Light
     {
-        color color = CG_COLOR_WHITE;
+        color color = PK_COLOR_WHITE;
         float radius = 1.0f;
         float angle = 45.0f;
         bool castShadows = true;

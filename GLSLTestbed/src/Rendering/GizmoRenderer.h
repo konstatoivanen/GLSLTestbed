@@ -43,7 +43,7 @@ namespace PK::Rendering
             Shader* m_gizmoShader = nullptr;
             std::vector<GizmoVertex> m_vertices;
             uint m_vertexCount = 0;
-            color m_color = CG_COLOR_WHITE;
+            color m_color = PK_COLOR_WHITE;
             bool m_enabled = true;
     };
 }

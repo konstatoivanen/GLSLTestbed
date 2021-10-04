@@ -145,26 +145,26 @@ namespace PK::Rendering::Objects
 	
 			switch (info.type)
 			{
-				case CG_TYPE::FLOAT: glUniform1fv(prop.location, count, propertyBlock.GetElementPtr<float>(info)); break;
-				case CG_TYPE::FLOAT2: glUniform2fv(prop.location, count, propertyBlock.GetElementPtr<float>(info)); break;
-				case CG_TYPE::FLOAT3: glUniform3fv(prop.location, count, propertyBlock.GetElementPtr<float>(info)); break;
-				case CG_TYPE::FLOAT4: glUniform4fv(prop.location, count, propertyBlock.GetElementPtr<float>(info)); break;
-				case CG_TYPE::FLOAT2X2: glUniformMatrix2fv(prop.location, count, GL_FALSE, propertyBlock.GetElementPtr<float>(info)); break;
-				case CG_TYPE::FLOAT3X3: glUniformMatrix3fv(prop.location, count, GL_FALSE, propertyBlock.GetElementPtr<float>(info)); break;
-				case CG_TYPE::FLOAT4X4: glUniformMatrix4fv(prop.location, count, GL_FALSE, propertyBlock.GetElementPtr<float>(info)); break;
-				case CG_TYPE::INT:  glUniform1iv(prop.location, count, propertyBlock.GetElementPtr<int>(info)); break;
-				case CG_TYPE::INT2: glUniform2iv(prop.location, count, propertyBlock.GetElementPtr<int>(info)); break;
-				case CG_TYPE::INT3: glUniform3iv(prop.location, count, propertyBlock.GetElementPtr<int>(info)); break;
-				case CG_TYPE::INT4: glUniform4iv(prop.location, count, propertyBlock.GetElementPtr<int>(info)); break;
-				case CG_TYPE::UINT:  glUniform1uiv(prop.location, count, propertyBlock.GetElementPtr<uint>(info)); break;
-				case CG_TYPE::UINT2: glUniform2uiv(prop.location, count, propertyBlock.GetElementPtr<uint>(info)); break;
-				case CG_TYPE::UINT3: glUniform3uiv(prop.location, count, propertyBlock.GetElementPtr<uint>(info)); break;
-				case CG_TYPE::UINT4: glUniform4uiv(prop.location, count, propertyBlock.GetElementPtr<uint>(info)); break;
-				case CG_TYPE::HANDLE: glUniformHandleui64vARB(prop.location, count, propertyBlock.GetElementPtr<ulong>(info)); break;
-				case CG_TYPE::TEXTURE: GraphicsAPI::BindTextures(prop.location, propertyBlock.GetElementPtr<GraphicsID>(info), count); break;
-				case CG_TYPE::IMAGE_PARAMS: GraphicsAPI::BindImages(prop.location, propertyBlock.GetElementPtr<ImageBindDescriptor>(info), count); break;
-				case CG_TYPE::CONSTANT_BUFFER: GraphicsAPI::BindBuffers(CG_TYPE::CONSTANT_BUFFER, prop.location, propertyBlock.GetElementPtr<GraphicsID>(info), count); break;
-				case CG_TYPE::COMPUTE_BUFFER: GraphicsAPI::BindBuffers(CG_TYPE::COMPUTE_BUFFER, prop.location, propertyBlock.GetElementPtr<GraphicsID>(info), count); break;
+				case PK_TYPE::FLOAT: glUniform1fv(prop.location, count, propertyBlock.GetElementPtr<float>(info)); break;
+				case PK_TYPE::FLOAT2: glUniform2fv(prop.location, count, propertyBlock.GetElementPtr<float>(info)); break;
+				case PK_TYPE::FLOAT3: glUniform3fv(prop.location, count, propertyBlock.GetElementPtr<float>(info)); break;
+				case PK_TYPE::FLOAT4: glUniform4fv(prop.location, count, propertyBlock.GetElementPtr<float>(info)); break;
+				case PK_TYPE::FLOAT2X2: glUniformMatrix2fv(prop.location, count, GL_FALSE, propertyBlock.GetElementPtr<float>(info)); break;
+				case PK_TYPE::FLOAT3X3: glUniformMatrix3fv(prop.location, count, GL_FALSE, propertyBlock.GetElementPtr<float>(info)); break;
+				case PK_TYPE::FLOAT4X4: glUniformMatrix4fv(prop.location, count, GL_FALSE, propertyBlock.GetElementPtr<float>(info)); break;
+				case PK_TYPE::INT:  glUniform1iv(prop.location, count, propertyBlock.GetElementPtr<int>(info)); break;
+				case PK_TYPE::INT2: glUniform2iv(prop.location, count, propertyBlock.GetElementPtr<int>(info)); break;
+				case PK_TYPE::INT3: glUniform3iv(prop.location, count, propertyBlock.GetElementPtr<int>(info)); break;
+				case PK_TYPE::INT4: glUniform4iv(prop.location, count, propertyBlock.GetElementPtr<int>(info)); break;
+				case PK_TYPE::UINT:  glUniform1uiv(prop.location, count, propertyBlock.GetElementPtr<uint>(info)); break;
+				case PK_TYPE::UINT2: glUniform2uiv(prop.location, count, propertyBlock.GetElementPtr<uint>(info)); break;
+				case PK_TYPE::UINT3: glUniform3uiv(prop.location, count, propertyBlock.GetElementPtr<uint>(info)); break;
+				case PK_TYPE::UINT4: glUniform4uiv(prop.location, count, propertyBlock.GetElementPtr<uint>(info)); break;
+				case PK_TYPE::HANDLE: glUniformHandleui64vARB(prop.location, count, propertyBlock.GetElementPtr<ulong>(info)); break;
+				case PK_TYPE::TEXTURE: GraphicsAPI::BindTextures(prop.location, propertyBlock.GetElementPtr<GraphicsID>(info), count); break;
+				case PK_TYPE::IMAGE_PARAMS: GraphicsAPI::BindImages(prop.location, propertyBlock.GetElementPtr<ImageBindDescriptor>(info), count); break;
+				case PK_TYPE::CONSTANT_BUFFER: GraphicsAPI::BindBuffers(PK_TYPE::CONSTANT_BUFFER, prop.location, propertyBlock.GetElementPtr<GraphicsID>(info), count); break;
+				case PK_TYPE::COMPUTE_BUFFER: GraphicsAPI::BindBuffers(PK_TYPE::COMPUTE_BUFFER, prop.location, propertyBlock.GetElementPtr<GraphicsID>(info), count); break;
 				default: PK_CORE_ERROR("Invalid Shader Property Type");
 			}
 		}
@@ -824,7 +824,7 @@ namespace PK::Rendering::Objects
 				glGetProgramResourceName(program, GL_UNIFORM_BLOCK, i, maxnamelength, &length, name);
 				auto location = glGetProgramResourceIndex(program, GL_UNIFORM_BLOCK, name);
 				glUniformBlockBinding(program, location, location);
-				variablemap[StringHashID::StringToID(name)] = { (ushort)location, CG_TYPE::CONSTANT_BUFFER };
+				variablemap[StringHashID::StringToID(name)] = { (ushort)location, PK_TYPE::CONSTANT_BUFFER };
 			}
 	
 			// Map Compute Buffers
@@ -839,7 +839,7 @@ namespace PK::Rendering::Objects
 				glGetProgramResourceName(program, GL_SHADER_STORAGE_BLOCK, i, maxnamelength, &length, name);
 				auto location = glGetProgramResourceIndex(program, GL_SHADER_STORAGE_BLOCK, name);
 				glShaderStorageBlockBinding(program, location, location);
-				variablemap[StringHashID::StringToID(name)] = { (ushort)location, CG_TYPE::COMPUTE_BUFFER };
+				variablemap[StringHashID::StringToID(name)] = { (ushort)location, PK_TYPE::COMPUTE_BUFFER };
 			}
 	
 			// Map explicit layout binding variables

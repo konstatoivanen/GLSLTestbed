@@ -11,23 +11,23 @@ namespace PK::Rendering::Structs
     {
         GLint count;
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &count);
-        m_bindings[CG_TYPE::TEXTURE] = std::vector<GraphicsID>(count);
+        m_bindings[PK_TYPE::TEXTURE] = std::vector<GraphicsID>(count);
     
         glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &count);
-        m_bindings[CG_TYPE::CONSTANT_BUFFER] = std::vector<GraphicsID>(count);
+        m_bindings[PK_TYPE::CONSTANT_BUFFER] = std::vector<GraphicsID>(count);
     
         glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &count);
-        m_bindings[CG_TYPE::COMPUTE_BUFFER] = std::vector<GraphicsID>(count);
+        m_bindings[PK_TYPE::COMPUTE_BUFFER] = std::vector<GraphicsID>(count);
 
         glGetIntegerv(GL_MAX_IMAGE_UNITS, &count);
-        m_bindings[CG_TYPE::IMAGE_PARAMS] = std::vector<GraphicsID>(count);
+        m_bindings[PK_TYPE::IMAGE_PARAMS] = std::vector<GraphicsID>(count);
 
-        m_bindings[CG_TYPE::VERTEX_ARRAY] = std::vector<GraphicsID>(1);
+        m_bindings[PK_TYPE::VERTEX_ARRAY] = std::vector<GraphicsID>(1);
     }
     
     void ResourceBindState::BindTextures(ushort location, const GraphicsID* graphicsIds, ushort count)
     {
-        auto bindings = GetBindings(CG_TYPE::TEXTURE, location, count);
+        auto bindings = GetBindings(PK_TYPE::TEXTURE, location, count);
     
         if (count == 1)
         {
@@ -55,7 +55,7 @@ namespace PK::Rendering::Structs
 
     void ResourceBindState::BindImages(ushort location, const ImageBindDescriptor* imageBindings, ushort count)
     {
-        auto bindings = GetBindings(CG_TYPE::IMAGE_PARAMS, location, count);
+        auto bindings = GetBindings(PK_TYPE::IMAGE_PARAMS, location, count);
 
         if (count == 1)
         {
@@ -96,7 +96,7 @@ namespace PK::Rendering::Structs
         }
     }
     
-    void ResourceBindState::BindBuffers(CG_TYPE type, ushort location, const GraphicsID* graphicsIds, ushort count)
+    void ResourceBindState::BindBuffers(PK_TYPE type, ushort location, const GraphicsID* graphicsIds, ushort count)
     {
         auto bindings = GetBindings(type, location, count);
         auto nativeType = Convert::ToNativeEnum(type);
@@ -115,7 +115,7 @@ namespace PK::Rendering::Structs
     
     void ResourceBindState::BindMesh(GraphicsID graphicsId)
     {
-        auto* binding = m_bindings.at(CG_TYPE::VERTEX_ARRAY).data();
+        auto* binding = m_bindings.at(PK_TYPE::VERTEX_ARRAY).data();
     
         if (binding[0] != graphicsId)
         {
@@ -132,7 +132,7 @@ namespace PK::Rendering::Structs
         }
     }
     
-    GraphicsID* ResourceBindState::GetBindings(CG_TYPE type, ushort location, ushort count)
+    GraphicsID* ResourceBindState::GetBindings(PK_TYPE type, ushort location, ushort count)
     {
         auto& bindings = m_bindings.at(type);
         auto* bbuff = bindings.data();

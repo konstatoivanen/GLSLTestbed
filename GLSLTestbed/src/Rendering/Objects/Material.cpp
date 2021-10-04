@@ -83,18 +83,18 @@ void AssetImporters::Import(const std::string& filepath, Ref<Material>& material
 
 			switch (typeIdx)
 			{
-				case CG_TYPE::FLOAT: material->SetFloat(nameHash, values.as<float>()); break;
-				case CG_TYPE::FLOAT2: material->SetFloat2(nameHash, values.as<float2>()); break;
-				case CG_TYPE::FLOAT3: material->SetFloat3(nameHash, values.as<float3>()); break;
-				case CG_TYPE::FLOAT4: material->SetFloat4(nameHash, values.as<float4>()); break;
-				case CG_TYPE::FLOAT2X2: material->SetFloat2x2(nameHash, values.as<float2x2>()); break;
-				case CG_TYPE::FLOAT3X3: material->SetFloat3x3(nameHash, values.as<float3x3>()); break;
-				case CG_TYPE::FLOAT4X4: material->SetFloat4x4(nameHash, values.as<float4x4>()); break;
-				case CG_TYPE::INT: material->SetInt(nameHash, values.as<int>()); break;
-				case CG_TYPE::INT2: material->SetInt2(nameHash, values.as<int2>()); break;
-				case CG_TYPE::INT3: material->SetInt3(nameHash, values.as<int3>()); break;
-				case CG_TYPE::INT4: material->SetInt4(nameHash, values.as<int4>()); break;
-				case CG_TYPE::TEXTURE: 
+				case PK_TYPE::FLOAT: material->SetFloat(nameHash, values.as<float>()); break;
+				case PK_TYPE::FLOAT2: material->SetFloat2(nameHash, values.as<float2>()); break;
+				case PK_TYPE::FLOAT3: material->SetFloat3(nameHash, values.as<float3>()); break;
+				case PK_TYPE::FLOAT4: material->SetFloat4(nameHash, values.as<float4>()); break;
+				case PK_TYPE::FLOAT2X2: material->SetFloat2x2(nameHash, values.as<float2x2>()); break;
+				case PK_TYPE::FLOAT3X3: material->SetFloat3x3(nameHash, values.as<float3x3>()); break;
+				case PK_TYPE::FLOAT4X4: material->SetFloat4x4(nameHash, values.as<float4x4>()); break;
+				case PK_TYPE::INT: material->SetInt(nameHash, values.as<int>()); break;
+				case PK_TYPE::INT2: material->SetInt2(nameHash, values.as<int2>()); break;
+				case PK_TYPE::INT3: material->SetInt3(nameHash, values.as<int3>()); break;
+				case PK_TYPE::INT4: material->SetInt4(nameHash, values.as<int4>()); break;
+				case PK_TYPE::TEXTURE: 
 				{
 					auto texture = values.as<TextureXD*>();
 					texture->MakeHandleResident();

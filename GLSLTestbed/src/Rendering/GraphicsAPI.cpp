@@ -101,7 +101,7 @@ namespace PK::Rendering::GraphicsAPI
 	void GraphicsAPI::StartWindow()
 	{
 		SetRenderTarget(nullptr);
-		Clear(CG_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		Clear(PK_COLOR_CLEAR, 1.0f, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 	
 	void GraphicsAPI::EndWindow() { glfwSwapBuffers(CURRENT_WINDOW); }
@@ -373,7 +373,7 @@ namespace PK::Rendering::GraphicsAPI
 
 	void GraphicsAPI::BindImages(ushort location, const ImageBindDescriptor* imageBindings, ushort count) { RESOURCE_BINDINGS.BindImages(location, imageBindings, count); }
 
-	void GraphicsAPI::BindBuffers(CG_TYPE type, ushort location, const GraphicsID* graphicsIds, ushort count) { RESOURCE_BINDINGS.BindBuffers(type, location, graphicsIds, count); }
+	void GraphicsAPI::BindBuffers(PK_TYPE type, ushort location, const GraphicsID* graphicsIds, ushort count) { RESOURCE_BINDINGS.BindBuffers(type, location, graphicsIds, count); }
 
 	void GraphicsAPI::SetMemoryBarrier(GLenum barrierFlags) 
 	{ 

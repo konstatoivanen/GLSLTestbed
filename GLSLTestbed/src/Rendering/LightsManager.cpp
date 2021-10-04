@@ -140,19 +140,19 @@ namespace PK::Rendering
 
 		m_lightsBuffer = CreateRef<ComputeBuffer>(BufferLayout(
 		{
-			{CG_TYPE::FLOAT4, "COLOR"},
-			{CG_TYPE::FLOAT4, "DIRECTION"},
-			{CG_TYPE::UINT, "SHADOWMAP_INDEX"},
-			{CG_TYPE::UINT, "PROJECTION_INDEX"},
-			{CG_TYPE::UINT, "COOKIE_INDEX"},
-			{CG_TYPE::UINT, "TYPE"},
+			{PK_TYPE::FLOAT4, "COLOR"},
+			{PK_TYPE::FLOAT4, "DIRECTION"},
+			{PK_TYPE::UINT, "SHADOWMAP_INDEX"},
+			{PK_TYPE::UINT, "PROJECTION_INDEX"},
+			{PK_TYPE::UINT, "COOKIE_INDEX"},
+			{PK_TYPE::UINT, "TYPE"},
 		}), 32, false, GL_STREAM_DRAW);
 	
-		m_depthTiles = CreateRef<ComputeBuffer>(BufferLayout({{CG_TYPE::UINT, "DEPTHMAX"}}), GridSizeX * GridSizeY, true, GL_NONE);
-		m_lightMatricesBuffer = CreateRef<ComputeBuffer>(BufferLayout({{CG_TYPE::FLOAT4X4, "MATRIX"}}), 32, false, GL_STREAM_DRAW);
-		m_lightDirectionsBuffer = CreateRef<ComputeBuffer>(BufferLayout({{CG_TYPE::FLOAT4, "DIRECTION"}}), 32, false, GL_STREAM_DRAW);
-		m_globalLightsList = CreateRef<ComputeBuffer>(BufferLayout({{CG_TYPE::INT, "INDEX"}}), ClusterCount * MaxLightsPerTile, true, GL_NONE);
-		m_globalLightIndex = CreateRef<ComputeBuffer>(BufferLayout({{CG_TYPE::UINT, "INDEX"}}), 1, false, GL_STREAM_DRAW);
+		m_depthTiles = CreateRef<ComputeBuffer>(BufferLayout({{PK_TYPE::UINT, "DEPTHMAX"}}), GridSizeX * GridSizeY, true, GL_NONE);
+		m_lightMatricesBuffer = CreateRef<ComputeBuffer>(BufferLayout({{PK_TYPE::FLOAT4X4, "MATRIX"}}), 32, false, GL_STREAM_DRAW);
+		m_lightDirectionsBuffer = CreateRef<ComputeBuffer>(BufferLayout({{PK_TYPE::FLOAT4, "DIRECTION"}}), 32, false, GL_STREAM_DRAW);
+		m_globalLightsList = CreateRef<ComputeBuffer>(BufferLayout({{PK_TYPE::INT, "INDEX"}}), ClusterCount * MaxLightsPerTile, true, GL_NONE);
+		m_globalLightIndex = CreateRef<ComputeBuffer>(BufferLayout({{PK_TYPE::UINT, "INDEX"}}), 1, false, GL_STREAM_DRAW);
 		m_properties.SetComputeBuffer(HashCache::Get()->pk_TileMaxDepths, m_depthTiles->GetGraphicsID());
 		m_properties.SetComputeBuffer(HashCache::Get()->pk_LightDirections, m_lightDirectionsBuffer->GetGraphicsID());
 		m_properties.SetComputeBuffer(HashCache::Get()->pk_GlobalListListIndex, m_globalLightIndex->GetGraphicsID());
@@ -351,12 +351,12 @@ namespace PK::Rendering
 		for (size_t i = 0; i < m_visibleLightCount; ++i)
 		{
 			auto* view = m_visibleLights.at(i);
-			auto position = CG_FLOAT4_ZERO;
+			auto position = PK_FLOAT4_ZERO;
 
 			switch (view->light->lightType)
 			{
 				case LightType::Directional:
-					position = float4(view->transform->rotation * CG_FLOAT3_FORWARD, 0.0f);
+					position = float4(view->transform->rotation * PK_FLOAT3_FORWARD, 0.0f);
 					position.w = Functions::GetShadowCascadeMatrices(
 						view->transform->worldToLocal, 
 						inverseViewProjection, 
@@ -373,7 +373,7 @@ namespace PK::Rendering
 				case LightType::Spot:
 					position = float4(view->transform->position, view->light->radius);
 					bufferMatrices[view->light->projectionIndex] = Functions::GetPerspective(view->light->angle, 1.0f, 0.1f, view->light->radius) * view->transform->worldToLocal;
-					bufferDirections[view->light->projectionIndex] = float4(view->transform->rotation * CG_FLOAT3_FORWARD, view->light->angle * CG_FLOAT_DEG2RAD);
+					bufferDirections[view->light->projectionIndex] = float4(view->transform->rotation * PK_FLOAT3_FORWARD, view->light->angle * PK_FLOAT_DEG2RAD);
 					break;
 			}
 
@@ -388,7 +388,7 @@ namespace PK::Rendering
 			};
 		}
 
-		bufferLights[m_visibleLightCount] = { CG_COLOR_CLEAR, CG_FLOAT4_ZERO, 0xFFFFFFFF, 0u, 0xFFFFFFFF, 0xFFFFFFFF };
+		bufferLights[m_visibleLightCount] = { PK_COLOR_CLEAR, PK_FLOAT4_ZERO, 0xFFFFFFFF, 0u, 0xFFFFFFFF, 0xFFFFFFFF };
 		m_lightsBuffer->EndMapBuffer();
 
 		if (lightProjectionCount > 0)

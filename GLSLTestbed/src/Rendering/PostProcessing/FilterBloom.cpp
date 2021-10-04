@@ -15,8 +15,8 @@ namespace PK::Rendering::PostProcessing
     struct PassParams
     {
         ulong source = 0;
-        float2 offset = CG_FLOAT2_ZERO;
-        uint2 readwrite = CG_UINT2_ZERO;
+        float2 offset = PK_FLOAT2_ZERO;
+        uint2 readwrite = PK_UINT2_ZERO;
     };
 
     FilterBloom::FilterBloom(AssetDatabase* assetDatabase, const ApplicationConfig* config) : FilterBase(assetDatabase->Find<Shader>("SH_VS_FilterBloom"))
@@ -32,37 +32,37 @@ namespace PK::Rendering::PostProcessing
         m_passKeywords[4] = StringHashID::StringToID("PASS_AVG");
 
         m_computeHistogram = assetDatabase->Find<Shader>("CS_LuminanceHistogram");
-        m_histogram = CreateRef<ComputeBuffer>(BufferLayout({ {CG_TYPE::UINT, "COUNT"} }), HISTOGRAM_NUM_BINS + 1, true, GL_NONE);
+        m_histogram = CreateRef<ComputeBuffer>(BufferLayout({ {PK_TYPE::UINT, "COUNT"} }), HISTOGRAM_NUM_BINS + 1, true, GL_NONE);
         m_paramatersBuffer = CreateRef<ConstantBuffer>(BufferLayout(
         {
-            {CG_TYPE::FLOAT, "pk_MinLogLuminance"},
-            {CG_TYPE::FLOAT, "pk_InvLogLuminanceRange"},
-            {CG_TYPE::FLOAT, "pk_LogLuminanceRange"},
-            {CG_TYPE::FLOAT, "pk_TargetExposure"},
-            {CG_TYPE::FLOAT, "pk_AutoExposureSpeed"},
-            {CG_TYPE::FLOAT, "pk_BloomIntensity"},
-            {CG_TYPE::FLOAT, "pk_BloomDirtIntensity"},
-            {CG_TYPE::FLOAT, "pk_Vibrance"},
-            {CG_TYPE::FLOAT4, "pk_VignetteGrain"},
-            {CG_TYPE::FLOAT4, "pk_WhiteBalance"},
-            {CG_TYPE::FLOAT4, "pk_Lift"},
-            {CG_TYPE::FLOAT4, "pk_Gamma"},
-            {CG_TYPE::FLOAT4, "pk_Gain"},
-            {CG_TYPE::FLOAT4, "pk_ContrastGainGammaContribution"},
-            {CG_TYPE::FLOAT4, "pk_HSV"},
-            {CG_TYPE::FLOAT4, "pk_ChannelMixerRed"},
-            {CG_TYPE::FLOAT4, "pk_ChannelMixerGreen"},
-            {CG_TYPE::FLOAT4, "pk_ChannelMixerBlue"},
-            {CG_TYPE::HANDLE, "pk_BloomLensDirtTex"},
-            {CG_TYPE::HANDLE, "pk_HDRScreenTex"},
-            {CG_TYPE::HANDLE, "pk_FilmGrainTex"},
+            {PK_TYPE::FLOAT, "pk_MinLogLuminance"},
+            {PK_TYPE::FLOAT, "pk_InvLogLuminanceRange"},
+            {PK_TYPE::FLOAT, "pk_LogLuminanceRange"},
+            {PK_TYPE::FLOAT, "pk_TargetExposure"},
+            {PK_TYPE::FLOAT, "pk_AutoExposureSpeed"},
+            {PK_TYPE::FLOAT, "pk_BloomIntensity"},
+            {PK_TYPE::FLOAT, "pk_BloomDirtIntensity"},
+            {PK_TYPE::FLOAT, "pk_Vibrance"},
+            {PK_TYPE::FLOAT4, "pk_VignetteGrain"},
+            {PK_TYPE::FLOAT4, "pk_WhiteBalance"},
+            {PK_TYPE::FLOAT4, "pk_Lift"},
+            {PK_TYPE::FLOAT4, "pk_Gamma"},
+            {PK_TYPE::FLOAT4, "pk_Gain"},
+            {PK_TYPE::FLOAT4, "pk_ContrastGainGammaContribution"},
+            {PK_TYPE::FLOAT4, "pk_HSV"},
+            {PK_TYPE::FLOAT4, "pk_ChannelMixerRed"},
+            {PK_TYPE::FLOAT4, "pk_ChannelMixerGreen"},
+            {PK_TYPE::FLOAT4, "pk_ChannelMixerBlue"},
+            {PK_TYPE::HANDLE, "pk_BloomLensDirtTex"},
+            {PK_TYPE::HANDLE, "pk_HDRScreenTex"},
+            {PK_TYPE::HANDLE, "pk_FilmGrainTex"},
         }));
         
         m_passBuffer = CreateRef<ComputeBuffer>(BufferLayout(
         {
-            { CG_TYPE::HANDLE, "SOURCE"},
-            { CG_TYPE::FLOAT2, "OFFSET" },
-            { CG_TYPE::UINT2, "READWRITE" }
+            { PK_TYPE::HANDLE, "SOURCE"},
+            { PK_TYPE::FLOAT2, "OFFSET" },
+            { PK_TYPE::UINT2, "READWRITE" }
         }), 31, true, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
         
         auto descriptor = RenderTextureDescriptor();
@@ -146,7 +146,7 @@ namespace PK::Rendering::PostProcessing
 
         for (int i = 0; i < 6; ++i)
         {
-            bufferview[passIdx++] = { i == 0 ? handles[6] : handles[i - 1], CG_FLOAT2_ZERO, { 0, 0 } };
+            bufferview[passIdx++] = { i == 0 ? handles[6] : handles[i - 1], PK_FLOAT2_ZERO, { 0, 0 } };
             auto spread = i == 2 ? 0.75f : (i > 1 ? 1.0f : 0.5f);
 
             for (int j = 0; j < 2; ++j)
@@ -156,7 +156,7 @@ namespace PK::Rendering::PostProcessing
             }
         }
 
-        bufferview[passIdx++] = { handles[6], CG_FLOAT2_ZERO, CG_UINT2_ZERO };
+        bufferview[passIdx++] = { handles[6], PK_FLOAT2_ZERO, PK_UINT2_ZERO };
 
         m_passBuffer->EndMapBuffer();
     }

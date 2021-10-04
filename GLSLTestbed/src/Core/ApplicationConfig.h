@@ -20,8 +20,8 @@ namespace PK::Core
 		
 		BoxedValue<uint> RandomSeed = BoxedValue<uint>("RandomSeed", 512);
 
-		BoxedValue<float3> CameraStartPosition = BoxedValue<float3>("CameraStartPosition", CG_FLOAT3_ZERO);
-		BoxedValue<float3> CameraStartRotation = BoxedValue<float3>("CameraStartRotation", CG_FLOAT3_ZERO);
+		BoxedValue<float3> CameraStartPosition = BoxedValue<float3>("CameraStartPosition", PK_FLOAT3_ZERO);
+		BoxedValue<float3> CameraStartRotation = BoxedValue<float3>("CameraStartRotation", PK_FLOAT3_ZERO);
 		BoxedValue<float> CameraSpeed = BoxedValue<float>("CameraSpeed", 5.0f);
 		BoxedValue<float> CameraLookSensitivity = BoxedValue<float>("CameraLookSensitivity", 1.0f);
 		BoxedValue<float> CameraMoveSmoothing = BoxedValue<float>("CameraMoveSmoothing", 0.0f);
@@ -84,7 +84,7 @@ namespace PK::Core
 		BoxedValue<float> VolumeNoiseFogAmount = BoxedValue<float>("VolumeNoiseFogAmount", 0.0f);
 		BoxedValue<float> VolumeNoiseFogScale = BoxedValue<float>("VolumeNoiseFogScale", 0.0f);
 		BoxedValue<float> VolumeWindSpeed = BoxedValue<float>("VolumeWindSpeed", 0.0f);
-		BoxedValue<float3> VolumeWindDirection = BoxedValue<float3>("VolumeWindDirection", CG_FLOAT3_FORWARD);
+		BoxedValue<float3> VolumeWindDirection = BoxedValue<float3>("VolumeWindDirection", PK_FLOAT3_FORWARD);
 
 		BoxedValue<std::string> FileBackgroundTexture = BoxedValue<std::string>("FileBackgroundTexture", "T_OEM_Mountains");
 		BoxedValue<float> BackgroundExposure = BoxedValue<float>("BackgroundExposure", 1.0f);

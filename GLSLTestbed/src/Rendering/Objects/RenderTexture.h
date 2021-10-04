@@ -9,7 +9,7 @@ namespace PK::Rendering::Objects
 
     struct RenderTextureDescriptor
     {
-        uint3 resolution = CG_UINT3_ZERO;
+        uint3 resolution = PK_UINT3_ZERO;
         std::vector<GLenum> colorFormats = { GL_RGBA8 };
         GLenum depthFormat = GL_DEPTH24_STENCIL8;
         GLenum dimension = GL_TEXTURE_2D;

@@ -25,7 +25,7 @@ namespace PK::Rendering::PostProcessing
         m_volumeInject = CreateRef<RenderBuffer>(descriptor);
         m_volumeScatter = CreateRef<RenderBuffer>(descriptor);
 
-        m_depthTiles = CreateRef<ComputeBuffer>(BufferLayout({ {CG_TYPE::UINT, "DEPTHMAX"} }), VolumeResolution.x * VolumeResolution.y, true, GL_NONE);
+        m_depthTiles = CreateRef<ComputeBuffer>(BufferLayout({ {PK_TYPE::UINT, "DEPTHMAX"} }), VolumeResolution.x * VolumeResolution.y, true, GL_NONE);
 
         m_computeInject = assetDatabase->Find<Shader>("CS_VolumeFogLightDensity");
         m_computeScatter = assetDatabase->Find<Shader>("CS_VolumeFogScatter");
@@ -33,19 +33,19 @@ namespace PK::Rendering::PostProcessing
 
         m_volumeResources = CreateRef<ConstantBuffer>(BufferLayout(
         {
-            {CG_TYPE::FLOAT4, "pk_Volume_WindDir"},
-            {CG_TYPE::FLOAT, "pk_Volume_ConstantFog"},
-            {CG_TYPE::FLOAT, "pk_Volume_HeightFogExponent"},
-            {CG_TYPE::FLOAT, "pk_Volume_HeightFogOffset"},
-            {CG_TYPE::FLOAT, "pk_Volume_HeightFogAmount"},
-            {CG_TYPE::FLOAT, "pk_Volume_Density"},
-            {CG_TYPE::FLOAT, "pk_Volume_Intensity"},
-            {CG_TYPE::FLOAT, "pk_Volume_Anisotropy"},
-            {CG_TYPE::FLOAT, "pk_Volume_NoiseFogAmount"},
-            {CG_TYPE::FLOAT, "pk_Volume_NoiseFogScale"},
-            {CG_TYPE::FLOAT, "pk_Volume_WindSpeed"},
-            {CG_TYPE::HANDLE, "pk_Volume_ScatterRead"},
-            {CG_TYPE::HANDLE, "pk_Volume_InjectRead"},
+            {PK_TYPE::FLOAT4, "pk_Volume_WindDir"},
+            {PK_TYPE::FLOAT, "pk_Volume_ConstantFog"},
+            {PK_TYPE::FLOAT, "pk_Volume_HeightFogExponent"},
+            {PK_TYPE::FLOAT, "pk_Volume_HeightFogOffset"},
+            {PK_TYPE::FLOAT, "pk_Volume_HeightFogAmount"},
+            {PK_TYPE::FLOAT, "pk_Volume_Density"},
+            {PK_TYPE::FLOAT, "pk_Volume_Intensity"},
+            {PK_TYPE::FLOAT, "pk_Volume_Anisotropy"},
+            {PK_TYPE::FLOAT, "pk_Volume_NoiseFogAmount"},
+            {PK_TYPE::FLOAT, "pk_Volume_NoiseFogScale"},
+            {PK_TYPE::FLOAT, "pk_Volume_WindSpeed"},
+            {PK_TYPE::HANDLE, "pk_Volume_ScatterRead"},
+            {PK_TYPE::HANDLE, "pk_Volume_InjectRead"},
         }));
 
         OnUpdateParameters(config);

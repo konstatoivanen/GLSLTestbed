@@ -185,11 +185,11 @@ namespace PK::Core
             
     		std::unordered_map<KeyCode, InputState> m_inputStateCurrent;
     		std::unordered_map<KeyCode, InputState> m_inputStatePrevious;
-    		float2 m_mousePositionNormalized = CG_FLOAT2_ZERO;
-    		float2 m_mousePosition = CG_FLOAT2_ZERO;
-    		float2 m_mousePrev = CG_FLOAT2_ZERO;
-    		float2 m_mouseDelta = CG_FLOAT2_ZERO;
-    		float2 m_mouseScrollRaw = CG_FLOAT2_ZERO;
-    		float2 m_mouseScroll = CG_FLOAT2_ZERO;
+    		float2 m_mousePositionNormalized = PK_FLOAT2_ZERO;
+    		float2 m_mousePosition = PK_FLOAT2_ZERO;
+    		float2 m_mousePrev = PK_FLOAT2_ZERO;
+    		float2 m_mouseDelta = PK_FLOAT2_ZERO;
+    		float2 m_mouseScrollRaw = PK_FLOAT2_ZERO;
+    		float2 m_mouseScroll = PK_FLOAT2_ZERO;
     };
 }

@@ -21,11 +21,11 @@ namespace PK::ECS::Engines
 	    private:
 			Time* m_time = nullptr;
 			const ApplicationConfig* m_config = nullptr;
-			float3 m_position = CG_FLOAT3_ZERO;
-			float3 m_eulerAngles = CG_FLOAT3_ZERO;
-			quaternion m_rotation = CG_QUATERNION_IDENTITY;
-			float3 m_smoothPosition = CG_FLOAT3_ZERO;
-			quaternion m_smoothRotation = CG_QUATERNION_IDENTITY;
+			float3 m_position = PK_FLOAT3_ZERO;
+			float3 m_eulerAngles = PK_FLOAT3_ZERO;
+			quaternion m_rotation = PK_QUATERNION_IDENTITY;
+			float3 m_smoothPosition = PK_FLOAT3_ZERO;
+			quaternion m_smoothRotation = PK_QUATERNION_IDENTITY;
 			float m_fieldOfView = 60.0f;
 			float m_zNear = 0.1f;
 			float m_zFar = 250.0f;

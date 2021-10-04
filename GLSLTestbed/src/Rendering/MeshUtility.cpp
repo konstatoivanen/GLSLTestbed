@@ -285,7 +285,7 @@ namespace PK::Rendering::MeshUtility
             0, 6, 7, 0, 1, 6
         };
     
-        BufferLayout layout = { {CG_TYPE::FLOAT3, "POSITION"} };
+        BufferLayout layout = { {PK_TYPE::FLOAT3, "POSITION"} };
         auto mesh = CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, 8, layout, true), CreateRef<IndexBuffer>(indices, 36, true));
         mesh->SetLocalBounds(PK::Math::Functions::CreateBoundsCenterExtents(offset, extents));
         return mesh;
@@ -302,12 +302,12 @@ namespace PK::Rendering::MeshUtility
         float3 p6 = { offset.x + extents.x, offset.y + extents.y, offset.z - extents.z };
         float3 p7 = { offset.x - extents.x, offset.y + extents.y, offset.z - extents.z };
     
-        float3 up = CG_FLOAT3_UP;
-        float3 down = CG_FLOAT3_DOWN;
-        float3 front = CG_FLOAT3_FORWARD;
-        float3 back = CG_FLOAT3_BACKWARD;
-        float3 left = CG_FLOAT3_LEFT;
-        float3 right = CG_FLOAT3_RIGHT;
+        float3 up = PK_FLOAT3_UP;
+        float3 down = PK_FLOAT3_DOWN;
+        float3 front = PK_FLOAT3_FORWARD;
+        float3 back = PK_FLOAT3_BACKWARD;
+        float3 left = PK_FLOAT3_LEFT;
+        float3 right = PK_FLOAT3_RIGHT;
     
         float2 uv00 = { 0.0f, 0.0f };
         float2 uv10 = { 1.0f, 0.0f };
@@ -379,7 +379,7 @@ namespace PK::Rendering::MeshUtility
             3 + 4 * 5, 2 + 4 * 5, 1 + 4 * 5,
         };
     
-        BufferLayout layout = { {CG_TYPE::FLOAT3, "POSITION"}, {CG_TYPE::FLOAT3, "NORMAL"}, {CG_TYPE::FLOAT2, "TEXCOORD0"} };
+        BufferLayout layout = { {PK_TYPE::FLOAT3, "POSITION"}, {PK_TYPE::FLOAT3, "NORMAL"}, {PK_TYPE::FLOAT2, "TEXCOORD0"} };
         auto mesh = CreateRef<Mesh>(CreateRef<VertexBuffer>(reinterpret_cast<float*>(vertices), 24, layout, true), CreateRef<IndexBuffer>(indices, 36, true));
         mesh->SetLocalBounds(PK::Math::Functions::CreateBoundsCenterExtents(offset, extents));
         return mesh;
@@ -405,7 +405,7 @@ namespace PK::Rendering::MeshUtility
             2,3,0
         };
     
-        BufferLayout layout = { {CG_TYPE::FLOAT2, "POSITION"}, {CG_TYPE::FLOAT2, "TEXCOORD0"} };
+        BufferLayout layout = { {PK_TYPE::FLOAT2, "POSITION"}, {PK_TYPE::FLOAT2, "TEXCOORD0"} };
         return CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, 4, layout, true), CreateRef<IndexBuffer>(indices, 6, true));
     }
     
@@ -429,7 +429,7 @@ namespace PK::Rendering::MeshUtility
             2,3,0
         };
     
-        BufferLayout layout = { {CG_TYPE::FLOAT3, "POSITION"}, {CG_TYPE::FLOAT2, "TEXCOORD0"} };
+        BufferLayout layout = { {PK_TYPE::FLOAT3, "POSITION"}, {PK_TYPE::FLOAT2, "TEXCOORD0"} };
         return CreateRef<Mesh>(CreateRef<VertexBuffer>(vertices, 4, layout, true), CreateRef<IndexBuffer>(indices, 6, true));
     }
 
@@ -449,10 +449,10 @@ namespace PK::Rendering::MeshUtility
             auto baseVertex = (y * resolution.x + x) * 4;
             auto baseIndex = (y * resolution.x + x) * 6;
 
-            vertices[baseVertex + 0] = { vmin + isize.zzz, CG_FLOAT3_BACKWARD, CG_FLOAT4_ZERO, float2(0, 0) };
-            vertices[baseVertex + 1] = { vmin + isize.zyz, CG_FLOAT3_BACKWARD, CG_FLOAT4_ZERO, float2(0, 1) };
-            vertices[baseVertex + 2] = { vmin + isize.xyz, CG_FLOAT3_BACKWARD, CG_FLOAT4_ZERO, float2(1, 1) };
-            vertices[baseVertex + 3] = { vmin + isize.xzz, CG_FLOAT3_BACKWARD, CG_FLOAT4_ZERO, float2(1, 0) };
+            vertices[baseVertex + 0] = { vmin + isize.zzz, PK_FLOAT3_BACKWARD, PK_FLOAT4_ZERO, float2(0, 0) };
+            vertices[baseVertex + 1] = { vmin + isize.zyz, PK_FLOAT3_BACKWARD, PK_FLOAT4_ZERO, float2(0, 1) };
+            vertices[baseVertex + 2] = { vmin + isize.xyz, PK_FLOAT3_BACKWARD, PK_FLOAT4_ZERO, float2(1, 1) };
+            vertices[baseVertex + 3] = { vmin + isize.xzz, PK_FLOAT3_BACKWARD, PK_FLOAT4_ZERO, float2(1, 0) };
 
             indices[baseIndex + 0] = baseVertex + 0;
             indices[baseIndex + 1] = baseVertex + 1;
@@ -463,7 +463,7 @@ namespace PK::Rendering::MeshUtility
             indices[baseIndex + 5] = baseVertex + 0;
         }
 
-        BufferLayout layout = { {CG_TYPE::FLOAT3, "POSITION"}, {CG_TYPE::FLOAT3, "NORMAL"}, {CG_TYPE::FLOAT4, "TANGENT"}, {CG_TYPE::FLOAT2, "TEXCOORD0"} };
+        BufferLayout layout = { {PK_TYPE::FLOAT3, "POSITION"}, {PK_TYPE::FLOAT3, "NORMAL"}, {PK_TYPE::FLOAT4, "TANGENT"}, {PK_TYPE::FLOAT2, "TEXCOORD0"} };
 
         CalculateTangents(reinterpret_cast<float*>(vertices), layout.GetStride() / 4, 0, 3, 6, 10, indices, vcount, icount);
 
@@ -485,32 +485,32 @@ namespace PK::Rendering::MeshUtility
         //Vertex_Full
         auto vertices = PK_CONTIGUOUS_ALLOC(Structs::Vertex_Full, vcount);
 
-        vertices[0].position = CG_FLOAT3_UP * radius;
+        vertices[0].position = PK_FLOAT3_UP * radius;
        
         for (int lat = 0; lat < lattc; lat++)
         {
-            float a1 = CG_FLOAT_PI * (float)(lat + 1) / (lattc + 1);
+            float a1 = PK_FLOAT_PI * (float)(lat + 1) / (lattc + 1);
             float sin1 = sin(a1);
             float cos1 = cos(a1);
 
             for (int lon = 0; lon <= longc; lon++)
             {
-                float a2 = CG_FLOAT_2PI * (float)(lon == longc ? 0 : lon) / longc;
+                float a2 = PK_FLOAT_2PI * (float)(lon == longc ? 0 : lon) / longc;
                 float sin2 = sin(a2);
                 float cos2 = cos(a2);
                 vertices[lon + lat * (longc + 1) + 1].position = float3(sin1 * cos2, cos1, sin1 * sin2) * radius;
             }
         }
 
-        vertices[vcount - 1].position = CG_FLOAT3_UP * -radius;
+        vertices[vcount - 1].position = PK_FLOAT3_UP * -radius;
 
         for (int n = 0; n < vcount; ++n)
         {
             vertices[n].normal = glm::normalize(vertices[n].position);
         }
 
-        vertices[0].texcoord = CG_FLOAT2_UP;
-        vertices[vcount - 1].texcoord = CG_FLOAT2_ZERO;
+        vertices[0].texcoord = PK_FLOAT2_UP;
+        vertices[vcount - 1].texcoord = PK_FLOAT2_ZERO;
         
         for (int lat = 0; lat < lattc; lat++)
         {
@@ -561,12 +561,12 @@ namespace PK::Rendering::MeshUtility
             indices[i++] = vcount - (lon + 1) - 1;
         }
 
-        BufferLayout layout = { {CG_TYPE::FLOAT3, "POSITION"}, {CG_TYPE::FLOAT3, "NORMAL"}, {CG_TYPE::FLOAT4, "TANGENT"}, {CG_TYPE::FLOAT2, "TEXCOORD0"} };
+        BufferLayout layout = { {PK_TYPE::FLOAT3, "POSITION"}, {PK_TYPE::FLOAT3, "NORMAL"}, {PK_TYPE::FLOAT4, "TANGENT"}, {PK_TYPE::FLOAT2, "TEXCOORD0"} };
 
         CalculateTangents(reinterpret_cast<float*>(vertices), layout.GetStride() / 4, 0, 3, 6, 10, indices, vcount, icount);
 
         auto mesh = CreateRef<Mesh>(CreateRef<VertexBuffer>(reinterpret_cast<float*>(vertices), vcount, layout, true), CreateRef<IndexBuffer>(indices, icount, true));
-        mesh->SetLocalBounds(PK::Math::Functions::CreateBoundsCenterExtents(offset, CG_FLOAT3_ONE * radius));
+        mesh->SetLocalBounds(PK::Math::Functions::CreateBoundsCenterExtents(offset, PK_FLOAT3_ONE * radius));
 
         free(vertices);
         free(indices);

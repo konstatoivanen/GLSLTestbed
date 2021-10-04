@@ -17,7 +17,7 @@ namespace PK::Rendering::PostProcessing
         OnUpdateParameters(config);
         m_passKeywords[0] = StringHashID::StringToID("AO_PASS0");
         m_passKeywords[1] = StringHashID::StringToID("AO_PASS1");
-        m_passBuffer = CreateRef<ComputeBuffer>(BufferLayout({ {CG_TYPE::HANDLE, "SOURCE"}, { CG_TYPE::FLOAT2, "OFFSET" }, { CG_TYPE::UINT2, "READWRITE" } }), 3, true, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
+        m_passBuffer = CreateRef<ComputeBuffer>(BufferLayout({ {PK_TYPE::HANDLE, "SOURCE"}, { PK_TYPE::FLOAT2, "OFFSET" }, { PK_TYPE::UINT2, "READWRITE" } }), 3, true, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
    
         auto divisor = m_downsample ? 2 : 1;
         auto descriptor = RenderTextureDescriptor();
@@ -57,9 +57,9 @@ namespace PK::Rendering::PostProcessing
         m_updateParams = false;
 
         auto bufferview = m_passBuffer->BeginMapBuffer<PassParams>();
-        bufferview[0] = { m_renderTargets[0]->GetColorBuffer(0)->GetBindlessHandleResident(), CG_FLOAT2_ZERO, {0, 0} };
-        bufferview[1] = { m_renderTargets[0]->GetColorBuffer(0)->GetBindlessHandleResident(), CG_FLOAT2_RIGHT * 2.0f, {0, 1} };
-        bufferview[2] = { m_renderTargets[1]->GetColorBuffer(0)->GetBindlessHandleResident(), CG_FLOAT2_UP * (2.0f * divisor), {1, 0} };
+        bufferview[0] = { m_renderTargets[0]->GetColorBuffer(0)->GetBindlessHandleResident(), PK_FLOAT2_ZERO, {0, 0} };
+        bufferview[1] = { m_renderTargets[0]->GetColorBuffer(0)->GetBindlessHandleResident(), PK_FLOAT2_RIGHT * 2.0f, {0, 1} };
+        bufferview[2] = { m_renderTargets[1]->GetColorBuffer(0)->GetBindlessHandleResident(), PK_FLOAT2_UP * (2.0f * divisor), {1, 0} };
         m_passBuffer->EndMapBuffer();
 
         GraphicsAPI::SetGlobalResourceHandle(HashCache::Get()->pk_ScreenOcclusion, m_renderTargets[1]->GetColorBuffer(0)->GetBindlessHandleResident());

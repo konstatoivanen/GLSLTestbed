@@ -24,7 +24,7 @@ namespace PK::Rendering::PostProcessing
         volumeDescriptor.wrapmodez = GL_CLAMP_TO_BORDER;
         volumeDescriptor.resolution = resolution;
         volumeDescriptor.miplevels = glm::min(7u, Functions::GetMaxMipLevelPow2(resolution));
-        volumeDescriptor.bordercolor = CG_COLOR_CLEAR;
+        volumeDescriptor.bordercolor = PK_COLOR_CLEAR;
         m_voxelsDiffuse = CreateRef<RenderBuffer>(volumeDescriptor);
 
         auto descriptor = RenderTextureDescriptor();

@@ -9,7 +9,7 @@ namespace PK::Rendering::Objects
 
     struct TextureDescriptor
     {
-        uint3 resolution = CG_UINT3_ZERO;
+        uint3 resolution = PK_UINT3_ZERO;
         GLenum colorFormat = GL_RGBA8;
         GLenum dimension = GL_TEXTURE_2D;
         GLenum wrapmodex = GL_REPEAT;
@@ -17,7 +17,7 @@ namespace PK::Rendering::Objects
         GLenum wrapmodez = GL_REPEAT;
         GLenum filtermag = GL_LINEAR;
         GLenum filtermin = GL_LINEAR;
-        color bordercolor = CG_COLOR_CLEAR;
+        color bordercolor = PK_COLOR_CLEAR;
         uint miplevels = 0;
         uint msaaSamples = 0;
         bool isVirtual = false;

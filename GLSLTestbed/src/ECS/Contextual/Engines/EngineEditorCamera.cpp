@@ -54,8 +54,8 @@ namespace PK::ECS::Engines
 		{
 			auto fov0 = m_fieldOfView;
 			auto fov1 = m_fieldOfView - fdelta;
-			auto fd0 = Functions::Cot(fov0 * CG_FLOAT_DEG2RAD * 0.5f);
-			auto fd1 = Functions::Cot(fov1 * CG_FLOAT_DEG2RAD * 0.5f);
+			auto fd0 = Functions::Cot(fov0 * PK_FLOAT_DEG2RAD * 0.5f);
+			auto fd1 = Functions::Cot(fov1 * PK_FLOAT_DEG2RAD * 0.5f);
 			auto zoomOffset = m_rotation * float3(0, 0, fd0 - fd1);
 
 			m_position += zoomOffset;
@@ -68,7 +68,7 @@ namespace PK::ECS::Engines
 		m_smoothRotation = glm::slerp(m_rotation, m_smoothRotation, m_rotationSmoothing * (1.0f - deltaTime));
 
 		auto proj = Functions::GetPerspective(m_fieldOfView, Application::GetWindow()->GetAspect(), m_zNear, m_zFar);
-		auto view = Functions::GetMatrixInvTRS(m_smoothPosition, m_smoothRotation, CG_FLOAT3_ONE);
+		auto view = Functions::GetMatrixInvTRS(m_smoothPosition, m_smoothRotation, PK_FLOAT3_ONE);
 		Rendering::GraphicsAPI::SetViewProjectionMatrices(view, proj);
 	}
 

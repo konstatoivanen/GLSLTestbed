@@ -9,7 +9,7 @@
 
 namespace PK::Math
 {
-    enum class CG_TYPE : uint16_t
+    enum class PK_TYPE : uint16_t
     {
         NONE = 0,
         FLOAT = 1,
@@ -36,39 +36,39 @@ namespace PK::Math
         INVALID = 0xFFFF
     };
     
-    constexpr unsigned short CG_TYPE_SIZE_FLOAT = 4;
-    constexpr unsigned short CG_TYPE_SIZE_FLOAT2 = 8;		// 4 * 2
-    constexpr unsigned short CG_TYPE_SIZE_FLOAT3 = 12;		// 4 * 3
-    constexpr unsigned short CG_TYPE_SIZE_FLOAT4 = 16;		// 4 * 4
-    constexpr unsigned short CG_TYPE_SIZE_FLOAT2X2 = 16; // 4 * 2 * 2
-    constexpr unsigned short CG_TYPE_SIZE_FLOAT3X3 = 36;	// 4 * 3 * 3
-    constexpr unsigned short CG_TYPE_SIZE_FLOAT4X4 = 64;	// 4 * 4 * 4
-    constexpr unsigned short CG_TYPE_SIZE_INT = 4;
-    constexpr unsigned short CG_TYPE_SIZE_INT2 = 8;			// 4 * 2
-    constexpr unsigned short CG_TYPE_SIZE_INT3 = 12;		// 4 * 3
-    constexpr unsigned short CG_TYPE_SIZE_INT4 = 16;		// 4 * 4
-    constexpr unsigned short CG_TYPE_SIZE_HANDLE = 8;
-    constexpr unsigned short CG_TYPE_SIZE_TEXTURE = 4;
-    constexpr unsigned short CG_TYPE_SIZE_IMAGEPARAMS = 21;
-    constexpr unsigned short CG_TYPE_SIZE_CONSTANT_BUFFER = 4;
-    constexpr unsigned short CG_TYPE_SIZE_COMPUTE_BUFFER = 4;
+    constexpr unsigned short PK_TYPE_SIZE_FLOAT = 4;
+    constexpr unsigned short PK_TYPE_SIZE_FLOAT2 = 8;		// 4 * 2
+    constexpr unsigned short PK_TYPE_SIZE_FLOAT3 = 12;		// 4 * 3
+    constexpr unsigned short PK_TYPE_SIZE_FLOAT4 = 16;		// 4 * 4
+    constexpr unsigned short PK_TYPE_SIZE_FLOAT2X2 = 16;    // 4 * 2 * 2
+    constexpr unsigned short PK_TYPE_SIZE_FLOAT3X3 = 36;	// 4 * 3 * 3
+    constexpr unsigned short PK_TYPE_SIZE_FLOAT4X4 = 64;	// 4 * 4 * 4
+    constexpr unsigned short PK_TYPE_SIZE_INT = 4;
+    constexpr unsigned short PK_TYPE_SIZE_INT2 = 8;			// 4 * 2
+    constexpr unsigned short PK_TYPE_SIZE_INT3 = 12;		// 4 * 3
+    constexpr unsigned short PK_TYPE_SIZE_INT4 = 16;		// 4 * 4
+    constexpr unsigned short PK_TYPE_SIZE_HANDLE = 8;
+    constexpr unsigned short PK_TYPE_SIZE_TEXTURE = 4;
+    constexpr unsigned short PK_TYPE_SIZE_IMAGEPARAMS = 21;
+    constexpr unsigned short PK_TYPE_SIZE_CONSTANT_BUFFER = 4;
+    constexpr unsigned short PK_TYPE_SIZE_COMPUTE_BUFFER = 4;
     
-    constexpr unsigned short CG_TYPE_COMPONENTS_FLOAT = 1;
-    constexpr unsigned short CG_TYPE_COMPONENTS_FLOAT2 = 2;
-    constexpr unsigned short CG_TYPE_COMPONENTS_FLOAT3 = 3;
-    constexpr unsigned short CG_TYPE_COMPONENTS_FLOAT4 = 4;
-    constexpr unsigned short CG_TYPE_COMPONENTS_FLOAT2X2 = 2;
-    constexpr unsigned short CG_TYPE_COMPONENTS_FLOAT3X3 = 3;
-    constexpr unsigned short CG_TYPE_COMPONENTS_FLOAT4X4 = 4;
-    constexpr unsigned short CG_TYPE_COMPONENTS_INT = 1;
-    constexpr unsigned short CG_TYPE_COMPONENTS_INT2 = 2;
-    constexpr unsigned short CG_TYPE_COMPONENTS_INT3 = 3;
-    constexpr unsigned short CG_TYPE_COMPONENTS_INT4 = 4;
-    constexpr unsigned short CG_TYPE_COMPONENTS_HANDLE = 1;
-    constexpr unsigned short CG_TYPE_COMPONENTS_TEXTURE = 1;
-    constexpr unsigned short CG_TYPE_COMPONENTS_IMAGEPARAMS = 1;
-    constexpr unsigned short CG_TYPE_COMPONENTS_CONSTANT_BUFFER = 1;
-    constexpr unsigned short CG_TYPE_COMPONENTS_COMPUTE_BUFFER = 1;
+    constexpr unsigned short PK_TYPE_COMPONENTS_FLOAT = 1;
+    constexpr unsigned short PK_TYPE_COMPONENTS_FLOAT2 = 2;
+    constexpr unsigned short PK_TYPE_COMPONENTS_FLOAT3 = 3;
+    constexpr unsigned short PK_TYPE_COMPONENTS_FLOAT4 = 4;
+    constexpr unsigned short PK_TYPE_COMPONENTS_FLOAT2X2 = 2;
+    constexpr unsigned short PK_TYPE_COMPONENTS_FLOAT3X3 = 3;
+    constexpr unsigned short PK_TYPE_COMPONENTS_FLOAT4X4 = 4;
+    constexpr unsigned short PK_TYPE_COMPONENTS_INT = 1;
+    constexpr unsigned short PK_TYPE_COMPONENTS_INT2 = 2;
+    constexpr unsigned short PK_TYPE_COMPONENTS_INT3 = 3;
+    constexpr unsigned short PK_TYPE_COMPONENTS_INT4 = 4;
+    constexpr unsigned short PK_TYPE_COMPONENTS_HANDLE = 1;
+    constexpr unsigned short PK_TYPE_COMPONENTS_TEXTURE = 1;
+    constexpr unsigned short PK_TYPE_COMPONENTS_IMAGEPARAMS = 1;
+    constexpr unsigned short PK_TYPE_COMPONENTS_CONSTANT_BUFFER = 1;
+    constexpr unsigned short PK_TYPE_COMPONENTS_COMPUTE_BUFFER = 1;
     
     typedef uint16_t ushort;
     typedef uint32_t uint;
@@ -100,80 +100,80 @@ namespace PK::Math
     
     typedef glm::quat quaternion;
     
-    constexpr float2 CG_FLOAT2_ZERO = { 0.0f, 0.0f };
-    constexpr float3 CG_FLOAT3_ZERO = { 0.0f, 0.0f, 0.0f };
-    constexpr float4 CG_FLOAT4_ZERO = { 0.0f, 0.0f, 0.0f, 0.0f };
+    constexpr float2 PK_FLOAT2_ZERO = { 0.0f, 0.0f };
+    constexpr float3 PK_FLOAT3_ZERO = { 0.0f, 0.0f, 0.0f };
+    constexpr float4 PK_FLOAT4_ZERO = { 0.0f, 0.0f, 0.0f, 0.0f };
     
-    constexpr int2 CG_INT2_ZERO = { 0, 0 };
-    constexpr int3 CG_INT3_ZERO = { 0, 0, 0 };
-    constexpr int4 CG_INT4_ZERO = { 0, 0, 0, 0 };
+    constexpr int2 PK_INT2_ZERO = { 0, 0 };
+    constexpr int3 PK_INT3_ZERO = { 0, 0, 0 };
+    constexpr int4 PK_INT4_ZERO = { 0, 0, 0, 0 };
     
-    constexpr uint2 CG_UINT2_ZERO = { 0, 0 };
-    constexpr uint3 CG_UINT3_ZERO = { 0, 0, 0 };
-    constexpr uint4 CG_UINT4_ZERO = { 0, 0, 0, 0 };
+    constexpr uint2 PK_UINT2_ZERO = { 0, 0 };
+    constexpr uint3 PK_UINT3_ZERO = { 0, 0, 0 };
+    constexpr uint4 PK_UINT4_ZERO = { 0, 0, 0, 0 };
     
-    constexpr bool2 CG_BOOL2_ZERO = { false, false };
-    constexpr bool3 CG_BOOL3_ZERO = { false, false, false };
-    constexpr bool4 CG_BOOL4_ZERO = { false, false, false, false };
+    constexpr bool2 PK_BOOL2_ZERO = { false, false };
+    constexpr bool3 PK_BOOL3_ZERO = { false, false, false };
+    constexpr bool4 PK_BOOL4_ZERO = { false, false, false, false };
     
-    constexpr float2 CG_FLOAT2_ONE = { 1.0f, 1.0f };
-    constexpr float3 CG_FLOAT3_ONE = { 1.0f, 1.0f, 1.0f };
-    constexpr float4 CG_FLOAT4_ONE = { 1.0f, 1.0f, 1.0f, 1.0f };
+    constexpr float2 PK_FLOAT2_ONE = { 1.0f, 1.0f };
+    constexpr float3 PK_FLOAT3_ONE = { 1.0f, 1.0f, 1.0f };
+    constexpr float4 PK_FLOAT4_ONE = { 1.0f, 1.0f, 1.0f, 1.0f };
     
-    constexpr int2 CG_INT2_ONE = { 1, 1 };
-    constexpr int3 CG_INT3_ONE = { 1, 1, 1 };
-    constexpr int4 CG_INT4_ONE = { 1, 1, 1, 1 };
+    constexpr int2 PK_INT2_ONE = { 1, 1 };
+    constexpr int3 PK_INT3_ONE = { 1, 1, 1 };
+    constexpr int4 PK_INT4_ONE = { 1, 1, 1, 1 };
     
-    constexpr uint2 CG_UINT2_ONE = { 1, 1 };
-    constexpr uint3 CG_UINT3_ONE = { 1, 1, 1 };
-    constexpr uint4 CG_UINT4_ONE = { 1, 1, 1, 1 };
+    constexpr uint2 PK_UINT2_ONE = { 1, 1 };
+    constexpr uint3 PK_UINT3_ONE = { 1, 1, 1 };
+    constexpr uint4 PK_UINT4_ONE = { 1, 1, 1, 1 };
     
-    constexpr bool2 CG_BOOL2_ONE = { true, true };
-    constexpr bool3 CG_BOOL3_ONE = { true, true, true };
-    constexpr bool4 CG_BOOL4_ONE = { true, true, true, true };
+    constexpr bool2 PK_BOOL2_ONE = { true, true };
+    constexpr bool3 PK_BOOL3_ONE = { true, true, true };
+    constexpr bool4 PK_BOOL4_ONE = { true, true, true, true };
     
-    constexpr float2 CG_FLOAT2_UP       = { 0.0f, 1.0f };
-    constexpr float2 CG_FLOAT2_DOWN     = { 0.0f, -1.0f };
-    constexpr float2 CG_FLOAT2_LEFT     = { -1.0f, 0.0f };
-    constexpr float2 CG_FLOAT2_RIGHT    = { 1.0f, 0.0f };
+    constexpr float2 PK_FLOAT2_UP       = { 0.0f, 1.0f };
+    constexpr float2 PK_FLOAT2_DOWN     = { 0.0f, -1.0f };
+    constexpr float2 PK_FLOAT2_LEFT     = { -1.0f, 0.0f };
+    constexpr float2 PK_FLOAT2_RIGHT    = { 1.0f, 0.0f };
     
-    constexpr float3 CG_FLOAT3_LEFT     = {  1.0f,  0.0f,  0.0f };
-    constexpr float3 CG_FLOAT3_RIGHT    = { -1.0f,  0.0f,  0.0f };
-    constexpr float3 CG_FLOAT3_UP       = {  0.0f,  1.0f,  0.0f };
-    constexpr float3 CG_FLOAT3_DOWN     = {  0.0f, -1.0f,  0.0f };
-    constexpr float3 CG_FLOAT3_FORWARD  = {  0.0f,  0.0f,  1.0f };
-    constexpr float3 CG_FLOAT3_BACKWARD = {  0.0f,  0.0f, -1.0f };
+    constexpr float3 PK_FLOAT3_LEFT     = {  1.0f,  0.0f,  0.0f };
+    constexpr float3 PK_FLOAT3_RIGHT    = { -1.0f,  0.0f,  0.0f };
+    constexpr float3 PK_FLOAT3_UP       = {  0.0f,  1.0f,  0.0f };
+    constexpr float3 PK_FLOAT3_DOWN     = {  0.0f, -1.0f,  0.0f };
+    constexpr float3 PK_FLOAT3_FORWARD  = {  0.0f,  0.0f,  1.0f };
+    constexpr float3 PK_FLOAT3_BACKWARD = {  0.0f,  0.0f, -1.0f };
     
-    constexpr quaternion CG_QUATERNION_IDENTITY =  { 1.0f, 0.0f, 0.0f, 0.0f };
+    constexpr quaternion PK_QUATERNION_IDENTITY =  { 1.0f, 0.0f, 0.0f, 0.0f };
     
-    constexpr float4x4 CG_FLOAT4X4_IDENTITY = float4x4(1.0f);
+    constexpr float4x4 PK_FLOAT4X4_IDENTITY = float4x4(1.0f);
     
-    constexpr color CG_COLOR_WHITE   = { 1.0f, 1.0f, 1.0f, 1.0f };
-    constexpr color CG_COLOR_GRAY    = { 0.5f, 0.5f, 0.5f, 1.0f };
-    constexpr color CG_COLOR_BLACK   = { 0.0f, 0.0f, 0.0f, 1.0f };
-    constexpr color CG_COLOR_CLEAR   = { 0.0f, 0.0f, 0.0f, 0.0f };
-    constexpr color CG_COLOR_RED     = { 1.0f, 0.0f, 0.0f, 1.0f };
-    constexpr color CG_COLOR_GREEN   = { 0.0f, 1.0f, 0.0f, 1.0f };
-    constexpr color CG_COLOR_BLUE    = { 0.0f, 0.0f, 1.0f, 1.0f };
-    constexpr color CG_COLOR_CYAN    = { 0.0f, 1.0f, 1.0f, 1.0f };
-    constexpr color CG_COLOR_MAGENTA = { 1.0f, 0.0f, 1.0f, 1.0f };
-    constexpr color CG_COLOR_YELLOW  = { 1.0f, 1.0f, 0.0f, 1.0f };
+    constexpr color PK_COLOR_WHITE   = { 1.0f, 1.0f, 1.0f, 1.0f };
+    constexpr color PK_COLOR_GRAY    = { 0.5f, 0.5f, 0.5f, 1.0f };
+    constexpr color PK_COLOR_BLACK   = { 0.0f, 0.0f, 0.0f, 1.0f };
+    constexpr color PK_COLOR_CLEAR   = { 0.0f, 0.0f, 0.0f, 0.0f };
+    constexpr color PK_COLOR_RED     = { 1.0f, 0.0f, 0.0f, 1.0f };
+    constexpr color PK_COLOR_GREEN   = { 0.0f, 1.0f, 0.0f, 1.0f };
+    constexpr color PK_COLOR_BLUE    = { 0.0f, 0.0f, 1.0f, 1.0f };
+    constexpr color PK_COLOR_CYAN    = { 0.0f, 1.0f, 1.0f, 1.0f };
+    constexpr color PK_COLOR_MAGENTA = { 1.0f, 0.0f, 1.0f, 1.0f };
+    constexpr color PK_COLOR_YELLOW  = { 1.0f, 1.0f, 0.0f, 1.0f };
     
-    constexpr color32 CG_COLOR32_WHITE   = { 255, 255, 255, 255 };
-    constexpr color32 CG_COLOR32_GRAY    = { 128, 128, 128, 255 };
-    constexpr color32 CG_COLOR32_BLACK   = {   0,   0,   0, 255 };
-    constexpr color32 CG_COLOR32_CLEAR   = {   0,   0,   0,   0 };
-    constexpr color32 CG_COLOR32_RED     = { 255,   0,   0, 255 };
-    constexpr color32 CG_COLOR32_GREEN   = {   0, 255,   0, 255 };
-    constexpr color32 CG_COLOR32_BLUE    = {   0,   0, 255, 255 };
-    constexpr color32 CG_COLOR32_CYAN    = {   0, 255, 255, 255 };
-    constexpr color32 CG_COLOR32_MAGENTA = { 255,   0, 255, 255 };
-    constexpr color32 CG_COLOR32_YELLOW  = { 255, 255,   0, 255 };
+    constexpr color32 PK_COLOR32_WHITE   = { 255, 255, 255, 255 };
+    constexpr color32 PK_COLOR32_GRAY    = { 128, 128, 128, 255 };
+    constexpr color32 PK_COLOR32_BLACK   = {   0,   0,   0, 255 };
+    constexpr color32 PK_COLOR32_CLEAR   = {   0,   0,   0,   0 };
+    constexpr color32 PK_COLOR32_RED     = { 255,   0,   0, 255 };
+    constexpr color32 PK_COLOR32_GREEN   = {   0, 255,   0, 255 };
+    constexpr color32 PK_COLOR32_BLUE    = {   0,   0, 255, 255 };
+    constexpr color32 PK_COLOR32_CYAN    = {   0, 255, 255, 255 };
+    constexpr color32 PK_COLOR32_MAGENTA = { 255,   0, 255, 255 };
+    constexpr color32 PK_COLOR32_YELLOW  = { 255, 255,   0, 255 };
     
-    constexpr float CG_FLOAT_PI = 3.14159274F;
-    constexpr float CG_FLOAT_2PI = 2.0f * 3.14159274F;
-    constexpr float CG_FLOAT_DEG2RAD = 0.0174532924F;
-    constexpr float CG_FLOAT_RAD2DEG = 57.29578F;
+    constexpr float PK_FLOAT_PI = 3.14159274F;
+    constexpr float PK_FLOAT_2PI = 2.0f * 3.14159274F;
+    constexpr float PK_FLOAT_DEG2RAD = 0.0174532924F;
+    constexpr float PK_FLOAT_RAD2DEG = 57.29578F;
     
     struct FrustumPlanes
     {
@@ -189,20 +189,20 @@ namespace PK::Math
         float3 GetCenter() const { return min + (max - min) * 0.5f; }
         float3 GetExtents() const { return (max - min) * 0.5f; }
     
-        BoundingBox() : min(CG_FLOAT3_ZERO), max(CG_FLOAT3_ZERO) {}
+        BoundingBox() : min(PK_FLOAT3_ZERO), max(PK_FLOAT3_ZERO) {}
         BoundingBox(const float3& _min, const float3& _max) : min(_min), max(_max) {}
     };
     
     namespace Convert
     {
-        ushort Size(CG_TYPE type);
-        ushort Components(CG_TYPE type);
-        ushort BaseType(CG_TYPE type);
-        ushort ToNativeEnum(CG_TYPE type);
-        CG_TYPE FromUniformType(ushort type);
-        CG_TYPE FromUniformString(const char* string);
-        std::string ToString(CG_TYPE type);
-        CG_TYPE FromString(const char* string);
+        ushort Size(PK_TYPE type);
+        ushort Components(PK_TYPE type);
+        ushort BaseType(PK_TYPE type);
+        ushort ToNativeEnum(PK_TYPE type);
+        PK_TYPE FromUniformType(ushort type);
+        PK_TYPE FromUniformString(const char* string);
+        std::string ToString(PK_TYPE type);
+        PK_TYPE FromString(const char* string);
     };
     
     namespace Functions

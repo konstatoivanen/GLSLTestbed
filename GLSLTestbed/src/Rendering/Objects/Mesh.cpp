@@ -44,14 +44,14 @@ namespace PK::Rendering::Objects
 		{
 			switch (element.Type)
 			{
-				case CG_TYPE::FLOAT:
-				case CG_TYPE::FLOAT2:
-				case CG_TYPE::FLOAT3:
-				case CG_TYPE::FLOAT4:
-				case CG_TYPE::INT:
-				case CG_TYPE::INT2:
-				case CG_TYPE::INT3:
-				case CG_TYPE::INT4:
+				case PK_TYPE::FLOAT:
+				case PK_TYPE::FLOAT2:
+				case PK_TYPE::FLOAT3:
+				case PK_TYPE::FLOAT4:
+				case PK_TYPE::INT:
+				case PK_TYPE::INT2:
+				case PK_TYPE::INT3:
+				case PK_TYPE::INT4:
 				{
 					glEnableVertexAttribArray(m_vertexBufferIndex);
 					glVertexAttribPointer(m_vertexBufferIndex,
@@ -63,8 +63,8 @@ namespace PK::Rendering::Objects
 					++m_vertexBufferIndex;
 					break;
 				}
-				case CG_TYPE::FLOAT3X3:
-				case CG_TYPE::FLOAT4X4:
+				case PK_TYPE::FLOAT3X3:
+				case PK_TYPE::FLOAT4X4:
 				{
 					auto count = Convert::Components(element.Type);
 	
@@ -148,8 +148,8 @@ void PK::Core::AssetImporters::Import(const std::string& filepath, Ref<PK::Rende
 	std::vector<uint> indices;
 	std::vector<PK::Rendering::Structs::IndexRange> submeshes;
 	std::vector<PK::Rendering::Structs::Vertex_Full> vertices;
-	float3 minpos =  CG_FLOAT3_ONE * std::numeric_limits<float>().max();
-	float3 maxpos = -CG_FLOAT3_ONE * std::numeric_limits<float>().max();
+	float3 minpos =  PK_FLOAT3_ONE * std::numeric_limits<float>().max();
+	float3 maxpos = -PK_FLOAT3_ONE * std::numeric_limits<float>().max();
 
 	auto invertices = attrib.vertices.data();
 	auto innormals = attrib.normals.data();
@@ -173,7 +173,7 @@ void PK::Core::AssetImporters::Import(const std::string& filepath, Ref<PK::Rende
 			PK::Rendering::Structs::Vertex_Full v;
 			v.position = *reinterpret_cast<float3*>(invertices + tri.vertex_index * 3);
 			v.normal = *reinterpret_cast<float3*>(innormals + tri.normal_index * 3);
-			v.tangent = CG_FLOAT4_ZERO;
+			v.tangent = PK_FLOAT4_ZERO;
 			v.texcoord = *reinterpret_cast<float2*>(inuvs + tri.texcoord_index * 2);
 			vertices.push_back(v);
 
@@ -185,7 +185,7 @@ void PK::Core::AssetImporters::Import(const std::string& filepath, Ref<PK::Rende
 	}
 
 
-	BufferLayout layout = { {CG_TYPE::FLOAT3, "POSITION"}, {CG_TYPE::FLOAT3, "NORMAL"}, {CG_TYPE::FLOAT4, "TANGENT"}, {CG_TYPE::FLOAT2, "TEXCOORD0"} };
+	BufferLayout layout = { {PK_TYPE::FLOAT3, "POSITION"}, {PK_TYPE::FLOAT3, "NORMAL"}, {PK_TYPE::FLOAT4, "TANGENT"}, {PK_TYPE::FLOAT2, "TEXCOORD0"} };
 
 	PK::Rendering::MeshUtility::CalculateTangents(reinterpret_cast<float*>(vertices.data()), layout.GetStride() / 4, 0, 3, 6, 10, indices.data(), (uint)vertices.size(), (uint)indices.size());
 
