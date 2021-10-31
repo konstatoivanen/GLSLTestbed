@@ -115,7 +115,13 @@ namespace PK::Rendering::Objects
     void Texture::SetBorderColor(const color& color)
     {
         m_descriptor.bordercolor = color;
-        glTexParameterfv(m_graphicsId, GL_TEXTURE_BORDER_COLOR, glm::value_ptr(color));
+        glTextureParameterfv(m_graphicsId, GL_TEXTURE_BORDER_COLOR, glm::value_ptr(color));
+    }
+
+    void Texture::SetAnistropy(float anistropy)
+    {
+        m_descriptor.anistropy = anistropy;
+        glTextureParameterf(m_graphicsId, GL_TEXTURE_MAX_ANISOTROPY, anistropy);
     }
     
     void Texture::SetDescriptor(const TextureDescriptor& descriptor)
@@ -160,6 +166,7 @@ namespace PK::Rendering::Objects
         glTextureParameteri(graphicsId, GL_TEXTURE_WRAP_T, descriptor.wrapmodey);
         glTextureParameteri(graphicsId, GL_TEXTURE_WRAP_R, descriptor.wrapmodez);
         glTextureParameterfv(graphicsId, GL_TEXTURE_BORDER_COLOR, glm::value_ptr(descriptor.bordercolor));
+        glTextureParameterf(graphicsId, GL_TEXTURE_MAX_ANISOTROPY, descriptor.anistropy);
 
         if (descriptor.isVirtual)
         {
@@ -411,6 +418,7 @@ namespace PK::Rendering::Objects
         desc->filtermin = GL_NEAREST;
         desc->filtermag = GL_LINEAR;
         desc->miplevels = tex1->numLevels;
+        desc->anistropy = 16.0f;
     
         if (tex1->numLevels > 1)
         {

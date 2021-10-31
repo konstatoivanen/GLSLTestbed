@@ -18,6 +18,7 @@ namespace PK::Rendering::Objects
         GLenum filtermag = GL_LINEAR;
         GLenum filtermin = GL_LINEAR;
         color bordercolor = PK_COLOR_CLEAR;
+        float anistropy = 1.0f;
         uint miplevels = 0;
         uint msaaSamples = 0;
         bool isVirtual = false;
@@ -68,6 +69,7 @@ namespace PK::Rendering::Objects
             void SetWrapMode(GLenum x, GLenum y, GLenum z);
             void SetFilterMode(GLenum min, GLenum mag);
             void SetBorderColor(const color& color);
+            void SetAnistropy(float anistropy);
 
         protected:
             void SetDescriptor(const TextureDescriptor& descriptor);

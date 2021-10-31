@@ -73,10 +73,7 @@ namespace PK::Core
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		m_window = glfwCreateWindow((int)props.width, (int)props.height, props.title.c_str(), nullptr, nullptr);
 	
-		if (!m_window)
-		{
-			PK_CORE_ERROR("Failed To Create Window");
-		}
+		PK_CORE_ASSERT(m_window, "Failed To Create Window");
 	
 		glfwSetWindowUserPointer(m_window, this);
 		SetActive();

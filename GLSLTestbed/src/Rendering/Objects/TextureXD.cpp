@@ -64,6 +64,7 @@ void PK::Core::AssetImporters::Import(const std::string& filepath, Utilities::Re
 	glTextureParameteri(texture->m_graphicsId, GL_TEXTURE_MIN_FILTER, texture->m_descriptor.filtermin);
 	glTextureParameteri(texture->m_graphicsId, GL_TEXTURE_MAG_FILTER, texture->m_descriptor.filtermag);
 	texture->SetWrapMode(wrapmode, wrapmode, wrapmode);
+	texture->SetAnistropy(texture->m_descriptor.anistropy);
 
 	ktxTexture_Destroy(kTexture);
 }
