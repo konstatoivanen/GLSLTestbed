@@ -24,7 +24,6 @@ namespace PK::Rendering::Objects
 		SetIndexBuffer(indexBuffer);
 	}
 	
-	
 	Mesh::~Mesh()
 	{
 		glDeleteVertexArrays(1, &m_graphicsId);

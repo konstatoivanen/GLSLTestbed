@@ -39,7 +39,6 @@ namespace PK::Rendering::PostProcessing
         {
             {PK_TYPE::HANDLE, "pk_Foreground"},
             {PK_TYPE::HANDLE, "pk_Background"},
-
             {PK_TYPE::FLOAT, "pk_FocalLength"},
             {PK_TYPE::FLOAT, "pk_FNumber"},
             {PK_TYPE::FLOAT, "pk_FilmHeight"},
@@ -68,7 +67,6 @@ namespace PK::Rendering::PostProcessing
         {
             m_paramsBuffer->SetResourceHandle(StringHashID::StringToID("pk_Foreground"), m_renderTarget1->GetColorBuffer(0)->GetBindlessHandleResident());
             m_paramsBuffer->SetResourceHandle(StringHashID::StringToID("pk_Background"), m_renderTarget1->GetColorBuffer(1)->GetBindlessHandleResident());
-            m_paramsBuffer->SetFloat(HashCache::Get()->pk_MaximumCoC, std::min(0.05f, 10.0f / source->GetHeight()));
             m_paramsBuffer->SetFloat(HashCache::Get()->pk_MaximumCoC, std::min(0.05f, 10.0f / source->GetHeight()));
             m_paramsBuffer->FlushBuffer();
         }

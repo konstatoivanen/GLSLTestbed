@@ -530,7 +530,11 @@ namespace PK::Rendering::Objects
 		{
 			std::string output;
 			size_t pos = 0;
-	
+
+			multicompilemap.variantcount = 1;
+			multicompilemap.directivecount = 0;
+			multicompilemap.keywords.clear();
+
 			while (true)
 			{
 				pos = Utilities::String::ExtractToken(pos, "#multi_compile ", source, output, false);
@@ -539,33 +543,24 @@ namespace PK::Rendering::Objects
 				{
 					break;
 				}
-	
-				keywords.push_back(Utilities::String::Split(output, " "));
-			}
-	
-			multicompilemap.variantcount = 1;
-			multicompilemap.directivecount = (uint32_t)keywords.size();
-			multicompilemap.keywords.clear();
-	
-			for (auto i = 0; i < keywords.size(); ++i)
-			{
-				auto& directive = keywords.at(i);
-	
+
+				auto directive = Utilities::String::Split(output, " ");
+
 				for (auto j = 0; j < directive.size(); ++j)
 				{
 					auto& keyword = directive.at(j);
-	
+
 					if (keyword != "_")
 					{
-						multicompilemap.keywords[StringHashID::StringToID(keyword)] = (i << 4) | (j & 0xF);
+						multicompilemap.keywords[StringHashID::StringToID(keyword)] = (multicompilemap.directivecount << 4) | (j & 0xF);
 					}
 				}
 	
-				multicompilemap.directives[i] = multicompilemap.variantcount & 0xFFFFFF;
+				keywords.push_back(directive);
+				multicompilemap.directives[multicompilemap.directivecount] = multicompilemap.variantcount & 0xFFFFFF;
 				multicompilemap.variantcount *= (uint32_t)directive.size();
+				multicompilemap.directivecount++;
 			}
-	
-			return;
 		}
 	
 		static void ExtractInstancingInfo(const std::string& source, const ShaderVariantMap& variants, ShaderInstancingInfo& instancingInfo)
