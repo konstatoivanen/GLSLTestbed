@@ -1,6 +1,8 @@
 # GLSLTestbed
 A Windows only OpenGL 4.6 renderer for testing different rendering techniques & solutions.
 
+## **Development of this project has been discontinued in favor of [PKRenderer](https://github.com/konstatoivanen/PKRenderer).**
+
 ![Preview](T_Preview_06.gif?raw=true "GI Preview")
 ![Preview](T_Preview_03.jpg?raw=true "Composition Preview")
 ![Preview](T_Preview_01.jpg?raw=true "HDRI Preview")
